@@ -11,6 +11,8 @@ import {
 } from "@cubist-labs/cubesigner-sdk";
 
 
+
+
  const SECRET_NAME: string = "CubeSignerToken0E1D2960-qP9dUIeYntSs";
 
 /**
