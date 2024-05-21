@@ -13,7 +13,7 @@ import {
 
 
 
- const SECRET_NAME: string = "CubeSignerToken0E1D2960-qP9dUIeYntSs";
+ const SECRET_NAME: string = "SchoolHackCubeSignerToken";
 
 /**
  * A session manager that reads a token from AWS Secrets Manager.
@@ -35,10 +35,7 @@ class ReadOnlyAwsSecretsSessionManager implements SessionManager {
     if (this.#cache !== undefined && !isStale(this.#cache)) {
       return this.#cache;
     }
-    console.log("Secrets Manager response",this.#cache);
-
     const res = await this.#sm.getSecretValue({ SecretId: this.#secretId });
-    console.log("Secrets Manager response",res);
     const decoded = Buffer.from(res.SecretString!, "base64").toString("utf8");
     this.#cache = JSON.parse(decoded) as SessionData;
     return this.#cache;
@@ -75,11 +72,9 @@ class ReadOnlyAwsSecretsSessionManager implements SessionManager {
  */
 export async function getCsClient() {
   try{
-    console.log("Creating client");
   const client = await cs.CubeSignerClient.create(
     new ReadOnlyAwsSecretsSessionManager(SECRET_NAME),
   );
-  console.log("Client created",client);
   const org = client.org();
   return {client,org};
 }

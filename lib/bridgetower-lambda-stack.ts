@@ -2,58 +2,76 @@ import * as cdk from "aws-cdk-lib";
 import { Stack, StackProps } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import * as path from "path";
+import { Vpc } from "aws-cdk-lib/aws-ec2";
+import { SecurityGroup } from "aws-cdk-lib/aws-ec2";
+export interface BridgeTowerStackProps extends StackProps {}
 
-export interface BridgeTowerStackProps extends StackProps {
-  /** Retention policy for this stack */
-}
-
+const DB_CONFIG = {
+  DB_HOST:
+    "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
+  DB_DATABASE: "dev",
+  DB_PORT: "5432",
+};
 export class BridgeTowerLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps) {
     super(scope, id, props);
 
-    //new createCubistUser.createCubistUser(this, 'createCubistUser');
-    const createUserLambda = new lambda.Function(this, "getWallet", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: "getWallet.handler",
-      code: lambda.Code.fromAsset("resources"),
-      environment: {
-        ORG_ID: "Org#9716339d-a9af-4789-ba81-9747948fc026",
-        CS_API_ROOT: "http://gamma.signer.cubist.dev",
-        DB_HOST:
-          "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_USER: "postgres",
-        DB_PASSWORD: "Yp+3-A}BJR2WH<7OaL8aWoAjl~~2",
-        DB_DATABASE: "dev",
-        DB_PORT: "5432",
-      },
+    const DefaultVpc = Vpc.fromVpcAttributes(this, "vpcdev", {
+      vpcId: "vpc-02d0d267eb1e078f8",
+      availabilityZones: cdk.Fn.getAzs(),
+      privateSubnetIds: [
+        "subnet-00a4eb60fb117cdd4",
+        "subnet-04d671deee8eb1df2",
+      ],
     });
 
-    new lambda.Function(this, "authentication", {
+    const securityGroups = [
+      SecurityGroup.fromSecurityGroupId(
+        this,
+        "lambda-rds-6",
+        "sg-0f6682da4f545d758"
+      ),
+      SecurityGroup.fromSecurityGroupId(
+        this,
+        "default",
+        "sg-05c044e1e87960084"
+      ),
+    ];
+
+    const createUserLambda = new NodejsFunction(this, "getWallet", {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: "authentication.handler",
-      code: lambda.Code.fromAsset("resources"),
+      entry: path.join(__dirname, "../resources/getWallet.ts"),
+      timeout: cdk.Duration.minutes(15),
       environment: {
+        ORG_ID: "Org#ba31ffbb-a118-447b-826b-46f772c95291", //schoolhack
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
         DB_HOST:
           "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_USER: "postgres",
-        DB_PASSWORD: "Yp+3-A}BJR2WH<7OaL8aWoAjl~~2",
         DB_DATABASE: "dev",
         DB_PORT: "5432",
       },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups,
     });
 
-    new lambda.Function(this, "getWalletBalance", {
+    new NodejsFunction(this, "authentication", {
       runtime: lambda.Runtime.NODEJS_18_X,
-      handler: "getWalletBalance.handler",
-      code: lambda.Code.fromAsset("resources"),
-      environment: {
-        DB_HOST:
-          "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_USER: "postgres",
-        DB_PASSWORD: "Yp+3-A}BJR2WH<7OaL8aWoAjl~~2",
-        DB_DATABASE: "dev",
-        DB_PORT: "5432",
-      },
+      entry: path.join(__dirname, "../resources/authentication.ts"),
+      timeout: cdk.Duration.minutes(15),
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups,
+    });
+
+    new NodejsFunction(this, "getWalletBalance", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/getWalletBalance.ts"),
+      timeout: cdk.Duration.minutes(15),
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups,
     });
 
     // Defines the function url for the AWS Lambda

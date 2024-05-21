@@ -16,7 +16,7 @@ export const handler = async (event: any) => {
     console.log(event);
 
     const wallet = await getBalance(
-      event.identity as tenant,
+      event.identity.resolverContext as tenant,
       event.arguments?.walletAddress
     );
 
@@ -52,7 +52,7 @@ async function getBalance(
     let balance = 0;
     console.log(wallet, "Wallet");
     for(const token of wallet){
-      if (token.chaintype === "SOL") {
+      if (token.symbol === "SOL") {
         balance = await getSolBalance(walletAddress);
         token.balance = balance;
       } else {
@@ -74,29 +74,19 @@ async function getBalance(
 
 async function getSolBalance(address: string) {
   try {
-    console.log("Address", address);
     const pubkey = new PublicKey(address);
-    console.log("pubkey", pubkey);
-
     const connection = await getSolConnection();
-    console.log(connection, "connection");
-    console.log(await connection.getBalance(pubkey), "connection");
-
     const balance = (await connection.getBalance(pubkey)) / LAMPORTS_PER_SOL;
-    console.log("Balance", balance);
     return balance;
   } catch (err) {
     console.log(err);
-    //throw err;
     return 0;
   }
 }
 
 async function getSplTokenBalance(wallet: string, contractAddress: string) {
     try{
-  
-  wallet = "9CTUUQ17e2nghqswwLkNqazUw6pVDvUaWNo4wjWCPSwz";
-  if (contractAddress === "") {
+    if (contractAddress === "") {
     return 0; //no contract address
   } else {
     const solanaConnection = await getSolConnection();

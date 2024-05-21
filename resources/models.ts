@@ -20,14 +20,14 @@ export interface tenant {
 
 export interface wallet {
   id?: number;
-  customerid: number;
-  walletaddress: string;
+  customerid?: number;
+  walletaddress?: string;
   symbol: string;
   walletid: string;
-  chaintype: string;
-  wallettype: string;
-  isactive: boolean;
-  createdat: string;
+  chaintype?: string;
+  wallettype?: string;
+  isactive?: boolean;
+  createdat?: string;
   balance?: number;
   decimalprecision?: number;
   contractaddress?: string;

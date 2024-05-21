@@ -7,7 +7,7 @@ import { BridgeTowerLambdaStack } from '../lib/bridgetower-lambda-stack';
 const app = new App();
 new BridgeTowerLambdaStack(app, 'BridgeTowerLambdaStack', {
  // Defines the function url for the AWS Lambda
- 
+
 
 })
 
