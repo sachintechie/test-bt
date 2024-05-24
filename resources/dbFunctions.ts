@@ -6,13 +6,13 @@ export async function createCustomer(customer: customer) {
   try {
     console.log("Creating customer", customer);
     let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isactive)
-      VALUES ('${customer.tenantuserid}',${customer.tenantid}, '${customer.emailid}','${customer.name}','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
+      VALUES ('${customer.tenantuserid}','${customer.tenantid}', '${customer.emailid}','${customer.name}','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
         console.log("Query", query);
     const res = await executeQuery(query);
     console.log("customer created Res", res);
     const customerRow = res.rows[0];
     console.log("Customer Row", customerRow);
-    return parseInt(customerRow.id);
+    return customerRow.id;
   } catch (err) {
     console.log(err);
     throw err;
@@ -22,16 +22,16 @@ export async function createCustomer(customer: customer) {
 export async function createWallet(
   org: any,
   cubistUserId: string,
-  customerId: number,
+  customerId: string,
   chainType : string
 ) {
   try {
     console.log("Creating wallet", cubistUserId, customerId);
     // Create a key for the OIDC user
     const key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
-    console.log("Created key", key.cached.type);
+    // console.log("Created key", key.PublicKey.toString());
     let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
-      VALUES (${customerId},'${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+      VALUES ('${customerId}','${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
        console.log("Query", query);
     const res = await executeQuery(query);
     console.log("wallet created Res", res);
@@ -53,7 +53,7 @@ export async function getWalletByCustomer(
 ) {
   try {
     let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,emailid from customer  INNER JOIN wallet 
-      ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND wallet.chaintype ='${chaintype}' AND customer.tenantid = ${tenant.id};`;
+      ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND wallet.chaintype ='${chaintype}' AND customer.tenantid = '${tenant.id}';`;
     console.log("Query", query);
       const res = await executeQuery(query);
     
@@ -92,10 +92,10 @@ export async function getWalletAndTokenByWalletAddress(
   }
 }
 
-export async function getCustomer(tenantUserId: string, tenantId: number) {
+export async function getCustomer(tenantUserId: string, tenantId: string) {
   try {
     console.log("Tenant User Id", tenantUserId, tenantId);
-    let query = `SELECT * FROM customer WHERE tenantuserid = '${tenantUserId}' AND tenantid = ${tenantId};`;
+    let query = `SELECT * FROM customer WHERE tenantuserid = '${tenantUserId}' AND tenantid = '${tenantId}';`;
     console.log("Query", query);
     const res = await executeQuery(query);
     const customerRow = res.rows[0];
