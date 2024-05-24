@@ -14,7 +14,7 @@ export const handler = async (event: any) => {
 
         const tenant = res.rows[0];
         console.log(tenant);
-
+        
         return {
           isAuthorized: true,
           resolverContext: {

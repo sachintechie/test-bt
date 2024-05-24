@@ -6,7 +6,7 @@ export async function createCustomer(customer: customer) {
   try {
     console.log("Creating customer", customer);
     let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isactive)
-      VALUES (${customer.tenantuserid},${customer.tenantid}, '${customer.emailid}','${customer.name}','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
+      VALUES ('${customer.tenantuserid}',${customer.tenantid}, '${customer.emailid}','${customer.name}','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
         console.log("Query", query);
     const res = await executeQuery(query);
     console.log("customer created Res", res);
@@ -31,7 +31,7 @@ export async function createWallet(
     const key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     console.log("Created key", key.cached.type);
     let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
-      VALUES (${customerId},'${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,wallettype; `;
+      VALUES (${customerId},'${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
        console.log("Query", query);
     const res = await executeQuery(query);
     console.log("wallet created Res", res);
@@ -39,7 +39,7 @@ export async function createWallet(
     const walletRow = res.rows[0];
     console.log("wallet Row", walletRow);
 
-    return to_wallet(walletRow);
+    return walletRow;
   } catch (err) {
     console.log(err);
     //return null;
@@ -52,10 +52,13 @@ export async function getWalletByCustomer(
   tenant: tenant
 ) {
   try {
-    let query = `select * from customer  INNER JOIN wallet 
-      ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND wallet.chaintype ='${chaintype}' customer.tenantid = '${tenant.id}';`;
-    const res = await executeQuery(query);
+    let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,emailid from customer  INNER JOIN wallet 
+      ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND wallet.chaintype ='${chaintype}' AND customer.tenantid = ${tenant.id};`;
+    console.log("Query", query);
+      const res = await executeQuery(query);
+    
     const walletRow = res.rows[0];
+    console.log("Wallet Row", walletRow);
     return walletRow;
   } catch (err) {
     console.log(err);
@@ -66,12 +69,20 @@ export async function getWalletByCustomer(
 
 export async function getWalletAndTokenByWalletAddress(
   walletAddress: string,
-  tenant: tenant
+  tenant: tenant,
+  symbol: string
 ) {
   try {
-    console.log("Wallet Address", walletAddress);
-    let query = `select * from wallet  INNER JOIN token 
-    ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}';`;
+    console.log("Wallet Address", walletAddress,symbol);
+    let query;
+    if(symbol!=null && symbol!=""){
+   query = `select wallet.walletaddress,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
+    ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}' AND token.symbol = '${symbol}';`;
+    }
+    else{
+      query = `select wallet.walletaddress,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
+      ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}';`;
+    }
     const res = await executeQuery(query);
     const walletRow = res.rows;
     return to_wallet_token(walletRow);
@@ -84,7 +95,8 @@ export async function getWalletAndTokenByWalletAddress(
 export async function getCustomer(tenantUserId: string, tenantId: number) {
   try {
     console.log("Tenant User Id", tenantUserId, tenantId);
-    let query = `SELECT * FROM customer WHERE tenantuserid = '${tenantUserId}' AND tenantid = '${tenantId}';`;
+    let query = `SELECT * FROM customer WHERE tenantuserid = '${tenantUserId}' AND tenantid = ${tenantId};`;
+    console.log("Query", query);
     const res = await executeQuery(query);
     const customerRow = res.rows[0];
     return to_customer(customerRow);

@@ -17,37 +17,36 @@ export const handler = async (event: any) => {
 
     const wallet = await getBalance(
       event.identity.resolverContext as tenant,
-      event.arguments?.walletAddress
+      event.arguments?.input?.walletAddress,
+      event.arguments?.input?.symbol
     );
-
     return {
       status: 200,
-      body: {
         data: wallet,
         error: null,
-      },
+      
     };
   } catch (err) {
     console.log("In catch Block Error", err);
     return {
       status: 400,
-      body: {
         data: null,
         error: err,
-      },
+      
     };
   }
 };
 
 async function getBalance(
   tenant: tenant,
-  walletAddress: string) {
+  walletAddress: string,symbol : string) {
   console.log("Wallet Address", walletAddress);
 
   try {
     const wallet = await getWalletAndTokenByWalletAddress(
       walletAddress,
-      tenant
+      tenant,
+      symbol
     );
     let balance = 0;
     console.log(wallet, "Wallet");

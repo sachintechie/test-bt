@@ -44,6 +44,7 @@ export class BridgeTowerLambdaStack extends Stack {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/getWallet.ts"),
       timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
       environment: {
         ORG_ID: "Org#ba31ffbb-a118-447b-826b-46f772c95291", //schoolhack
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
@@ -69,6 +70,7 @@ export class BridgeTowerLambdaStack extends Stack {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/getWalletBalance.ts"),
       timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
       environment: DB_CONFIG,
       vpc: DefaultVpc,
       securityGroups: securityGroups,
