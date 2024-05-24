@@ -18,7 +18,7 @@ export const handler = async (event: any) => {
         return {
           isAuthorized: true,
           resolverContext: {
-            id: tenant.id,
+            id: parseInt(tenant.id),
             name: tenant.name,
             api_key: tenant.api_key,
             logo: tenant.logo,
