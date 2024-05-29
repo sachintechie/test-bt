@@ -27,7 +27,7 @@ const env: any = {
 
 export const handler = async (event: any,context:any) => {
   try{
-// 1. Collect values from events
+    // 1. Collect values from events
     const mintAddress = new PublicKey(event.mintAddress);
     const amount=event.amount;
     const oidcToken=event.oidcToken;
