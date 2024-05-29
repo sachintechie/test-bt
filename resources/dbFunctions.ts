@@ -6,8 +6,10 @@ export async function createCustomer(customer: customer) {
   try {
     console.log("Creating customer", customer);
     let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isactive)
-      VALUES ('${customer.tenantuserid}','${customer.tenantid}', '${customer.emailid}','${customer.name}','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
-        console.log("Query", query);
+      VALUES ('${customer.tenantuserid}','${customer.tenantid}', '${
+        customer.emailid
+      }','${customer.name}','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
+    console.log("Query", query);
     const res = await executeQuery(query);
     console.log("customer created Res", res);
     const customerRow = res.rows[0];
@@ -19,20 +21,17 @@ export async function createCustomer(customer: customer) {
   }
 }
 
-export async function createWallet(
-  org: any,
-  cubistUserId: string,
-  customerId: string,
-  chainType : string
-) {
+export async function createWallet(org: any, cubistUserId: string, customerId: string, chainType: string) {
   try {
     console.log("Creating wallet", cubistUserId, customerId);
     // Create a key for the OIDC user
     const key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     // console.log("Created key", key.PublicKey.toString());
     let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
-      VALUES ('${customerId}','${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
-       console.log("Query", query);
+      VALUES ('${customerId}','${key.materialId}','${
+        key.id
+      }','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+    console.log("Query", query);
     const res = await executeQuery(query);
     console.log("wallet created Res", res);
 
@@ -46,46 +45,64 @@ export async function createWallet(
     throw err;
   }
 }
-export async function getWalletByCustomer(
-  tenantUserId: string,
-  chaintype: string,
-  tenant: tenant
+
+export async function insertTransaction(
+  senderWalletAddress: string,
+  receiverWalletaddress: string,
+  amount: number,
+  chainType: string,
+  symbol: string,
+  txhash: string,
+  tenantId: string,
+  customerId: string,
+  tokenId: string,
+  tenantUserId: string
 ) {
+  try {
+    console.log("creating transaction", receiverWalletaddress, customerId);
+    let query = `INSERT INTO transaction (customerid,tokenid,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
+      VALUES ('${customerId}','${tokenId}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
+      customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tokenid,tenantuserid; `;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+    console.log("transaction created Res", res);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
     let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,emailid from customer  INNER JOIN wallet 
       ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND wallet.chaintype ='${chaintype}' AND customer.tenantid = '${tenant.id}';`;
     console.log("Query", query);
-      const res = await executeQuery(query);
-    
+    const res = await executeQuery(query);
+
     const walletRow = res.rows[0];
     console.log("Wallet Row", walletRow);
     return walletRow;
   } catch (err) {
     console.log(err);
-    //return null;
     throw err;
   }
 }
 
-export async function getWalletAndTokenByWalletAddress(
-  walletAddress: string,
-  tenant: tenant,
-  symbol: string
-) {
+export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
-    console.log("Wallet Address", walletAddress,symbol);
+    console.log("Wallet Address", walletAddress, symbol);
     let query;
-    if(symbol!=null && symbol!=""){
-   query = `select wallet.walletaddress,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
+    if (symbol != null && symbol != "") {
+      query = `select wallet.walletaddress,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
     ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}' AND token.symbol = '${symbol}';`;
-    }
-    else{
+    } else {
       query = `select wallet.walletaddress,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
       ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}';`;
     }
     const res = await executeQuery(query);
     const walletRow = res.rows;
-    return to_wallet_token(walletRow);
+    return walletRow;
   } catch (err) {
     console.log(err);
     throw err;
@@ -103,7 +120,7 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
   } catch (err) {
     console.log(err);
     // throw err;
-     return null;
+    return null;
   }
 }
 
@@ -130,7 +147,7 @@ const to_wallet = (itemRow: wallet): wallet => {
     isactive: itemRow.isactive,
     createdat: itemRow.createdat,
     chaintype: itemRow.chaintype,
-    wallettype: itemRow.wallettype,
+    wallettype: itemRow.wallettype
   };
 };
 const to_wallet_token = (itemRow: wallet[]): wallet[] => {
@@ -146,7 +163,7 @@ const to_wallet_token = (itemRow: wallet[]): wallet[] => {
       chaintype: item.chaintype,
       wallettype: item.wallettype,
       decimalprecision: item.decimalprecision,
-      contractaddress: item.contractaddress,
+      contractaddress: item.contractaddress
     };
   });
   return data;
@@ -160,7 +177,7 @@ const to_customer = (itemRow: customer): customer => {
     name: itemRow.name,
     cubistuserid: itemRow.cubistuserid,
     isactive: itemRow.isactive,
-    createdat: itemRow.createdat,
+    createdat: itemRow.createdat
   };
 };
 
@@ -173,6 +190,6 @@ const to_token = (itemRow: token): token => {
     contractaddress: itemRow.contractaddress,
     decimalprecision: itemRow.decimalprecision,
     isactive: itemRow.isactive,
-    createdat: itemRow.createdat,
+    createdat: itemRow.createdat
   };
 };

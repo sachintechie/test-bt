@@ -2,18 +2,9 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 // import { SecretsManager } from 'aws-sdk';
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import {
-  isStale,
-  metadata,
-  type SessionData,
-  type SessionManager,
-  type SessionMetadata,
-} from "@cubist-labs/cubesigner-sdk";
+import { isStale, metadata, type SessionData, type SessionManager, type SessionMetadata } from "@cubist-labs/cubesigner-sdk";
 
-
-
-
- const SECRET_NAME: string = "SchoolHackCubeSignerToken";
+const SECRET_NAME: string = "SchoolHackCubeSignerToken";
 
 /**
  * A session manager that reads a token from AWS Secrets Manager.
@@ -31,7 +22,6 @@ class ReadOnlyAwsSecretsSessionManager implements SessionManager {
    * @return {SessionData} The current session data
    */
   async sessionData(): Promise<SessionData> {
-
     if (this.#cache !== undefined && !isStale(this.#cache)) {
       return this.#cache;
     }
@@ -71,18 +61,12 @@ class ReadOnlyAwsSecretsSessionManager implements SessionManager {
  * about the current user
  */
 export async function getCsClient() {
-  try{
-  const client = await cs.CubeSignerClient.create(
-    new ReadOnlyAwsSecretsSessionManager(SECRET_NAME),
-  );
-  const org = client.org();
-  return {client,org};
+  try {
+    const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(SECRET_NAME));
+    const org = client.org();
+    return { client, org };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
 }
-catch(err){
-  console.error(err);
-  throw err;
-}
-}
-
-
-

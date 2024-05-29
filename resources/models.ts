@@ -31,7 +31,6 @@ export interface wallet {
   balance?: number;
   decimalprecision?: number;
   contractaddress?: string;
-
 }
 
 export interface token {
