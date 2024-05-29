@@ -7,6 +7,7 @@
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.577.0",
     "@cubist-labs/cubesigner-sdk": "^0.4.24-0",
+    "@solana/spl-token": "^0.4.6",
     "@solana/web3.js": "^1.91.8",
     "aws-sdk": "^2.1622.0",
     "pg": "^8.11.5"

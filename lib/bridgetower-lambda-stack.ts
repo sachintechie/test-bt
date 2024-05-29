@@ -90,6 +90,23 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
+    new NodejsFunction(this, "gaslessTransferToken", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/gaslessTransferToken.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        ORG_ID: "Org#ba31ffbb-a118-447b-826b-46f772c95291", //schoolhack
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
+        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
+        DB_DATABASE: "dev",
+        DB_PORT: "5432",
+      },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups,
+    });
+
     // Defines the function url for the AWS Lambda
     const getWalletLambdaUrl = getWalletLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE

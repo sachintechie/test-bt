@@ -1,10 +1,10 @@
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
-// import { SecretsManager } from 'aws-sdk';
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { isStale, metadata, type SessionData, type SessionManager, type SessionMetadata } from "@cubist-labs/cubesigner-sdk";
 
 const SECRET_NAME: string = "SchoolHackCubeSignerToken";
+const PAYER_SECRET_NAME: string = "SchoolHackGasPayerCubistToken";
 
 /**
  * A session manager that reads a token from AWS Secrets Manager.
@@ -70,3 +70,51 @@ export async function getCsClient() {
     throw err;
   }
 }
+
+
+/**
+ * Use a CubeSigner token from AWS Secrets Manager to retrieve information
+ * about the current user
+ */
+export async function getPayerCsSignerKey() {
+  try{
+    console.log("Creating client");
+    const client = await cs.CubeSignerClient.create(
+      new ReadOnlyAwsSecretsSessionManager(PAYER_SECRET_NAME),
+    );
+    console.log("Client created",client);
+    const keys=await client.sessionKeys()
+    console.log("Keys",keys);
+    console.log("Key",keys[0].publicKey.toString());
+    return keys[0]
+  }
+  catch(err){
+    console.error(err);
+    throw err;
+  }
+}
+
+/**
+ * Get the CubeSigner key from an OIDC token
+ * @param env
+ * @param orgId
+ * @param oidcToken
+ * @param scopes
+ */
+export async function getCsSignerKeyFromOidcToken(env:cs.EnvInterface,orgId: string, oidcToken: string,scopes: any) {
+  try {
+    console.log("Logging in with OIDC");
+    const resp = await cs.CubeSignerClient.createOidcSession(env, orgId, oidcToken, scopes);
+    const csClient = await cs.CubeSignerClient.create(resp.data());
+    const keys = await csClient.sessionKeys()
+    console.log("Keys", keys);
+    console.log("Key", keys[0].publicKey.toString());
+    return keys[0]
+  }catch(err){
+    console.error(err);
+    throw err;
+  }
+}
+
+
+
