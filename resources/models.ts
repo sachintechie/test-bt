@@ -43,3 +43,10 @@ export interface token {
   createdat: string;
   decimalprecision: number;
 }
+
+
+export enum TransactionStatus{
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+  PENDING = "PENDING"
+}

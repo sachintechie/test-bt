@@ -1,4 +1,4 @@
-import { getWalletAndTokenByWalletAddress } from "./dbFunctions";
+import { getTransactionsByWalletAddress, getWalletAndTokenByWalletAddress } from "./dbFunctions";
 import { tenant } from "./models";
 
 export const handler = async (event: any) => {
@@ -29,6 +29,19 @@ export const handler = async (event: any) => {
   
     try {
       const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant,"");
+      console.log(wallet, "Wallet");
+      return wallet;
+    } catch (err) {
+      console.log(err);
+      throw err;
+    }
+  }
+
+  async function getTransactions(tenant: tenant, walletAddress: string) {
+    console.log("Wallet Address", walletAddress);
+  
+    try {
+      const wallet = await getTransactionsByWalletAddress(walletAddress, tenant,"");
       console.log(wallet, "Wallet");
       return wallet;
     } catch (err) {

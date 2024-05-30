@@ -1,61 +1,84 @@
-import {
-  Connection,
-  Transaction,
-  PublicKey,
-  type Commitment
-} from '@solana/web3.js';
+import { Connection, Transaction, PublicKey, type Commitment } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   createAssociatedTokenAccountInstruction,
-  createTransferInstruction, getAssociatedTokenAddressSync,
+  createTransferInstruction,
+  getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
   TokenAccountNotFoundError,
   TokenInvalidAccountOwnerError,
-  TokenInvalidMintError, TokenInvalidOwnerError,
-  Account, getAccount
-} from '@solana/spl-token';
+  TokenInvalidMintError,
+  TokenInvalidOwnerError,
+  Account,
+  getAccount
+} from "@solana/spl-token";
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import {getCsSignerKeyFromOidcToken, getPayerCsSignerKey} from "./CubeSignerClient";
+import { oidcLogin, getPayerCsSignerKey } from "./CubeSignerClient";
 // Define the network to connect to (e.g., mainnet-beta, testnet, devnet)
-const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? 'https://api.devnet.solana.com'; // Use 'https://api.mainnet-beta.solana.com' for mainnet
-const connection = new Connection(SOLANA_NETWORK_URL, 'confirmed');
+const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
+const connection = new Connection(SOLANA_NETWORK_URL, "confirmed");
 const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
-  SignerApiRoot:
-    process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev",
+  SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
 
-export const handler = async (event: any,context:any) => {
-  try{
+export async function transferSPLToken(
+  senderWalletAddress: string,
+  receiverWalletAddress: string,
+  amount: number,
+  decimalPrecision: number,
+  oidcToken: string,
+  chainType: string,
+  contractAddress: string,
+  tenantId: string
+) {
+  try {
     // 1. Collect values from events
-    const mintAddress = new PublicKey(event.mintAddress);
-    const amount=event.amount;
-    const oidcToken=event.oidcToken;
-    const recipientPublicKey=new PublicKey(event.recipientPublicKey)
+    const mintAddress = new PublicKey(contractAddress);
+    //let sendingAmount = parseFloat(amount.toString());
+    console.log("decimalPrecision", decimalPrecision);
+    let LAMPORTS_PER_SPLTOKEN = 10 ** decimalPrecision;
+    console.log("LAMPORTS_PER_SPLTOKEN", LAMPORTS_PER_SPLTOKEN);
 
-    // 2. Get the sender key from oidcToken
-    const senderKey = await getCsSignerKeyFromOidcToken(env, ORG_ID, oidcToken,['sign:*']);
-    const senderPublicKey=new PublicKey(senderKey.materialId)
+    const sendingAmount = (amount * LAMPORTS_PER_SPLTOKEN);
+    console.log("Sending Amount", sendingAmount);
+    console.log("Amount", amount);
+
+    const recipientPublicKey = new PublicKey(receiverWalletAddress);
+
+    // 2. Get the oidcClient key from oidcToken
+    const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
+    if (!oidcClient) {
+      return {
+        trxHash: null,
+        error: "Please send a valid identity token for verification"
+      };
+    }
+    const keys = await oidcClient.sessionKeys();
+    const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
+
+    const senderPublicKey = new PublicKey(senderKey.materialId);
 
     // 3. Get the payer key
-    const payerKey=await getPayerCsSignerKey()
-    const payerPublicKey=new PublicKey(payerKey.materialId)
-
-
+    const payerKey = await getPayerCsSignerKey(chainType, tenantId);
+    if (payerKey.key == null) {
+      return {
+        trxHash: null,
+        error: payerKey.error}
+      }
+    const payerPublicKey = new PublicKey(payerKey.key.materialId);
+     //Check sol balance on payer address
+    const payerSolBalance = await connection.getBalance(payerPublicKey);
+    if(payerSolBalance < 0.05){
+      return {
+        trxHash: null,
+        error: "Insufficient balance in payer account"
+      }
+    }
     // 4. Get or create the associated token accounts for the sender and recipient
-    const senderTokenAccount = await getOrCreateAssociatedTokenAccount(
-      connection,
-      payerKey,
-      mintAddress,
-      senderPublicKey
-    );
+    const senderTokenAccount = await getOrCreateAssociatedTokenAccount(connection, payerKey.key, mintAddress, senderPublicKey);
 
-    const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
-      connection,
-      payerKey,
-      mintAddress,
-      recipientPublicKey
-    );
+    const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(connection, payerKey.key, mintAddress, recipientPublicKey);
 
     // 5. Create a transaction to transfer tokens
     const transaction = new Transaction().add(
@@ -63,7 +86,7 @@ export const handler = async (event: any,context:any) => {
         senderTokenAccount.address,
         recipientTokenAccount.address,
         senderPublicKey,
-        amount // Amount of tokens to transfer (in smallest unit of the token, e.g., for SPL tokens with 6 decimals, 1e6 represents 1 token)
+        sendingAmount // Amount of tokens to transfer (in smallest unit of the token, e.g., for SPL tokens with 6 decimals, 1e6 represents 1 token)
       )
     );
 
@@ -77,10 +100,10 @@ export const handler = async (event: any,context:any) => {
     // 8.Sign the transaction with payer
     const base64Payer = transaction.serializeMessage().toString("base64");
     // sign using the well-typed solana end point (which requires a base64 serialized Message)
-    const respPayer = await payerKey.signSolana({ message_base64: base64Payer });
+    const respPayer = await payerKey.key.signSolana({ message_base64: base64Payer });
     const sigPayer = respPayer.data().signature;
     const sigBytesPayer = Buffer.from(sigPayer.slice(2), "hex");
-    transaction.addSignature(payerPublicKey,sigBytesPayer)
+    transaction.addSignature(payerPublicKey, sigBytesPayer);
 
     // 9.Sign the transaction with sender
     const base64Sender = transaction.serializeMessage().toString("base64");
@@ -88,22 +111,18 @@ export const handler = async (event: any,context:any) => {
     const respSender = await senderKey.signSolana({ message_base64: base64Sender });
     const sigSender = respSender.data().signature;
     const sigBytesSender = Buffer.from(sigSender.slice(2), "hex");
-    transaction.addSignature(senderPublicKey,sigBytesSender)
+    transaction.addSignature(senderPublicKey, sigBytesSender);
+    console.log("Transaction", transaction);
 
     // 10.Send the transaction
-    await connection.sendRawTransaction(transaction.serialize())
-    console.log('Transaction successful with signature');
-    return {
-      status: 'success'
-    };
-  }catch (e) {
-    return {
-      status: 'error',
-      error: e
-    }
-  }
-};
 
+    const txHash = await connection.sendRawTransaction(transaction.serialize());
+    console.log(`txHash: ${txHash}`);
+    return { trxHash: txHash, error: null };
+  } catch (e) {
+    return { trxHash: null, error: e };
+  }
+}
 
 /**
  * Create an associated token account for a given mint and owner
@@ -115,20 +134,16 @@ export const handler = async (event: any,context:any) => {
  * @param programId
  * @param associatedTokenProgramId
  */
-const createAssociatedTokenAccount = async ( connection: Connection,
-                                             mint: PublicKey,
-                                             owner: PublicKey,
-                                             allowOwnerOffCurve = false,
-                                             payerKey:cs.Key,
-                                             programId = TOKEN_PROGRAM_ID,
-                                             associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID)=>{
-  const associatedToken = getAssociatedTokenAddressSync(
-    mint,
-    owner,
-    allowOwnerOffCurve,
-    programId,
-    associatedTokenProgramId
-  );
+const createAssociatedTokenAccount = async (
+  connection: Connection,
+  mint: PublicKey,
+  owner: PublicKey,
+  allowOwnerOffCurve = false,
+  payerKey: cs.Key,
+  programId = TOKEN_PROGRAM_ID,
+  associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
+) => {
+  const associatedToken = getAssociatedTokenAddressSync(mint, owner, allowOwnerOffCurve, programId, associatedTokenProgramId);
   const transaction = new Transaction().add(
     createAssociatedTokenAccountInstruction(
       new PublicKey(payerKey.materialId),
@@ -147,11 +162,11 @@ const createAssociatedTokenAccount = async ( connection: Connection,
   const resp = await payerKey.signSolana({ message_base64: base64 });
   const sig = resp.data().signature;
   const sigBytes = Buffer.from(sig.slice(2), "hex");
-  transaction.addSignature(new PublicKey(payerKey.materialId),sigBytes)
+  transaction.addSignature(new PublicKey(payerKey.materialId), sigBytes);
 
   const txHash = await connection.sendRawTransaction(transaction.serialize());
   console.log(`txHash: ${txHash}`);
-}
+};
 
 /**
  * Get or create an associated token account for a given mint and owner
@@ -174,13 +189,7 @@ export async function getOrCreateAssociatedTokenAccount(
   programId = TOKEN_PROGRAM_ID,
   associatedTokenProgramId = ASSOCIATED_TOKEN_PROGRAM_ID
 ): Promise<Account> {
-  const associatedToken = getAssociatedTokenAddressSync(
-    mint,
-    owner,
-    allowOwnerOffCurve,
-    programId,
-    associatedTokenProgramId
-  );
+  const associatedToken = getAssociatedTokenAddressSync(mint, owner, allowOwnerOffCurve, programId, associatedTokenProgramId);
 
   // This is the optimal logic, considering TX fee, client-side computation, RPC roundtrips and guaranteed idempotent.
   // Sadly we can't do this atomically.
@@ -194,7 +203,7 @@ export async function getOrCreateAssociatedTokenAccount(
     if (error instanceof TokenAccountNotFoundError || error instanceof TokenInvalidAccountOwnerError) {
       // As this isn't atomic, it's possible others can create associated accounts meanwhile.
       try {
-        await createAssociatedTokenAccount(connection,mint,owner,false,payer)
+        await createAssociatedTokenAccount(connection, mint, owner, false, payer);
       } catch (error: unknown) {
         // Ignore all errors; for now there is no API-compatible way to selectively ignore the expected
         // instruction error if the associated account exists already.
@@ -212,4 +221,3 @@ export async function getOrCreateAssociatedTokenAccount(
 
   return account;
 }
-
