@@ -9,10 +9,9 @@ import { SecurityGroup } from "aws-cdk-lib/aws-ec2";
 export interface BridgeTowerStackProps extends StackProps {}
 
 const DB_CONFIG = {
-  DB_HOST:
-    "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
+  DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
   DB_DATABASE: "dev",
-  DB_PORT: "5432",
+  DB_PORT: "5432"
 };
 export class BridgeTowerLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps) {
@@ -21,26 +20,15 @@ export class BridgeTowerLambdaStack extends Stack {
     const DefaultVpc = Vpc.fromVpcAttributes(this, "vpcdev", {
       vpcId: "vpc-02d0d267eb1e078f8",
       availabilityZones: cdk.Fn.getAzs(),
-      privateSubnetIds: [
-        "subnet-00a4eb60fb117cdd4",
-        "subnet-04d671deee8eb1df2",
-      ],
+      privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
     });
 
     const securityGroups = [
-      SecurityGroup.fromSecurityGroupId(
-        this,
-        "lambda-rds-6",
-        "sg-0f6682da4f545d758"
-      ),
-      SecurityGroup.fromSecurityGroupId(
-        this,
-        "default",
-        "sg-05c044e1e87960084"
-      ),
+      SecurityGroup.fromSecurityGroupId(this, "lambda-rds-6", "sg-0f6682da4f545d758"),
+      SecurityGroup.fromSecurityGroupId(this, "default", "sg-05c044e1e87960084")
     ];
 
-    const createUserLambda = new NodejsFunction(this, "getWallet", {
+    const getWalletLambda = new NodejsFunction(this, "getWallet", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/getWallet.ts"),
       timeout: cdk.Duration.minutes(15),
@@ -48,13 +36,12 @@ export class BridgeTowerLambdaStack extends Stack {
       environment: {
         ORG_ID: "Org#ba31ffbb-a118-447b-826b-46f772c95291", //schoolhack
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        DB_HOST:
-          "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
+        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
         DB_DATABASE: "dev",
-        DB_PORT: "5432",
+        DB_PORT: "5432"
       },
       vpc: DefaultVpc,
-      securityGroups: securityGroups,
+      securityGroups: securityGroups
     });
 
     new NodejsFunction(this, "authentication", {
@@ -63,7 +50,7 @@ export class BridgeTowerLambdaStack extends Stack {
       timeout: cdk.Duration.minutes(15),
       environment: DB_CONFIG,
       vpc: DefaultVpc,
-      securityGroups: securityGroups,
+      securityGroups: securityGroups
     });
 
     new NodejsFunction(this, "getWalletBalance", {
@@ -73,7 +60,34 @@ export class BridgeTowerLambdaStack extends Stack {
       memorySize: 512,
       environment: DB_CONFIG,
       vpc: DefaultVpc,
-      securityGroups: securityGroups,
+      securityGroups: securityGroups
+    });
+
+    
+    new NodejsFunction(this, "listWalletTokens", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/listWalletTokens.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    const transferLambda = new NodejsFunction(this, "transfer", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/transfer.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        ORG_ID: "Org#ba31ffbb-a118-447b-826b-46f772c95291", //schoolhack
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
+        DB_DATABASE: "dev",
+        DB_PORT: "5432"
+      },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
     });
 
     new NodejsFunction(this, "gaslessTransferToken", {
@@ -94,11 +108,16 @@ export class BridgeTowerLambdaStack extends Stack {
     });
 
     // Defines the function url for the AWS Lambda
-    const helloLambdaUrl = createUserLambda.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE,
+    const getWalletLambdaUrl = getWalletLambda.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE
+    });
+    const transferLambdaUrl = transferLambda.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE
     });
 
     // print the function url after deployment
-    new cdk.CfnOutput(this, "FunctionUrl", { value: helloLambdaUrl.url });
+    new cdk.CfnOutput(this, "FunctionUrl", {
+      value: getWalletLambdaUrl.url
+    });
   }
 }

@@ -1,7 +1,7 @@
 export interface customer {
-  id?: number;
+  id?: string;
   tenantuserid: string;
-  tenantid?: number;
+  tenantid?: string;
   emailid: string;
   name: string;
   cubistuserid: string;
@@ -10,7 +10,7 @@ export interface customer {
 }
 
 export interface tenant {
-  id: number;
+  id: string;
   name: string;
   api_key: string;
   logo: string;
@@ -19,8 +19,8 @@ export interface tenant {
 }
 
 export interface wallet {
-  id?: number;
-  customerid?: number;
+  id?: string;
+  customerid?: string;
   walletaddress?: string;
   symbol: string;
   walletid: string;
@@ -31,11 +31,10 @@ export interface wallet {
   balance?: number;
   decimalprecision?: number;
   contractaddress?: string;
-
 }
 
 export interface token {
-  id?: number;
+  id?: string;
   name: string;
   symbol: string;
   chaintype: string;

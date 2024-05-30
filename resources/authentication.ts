@@ -14,33 +14,33 @@ export const handler = async (event: any) => {
 
         const tenant = res.rows[0];
         console.log(tenant);
-        
+
         return {
           isAuthorized: true,
           resolverContext: {
-            id: parseInt(tenant.id),
+            id: tenant.id,
             name: tenant.name,
             api_key: tenant.api_key,
             logo: tenant.logo,
             isactive: tenant.isactive,
-            createdat: tenant.createdat,
-          },
+            createdat: tenant.createdat
+          }
         };
       }
       return {
-        isAuthorized: false,
+        isAuthorized: false
       };
     } else {
       console.log("No token provided");
       return {
-        isAuthorized: false,
+        isAuthorized: false
       };
     }
   } catch (err) {
     console.log("Disconnected from database.", err);
 
     return {
-      isAuthorized: false,
+      isAuthorized: false
     };
   } finally {
     console.log("Disconnected from database.");
