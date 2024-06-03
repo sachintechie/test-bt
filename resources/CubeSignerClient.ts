@@ -2,9 +2,11 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { isStale, metadata, type SessionData, type SessionManager, type SessionMetadata } from "@cubist-labs/cubesigner-sdk";
+import { getPayerWallet } from "./dbFunctions";
 
 const SECRET_NAME: string = "SchoolHackCubeSignerToken";
 const PAYER_SECRET_NAME: string = "SchoolHackGasPayerCubistToken";
+
 
 /**
  * A session manager that reads a token from AWS Secrets Manager.
@@ -76,21 +78,26 @@ export async function getCsClient() {
  * Use a CubeSigner token from AWS Secrets Manager to retrieve information
  * about the current user
  */
-export async function getPayerCsSignerKey() {
+export async function getPayerCsSignerKey(chainType: string,tenantId: string) { 
   try{
     console.log("Creating client");
+    const payerWallet = await getPayerWallet(chainType,tenantId);
+    if(payerWallet == null){
+      return {key : null,error: "Payer wallet not found"};
+    }
     const client = await cs.CubeSignerClient.create(
       new ReadOnlyAwsSecretsSessionManager(PAYER_SECRET_NAME),
     );
     console.log("Client created",client);
-    const keys=await client.sessionKeys()
-    console.log("Keys",keys);
-    console.log("Key",keys[0].publicKey.toString());
-    return keys[0]
+    const keys=await client.sessionKeys();
+    const key = keys.filter((key: cs.Key) => key.materialId === payerWallet.walletaddress);
+       return {key : key[0],error: null};
+
   }
   catch(err){
     console.error(err);
-    throw err;
+    return {key : null,error: "Erorr in creating cubist client for gas payer"};
+
   }
 }
 
@@ -101,18 +108,20 @@ export async function getPayerCsSignerKey() {
  * @param oidcToken
  * @param scopes
  */
-export async function getCsSignerKeyFromOidcToken(env:cs.EnvInterface,orgId: string, oidcToken: string,scopes: any) {
+export async function oidcLogin(env:cs.EnvInterface,orgId: string, oidcToken: string,scopes: any) {
   try {
     console.log("Logging in with OIDC");
     const resp = await cs.CubeSignerClient.createOidcSession(env, orgId, oidcToken, scopes);
     const csClient = await cs.CubeSignerClient.create(resp.data());
-    const keys = await csClient.sessionKeys()
-    console.log("Keys", keys);
-    console.log("Key", keys[0].publicKey.toString());
-    return keys[0]
+    // const keys = await csClient.sessionKeys()
+    // console.log("Keys", keys);
+    // console.log("Key", keys[0].publicKey.toString());
+    // return keys[0]
+    return csClient
   }catch(err){
     console.error(err);
-    throw err;
+    return null;
+
   }
 }
 

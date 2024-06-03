@@ -62,6 +62,12 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
       } else {
         try {
           const { client, org } = await getCsClient();
+          if(client == null || org == null) {
+            return {
+              wallet: null,
+              error: "Error creating cubesigner client"
+            };
+          }
           console.log("Created cubesigner client", client);
           const proof = await cs.CubeSignerClient.proveOidcIdentity(env, ORG_ID, oidcToken);
 
@@ -100,6 +106,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             const wallet = await createWallet(org, cubistUserId, customerId, chainType);
             wallet.tenantuserid = tenantuserid;
             wallet.tenantid = tenant.id;
+            wallet.emailid = email;
 
             return { wallet, error: null };
           } else {

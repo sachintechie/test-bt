@@ -56,13 +56,15 @@ export async function insertTransaction(
   tenantId: string,
   customerId: string,
   tokenId: string,
-  tenantUserId: string
+  tenantUserId: string,
+  status : string,
+  error?: string
 ) {
   try {
     console.log("creating transaction", receiverWalletaddress, customerId);
-    let query = `INSERT INTO transaction (customerid,tokenid,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
-      VALUES ('${customerId}','${tokenId}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
-      customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tokenid,tenantuserid; `;
+    let query = `INSERT INTO transaction (customerid,tokenid,status,error,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
+      VALUES ('${customerId}','${tokenId}', '${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
+      customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tokenid,tenantuserid,status,id as transactionid; `;
     console.log("Query", query);
     const res = await executeQuery(query);
     console.log("transaction created Res", res);
@@ -75,8 +77,23 @@ export async function insertTransaction(
 }
 export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
-    let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,emailid from customer  INNER JOIN wallet 
+    let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
       ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND wallet.chaintype ='${chaintype}' AND customer.tenantid = '${tenant.id}';`;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+
+    const walletRow = res.rows[0];
+    console.log("Wallet Row", walletRow);
+    return walletRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+export async function getPayerWallet(chaintype: string, tenantId: string) {
+  try {
+    let query = `select * from GasPayerWallet where tenantid =  '${tenantId}' AND symbol ='${chaintype}';`;
     console.log("Query", query);
     const res = await executeQuery(query);
 
@@ -94,15 +111,35 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
     console.log("Wallet Address", walletAddress, symbol);
     let query;
     if (symbol != null && symbol != "") {
-      query = `select wallet.walletaddress,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
+      query = `select wallet.walletaddress,token.name as tokenname,token.decimalprecision,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
     ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}' AND token.symbol = '${symbol}';`;
     } else {
-      query = `select wallet.walletaddress,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
+      query = `select wallet.walletaddress,token.name as tokenname,token.decimalprecision,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
       ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}';`;
     }
     const res = await executeQuery(query);
     const walletRow = res.rows;
     return walletRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+export async function getTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+  try {
+    console.log("Wallet Address", walletAddress, symbol);
+    let query;
+    if (symbol != null && symbol != "") {
+      query = `select * from transaction 
+    where walletaddress = '${walletAddress}'  AND tenantid = '${tenant.id}' AND symbol = '${symbol}';`;
+    } else {
+      query = `select * from transaction 
+      where walletaddress = '${walletAddress}' AND tenantid = '${tenant.id}';`;
+    }
+    const res = await executeQuery(query);
+    const transactionRow = res.rows;
+    return transactionRow;
   } catch (err) {
     console.log(err);
     throw err;
