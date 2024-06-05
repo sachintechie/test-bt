@@ -11,7 +11,9 @@ export interface BridgeTowerStackProps extends StackProps {}
 const DB_CONFIG = {
   DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
   DB_DATABASE: "dev",
-  DB_PORT: "5432"
+  DB_PORT: "5432",
+  SOLANA_NETWORK :"devnet",
+  SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
 };
 export class BridgeTowerLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps) {
@@ -44,9 +46,17 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
-    new NodejsFunction(this, "authentication", {
+    new NodejsFunction(this, "appsyncAuthorizer", {
       runtime: lambda.Runtime.NODEJS_18_X,
-      entry: path.join(__dirname, "../resources/authentication.ts"),
+      entry: path.join(__dirname, "../resources/appsyncAuthorizer.ts"),
+      timeout: cdk.Duration.minutes(15),
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+    new NodejsFunction(this, "apigatewayAuthorizer", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/apigatewayAuthorizer.ts"),
       timeout: cdk.Duration.minutes(15),
       environment: DB_CONFIG,
       vpc: DefaultVpc,
@@ -56,6 +66,16 @@ export class BridgeTowerLambdaStack extends Stack {
     new NodejsFunction(this, "getWalletBalance", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/getWalletBalance.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    new NodejsFunction(this, "checkTransactionStatusAndUpdate", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/checkTransactionStatusAndUpdate.ts"),
       timeout: cdk.Duration.minutes(15),
       memorySize: 512,
       environment: DB_CONFIG,
@@ -82,10 +102,40 @@ export class BridgeTowerLambdaStack extends Stack {
       environment: {
         ORG_ID: "Org#ba31ffbb-a118-447b-826b-46f772c95291", //schoolhack
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        SOLANA_NETWORK :"devnet",
+        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
         DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
         DB_DATABASE: "dev",
         DB_PORT: "5432"
       },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+     new NodejsFunction(this, "masterTransfer", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/masterTransfer.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        ORG_ID: "Org#ba31ffbb-a118-447b-826b-46f772c95291", //schoolhack
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        SOLANA_NETWORK :"devnet",
+        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
+        DB_DATABASE: "dev",
+        DB_PORT: "5432"
+      },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    new NodejsFunction(this, "listWalletTransactions", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/listWalletTransactions.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
       vpc: DefaultVpc,
       securityGroups: securityGroups
     });

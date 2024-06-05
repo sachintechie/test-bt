@@ -2,6 +2,7 @@
 import { tenant } from "./models";
 import { getWalletAndTokenByWalletAddress } from "./dbFunctions";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, GetProgramAccountsFilter, clusterApiUrl } from "@solana/web3.js";
+import { getSolConnection } from "./solanaTransfer";
 
 // const SOLANA_RPC_PROVIDER = "https://api.devnet.solana.com";
 const SOLANA_RPC_PROVIDER = "https://solana-devnet.g.alchemy.com/v2/JGP5GfDvdIUjAnAxrfaQVQbNHC9l0dMS";
@@ -105,8 +106,4 @@ async function getSplTokenBalance(wallet: string, contractAddress: string) {
   }
 }
 
-async function getSolConnection() {
-  // const connection = new Connection(SOLANA_RPC_PROVIDER, "confirmed");
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  return connection;
-}
+
