@@ -14,9 +14,9 @@ import {
 } from "@solana/spl-token";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin, getPayerCsSignerKey } from "./CubeSignerClient";
+import { getSolConnection } from "./solanaTransfer";
 // Define the network to connect to (e.g., mainnet-beta, testnet, devnet)
-const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
-const connection = new Connection(SOLANA_NETWORK_URL, "confirmed");
+// const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
 const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -33,6 +33,8 @@ export async function transferSPLToken(
   tenantId: string
 ) {
   try {
+    const connection = await getSolConnection();
+
     // 1. Collect values from events
     const mintAddress = new PublicKey(contractAddress);
     //let sendingAmount = parseFloat(amount.toString());

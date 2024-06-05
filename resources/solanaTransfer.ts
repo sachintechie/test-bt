@@ -1,5 +1,5 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { tenant ,TransactionStatus} from "./models";
+import { tenant, TransactionStatus } from "./models";
 import { getWalletAndTokenByWalletAddress, insertTransaction } from "./dbFunctions";
 import {
   Connection,
@@ -9,7 +9,6 @@ import {
   Transaction,
   GetProgramAccountsFilter,
   clusterApiUrl
-  
 } from "@solana/web3.js";
 import { oidcLogin } from "./CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
@@ -18,6 +17,9 @@ const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
+const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
+//console.log(SOLANA_NETWORK_URL);
+
 
 export async function solanaTransfer(
   tenant: tenant,
@@ -27,7 +29,8 @@ export async function solanaTransfer(
   symbol: string,
   oidcToken: string,
   tenantUserId: string,
-  chainType: string
+  chainType: string,
+  tenantTransactionId : string
 ) {
   console.log("Wallet Address", senderWalletAddress);
 
@@ -54,7 +57,8 @@ export async function solanaTransfer(
             if (balance >= amount) {
               const trx = await transferSOL(senderWalletAddress, receiverWalletAddress, amount, oidcToken);
               if (trx.trxHash != null) {
-                const txStatus = trx.trxHash != null ? TransactionStatus.SUCCESS : TransactionStatus.FAILED;
+                const transactionStatus = await verifySolanaTransaction(trx.trxHash);
+                const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
 
                 const transaction = await insertTransaction(
                   senderWalletAddress,
@@ -67,7 +71,9 @@ export async function solanaTransfer(
                   token.customerid,
                   token.tokenid,
                   tenantUserId,
-                  txStatus
+                  process.env["SOLANA_NETWORK"] ?? "",
+                  txStatus,
+                  tenantTransactionId
                 );
                 return { transaction, error: null };
               } else {
@@ -79,15 +85,26 @@ export async function solanaTransfer(
                 error: "Insufficient SOL balance"
               };
             }
-          } else if (symbol != "SOL" && token.customerid != null){
+          } else if (symbol != "SOL" && token.customerid != null) {
             balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");
             token.balance = balance;
             if (balance >= amount) {
-              const trx = await transferSPLToken(senderWalletAddress, receiverWalletAddress, amount,token.decimalprecision, oidcToken,chainType,token.contractaddress,tenant.id);
-              const txStatus = trx.trxHash != null ? TransactionStatus.SUCCESS : TransactionStatus.FAILED;
-            
+              const trx = await transferSPLToken(
+                senderWalletAddress,
+                receiverWalletAddress,
+                amount,
+                token.decimalprecision,
+                oidcToken,
+                chainType,
+                token.contractaddress,
+                tenant.id
+                
+              );
+
               if (trx.trxHash != null) {
-                const txStatus = trx.trxHash != null ? TransactionStatus.SUCCESS : TransactionStatus.FAILED;
+                const transactionStatus = await verifySolanaTransaction(trx.trxHash);
+
+                const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
 
                 const transaction = await insertTransaction(
                   senderWalletAddress,
@@ -100,13 +117,14 @@ export async function solanaTransfer(
                   token.customerid,
                   token.tokenid,
                   tenantUserId,
-                  txStatus
+                  process.env["SOLANA_NETWORK"] ?? "",
+                  txStatus,
+                  tenantTransactionId
                 );
                 return { transaction, error: null };
               } else {
                 return { transaction: null, error: trx.error };
               }
-              
             } else {
               return {
                 transaction: null,
@@ -175,15 +193,17 @@ async function getSplTokenBalance(wallet: string, contractAddress: string) {
   }
 }
 
-async function getSolConnection() {
-  // const connection = new Connection(SOLANA_RPC_PROVIDER, "confirmed");
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+export async function getSolConnection() {
+  console.log(SOLANA_NETWORK_URL);
+
+  const connection = new Connection(SOLANA_NETWORK_URL, "confirmed");
+  // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
   return connection;
 }
 
 async function transferSOL(senderWalletAddress: string, receiverWalletAddress: string, amount: number, oidcToken: string) {
   try {
-    const oidcClient = await oidcLogin(env,ORG_ID,oidcToken, ["sign:*"]);
+    const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
     if (!oidcClient) {
       return {
         trxHash: null,
@@ -232,13 +252,11 @@ async function transferSOL(senderWalletAddress: string, receiverWalletAddress: s
   }
 }
 
-// async function oidcLogin(oidcToken: any, scopes: any) {
-//   try {
-//     console.log("Logging in with OIDC", env, ORG_ID, scopes);
-//     const resp = await cs.CubeSignerClient.createOidcSession(env, ORG_ID, oidcToken, scopes);
-//     return await cs.CubeSignerClient.create(resp.data());
-//   } catch (e) {
-//     console.log("Error", e);
-//     return null;
-//   }
-// }
+export async function verifySolanaTransaction(txId: string) {
+  const connection = await getSolConnection();
+  const result = await connection.getSignatureStatus(txId, {
+    searchTransactionHistory: true
+  });
+  console.log(result);
+  return result.value?.confirmationStatus;
+}
