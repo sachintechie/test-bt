@@ -7,10 +7,11 @@ import {
   PublicKey,
   StakeProgram,
   Keypair,
-  Authorized
+  Authorized, Transaction
 } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "./CubeSignerClient";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
+import {Key} from "@cubist-labs/cubesigner-sdk";
 
 const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
@@ -113,30 +114,10 @@ export async function stakeSol(
 ) {
   try{
   const connection = await getSolConnection();
-  const senderAddress = new PublicKey(senderWalletAddress);
   const validatorAddress = new PublicKey(validatorNodeKey);
-console.log("validatorAddress",validatorAddress.toString());
-  let stakeAccountPubkey = await findExistingStakeAccount(connection,senderAddress);
-  console.log("Stake Account Pubkey", stakeAccountPubkey);
+  console.log("validatorAddress",validatorAddress.toString());
   const sendingAmount = parseFloat(amount.toString());
   const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
-
-
-  // const payerKey = await getPayerCsSignerKey(chainType, tenantId);
-  // if (payerKey.key == null) {
-  //   return {
-  //     trxHash: null,
-  //     error: payerKey.error}
-  // }
-  // const payerPublicKey = new PublicKey(payerKey.key.materialId);
-  // //Check sol balance on payer address
-  // const payerSolBalance = await connection.getBalance(payerPublicKey);
-  // if(payerSolBalance < 0.05){
-  //   return {
-  //     trxHash: null,
-  //     error: "Insufficient balance in payer account"
-  //   }
-  // }
 
   const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
   if (!oidcClient) {
@@ -147,96 +128,85 @@ console.log("validatorAddress",validatorAddress.toString());
   }
   const keys = await oidcClient.sessionKeys();
   const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
-  const senderPublicKey = new PublicKey(senderKey[0].materialId);
-
+  // Connect to the Solana cluster
   if (senderKey.length === 0) {
     return {
       trxHash: null,
       error: "Given identity token is not the owner of given wallet address"
     };
-  } else {
-    // Connect to the Solana cluster
-var stakeAccount;
-  if (!stakeAccountPubkey) {
-    // Create a new stake account if none exists
-     stakeAccount = Keypair.generate();
-    stakeAccountPubkey = stakeAccount.publicKey;
-
-    console.log("stakeaccountpubkey -after -generate",stakeAccount.publicKey.toString());
-
-
-    // Transaction to create and initialize a stake account
-    const createStakeAccountTx = StakeProgram.createAccount({
-      fromPubkey: senderAddress,
-      authorized: new Authorized(senderAddress, senderAddress),
-      lamports: amountToStake,
-      stakePubkey: stakeAccountPubkey,
-    });
-
-    createStakeAccountTx.feePayer=senderPublicKey;
-
-    const { blockhash } = await connection.getRecentBlockhash();
-    createStakeAccountTx.recentBlockhash = blockhash;
-
-    //await signTransaction(createStakeAccountTx,payerKey.key);
-    await signTransaction(createStakeAccountTx,senderKey[0]);
-     createStakeAccountTx.partialSign(stakeAccount);
-
-    const txHash = await connection.sendRawTransaction(createStakeAccountTx.serialize());
-    console.log(`stakeTxHash: ${txHash}`);
   }
+  const stakeAccountWithStakeProgram = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake);
+  // Delegate the stake to the validator
+  const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
+  return { trxHash: tx, error: null };
 
-  // Transaction to delegate stake to a validator
-  const delegateStakeTx = StakeProgram.delegate({
-    stakePubkey: stakeAccountPubkey,
-    authorizedPubkey: senderAddress,
-    votePubkey: validatorAddress,
-  });
-  delegateStakeTx.feePayer=senderPublicKey;
+  } catch (err:any) {
+    console.log(await err.getLogs());
+    return { trxHash: null, error: err };
+  }
+}
 
-  console.log("delegateStakeTx -before sign",delegateStakeTx);
+async function createStakeAccountWithStakeProgram(
+  connection: Connection,
+  from: Key,
+  amount: number
+) {
+  const stakeAccount = Keypair.generate();
+  console.log('Stake account created with StakeProgram:', stakeAccount.publicKey.toBase58());
 
+  const lamports = amount * LAMPORTS_PER_SOL;
+  const fromPublicKey= new PublicKey(from.materialId);
+
+  const authorized = new Authorized(fromPublicKey,fromPublicKey);
+
+  const transaction = new Transaction().add(
+    StakeProgram.createAccount({
+      fromPubkey: fromPublicKey,
+      stakePubkey: stakeAccount.publicKey,
+      authorized,
+      lamports,
+    })
+  );
 
   const { blockhash } = await connection.getRecentBlockhash();
-  delegateStakeTx.recentBlockhash = blockhash;
-  // if(stakeAccount != null)
-  // delegateStakeTx.partialSign(stakeAccount);
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPublicKey;
 
-  //await signTransaction(delegateStakeTx,payerKey.key);
-  await signTransaction(delegateStakeTx,senderKey[0]);
-  console.log("Delegate Stake Tx",delegateStakeTx);
+  await signTransaction(transaction,from);
+  transaction.partialSign(stakeAccount);
 
-  stakeAccount && delegateStakeTx.partialSign(stakeAccount);
-  console.log("Delegate Stake Tx",delegateStakeTx);
+  const tx = await connection.sendRawTransaction(transaction.serialize());
+  console.log('Stake account Transaction:', tx);
 
-  const txHash = await connection.sendRawTransaction(delegateStakeTx.serialize());
-  console.log(`delegateTxHash: ${txHash}`);
-  return { trxHash: txHash ,error: null };
-
-}
-} catch (err) {
-  console.log(err);
-  return { trxHash: null, error: err };
-}
+  return stakeAccount;
 }
 
-async function findExistingStakeAccount(connection:Connection, address:PublicKey) {
-  const accounts = await connection.getParsedProgramAccounts(
-   StakeProgram.programId,
-    {
-      filters: [
-        {
-          dataSize: StakeProgram.space,
-        },
-        {
-          memcmp: {
-            offset: 12,
-            bytes: address.toBase58(),
-          },
-        },
-      ],
-    }
-  );
-console.log("Existing Stake Account",accounts);
-  return accounts.length > 0 ? accounts[0].pubkey : null;
+// Function to delegate stake to a validator
+async function delegateStake(
+  connection: Connection,
+  from: Key,
+  stakeAccount: PublicKey,
+  validatorPubkey: PublicKey
+) {
+  const fromPublicKey= new PublicKey(from.materialId);
+  console.log('DELEGATE STAKE=>fromPublicKey:', fromPublicKey.toBase58());
+  console.log('DELEGATE STAKE=>stakeAccount:', stakeAccount.toBase58());
+  console.log('DELEGATE STAKE=>validatorPubkey:', validatorPubkey.toBase58());
+
+
+  const transaction = StakeProgram.delegate({
+    stakePubkey: stakeAccount,
+    authorizedPubkey: fromPublicKey,
+    votePubkey: validatorPubkey,
+  });
+
+  const { blockhash } = await connection.getRecentBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPublicKey;
+
+  await signTransaction(transaction,from);
+  const tx = await connection.sendRawTransaction(transaction.serialize(),{skipPreflight: true});
+
+  console.log('Stake delegation Transaction:', tx);
+  return tx;
 }
