@@ -14,7 +14,7 @@ import {
 } from "@solana/spl-token";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin, getPayerCsSignerKey } from "./CubeSignerClient";
-import { getSolConnection } from "./solanaTransfer";
+import { getSolConnection } from "./solanaFunctions";
 // Define the network to connect to (e.g., mainnet-beta, testnet, devnet)
 // const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
 const ORG_ID = process.env["ORG_ID"]!;

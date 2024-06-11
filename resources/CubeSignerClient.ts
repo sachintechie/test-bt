@@ -3,6 +3,7 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { isStale, metadata, type SessionData, type SessionManager, type SessionMetadata } from "@cubist-labs/cubesigner-sdk";
 import { getPayerWallet } from "./dbFunctions";
+import {PublicKey, Transaction} from "@solana/web3.js";
 
 const SECRET_NAME: string = "SchoolHackCubeSignerToken";
 const PAYER_SECRET_NAME: string = "SchoolHackGasPayerCubistToken";
@@ -126,4 +127,11 @@ export async function oidcLogin(env:cs.EnvInterface,orgId: string, oidcToken: st
 }
 
 
-
+export async function signTransaction(transaction:Transaction,key:cs.Key){
+  const base64Payer = transaction.serializeMessage().toString("base64");
+  // sign using the well-typed solana end point (which requires a base64 serialized Message)
+  const respPayer = await key.signSolana({ message_base64: base64Payer });
+  const sigPayer = respPayer.data().signature;
+  const sigBytesPayer = Buffer.from(sigPayer.slice(2), "hex");
+  transaction.addSignature(new PublicKey(key.materialId), sigBytesPayer);
+}

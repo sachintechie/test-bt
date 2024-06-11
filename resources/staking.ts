@@ -1,15 +1,15 @@
 import { getTransactionByTenantTransactionId } from "./dbFunctions";
 import { tenant } from "./models";
-import { solanaTransfer } from "./solanaTransfer";
-
+import { solanaStaking } from "./solanaStake";
 export const handler = async (event: any) => {
   try {
     console.log(event);
     const isTransactionAlreadyExist = await getTransactionByTenantTransactionId(event.arguments?.input?.tenantTransactionId,event.identity.resolverContext.id);
     if(isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined){
-      if (event.arguments?.input?.chainType === "Solana") {
+     
+     if (event.arguments?.input?.chainType === "Solana") {
       
-      const data = await solanaTransfer(
+      const data = await solanaStaking(
         event.identity.resolverContext as tenant,
         event.arguments?.input?.senderWalletAddress,
         event.arguments?.input?.receiverWalletAddress,

@@ -1,8 +1,8 @@
 import { getAllTransactions, getTenantCallBackUrl, updateTransaction } from "./dbFunctions";
-import { CallbackStatus, TransactionStatus, tenant } from "./models";
-import { verifySolanaTransaction } from "./solanaTransfer";
+import { CallbackStatus, TransactionStatus } from "./models";
 import axios from "axios";
 import * as crypto from "crypto";
+import { verifySolanaTransaction } from "./solanaFunctions";
 
 export const handler = async (event: any) => {
   try {
