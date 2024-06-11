@@ -16,7 +16,7 @@ export const handler = async (event: any) => {
           console.log(tenant);
        
           return {
-            principalId: tenant.id,
+            principalId: "user",
             policyDocument : await getPolicyDocument(event,"Allow"),
             context: {
               id: tenant.id,
@@ -30,21 +30,21 @@ export const handler = async (event: any) => {
 
         }
         return {
-            principalId: 'UnauthorizedTenant',  // The user making the request
-            policyDocument: getPolicyDocument(event,"Deny"),
+            principalId: 'Unauthorized',  // The user making the request
+            policyDocument: await getPolicyDocument(event,"Deny"),
         };
       } else {
         console.log("No token provided");
         return {
-            principalId: 'UnauthorizedTenant',  // The user making the request
-            policyDocument: getPolicyDocument(event,"Deny"),
+            principalId: 'Unauthorized',  // The user making the request
+            policyDocument: await getPolicyDocument(event,"Deny"),
         };
       }
     } catch (err) {
   
       return {
-        principalId: 'UnauthorizedTenant',  // The user making the request
-        policyDocument: getPolicyDocument(event,"Deny"),
+        principalId: 'Unauthorized',  // The user making the request
+        policyDocument: await getPolicyDocument(event,"Deny"),
     };
     
   };

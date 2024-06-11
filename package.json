@@ -22,8 +22,9 @@
     "@solana/web3.js": "^1.91.8",
     "aws-cdk-lib": "^2.142.1",
     "aws-sdk": "^2.1629.0",
+    "axios": "^1.7.2",
     "constructs": "^10.3.0",
-    "node-fetch": "^3.3.2",
+    "crypto-js": "^4.2.0",
     "pg": "^8.11.5"
   },
   "devDependencies": {

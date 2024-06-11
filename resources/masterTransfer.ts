@@ -1,11 +1,14 @@
-import { getMasterWalletAddress } from "./dbFunctions";
+import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "./dbFunctions";
 import { tenant } from "./models";
 import { solanaTransfer } from "./solanaTransfer";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
+    const isTransactionAlreadyExist = await getTransactionByTenantTransactionId(event.arguments?.input?.tenantTransactionId,event.identity.resolverContext.id);
+    if(isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined){
     if (event.arguments?.input?.chainType === "Solana") {
+   
       const receiverWallet = await getMasterWalletAddress(event.arguments?.input?.chainType,event.identity.resolverContext.id, event.arguments?.input?.symbol,
       );
       console.log("Receiver Wallet", receiverWallet);
@@ -47,6 +50,15 @@ export const handler = async (event: any) => {
         error: "ChainType not supported"
       };
     }
+  }
+  else{
+    return {
+      status: 400,
+      data: null,
+      error: "Transaction already exist"
+    };
+  
+  }
   } catch (err) {
     console.log("In catch Block Error", err);
     return {
