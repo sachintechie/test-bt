@@ -1,30 +1,24 @@
-import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "./dbFunctions";
+import { getTransactionByTenantTransactionId } from "./dbFunctions";
 import { tenant } from "./models";
-import { solanaTransfer } from "./solanaTransfer";
-
+import { solanaStaking } from "./solanaStake";
 export const handler = async (event: any) => {
   try {
     console.log(event);
     const isTransactionAlreadyExist = await getTransactionByTenantTransactionId(event.arguments?.input?.tenantTransactionId,event.identity.resolverContext.id);
     if(isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined){
-    if (event.arguments?.input?.chainType === "Solana") {
-   
-      const receiverWallet = await getMasterWalletAddress(event.arguments?.input?.chainType,event.identity.resolverContext.id, event.arguments?.input?.symbol,
-      );
-      console.log("Receiver Wallet", receiverWallet);
-      if(receiverWallet != null && receiverWallet != undefined){
-
-      const data = await solanaTransfer(
+     
+     if (event.arguments?.input?.chainType === "Solana") {
+      
+      const data = await solanaStaking(
         event.identity.resolverContext as tenant,
         event.arguments?.input?.senderWalletAddress,
-        receiverWallet.walletaddress,
+        event.arguments?.input?.receiverWalletAddress,
         event.arguments?.input?.amount,
         event.arguments?.input?.symbol,
         event.request?.headers?.identity,
         event.arguments?.input?.tenantUserId,
         event.arguments?.input?.chainType,
         event.arguments?.input?.tenantTransactionId
-
       );
 
       const response = {
@@ -34,16 +28,8 @@ export const handler = async (event: any) => {
       };
       console.log("Wallet", response);
       return response;
-    
-    }
-    else{
-      return {
-        status: 400,
-        data: null,
-        error: "Master Wallet not found"
-      };
-    }
-    } else {
+    } 
+    else {
       return {
         status: 400,
         data: null,
@@ -68,3 +54,5 @@ export const handler = async (event: any) => {
     };
   }
 };
+
+

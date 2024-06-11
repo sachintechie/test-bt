@@ -50,3 +50,9 @@ export enum TransactionStatus{
   FAILED = "FAILED",
   PENDING = "PENDING"
 }
+
+export enum CallbackStatus{
+  SUCCESS = "SUCCESS",
+  FAILED = "FAILED",
+  PENDING = "PENDING"
+}

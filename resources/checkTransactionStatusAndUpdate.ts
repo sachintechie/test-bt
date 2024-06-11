@@ -1,7 +1,8 @@
 import { getAllTransactions, getTenantCallBackUrl, updateTransaction } from "./dbFunctions";
-import { TransactionStatus, tenant } from "./models";
-import { verifySolanaTransaction } from "./solanaTransfer";
-import fetch from "node-fetch";
+import { CallbackStatus, TransactionStatus } from "./models";
+import axios from "axios";
+import * as crypto from "crypto";
+import { verifySolanaTransaction } from "./solanaFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -31,16 +32,20 @@ async function updateTransactions() {
     const transactions = await getAllTransactions();
     for (const trx of transactions) {
       if (trx.status === TransactionStatus.PENDING) {
-        //console.log(trx, "trx");
+        console.log(trx, "trx");
         const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-        const updatedTransaction = await updateTransaction(trx.id, status);
         const tenant = await getTenantCallBackUrl(trx.tenantid);
+        trx.status = status;
      //   console.log(tenant, "tenant");
         if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
-          const tenantUpdate = await updateTenant(tenant, updatedTransaction);
+          const callback = await updateTenant(tenant, trx);
+ const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
+
+          const updatedTransaction = await updateTransaction(trx.transactionid, status,callbackStatus);
+          updatedTransactions.push(updatedTransaction);
+
           //call the callback url with the updated transaction status
         }
-        updatedTransactions.push(updatedTransaction);
       }
     }
    // console.log(updatedTransactions, "updatedTransactions");
@@ -54,28 +59,63 @@ async function updateTransactions() {
 async function updateTenant(tenant: any, transaction: any) {
   console.log("updateTenant",tenant, (transaction));
   var data;
+  const tenantSecret = tenant.tenantsecret;
   const tenantHeaderKey = tenant.tenantheaderkey;
-  const tenantHeaderValue = tenant.tenantsecret;
+  const payload = JSON.stringify(transaction);
+  const signature = await hash(payload,tenantSecret);
+
   const tenantHeader = {
     "Content-Type": "application/json",
-    Accept: "*/*",
-    [tenantHeaderKey]: tenantHeaderValue
+    [tenantHeaderKey]: signature
   };
-  console.log(tenantHeader);
-  
-  await fetch(tenant.callbackurl, {
-    method: "POST",
-    headers: tenantHeader,
-    body: (transaction)
-  })
-    .then(async (response) => {
-      console.log(response);
-      data = await response.json();
-      console.log(data,"response");
+  console.log(tenantHeader);  
+  // Options for the axios request
+const options = {
+  method: 'post',
+  url: tenant.callbackurl,
+  headers: tenantHeader,
+  data: payload
+};
+// Send the request using axios
+await axios(options)
+    .then(response => {
+        console.log('Response:', response.data);
+        if(response.data != null && response.data != undefined && response.data == "Webhook received and verified."){
+          data =true;
+
+        }
+        else{
+          data = false;
+        }
     })
-    .catch((error) => {
-      console.error(error);
-      data = { data: null, message: error.code };
+    .catch(error => {
+        console.error('Error:', error.response ? error.response.data : error.message);
     });
+
+
+  // await fetch(tenant.callbackurl, {
+  //   method: "POST",
+  //   headers: tenantHeader,
+  //     body : payload
+  // })
+  //   .then(async (response) => {
+  //     console.log(response);
+  //     data = await response.json();
+  //     console.log(data,"response");
+  //   })
+  //   .catch((error) => {
+  //     console.error(error);
+  //     data = { data: null, message: error.code };
+  //   });
+  return data;
+}
+
+async function hash(payload: any,secret:string) {
+  console.log("payload",payload);
+  var data =  crypto
+  .createHmac('sha256', secret)
+  .update(payload, 'utf8')
+  .digest('hex');  
+  console.log("hashed-payload",data);
   return data;
 }

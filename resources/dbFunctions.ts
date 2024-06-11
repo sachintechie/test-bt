@@ -1,5 +1,5 @@
 import { executeQuery } from "./PgClient";
-import { customer, tenant, token, wallet } from "./models";
+import { CallbackStatus, customer, tenant, token, wallet } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 
 export async function createCustomer(customer: customer) {
@@ -64,14 +64,46 @@ export async function insertTransaction(
 ) {
   try {
     console.log("creating transaction", receiverWalletaddress, customerId);
-    let query = `INSERT INTO transaction (customerid,tokenid,tenanttransactionid,network,status,error,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
-      VALUES ('${customerId}','${tokenId}','${tenantTransactionId}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
+    let query = `INSERT INTO transaction (customerid,callbackstatus,tokenid,tenanttransactionid,network,status,error,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
+      VALUES ('${customerId}','${CallbackStatus.PENDING}','${tokenId}','${tenantTransactionId}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
       customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid; `;
     console.log("Query", query);
     const res = await executeQuery(query);
     console.log("transaction created Res", res);
     const transactionRow = res.rows[0];
     return transactionRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+export async function insertStakingTransaction(
+  senderWalletAddress: string,
+  receiverWalletaddress: string,
+  amount: number,
+  chainType: string,
+  symbol: string,
+  txhash: string,
+  tenantId: string,
+  customerId: string,
+  tokenId: string,
+  tenantUserId: string,
+  network:string,
+  status : string,
+  tenantTransactionId: string,
+  error?: string
+) {
+  try {
+    console.log("creating transaction", receiverWalletaddress, customerId);
+    let query = `INSERT INTO staketransaction (customerid,tokenid,tenanttransactionid,network,status,error,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
+      VALUES ('${customerId}','${tokenId}','${tenantTransactionId}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
+      customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid; `;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+    console.log("stake transaction created Res", res);
+    const stakeTransactionRow = res.rows[0];
+    return stakeTransactionRow;
   } catch (err) {
     console.log(err);
     throw err;
@@ -123,6 +155,22 @@ export async function getMasterWalletAddress(chaintype: string, tenantId: string
   }
 }
 
+export async function getTransactionByTenantTransactionId(tenantTransactionId: string,tenantId : string) {
+  try {
+    let query = `select * from transaction where tenantid =  '${tenantId}' AND tenanttransactionid ='${tenantTransactionId}';`;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+
+    const transactionRow = res.rows[0];
+    console.log("transactionRow", transactionRow);
+    return transactionRow;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+}
+
+
 
 export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
@@ -166,7 +214,7 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
 
 export async function getAllTransactions() {
   try {
-    let query = `select * from transaction where status = 'PENDING';`;
+    let query = `select customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid from transaction where status = 'PENDING';`;
     const res = await executeQuery(query);
     const transactionRow = res.rows;
     return transactionRow;
@@ -188,9 +236,9 @@ export async function getTenantCallBackUrl(tenantId: string) {
   }
 }
 
-export async function updateTransaction(transactionId: string, status: string) {
+export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
-    let query = `update transaction set status = '${status}' , updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING   customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;
+    let query = `update transaction set status = '${status}' ,callbackstatus = '${callbackStatus}', updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;
    
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];

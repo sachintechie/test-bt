@@ -2,23 +2,20 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "./models";
 import { getWalletAndTokenByWalletAddress, insertTransaction } from "./dbFunctions";
 import {
-  Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
-  Transaction,
-  GetProgramAccountsFilter,
-  clusterApiUrl
+  Transaction
 } from "@solana/web3.js";
 import { oidcLogin } from "./CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
+import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
 
 const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
-const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
-//console.log(SOLANA_NETWORK_URL);
+
 
 
 export async function solanaTransfer(
@@ -142,64 +139,7 @@ export async function solanaTransfer(
   }
 }
 
-async function getSolBalance(address: string) {
-  try {
-    const pubkey = new PublicKey(address);
-    const connection = await getSolConnection();
-    const balance = (await connection.getBalance(pubkey)) / LAMPORTS_PER_SOL;
-    return balance;
-  } catch (err) {
-    console.log(err);
-    return 0;
-  }
-}
 
-async function getSplTokenBalance(wallet: string, contractAddress: string) {
-  try {
-    if (contractAddress === "") {
-      return 0; //no contract address
-    } else {
-      const solanaConnection = await getSolConnection();
-      const filters: GetProgramAccountsFilter[] = [
-        {
-          dataSize: 165 //size of account (bytes)
-        },
-        {
-          memcmp: {
-            offset: 32, //location of our query in the account (bytes)
-            bytes: wallet //our search criteria, a base58 encoded string
-          }
-        },
-        {
-          memcmp: {
-            offset: 0, //number of bytes
-            bytes: contractAddress //base58 encoded string
-          }
-        }
-      ];
-      const accounts = await solanaConnection.getParsedProgramAccounts(new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"), {
-        filters: filters
-      });
-      console.log(`Found ${accounts.length} token account(s) for wallet ${wallet}.`);
-      const parsedAccountInfo: any = accounts[0].account.data;
-      console.log(parsedAccountInfo, "parsedAccountInfo");
-      //const mintAddress: string = parsedAccountInfo["parsed"]["info"]["mint"];
-      const tokenBalance: number = parsedAccountInfo["parsed"]["info"]["tokenAmount"]["uiAmount"];
-      return tokenBalance;
-    }
-  } catch (err) {
-    console.log(err);
-    return 0;
-  }
-}
-
-export async function getSolConnection() {
-  console.log(SOLANA_NETWORK_URL);
-
-  const connection = new Connection(SOLANA_NETWORK_URL, "confirmed");
-  // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  return connection;
-}
 
 async function transferSOL(senderWalletAddress: string, receiverWalletAddress: string, amount: number, oidcToken: string) {
   try {
@@ -252,11 +192,3 @@ async function transferSOL(senderWalletAddress: string, receiverWalletAddress: s
   }
 }
 
-export async function verifySolanaTransaction(txId: string) {
-  const connection = await getSolConnection();
-  const result = await connection.getSignatureStatus(txId, {
-    searchTransactionHistory: true
-  });
-  console.log(result);
-  return result.value?.confirmationStatus;
-}
