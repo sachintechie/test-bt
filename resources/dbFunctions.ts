@@ -170,6 +170,21 @@ export async function getTransactionByTenantTransactionId(tenantTransactionId: s
   }
 }
 
+export async function getStakingTransactionByTenantTransactionId(tenantTransactionId: string,tenantId : string) {
+  try {
+    let query = `select * from stakingtransaction where tenantid =  '${tenantId}' AND tenanttransactionid ='${tenantTransactionId}';`;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+
+    const transactionRow = res.rows[0];
+    console.log("transactionRow", transactionRow);
+    return transactionRow;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+}
+
 
 
 export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
@@ -224,6 +239,18 @@ export async function getAllTransactions() {
   }
 }
 
+export async function getAllStakingTransactions() {
+  try {
+    let query = `select customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid from stakingtransaction where status = 'PENDING';`;
+    const res = await executeQuery(query);
+    const transactionRow = res.rows;
+    return transactionRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
 export async function getTenantCallBackUrl(tenantId: string) {
   try {
     let query = `select * from tenant where id = '${tenantId}';`;
@@ -239,6 +266,19 @@ export async function getTenantCallBackUrl(tenantId: string) {
 export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
     let query = `update transaction set status = '${status}' ,callbackstatus = '${callbackStatus}', updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;
+   
+    const res = await executeQuery(query);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+export async function updateStakingTransaction(transactionId: string, status: string, callbackStatus: string) {
+  try {
+    let query = `update stakingtransaction set status = '${status}' ,callbackstatus = '${callbackStatus}', updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;
    
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];

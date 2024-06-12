@@ -116,8 +116,8 @@ export async function stakeSol(
   const connection = await getSolConnection();
   const validatorAddress = new PublicKey(validatorNodeKey);
   console.log("validatorAddress",validatorAddress.toString());
-  const sendingAmount = parseFloat(amount.toString());
-  const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
+  const amountToStake = parseFloat(amount.toString());
+  // const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
 
   const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
   if (!oidcClient) {
@@ -135,9 +135,9 @@ export async function stakeSol(
       error: "Given identity token is not the owner of given wallet address"
     };
   }
-  const stakeAccountWithStakeProgram = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake);
+  const tx = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake,validatorAddress);
   // Delegate the stake to the validator
-  const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
+ // const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
   return { trxHash: tx, error: null };
 
   } catch (err:any) {
@@ -149,7 +149,9 @@ export async function stakeSol(
 async function createStakeAccountWithStakeProgram(
   connection: Connection,
   from: Key,
-  amount: number
+  amount: number,
+  validatorPubkey: PublicKey
+
 ) {
   const stakeAccount = Keypair.generate();
   console.log('Stake account created with StakeProgram:', stakeAccount.publicKey.toBase58());
@@ -165,9 +167,15 @@ async function createStakeAccountWithStakeProgram(
       stakePubkey: stakeAccount.publicKey,
       authorized,
       lamports,
+    }),
+    StakeProgram.delegate({
+      stakePubkey: stakeAccount.publicKey,
+      authorizedPubkey: fromPublicKey,
+      votePubkey: validatorPubkey,
     })
   );
 
+  
   const { blockhash } = await connection.getRecentBlockhash();
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
@@ -178,7 +186,7 @@ async function createStakeAccountWithStakeProgram(
   const tx = await connection.sendRawTransaction(transaction.serialize());
   console.log('Stake account Transaction:', tx);
 
-  return stakeAccount;
+  return tx;
 }
 
 // Function to delegate stake to a validator

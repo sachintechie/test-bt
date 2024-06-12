@@ -1,4 +1,4 @@
-import { getAllTransactions, getTenantCallBackUrl, updateTransaction } from "./dbFunctions";
+import { getAllStakingTransactions, getAllTransactions, getTenantCallBackUrl, updateStakingTransaction, updateTransaction } from "./dbFunctions";
 import { CallbackStatus, TransactionStatus } from "./models";
 import axios from "axios";
 import * as crypto from "crypto";
@@ -9,6 +9,7 @@ export const handler = async (event: any) => {
     console.log(event);
 
     const transactions = await updateTransactions();
+    const stakingtransaction = await updateStakingTransactions();
     return {
       status: 200,
       data: transactions,
@@ -42,6 +43,38 @@ async function updateTransactions() {
  const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
           const updatedTransaction = await updateTransaction(trx.transactionid, status,callbackStatus);
+          updatedTransactions.push(updatedTransaction);
+
+          //call the callback url with the updated transaction status
+        }
+      }
+    }
+   // console.log(updatedTransactions, "updatedTransactions");
+    return updatedTransactions;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+async function updateStakingTransactions() {
+  console.log("updateStakingTransactions");
+
+  try {
+    let updatedTransactions = [];
+    const transactions = await getAllStakingTransactions();
+    for (const trx of transactions) {
+      if (trx.status === TransactionStatus.PENDING) {
+        console.log(trx, "trx");
+        const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+        const tenant = await getTenantCallBackUrl(trx.tenantid);
+        trx.status = status;
+     //   console.log(tenant, "tenant");
+        if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
+          const callback = await updateTenant(tenant, trx);
+ const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
+
+          const updatedTransaction = await updateStakingTransaction(trx.transactionid, status,callbackStatus);
           updatedTransactions.push(updatedTransaction);
 
           //call the callback url with the updated transaction status
