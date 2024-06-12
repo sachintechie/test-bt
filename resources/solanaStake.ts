@@ -116,7 +116,13 @@ export async function stakeSol(
   const senderAddress = new PublicKey(senderWalletAddress);
   const validatorAddress = new PublicKey(validatorNodeKey);
 console.log("validatorAddress",validatorAddress.toString());
+    
   let stakeAccountPubkey = await findExistingStakeAccount(connection,senderAddress);
+  if(stakeAccountPubkey == null){
+  // Create a new stake account if none exists
+  const stakeAccount = Keypair.generate();
+  stakeAccountPubkey = stakeAccount.publicKey;
+  }
   console.log("Stake Account Pubkey", stakeAccountPubkey);
   const sendingAmount = parseFloat(amount.toString());
   const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
@@ -155,14 +161,9 @@ console.log("validatorAddress",validatorAddress.toString());
       error: "Given identity token is not the owner of given wallet address"
     };
   } else {
-    // Connect to the Solana cluster
-var stakeAccount;
-  if (!stakeAccountPubkey) {
-    // Create a new stake account if none exists
-     stakeAccount = Keypair.generate();
-    stakeAccountPubkey = stakeAccount.publicKey;
+  
 
-    console.log("stakeaccountpubkey -after -generate",stakeAccount.publicKey.toString());
+    console.log("stakeaccountpubkey -after -generate",stakeAccountPubkey);
 
 
     // Transaction to create and initialize a stake account
@@ -180,11 +181,11 @@ var stakeAccount;
 
     //await signTransaction(createStakeAccountTx,payerKey.key);
     await signTransaction(createStakeAccountTx,senderKey[0]);
-     createStakeAccountTx.partialSign(stakeAccount);
+     createStakeAccountTx.partialSign(stakeAccountPubkey);
 
     const txHash = await connection.sendRawTransaction(createStakeAccountTx.serialize());
     console.log(`stakeTxHash: ${txHash}`);
-  }
+  
 
   // Transaction to delegate stake to a validator
   const delegateStakeTx = StakeProgram.delegate({
@@ -197,7 +198,6 @@ var stakeAccount;
   console.log("delegateStakeTx -before sign",delegateStakeTx);
 
 
-  const { blockhash } = await connection.getRecentBlockhash();
   delegateStakeTx.recentBlockhash = blockhash;
   // if(stakeAccount != null)
   // delegateStakeTx.partialSign(stakeAccount);
@@ -209,8 +209,8 @@ var stakeAccount;
   stakeAccount && delegateStakeTx.partialSign(stakeAccount);
   console.log("Delegate Stake Tx",delegateStakeTx);
 
-  const txHash = await connection.sendRawTransaction(delegateStakeTx.serialize());
-  console.log(`delegateTxHash: ${txHash}`);
+  const delegatetxHash = await connection.sendRawTransaction(delegateStakeTx.serialize());
+  console.log(`delegateTxHash: ${delegatetxHash}`);
   return { trxHash: txHash ,error: null };
 
 }
@@ -238,5 +238,5 @@ async function findExistingStakeAccount(connection:Connection, address:PublicKey
     }
   );
 console.log("Existing Stake Account",accounts);
-  return accounts.length > 0 ? accounts[0].pubkey : null;
+  return accounts.length > 0 ? accounts[0].pubkey :null;
 }
