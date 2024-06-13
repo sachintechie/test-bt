@@ -1,6 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "./models";
-import { getCustomerById, getWalletAndTokenByWalletAddress, insertStakingTransaction, updateCustomer } from "./dbFunctions";
+import { getWalletAndTokenByWalletAddress, insertStakingTransaction, updateWallet } from "./dbFunctions";
 import {
   Connection,
   LAMPORTS_PER_SOL,
@@ -53,9 +53,8 @@ export async function solanaStaking(
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             if (balance >= amount) {
-              const customer = await getCustomerById(token.customerid, tenant.id);  
 
-              const trx = await stakeSol(senderWalletAddress, customer.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken);
+              const trx = await stakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken);
               if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
                 console.log( "trx.stakeTxHash", trx.trxHash, "trx.delegateTxHash");
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
@@ -78,7 +77,7 @@ export async function solanaStaking(
                   trx.stakeAccountPubKey.toString()
                 );
 
-                const customer = await updateCustomer(token.customerid, tenant.id,trx.stakeAccountPubKey.toString());
+                const wallet = await updateWallet(token.customerid, tenant.id,trx.stakeAccountPubKey.toString(),chainType);
                 return { transaction, error: null };
               } else {
                 return { transaction: null, error: trx.error };
@@ -152,6 +151,7 @@ export async function stakeSol(
 }
 else{
   //need to write code of merge stake account
+  return { trxHash: null, stakeAccountPubKey: null, error: "Stake merging not supported at yet" };  
 }
 
   } catch (err:any) {

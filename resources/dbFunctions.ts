@@ -138,20 +138,7 @@ export async function getPayerWallet(chaintype: string, tenantId: string) {
     throw err;
   }
 }
-export async function getCustomerById(customerId: string, tenantId: string) {
-  try {
-    let query = `select * from GasPcustomerayerWallet where tenantid =  '${tenantId}' AND id ='${customerId}';`;
-    console.log("Query", query);
-    const res = await executeQuery(query);
 
-    const customerRow = res.rows[0];
-    console.log("Wallet Row", customerRow);
-    return customerRow;
-  } catch (err) {
-    console.log(err);
-    throw err;
-  }
-}
 export async function getMasterWalletAddress(chaintype: string, tenantId: string, symbol: string) {
   try {
     let query = `select * from masterwallet where tenantid =  '${tenantId}' AND chaintype ='${chaintype}' AND symbol='${symbol}';`;
@@ -220,7 +207,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
 export async function getCustomerWalletsByTenantUserId(tenantUserId: string, tenant: tenant) {
   try {
     console.log("tenantUserId", tenantUserId);
-      let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
+      let query = `select customerid,walletaddress,wallet.stakeaccountpubkey,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
       ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND customer.tenantid = '${tenant.id}';`;
     const res = await executeQuery(query);
     const walletRow = res.rows;
@@ -300,12 +287,12 @@ export async function updateTransaction(transactionId: string, status: string, c
   }
 }
 
-export async function updateCustomer(customerId: string, tenantId: string, stakeAccountPubKey: string) {
+export async function updateWallet(customerId: string, tenantId: string, stakeAccountPubKey: string,chainType : string) {
   try {
-    let query = `update customer set stakeaccountpubkey = '${stakeAccountPubKey}', updatedat= CURRENT_TIMESTAMP  where id = '${customerId}' AND teantid='${tenantId}' RETURNING id;`;
+    let query = `update wallet set stakeaccountpubkey = '${stakeAccountPubKey}', updatedat= CURRENT_TIMESTAMP  where customerid = '${customerId}' AND teantid='${tenantId}' AND chaintype='${chainType}' RETURNING id;`;
     const res = await executeQuery(query);
-    const customerRow = res.rows[0];
-    return customerRow;
+    const walletRow = res.rows[0];
+    return walletRow;
   } catch (err) {
     console.log(err);
     throw err;
