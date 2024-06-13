@@ -54,7 +54,7 @@ export async function solanaStaking(
             token.balance = balance;
             if (balance >= amount) {
               const trx = await stakeSol(senderWalletAddress, receiverWalletAddress, amount, receiverWalletAddress, oidcToken);
-              if (trx.trxHash != null) {
+              if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
                 console.log( "trx.stakeTxHash", trx.trxHash, "trx.delegateTxHash");
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
                 const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
@@ -72,7 +72,8 @@ export async function solanaStaking(
                   tenantUserId,
                   process.env["SOLANA_NETWORK"] ?? "",
                   txStatus,
-                  tenantTransactionId
+                  tenantTransactionId,
+                  trx.stakeAccountPubKey.toString()
                 );
                 return { transaction, error: null };
               } else {
@@ -123,6 +124,7 @@ export async function stakeSol(
   if (!oidcClient) {
     return {
       trxHash: null,
+      stakeAccountPubKey: null,
       error: "Please send a valid identity token for verification"
     };
   }
@@ -135,10 +137,10 @@ export async function stakeSol(
       error: "Given identity token is not the owner of given wallet address"
     };
   }
-  const tx = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake,validatorAddress);
+  const staketransaction = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake,validatorAddress);
   // Delegate the stake to the validator
  // const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
-  return { trxHash: tx, error: null };
+  return { trxHash: staketransaction.txHash,stakeAccountPubKey:staketransaction.stakeAccountPubKey ,error: null };
 
   } catch (err:any) {
     console.log(await err.getLogs());
@@ -186,7 +188,7 @@ async function createStakeAccountWithStakeProgram(
   const tx = await connection.sendRawTransaction(transaction.serialize());
   console.log('Stake account Transaction:', tx);
 
-  return tx;
+  return {txHash : tx,stakeAccountPubKey:stakeAccount.publicKey};
 }
 
 // Function to delegate stake to a validator
