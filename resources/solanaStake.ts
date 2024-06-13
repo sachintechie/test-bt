@@ -1,6 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "./models";
-import { getWalletAndTokenByWalletAddress, insertStakingTransaction } from "./dbFunctions";
+import { getCustomerById, getWalletAndTokenByWalletAddress, insertStakingTransaction, updateCustomer } from "./dbFunctions";
 import {
   Connection,
   LAMPORTS_PER_SOL,
@@ -53,7 +53,9 @@ export async function solanaStaking(
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             if (balance >= amount) {
-              const trx = await stakeSol(senderWalletAddress, receiverWalletAddress, amount, receiverWalletAddress, oidcToken);
+              const customer = await getCustomerById(token.customerid, tenant.id);  
+
+              const trx = await stakeSol(senderWalletAddress, customer.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken);
               if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
                 console.log( "trx.stakeTxHash", trx.trxHash, "trx.delegateTxHash");
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
@@ -75,6 +77,8 @@ export async function solanaStaking(
                   tenantTransactionId,
                   trx.stakeAccountPubKey.toString()
                 );
+
+                const customer = await updateCustomer(token.customerid, tenant.id,trx.stakeAccountPubKey.toString());
                 return { transaction, error: null };
               } else {
                 return { transaction: null, error: trx.error };
@@ -111,7 +115,7 @@ export async function solanaStaking(
 }
 
 export async function stakeSol(
-  senderWalletAddress: string, stakeaddress: string, amount: number, validatorNodeKey: string, oidcToken: string
+  senderWalletAddress: string, stakeAccountPubKey: string, amount: number, validatorNodeKey: string, oidcToken: string
 ) {
   try{
   const connection = await getSolConnection();
@@ -119,6 +123,10 @@ export async function stakeSol(
   console.log("validatorAddress",validatorAddress.toString());
   const amountToStake = parseFloat(amount.toString());
   // const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
+
+  if(stakeAccountPubKey === null || stakeAccountPubKey === undefined){
+
+  
 
   const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
   if (!oidcClient) {
@@ -141,6 +149,10 @@ export async function stakeSol(
   // Delegate the stake to the validator
  // const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
   return { trxHash: staketransaction.txHash,stakeAccountPubKey:staketransaction.stakeAccountPubKey ,error: null };
+}
+else{
+  //need to write code of merge stake account
+}
 
   } catch (err:any) {
     console.log(await err.getLogs());
@@ -170,11 +182,13 @@ async function createStakeAccountWithStakeProgram(
       authorized,
       lamports,
     }),
+
     StakeProgram.delegate({
       stakePubkey: stakeAccount.publicKey,
       authorizedPubkey: fromPublicKey,
       votePubkey: validatorPubkey,
     })
+
   );
 
   

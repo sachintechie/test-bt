@@ -138,7 +138,20 @@ export async function getPayerWallet(chaintype: string, tenantId: string) {
     throw err;
   }
 }
+export async function getCustomerById(customerId: string, tenantId: string) {
+  try {
+    let query = `select * from GasPcustomerayerWallet where tenantid =  '${tenantId}' AND id ='${customerId}';`;
+    console.log("Query", query);
+    const res = await executeQuery(query);
 
+    const customerRow = res.rows[0];
+    console.log("Wallet Row", customerRow);
+    return customerRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
 export async function getMasterWalletAddress(chaintype: string, tenantId: string, symbol: string) {
   try {
     let query = `select * from masterwallet where tenantid =  '${tenantId}' AND chaintype ='${chaintype}' AND symbol='${symbol}';`;
@@ -281,6 +294,18 @@ export async function updateTransaction(transactionId: string, status: string, c
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];
     return transactionRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+export async function updateCustomer(customerId: string, tenantId: string, stakeAccountPubKey: string) {
+  try {
+    let query = `update customer set stakeaccountpubkey = '${stakeAccountPubKey}', updatedat= CURRENT_TIMESTAMP  where id = '${customerId}' AND teantid='${tenantId}' RETURNING id;`;
+    const res = await executeQuery(query);
+    const customerRow = res.rows[0];
+    return customerRow;
   } catch (err) {
     console.log(err);
     throw err;
