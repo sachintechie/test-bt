@@ -207,7 +207,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
 export async function getCustomerWalletsByTenantUserId(tenantUserId: string, tenant: tenant) {
   try {
     console.log("tenantUserId", tenantUserId);
-      let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
+      let query = `select customerid,walletaddress,wallet.stakeaccountpubkey,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
       ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND customer.tenantid = '${tenant.id}';`;
     const res = await executeQuery(query);
     const walletRow = res.rows;
@@ -281,6 +281,18 @@ export async function updateTransaction(transactionId: string, status: string, c
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];
     return transactionRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+export async function updateWallet(customerId: string, tenantId: string, stakeAccountPubKey: string,chainType : string) {
+  try {
+    let query = `update wallet set stakeaccountpubkey = '${stakeAccountPubKey}', updatedat= CURRENT_TIMESTAMP  where customerid = '${customerId}' AND teantid='${tenantId}' AND chaintype='${chainType}' RETURNING id;`;
+    const res = await executeQuery(query);
+    const walletRow = res.rows[0];
+    return walletRow;
   } catch (err) {
     console.log(err);
     throw err;
