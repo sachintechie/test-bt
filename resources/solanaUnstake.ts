@@ -47,7 +47,6 @@ export async function solanaUnstake(
           error: "Cubist Configuration not found for the given tenant"
         };
       }      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
-      const stakeAccountPublicKey = await getStakeAccountPubkeyByWallets(senderWalletAddress, receiverWalletAddress, tenant.id);
       let balance = 0;
       if (wallet.length == 0) {
         return {
@@ -60,7 +59,7 @@ export async function solanaUnstake(
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             if (balance >= amount) {
-               const trx = await unstakeSol(senderWalletAddress, stakeAccountPublicKey, amount, oidcToken,cubistConfig.orgid);
+               const trx = await unstakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, oidcToken,cubistConfig.orgid);
                return { transaction:trx, error: trx.error };
             } else {
               return {
