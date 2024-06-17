@@ -1,6 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "./models";
-import { getWalletAndTokenByWalletAddress, insertStakingTransaction, updateWallet } from "./dbFunctions";
+import { getCubistConfig, getWalletAndTokenByWalletAddress, insertStakingTransaction, updateWallet } from "./dbFunctions";
 import {
   Connection,
   LAMPORTS_PER_SOL,
@@ -13,7 +13,6 @@ import { oidcLogin, signTransaction } from "./CubeSignerClient";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
 import {Key} from "@cubist-labs/cubesigner-sdk";
 
-const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -40,6 +39,13 @@ export async function solanaStaking(
         error: "Please send a valid identity token for verification"
       };
     } else {
+      const cubistConfig = await getCubistConfig(tenant.id);
+      if(cubistConfig == null) {
+        return {
+          transaction: null,
+          error: "Cubist Configuration not found for the given tenant"
+        };
+      }
       const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
       let balance = 0;
       console.log(wallet, "Wallet");
@@ -55,7 +61,7 @@ export async function solanaStaking(
             token.balance = balance;
             if (balance >= amount) {
               // Check if the stake
-              const trx = await stakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken,lockupExpirationTimestamp);
+              const trx = await stakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken,lockupExpirationTimestamp,cubistConfig.orgid);
               if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
                 console.log( "trx.stakeTxHash", trx.trxHash, "trx.delegateTxHash");
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
@@ -115,7 +121,7 @@ export async function solanaStaking(
 }
 
 export async function stakeSol(
-  senderWalletAddress: string, stakeAccountPubKey: string, amount: number, validatorNodeKey: string, oidcToken: string,lockupExpirationTimestamp: number
+  senderWalletAddress: string, stakeAccountPubKey: string, amount: number, validatorNodeKey: string, oidcToken: string,lockupExpirationTimestamp: number,cubistOrgId:string
 ) {
   try{
   const connection = await getSolConnection();
@@ -123,7 +129,7 @@ export async function stakeSol(
   console.log("validatorAddress",validatorAddress.toString());
   const amountToStake = parseFloat(amount.toString());
   // const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
-  const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
+  const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
   if (!oidcClient) {
     return {
       trxHash: null,

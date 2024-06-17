@@ -3,7 +3,6 @@ import { tenant } from "./models";
 import { getCsClient } from "./CubeSignerClient";
 import {  createWallet, getCustomer, getWalletByCustomer } from "./dbFunctions";
 
-const ORG_ID = process.env["ORG_ID"]!;
 
 
 export const handler = async (event: any, context: any) => {
@@ -38,7 +37,7 @@ async function createCustomerWallet(tenant: tenant, tenantuserid: string, chainT
   console.log("Creating user");
 
   try {
-    console.log("createUser", ORG_ID, tenant.id, tenantuserid);
+    console.log("createUser", tenant.id, tenantuserid);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
@@ -46,7 +45,7 @@ async function createCustomerWallet(tenant: tenant, tenantuserid: string, chainT
         return { wallet, error: null };
       } else {
         try {
-          const { client, org } = await getCsClient();
+          const { client, org } = await getCsClient(tenant.id);
           console.log("Created cubesigner client", client);
 
           if (client == null || org == null) {

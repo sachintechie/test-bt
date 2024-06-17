@@ -1,6 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "./models";
 import {
+  getCubistConfig,
   getStakeAccountPubkeyByWallets,
   getWalletAndTokenByWalletAddress,
 } from "./dbFunctions";
@@ -17,7 +18,6 @@ import { oidcLogin, signTransaction } from "./CubeSignerClient";
 import { getSolBalance, getSolConnection, verifySolanaTransaction } from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 
-const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -40,7 +40,13 @@ export async function solanaUnstake(
         error: "Please send a valid identity token for verification"
       };
     } else {
-      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
+      const cubistConfig = await getCubistConfig(tenant.id);
+      if(cubistConfig == null) {
+        return {
+          transaction: null,
+          error: "Cubist Configuration not found for the given tenant"
+        };
+      }      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
       const stakeAccountPublicKey = await getStakeAccountPubkeyByWallets(senderWalletAddress, receiverWalletAddress, tenant.id);
       let balance = 0;
       if (wallet.length == 0) {
@@ -54,7 +60,7 @@ export async function solanaUnstake(
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             if (balance >= amount) {
-               const trx = await unstakeSol(senderWalletAddress, stakeAccountPublicKey, amount, oidcToken);
+               const trx = await unstakeSol(senderWalletAddress, stakeAccountPublicKey, amount, oidcToken,cubistConfig.orgid);
                return { transaction:trx, error: trx.error };
             } else {
               return {
@@ -82,11 +88,12 @@ export async function unstakeSol(
   senderWalletAddress: string,
   stakeAccountPubKey: string,
   amount: number,
-  oidcToken: string
+  oidcToken: string,
+  cubistOrgId: string
 ) {
   try {
     const connection = await getSolConnection();
-    const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
+    const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
     if (!oidcClient) {
       return {
         trxHash: null,

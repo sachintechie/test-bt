@@ -1,6 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "./models";
-import { getWalletAndTokenByWalletAddress, insertTransaction } from "./dbFunctions";
+import { getCubistConfig, getWalletAndTokenByWalletAddress, insertTransaction } from "./dbFunctions";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -11,7 +11,6 @@ import { oidcLogin } from "./CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
 
-const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -38,6 +37,13 @@ export async function solanaTransfer(
         error: "Please send a valid identity token for verification"
       };
     } else {
+      const cubistConfig = await getCubistConfig(tenant.id);
+      if(cubistConfig == null) {
+        return {
+          transaction: null,
+          error: "Cubist Configuration not found for the given tenant"
+        };
+      }
       const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
       let balance = 0;
       console.log(wallet, "Wallet");
@@ -52,7 +58,7 @@ export async function solanaTransfer(
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             if (balance >= amount) {
-              const trx = await transferSOL(senderWalletAddress, receiverWalletAddress, amount, oidcToken);
+              const trx = await transferSOL(senderWalletAddress, receiverWalletAddress, amount, oidcToken,cubistConfig.orgid);
               if (trx.trxHash != null) {
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
                 const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
@@ -94,7 +100,8 @@ export async function solanaTransfer(
                 oidcToken,
                 chainType,
                 token.contractaddress,
-                tenant.id
+                tenant,
+                cubistConfig.orgid
                 
               );
 
@@ -141,9 +148,9 @@ export async function solanaTransfer(
 
 
 
-async function transferSOL(senderWalletAddress: string, receiverWalletAddress: string, amount: number, oidcToken: string) {
+async function transferSOL(senderWalletAddress: string, receiverWalletAddress: string, amount: number, oidcToken: string,cubistOrgId: string) {
   try {
-    const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
+    const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
     if (!oidcClient) {
       return {
         trxHash: null,

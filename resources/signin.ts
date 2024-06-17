@@ -3,7 +3,6 @@ import { tenant } from "./models";
 import { getCsClient } from "./CubeSignerClient";
 import { createCustomer, getCustomer } from "./dbFunctions";
 
-const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -15,8 +14,7 @@ export const handler = async (event: any, context: any) => {
     const data = await createUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
-      event.request?.headers?.identity,
-      event.arguments?.input?.chainType
+      event.request?.headers?.identity
     );
 
     const response = {
@@ -37,11 +35,11 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createUser(tenant: tenant, tenantuserid: string, oidcToken: string, chainType: string) {
+async function createUser(tenant: tenant, tenantuserid: string, oidcToken: string) {
   console.log("Creating user");
 
   try {
-    console.log("createUser", ORG_ID, tenant.id, tenantuserid);
+    console.log("createUser", tenant.id, tenantuserid);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
      
@@ -55,7 +53,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         };
       } else {
         try {
-          const { client, org } = await getCsClient();
+          const { client, org,orgId } = await getCsClient(tenant.id);
           if(client == null || org == null) {
             return {
               customer: null,
@@ -63,7 +61,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             };
           }
           console.log("Created cubesigner client", client);
-          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, ORG_ID, oidcToken);
+          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
 
           console.log("Verifying identity", proof);
 
@@ -97,8 +95,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               cubistuserid: cubistUserId,
               tenantuserid: tenantuserid,
               tenantid: tenant.id,
-              emailid: email,
-              chainType: chainType
+              emailid: email
             };
 
             return { customer :customerData, error: null };
@@ -110,7 +107,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             } else {
               return {
                 customer: null,
-                error: "customer not found for the given tenantuserid and chainType"
+                error: "customer not found for the given tenantuserid and tenantid"
               };
             }
           }
