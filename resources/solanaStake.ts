@@ -142,7 +142,6 @@ export async function stakeSol(
 
   if(stakeAccountPubKey === null || stakeAccountPubKey === undefined){
 
-
   // Connect to the Solana cluster
   if (senderKey.length === 0) {
     return {
@@ -274,34 +273,6 @@ async function addStakeToExistingAccount(
   console.log('Stake accounts merged with signature:', tx);
 }
 
-// Function to delegate stake to a validator
-async function delegateStake(
-  connection: Connection,
-  from: Key,
-  stakeAccount: PublicKey,
-  validatorPubkey: PublicKey
-) {
-  const fromPublicKey= new PublicKey(from.materialId);
-  console.log('DELEGATE STAKE=>fromPublicKey:', fromPublicKey.toBase58());
-  console.log('DELEGATE STAKE=>stakeAccount:', stakeAccount.toBase58());
-  console.log('DELEGATE STAKE=>validatorPubkey:', validatorPubkey.toBase58());
 
-
-  const transaction = StakeProgram.delegate({
-    stakePubkey: stakeAccount,
-    authorizedPubkey: fromPublicKey,
-    votePubkey: validatorPubkey,
-  });
-
-  const { blockhash } = await connection.getRecentBlockhash();
-  transaction.recentBlockhash = blockhash;
-  transaction.feePayer = fromPublicKey;
-
-  await signTransaction(transaction,from);
-  const tx = await connection.sendRawTransaction(transaction.serialize(),{skipPreflight: true});
-
-  console.log('Stake delegation Transaction:', tx);
-  return tx;
-}
 
 
