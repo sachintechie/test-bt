@@ -7,7 +7,7 @@ import {
   PublicKey,
   StakeProgram,
   Keypair,
-  Authorized, Transaction
+  Authorized, Transaction, Lockup
 } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "./CubeSignerClient";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
@@ -28,7 +28,8 @@ export async function solanaStaking(
   oidcToken: string,
   tenantUserId: string,
   chainType: string,
-  tenantTransactionId: string
+  tenantTransactionId: string,
+  lockupExpirationTimestamp: number
 ) {
   console.log("Wallet Address", senderWalletAddress);
 
@@ -53,8 +54,8 @@ export async function solanaStaking(
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             if (balance >= amount) {
-
-              const trx = await stakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken);
+              // Check if the stake
+              const trx = await stakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken,lockupExpirationTimestamp);
               if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
                 console.log( "trx.stakeTxHash", trx.trxHash, "trx.delegateTxHash");
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
@@ -114,7 +115,7 @@ export async function solanaStaking(
 }
 
 export async function stakeSol(
-  senderWalletAddress: string, stakeAccountPubKey: string, amount: number, validatorNodeKey: string, oidcToken: string
+  senderWalletAddress: string, stakeAccountPubKey: string, amount: number, validatorNodeKey: string, oidcToken: string,lockupExpirationTimestamp: number
 ) {
   try{
   const connection = await getSolConnection();
@@ -122,11 +123,6 @@ export async function stakeSol(
   console.log("validatorAddress",validatorAddress.toString());
   const amountToStake = parseFloat(amount.toString());
   // const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
-
-  if(stakeAccountPubKey === null || stakeAccountPubKey === undefined){
-
-  
-
   const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
   if (!oidcClient) {
     return {
@@ -137,6 +133,10 @@ export async function stakeSol(
   }
   const keys = await oidcClient.sessionKeys();
   const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
+
+  if(stakeAccountPubKey === null || stakeAccountPubKey === undefined){
+
+
   // Connect to the Solana cluster
   if (senderKey.length === 0) {
     return {
@@ -144,13 +144,14 @@ export async function stakeSol(
       error: "Given identity token is not the owner of given wallet address"
     };
   }
-  const staketransaction = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake,validatorAddress);
+  const staketransaction = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake,validatorAddress,lockupExpirationTimestamp);
   // Delegate the stake to the validator
  // const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
   return { trxHash: staketransaction.txHash,stakeAccountPubKey:staketransaction.stakeAccountPubKey ,error: null };
 }
 else{
   //need to write code of merge stake account
+  await addStakeToExistingAccount(connection, senderKey[0], new PublicKey(stakeAccountPubKey), validatorAddress, amountToStake,lockupExpirationTimestamp);
   return { trxHash: null, stakeAccountPubKey: null, error: "Stake merging not supported at yet" };  
 }
 
@@ -164,8 +165,8 @@ async function createStakeAccountWithStakeProgram(
   connection: Connection,
   from: Key,
   amount: number,
-  validatorPubkey: PublicKey
-
+  validatorPubkey: PublicKey,
+  lockupExpirationTimestamp: number
 ) {
   const stakeAccount = Keypair.generate();
   console.log('Stake account created with StakeProgram:', stakeAccount.publicKey.toBase58());
@@ -181,6 +182,7 @@ async function createStakeAccountWithStakeProgram(
       stakePubkey: stakeAccount.publicKey,
       authorized,
       lamports,
+      lockup: new Lockup(lockupExpirationTimestamp,0,fromPublicKey)
     }),
 
     StakeProgram.delegate({
@@ -188,7 +190,6 @@ async function createStakeAccountWithStakeProgram(
       authorizedPubkey: fromPublicKey,
       votePubkey: validatorPubkey,
     })
-
   );
 
   
@@ -203,6 +204,68 @@ async function createStakeAccountWithStakeProgram(
   console.log('Stake account Transaction:', tx);
 
   return {txHash : tx,stakeAccountPubKey:stakeAccount.publicKey};
+}
+
+async function addStakeToExistingAccount(
+  connection: Connection,
+  from: Key,
+  existingStakeAccountPubkey: PublicKey,
+  voteAccountPubkey: PublicKey,
+  amount: number,
+  lockupExpirationTimestamp: number
+) {
+  const fromPublicKey= new PublicKey(from.materialId);
+  const tempStakeAccount = Keypair.generate();
+  const lamportsForStake = amount * LAMPORTS_PER_SOL;
+  const lamportsForRentExemption = await connection.getMinimumBalanceForRentExemption(StakeProgram.space);
+  const totalLamports = lamportsForStake + lamportsForRentExemption;
+
+  const authorized = new Authorized(fromPublicKey, fromPublicKey);
+
+  // Create and delegate the temporary stake account
+  let transaction = new Transaction().add(
+    StakeProgram.createAccount({
+      fromPubkey: fromPublicKey,
+      stakePubkey: tempStakeAccount.publicKey,
+      authorized,
+      lamports: totalLamports,
+      lockup: new Lockup(lockupExpirationTimestamp,0,fromPublicKey)
+    }),
+    StakeProgram.delegate({
+      stakePubkey: tempStakeAccount.publicKey,
+      authorizedPubkey: fromPublicKey,
+      votePubkey: voteAccountPubkey,
+    })
+  );
+
+  let { blockhash } = await connection.getRecentBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPublicKey;
+
+  await signTransaction(transaction,from);
+
+  let tx = await connection.sendRawTransaction(transaction.serialize());
+  await connection.confirmTransaction(tx);
+  console.log('Temporary stake account created and delegated with signature:', tx);
+
+  // Merge the temporary stake account with the existing stake account
+  transaction = new Transaction().add(
+    StakeProgram.merge({
+      stakePubkey: existingStakeAccountPubkey,
+      sourceStakePubKey: tempStakeAccount.publicKey,
+      authorizedPubkey: fromPublicKey,
+    })
+  );
+
+  blockhash = (await connection.getRecentBlockhash()).blockhash;
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPublicKey;
+
+  await signTransaction(transaction,from);
+
+  tx = await connection.sendRawTransaction(transaction.serialize());
+  await connection.confirmTransaction(tx);
+  console.log('Stake accounts merged with signature:', tx);
 }
 
 // Function to delegate stake to a validator
@@ -234,3 +297,5 @@ async function delegateStake(
   console.log('Stake delegation Transaction:', tx);
   return tx;
 }
+
+
