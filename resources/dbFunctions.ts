@@ -108,6 +108,30 @@ export async function insertStakingTransaction(
     throw err;
   }
 }
+
+export async function getStakeAccountPubkeyByWallets(
+  tenantId: string,
+  senderWalletAddress: string,
+  receiverWalletAddress: string
+) {
+  try {
+    console.log("Fetching stake account public key for", senderWalletAddress, receiverWalletAddress);
+    let query = `SELECT stakeaccountpubkey FROM staketransaction
+      WHERE walletaddress = '${senderWalletAddress}' AND receiverwalletaddress = '${receiverWalletAddress}' AND tenantId = '${tenantId}' LIMIT 1;`;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+    console.log("Stake account public key fetch result", res);
+
+    if (res.rows.length > 0) {
+      return res.rows[0].stakeaccountpubkey;
+    } else {
+      return null;
+    }
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
 export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
     let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
