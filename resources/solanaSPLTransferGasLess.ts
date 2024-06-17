@@ -15,9 +15,10 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin, getPayerCsSignerKey } from "./CubeSignerClient";
 import { getSolConnection } from "./solanaFunctions";
+import { tenant } from "./models";
+import { getCubistConfig } from "./dbFunctions";
 // Define the network to connect to (e.g., mainnet-beta, testnet, devnet)
 // const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
-const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -30,7 +31,8 @@ export async function transferSPLToken(
   oidcToken: string,
   chainType: string,
   contractAddress: string,
-  tenantId: string
+  tenant: tenant,
+  cubistOrgId: string
 ) {
   try {
     const connection = await getSolConnection();
@@ -49,11 +51,19 @@ export async function transferSPLToken(
     const recipientPublicKey = new PublicKey(receiverWalletAddress);
 
     // 2. Get the oidcClient key from oidcToken
-    const oidcClient = await oidcLogin(env, ORG_ID, oidcToken, ["sign:*"]);
+    const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
     if (!oidcClient) {
       return {
         trxHash: null,
         error: "Please send a valid identity token for verification"
+      };
+    }
+
+    const cubistConfig = await getCubistConfig(tenant.id);
+    if(cubistConfig == null) {
+      return {
+        transaction: null,
+        error: "Cubist Configuration not found for the given tenant"
       };
     }
     const keys = await oidcClient.sessionKeys();
@@ -62,7 +72,7 @@ export async function transferSPLToken(
     const senderPublicKey = new PublicKey(senderKey.materialId);
 
     // 3. Get the payer key
-    const payerKey = await getPayerCsSignerKey(chainType, tenantId);
+    const payerKey = await getPayerCsSignerKey(chainType, tenant.id);
     if (payerKey.key == null) {
       return {
         trxHash: null,

@@ -3,7 +3,6 @@ import { tenant } from "./models";
 import { getCsClient } from "./CubeSignerClient";
 import { createCustomer, createWallet, getCustomer, getWalletByCustomer } from "./dbFunctions";
 
-const ORG_ID = process.env["ORG_ID"]!;
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -41,7 +40,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
   console.log("Creating user");
 
   try {
-    console.log("createUser", ORG_ID, tenant.id, tenantuserid);
+    console.log("createUser", tenant.id, tenantuserid);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
@@ -61,7 +60,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         };
       } else {
         try {
-          const { client, org } = await getCsClient();
+          const { client, org ,orgId} = await getCsClient(tenant.id);
           if(client == null || org == null) {
             return {
               wallet: null,
@@ -69,7 +68,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             };
           }
           console.log("Created cubesigner client", client);
-          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, ORG_ID, oidcToken);
+          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
 
           console.log("Verifying identity", proof);
 

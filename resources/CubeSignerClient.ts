@@ -2,11 +2,11 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { isStale, metadata, type SessionData, type SessionManager, type SessionMetadata } from "@cubist-labs/cubesigner-sdk";
-import { getPayerWallet } from "./dbFunctions";
+import { getCubistConfig, getPayerWallet } from "./dbFunctions";
 import {PublicKey, Transaction} from "@solana/web3.js";
 
-const SECRET_NAME: string = "SchoolHackCubeSignerToken";
-const PAYER_SECRET_NAME: string = "SchoolHackGasPayerCubistToken";
+// const SECRET_NAME: string = "SchoolHackCubeSignerToken";
+// const PAYER_SECRET_NAME: string = "SchoolHackGasPayerCubistToken";
 
 
 /**
@@ -63,11 +63,13 @@ class ReadOnlyAwsSecretsSessionManager implements SessionManager {
  * Use a CubeSigner token from AWS Secrets Manager to retrieve information
  * about the current user
  */
-export async function getCsClient() {
+export async function getCsClient(teantid : string) {
   try {
-    const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(SECRET_NAME));
+    const cubistConfig = await getCubistConfig(teantid);
+    const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(cubistConfig.signersecretname));
     const org = client.org();
-    return { client, org };
+    const orgId = cubistConfig.orgid;
+    return { client, org ,orgId};
   } catch (err) {
     console.error(err);
     throw err;
@@ -82,12 +84,16 @@ export async function getCsClient() {
 export async function getPayerCsSignerKey(chainType: string,tenantId: string) { 
   try{
     console.log("Creating client");
+    const cubistConfig = await getCubistConfig(tenantId);
+    if(cubistConfig == null){
+      return {key : null,error: "Cubist config not found for this tenant"};
+    }
     const payerWallet = await getPayerWallet(chainType,tenantId);
     if(payerWallet == null){
       return {key : null,error: "Payer wallet not found"};
     }
     const client = await cs.CubeSignerClient.create(
-      new ReadOnlyAwsSecretsSessionManager(PAYER_SECRET_NAME),
+      new ReadOnlyAwsSecretsSessionManager(cubistConfig.gaspayersecretname),
     );
     console.log("Client created",client);
     const keys=await client.sessionKeys();

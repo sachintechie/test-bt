@@ -274,6 +274,18 @@ export async function getTenantCallBackUrl(tenantId: string) {
   }
 }
 
+export async function getCubistConfig(tenantId: string) {
+  try {
+    let query = `select * from CubistConfig where tenantid = '${tenantId}';`;
+    const res = await executeQuery(query);
+    const cubist = res.rows;
+    return cubist[0];
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
 export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
     let query = `update transaction set status = '${status}' ,callbackstatus = '${callbackStatus}', updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;
