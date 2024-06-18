@@ -13,10 +13,10 @@ import {
   getAccount
 } from "@solana/spl-token";
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { oidcLogin, getPayerCsSignerKey } from "./CubeSignerClient";
+import { oidcLogin, getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import { getSolConnection } from "./solanaFunctions";
-import { tenant } from "./models";
-import { getCubistConfig } from "./dbFunctions";
+import { tenant } from "../db/models";
+import { getCubistConfig } from "../db/dbFunctions";
 // Define the network to connect to (e.g., mainnet-beta, testnet, devnet)
 // const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
 const env: any = {
@@ -129,6 +129,8 @@ export async function transferSPLToken(
     // 10.Send the transaction
 
     const txHash = await connection.sendRawTransaction(transaction.serialize());
+    await connection.confirmTransaction(txHash);
+
     console.log(`txHash: ${txHash}`);
     return { trxHash: txHash, error: null };
   } catch (e) {

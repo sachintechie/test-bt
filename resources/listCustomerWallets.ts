@@ -1,5 +1,5 @@
-import { getCustomerWalletsByTenantUserId, getTransactionsByWalletAddress, getWalletAndTokenByWalletAddress } from "./dbFunctions";
-import { tenant } from "./models";
+import { getCustomerWalletsByTenantUserId, getTransactionsByWalletAddress, getWalletAndTokenByWalletAddress } from "./db/dbFunctions";
+import { tenant } from "./db/models";
 
 export const handler = async (event: any) => {
     try {

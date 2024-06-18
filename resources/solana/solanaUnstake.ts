@@ -1,20 +1,23 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { tenant } from "./models";
+import { StakeAccountStatus, StakeType, tenant ,TransactionStatus} from "../db/models";
 import {
+  decreaseStakeAmount,
   getCubistConfig,
-  getStakeAccountPubkeyByWallets,
   getWalletAndTokenByWalletAddress,
-} from "./dbFunctions";
+  insertStakingTransaction,
+  updateStakeAccount,
+  updateStakeAccountStatus,
+} from "../db/dbFunctions";
 import {
   Connection,
   LAMPORTS_PER_SOL,
   PublicKey,
   StakeProgram,
   Keypair,
-  Authorized,
   Transaction,
+
 } from "@solana/web3.js";
-import { oidcLogin, signTransaction } from "./CubeSignerClient";
+import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { getSolBalance, getSolConnection, verifySolanaTransaction } from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 
@@ -22,16 +25,17 @@ const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
 
-export async function solanaUnstake(
+export async function solanaUnStaking(
   tenant: tenant,
+  stakeAccountId: string,
   senderWalletAddress: string,
-  receiverWalletAddress: string,
+  stakeAccountPubKey: string,
   amount: number,
   symbol: string,
   oidcToken: string,
   tenantUserId: string,
   chainType: string,
-  tenantTransactionId: string,
+  tenantTransactionId: string
 ) {
   try {
     if (!oidcToken) {
@@ -46,34 +50,60 @@ export async function solanaUnstake(
           transaction: null,
           error: "Cubist Configuration not found for the given tenant"
         };
-      }      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
-      let balance = 0;
+      }   
+      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
+      console.log(wallet, "Wallet");
       if (wallet.length == 0) {
         return {
           transaction: null,
           error: "Wallet not found for the given wallet address"
         };
       } else {
-        for (const token of wallet) {
+        const token = wallet[0];
           if (symbol === "SOL" && token.customerid != null) {
-            balance = await getSolBalance(senderWalletAddress);
-            token.balance = balance;
-            if (balance >= amount) {
-               const trx = await unstakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, oidcToken,cubistConfig.orgid);
-               return { transaction:trx, error: trx.error };
-            } else {
-              return {
-                transaction: null,
-                error: "Insufficient SOL balance"
-              };
+               const trx = await unstakeSol(senderWalletAddress, stakeAccountPubKey, amount, oidcToken,cubistConfig.orgid);
+               if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
+
+               const transactionStatus = await verifySolanaTransaction(trx.trxHash);
+               const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+              
+               const transaction = await insertStakingTransaction(
+                senderWalletAddress,
+                senderWalletAddress,
+                amount,
+                chainType,
+                symbol,
+                trx.trxHash,
+                tenant.id,
+                token.customerid,
+                token.tokenid,
+                tenantUserId,
+                process.env["SOLANA_NETWORK"] ?? "",
+                txStatus,
+                tenantTransactionId,
+                trx.stakeAccountPubKey.toString(),
+                stakeAccountId,
+                StakeType.UNSTAKE
+              );
+              if(trx.isFullyUnStake){
+                      const stakeAccount = await updateStakeAccount(stakeAccountId,StakeAccountStatus.CLOSED,amount);
+              }else{
+                const stakeAccount = await decreaseStakeAmount(stakeAccountId,amount);
+
+              }
+               return { transaction:transaction, error: trx.error };
             }
+            else{
+              return { transaction: null, error: trx.error };
+            }
+         
           } else if (symbol != "SOL" && token.customerid != null) {
             return {
               transaction: null,
               error: "Not Supported"
             };
           }
-        }
+        
         return { transaction: null, error: "Wallet not found" };
       }
     }
@@ -91,6 +121,7 @@ export async function unstakeSol(
   cubistOrgId: string
 ) {
   try {
+    var isFullyUnStake = false;
     const connection = await getSolConnection();
     const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
     if (!oidcClient) {
@@ -102,6 +133,7 @@ export async function unstakeSol(
     }
     const keys = await oidcClient.sessionKeys();
     const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
+    console.log("senderKey",senderKey);
 
     if (senderKey.length === 0) {
       return {
@@ -120,16 +152,22 @@ export async function unstakeSol(
 
     const currentStakeAmount = stakeAccount.stake?.delegation?.stake ?? 0;
 
+console.log("Current Stake Amount",currentStakeAmount);
     if (amount * LAMPORTS_PER_SOL > currentStakeAmount) {
       return { trxHash: null, error: "Insufficient staked amount" };
     }
 
     if (amount * LAMPORTS_PER_SOL === currentStakeAmount) {
+      console.log("full stake",amount);
+
+      isFullyUnStake = true;
       // Fully deactivate and withdraw the stake
-      return await deactivateAndWithdrawStake(connection, senderKey[0], stakeAccountPubkey, senderWalletAddress,currentStakeAmount);
+      return await deactivateAndWithdrawStake(connection, senderKey[0], stakeAccountPubkey, senderWalletAddress,currentStakeAmount,isFullyUnStake);
     } else {
+      console.log("partial stake",amount);
+
       // Partially withdraw the stake
-      return await partiallyWithdrawStake(connection, senderKey[0], stakeAccountPubkey, senderWalletAddress, amount * LAMPORTS_PER_SOL);
+      return await partiallyWithdrawStake(connection, senderKey[0], stakeAccountPubkey, senderWalletAddress, amount * LAMPORTS_PER_SOL,isFullyUnStake);
     }
   } catch (err: any) {
     console.log(err);
@@ -142,7 +180,9 @@ async function deactivateAndWithdrawStake(
   from: Key,
   stakeAccountPubkey: PublicKey,
   receiverWalletAddress: string,
-  amount: number
+  amount: number,
+  isFullyUnStake : boolean
+
 ) {
   const fromPublicKey = new PublicKey(from.materialId);
 
@@ -185,7 +225,7 @@ async function deactivateAndWithdrawStake(
   await connection.confirmTransaction(tx);
   console.log('Stake withdrawn with signature:', tx);
 
-  return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey,error: null  };
+  return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey,  isFullyUnStake,    error: null  };
 }
 
 async function partiallyWithdrawStake(
@@ -193,7 +233,8 @@ async function partiallyWithdrawStake(
   from: Key,
   stakeAccountPubkey: PublicKey,
   receiverWalletAddress: string,
-  amount: number
+  amount: number,
+  isFullyUnStake : boolean
 ) {
   const fromPublicKey = new PublicKey(from.materialId);
   const tempStakeAccount = Keypair.generate();
@@ -215,6 +256,7 @@ async function partiallyWithdrawStake(
   transaction.feePayer = fromPublicKey;
 
   await signTransaction(transaction, from);
+  transaction.partialSign(tempStakeAccount);
   let tx = await connection.sendRawTransaction(transaction.serialize());
   await connection.confirmTransaction(tx);
   console.log('Stake account split with signature:', tx);
@@ -257,5 +299,5 @@ async function partiallyWithdrawStake(
   await connection.confirmTransaction(tx);
   console.log('Stake withdrawn with signature:', tx);
 
-  return {trxHash: tx, stakeAccountPubKey: stakeAccountPubkey,error: null};
+  return {trxHash: tx, stakeAccountPubKey: stakeAccountPubkey,isFullyUnStake ,error: null};
 }

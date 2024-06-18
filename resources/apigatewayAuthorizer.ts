@@ -1,4 +1,4 @@
-import { executeQuery } from "./PgClient";
+import { executeQuery } from "./db/PgClient";
 
 export const handler = async (event: any) => {
     try {

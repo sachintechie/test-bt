@@ -56,3 +56,15 @@ export enum CallbackStatus{
   FAILED = "FAILED",
   PENDING = "PENDING"
 }
+
+
+
+export enum StakeAccountStatus{
+  OPEN = "OPEN",
+  CLOSED = "CLOSED",
+  FAILED = "FAILED"
+}
+
+export enum StakeType{
+  STAKE = "STAKE",
+  UNSTAKE = "UNSTAKE"}
