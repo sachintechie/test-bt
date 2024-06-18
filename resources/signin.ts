@@ -95,7 +95,9 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               cubistuserid: cubistUserId,
               tenantuserid: tenantuserid,
               tenantid: tenant.id,
-              emailid: email
+              emailid: email,
+              id: customerId,
+              createdat: new Date().toISOString()
             };
 
             return { customer :customerData, error: null };
