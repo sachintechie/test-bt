@@ -1,6 +1,6 @@
-import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "./dbFunctions";
-import { tenant } from "./models";
-import { solanaTransfer } from "./solanaTransfer";
+import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "./db/dbFunctions";
+import { tenant } from "./db/models";
+import { solanaTransfer } from "./solana/solanaTransfer";
 
 export const handler = async (event: any) => {
   try {

@@ -4,41 +4,41 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 
 export async function createCustomer(customer: customer) {
   try {
-    console.log("Creating customer", customer);
+    // // console.log("Creating customer", customer);
     let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isactive)
       VALUES ('${customer.tenantuserid}','${customer.tenantid}', '${customer.emailid}','${
       customer.name
     }','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
-    console.log("customer created Res", res);
+    // console.log("customer created Res", res);
     const customerRow = res.rows[0];
-    console.log("Customer Row", customerRow);
+    // console.log("Customer Row", customerRow);
     return customerRow.id;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
 
 export async function createWallet(org: any, cubistUserId: string, chainType: string, customerId?: string) {
   try {
-    console.log("Creating wallet", cubistUserId, customerId);
+    // console.log("Creating wallet", cubistUserId, customerId);
     // Create a key for the OIDC user
     const key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
-    // console.log("Created key", key.PublicKey.toString());
+    // // console.log("Created key", key.PublicKey.toString());
     let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
       VALUES ('${customerId}','${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
-    console.log("wallet created Res", res);
+    // console.log("wallet created Res", res);
 
     const walletRow = res.rows[0];
-    console.log("wallet Row", walletRow);
+    // console.log("wallet Row", walletRow);
 
     return walletRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     //return null;
     throw err;
   }
@@ -61,17 +61,17 @@ export async function insertTransaction(
   error?: string
 ) {
   try {
-    console.log("creating transaction", receiverWalletaddress, customerId);
+    // console.log("creating transaction", receiverWalletaddress, customerId);
     let query = `INSERT INTO transaction (customerid,callbackstatus,tokenid,tenanttransactionid,network,status,error,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
       VALUES ('${customerId}','${CallbackStatus.PENDING}','${tokenId}','${tenantTransactionId}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
       customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid; `;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
-    console.log("transaction created Res", res);
+    // console.log("transaction created Res", res);
     const transactionRow = res.rows[0];
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -91,44 +91,101 @@ export async function insertStakingTransaction(
   status: string,
   tenantTransactionId: string,
   stakeaccountpubkey : string,
+  stakeaccountid : string,
+  stakeType: string,
   error?: string
 ) {
   try {
-    console.log("creating transaction", receiverWalletaddress, customerId);
-    let query = `INSERT INTO staketransaction (customerid,tokenid,tenanttransactionid,stakeaccountpubkey,network,status,error,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive)
-      VALUES ('${customerId}','${tokenId}','${tenantTransactionId}','${stakeaccountpubkey}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true) RETURNING 
-      customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid; `;
+    // console.log("creating transaction", receiverWalletaddress, customerId);
+    let query = `INSERT INTO staketransaction (customerid,type,tokenid,tenanttransactionid,stakeaccountpubkey,network,status,error,tenantuserid, walletaddress,receiverWalletaddress,chaintype,amount,symbol,txhash,tenantid,isactive,stakeaccountid)
+      VALUES ('${customerId}','${stakeType}','${tokenId}','${tenantTransactionId}','${stakeaccountpubkey}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${txhash}','${tenantId}',true,'${stakeaccountid}') RETURNING 
+      customerid,walletaddress,receiverwalletaddress,chaintype,txhash,type,symbol,amount,createdat,tokenid,network,tenantuserid,status,stakeaccountid,id as transactionid,tenanttransactionid; `;
     console.log("Query", query);
     const res = await executeQuery(query);
-    console.log("stake transaction created Res", res);
+    // console.log("stake transaction created Res", res);
     const stakeTransactionRow = res.rows[0];
     return stakeTransactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
 
-export async function getStakeAccountPubkeyByWallets(
-  tenantId: string,
+export async function insertStakeAccount(
   senderWalletAddress: string,
-  receiverWalletAddress: string
+  receiverWalletaddress: string,
+  amount: number,
+  chainType: string,
+  symbol: string,
+  tenantId: string,
+  customerId: string,
+  tenantUserId: string,
+  network: string,
+  status: string,
+  tenantTransactionId: string,
+  stakeaccountpubkey : string,
+  lockupExpirationTimestamp : number,
+  error?: string,
+
 ) {
   try {
-    console.log("Fetching stake account public key for", senderWalletAddress, receiverWalletAddress);
-    let query = `SELECT stakeaccountpubkey FROM staketransaction
-      WHERE walletaddress = '${senderWalletAddress}' AND receiverwalletaddress = '${receiverWalletAddress}' AND tenantId = '${tenantId}' LIMIT 1;`;
-    console.log("Query", query);
+    // console.log("creating stakeaccount ", receiverWalletaddress, customerId);
+    let query = `INSERT INTO stakeaccount (customerid,lockupExpirationTimestamp,tenanttransactionid,stakeaccountpubkey,network,status,error,tenantuserid, walletaddress,validatornodeaddress,chaintype,amount,symbol,tenantid,isactive)
+      VALUES ('${customerId}','${lockupExpirationTimestamp}','${tenantTransactionId}','${stakeaccountpubkey}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${tenantId}',true) RETURNING 
+      customerid,walletaddress,validatornodeaddress,chaintype,symbol,amount,createdat,network,tenantuserid,status,id as stakeaccountid,tenanttransactionid; `;
+    // console.log("Query", query);
     const res = await executeQuery(query);
-    console.log("Stake account public key fetch result", res);
+    // console.log("stake transaction created Res", res);
+    const stakeTransactionRow = res.rows[0];
+    return stakeTransactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+export async function getStakeAccounts(
+  senderWalletAddress: string,
+  tenantId: string
+) {
+  try {
+    // console.log("Fetching stake account public key for", senderWalletAddress, customerId);
+    let query = `SELECT * FROM stakeaccount
+      WHERE walletaddress = '${senderWalletAddress}' AND tenantId = '${tenantId}' LIMIT 1;`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("Stake account public key fetch result", res);
 
     if (res.rows.length > 0) {
-      return res.rows[0].stakeaccountpubkey;
+      return res.rows;
     } else {
       return null;
     }
   } catch (err) {
-    console.log(err);
+    // console.log(err);
+    throw err;
+  }
+}
+
+ export async function getStakeAccount(
+  senderWalletAddress: string,
+  tenantId: string,
+  customerId: string,
+) {
+  try {
+    // console.log("Fetching stake account public key for", senderWalletAddress, customerId);
+    let query = `SELECT * FROM stakeaccount
+      WHERE walletaddress = '${senderWalletAddress}' AND customerId = '${customerId}' AND tenantId = '${tenantId}' LIMIT 1;`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("Stake account public key fetch result", res);
+
+    if (res.rows.length > 0) {
+      return res.rows[0];
+    } else {
+      return null;
+    }
+  } catch (err) {
+    // console.log(err);
     throw err;
   }
 }
@@ -136,14 +193,14 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
   try {
     let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
       ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND wallet.chaintype ='${chaintype}' AND customer.tenantid = '${tenant.id}';`;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
 
     const walletRow = res.rows[0];
-    console.log("Wallet Row", walletRow);
+    // console.log("Wallet Row", walletRow);
     return walletRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -151,14 +208,14 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
 export async function getPayerWallet(chaintype: string, tenantId: string) {
   try {
     let query = `select * from GasPayerWallet where tenantid =  '${tenantId}' AND symbol ='${chaintype}';`;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
 
     const walletRow = res.rows[0];
-    console.log("Wallet Row", walletRow);
+    // console.log("Wallet Row", walletRow);
     return walletRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -166,14 +223,14 @@ export async function getPayerWallet(chaintype: string, tenantId: string) {
 export async function getMasterWalletAddress(chaintype: string, tenantId: string, symbol: string) {
   try {
     let query = `select * from masterwallet where tenantid =  '${tenantId}' AND chaintype ='${chaintype}' AND symbol='${symbol}';`;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
 
     const masterWalletRow = res.rows[0];
-    console.log("Wallet Row", masterWalletRow);
+    // console.log("Wallet Row", masterWalletRow);
     return masterWalletRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -181,36 +238,51 @@ export async function getMasterWalletAddress(chaintype: string, tenantId: string
 export async function getTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
   try {
     let query = `select * from transaction where tenantid =  '${tenantId}' AND tenanttransactionid ='${tenantTransactionId}';`;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
 
     const transactionRow = res.rows[0];
-    console.log("transactionRow", transactionRow);
+    // console.log("transactionRow", transactionRow);
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     return null;
   }
 }
 
-export async function getStakingTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
+export async function getStakingTransactionByStakeAccountId(stakeAccountId: string, tenantId: string) {
   try {
-    let query = `select * from staketransaction where tenantid =  '${tenantId}' AND tenanttransactionid ='${tenantTransactionId}';`;
-    console.log("Query", query);
+    let query = `select * from staketransaction where tenantid =  '${tenantId}' AND stakeaccountid ='${stakeAccountId}';`;
+    // console.log("Query", query);
     const res = await executeQuery(query);
 
     const transactionRow = res.rows[0];
-    console.log("transactionRow", transactionRow);
+    // console.log("transactionRow", transactionRow);
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
+    return null;
+  }
+}
+
+export async function getStakeAccountById(stakeAccountId: string, tenantId: string) {
+  try {
+    let query = `select * from stakeaccount where tenantid =  '${tenantId}' AND id ='${stakeAccountId}';`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+
+    const transactionRow = res.rows[0];
+    // console.log("transactionRow", transactionRow);
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
     return null;
   }
 }
 
 export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
-    console.log("Wallet Address", walletAddress, symbol);
+     console.log("Wallet Address", walletAddress, symbol);
     let query;
     if (symbol != null && symbol != "") {
       query = `select wallet.walletaddress,token.name as tokenname,token.decimalprecision,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
@@ -219,32 +291,33 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
       query = `select wallet.walletaddress,token.name as tokenname,token.decimalprecision,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
       ON  wallet.chaintype = token.chaintype where wallet.walletaddress = '${walletAddress}';`;
     }
+    console.log("Query", query);
     const res = await executeQuery(query);
     const walletRow = res.rows;
     return walletRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
 
 export async function getCustomerWalletsByTenantUserId(tenantUserId: string, tenant: tenant) {
   try {
-    console.log("tenantUserId", tenantUserId);
+    // console.log("tenantUserId", tenantUserId);
       let query = `select customerid,walletaddress,wallet.stakeaccountpubkey,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
       ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND customer.tenantid = '${tenant.id}';`;
     const res = await executeQuery(query);
     const walletRow = res.rows;
     return walletRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
 
 export async function getTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
-    console.log("Wallet Address", walletAddress, symbol);
+    // console.log("Wallet Address", walletAddress, symbol);
     let query;
     if (symbol != null && symbol != "") {
       query = `select * from transaction 
@@ -257,7 +330,21 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
     const transactionRow = res.rows;
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function getStakeTransactions(stakeaccountid: string, tenant: tenant) {
+  try {
+    // console.log("Wallet Address", walletAddress, symbol);
+    let query = `select * from staketransaction where stakeaccountid = '${stakeaccountid}' AND tenantid = '${tenant.id}';`;
+    
+    const res = await executeQuery(query);
+    const transactionRow = res.rows;
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
     throw err;
   }
 }
@@ -269,7 +356,7 @@ export async function getAllTransactions() {
     const transactionRow = res.rows;
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -281,7 +368,7 @@ export async function getAllStakingTransactions() {
     const transactionRow = res.rows;
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -293,7 +380,7 @@ export async function getTenantCallBackUrl(tenantId: string) {
     const tenant = res.rows;
     return tenant[0];
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -305,7 +392,7 @@ export async function getCubistConfig(tenantId: string) {
     const cubist = res.rows;
     return cubist[0];
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
@@ -318,22 +405,86 @@ export async function updateTransaction(transactionId: string, status: string, c
     const transactionRow = res.rows[0];
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
 
 export async function updateWallet(customerId: string, tenantId: string, stakeAccountPubKey: string,chainType : string) {
   try {
-    let query = `update wallet set stakeaccountpubkey = '${stakeAccountPubKey}', updatedat= CURRENT_TIMESTAMP  where customerid = '${customerId}' AND teantid='${tenantId}' AND chaintype='${chainType}' RETURNING id;`;
+    let query = `update wallet set stakeaccountpubkey = '${stakeAccountPubKey}', updatedat= CURRENT_TIMESTAMP  where customerid = '${customerId}' AND teantid='${tenantId}' AND chaintype='${chainType} AND stakeaccountpubkey=null' RETURNING id;`;
     const res = await executeQuery(query);
     const walletRow = res.rows[0];
     return walletRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
+export async function getStakingTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
+  try {
+    let query = `select * from staketransaction where tenantid =  '${tenantId}' AND tenanttransactionid ='${tenantTransactionId}';`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+
+    const transactionRow = res.rows[0];
+    // console.log("transactionRow", transactionRow);
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    return null;
+  }
+}
+export async function updateStakeAccountStatus(stakeAccountId: string, status: string) {
+  try {
+    let query = `update stakeaccount set status = '${status}' ,updatedat= CURRENT_TIMESTAMP  where id = '${stakeAccountId}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+export async function decreaseStakeAmount(stakeAccountId: string,amount:number) {
+  try {
+    let query = `update stakeaccount set  amount = amount - '${amount}' ,updatedat= CURRENT_TIMESTAMP  where id = '${stakeAccountId}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+export async function updateStakeAccount(stakeAccountId: string, status: string,amount:number) {
+  try {
+    let query = `update stakeaccount set status = '${status}' , amount = amount - '${amount}' ,updatedat= CURRENT_TIMESTAMP  where id = '${stakeAccountId}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function updateStakeAccountAmount(stakeAccountId: string, amount: number) {
+  try {
+    let query = `update stakeaccount set amount = amount+'${amount}' ,updatedat= CURRENT_TIMESTAMP  where id = '${stakeAccountId}' RETURNING id;`;
+console.log("Query",query);
+    const res = await executeQuery(query);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
 
 export async function updateStakingTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
@@ -343,21 +494,21 @@ export async function updateStakingTransaction(transactionId: string, status: st
     const transactionRow = res.rows[0];
     return transactionRow;
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     throw err;
   }
 }
 
 export async function getCustomer(tenantUserId: string, tenantId: string) {
   try {
-    console.log("Tenant User Id", tenantUserId, tenantId);
+    // console.log("Tenant User Id", tenantUserId, tenantId);
     let query = `SELECT * FROM customer WHERE tenantuserid = '${tenantUserId}' AND tenantid = '${tenantId}';`;
-    console.log("Query", query);
+    // console.log("Query", query);
     const res = await executeQuery(query);
     const customerRow = res.rows[0];
     return to_customer(customerRow);
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     // throw err;
     return null;
   }
@@ -370,7 +521,7 @@ export async function getTokens(chainType: string) {
     const tokenRow = res.rows[0];
     return to_token(tokenRow);
   } catch (err) {
-    console.log(err);
+    // console.log(err);
     // return null;
     throw err;
   }

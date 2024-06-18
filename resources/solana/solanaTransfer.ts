@@ -1,13 +1,13 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { tenant, TransactionStatus } from "./models";
-import { getCubistConfig, getWalletAndTokenByWalletAddress, insertTransaction } from "./dbFunctions";
+import { tenant, TransactionStatus } from "../db/models";
+import { getCubistConfig, getWalletAndTokenByWalletAddress, insertTransaction } from "../db/dbFunctions";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
   SystemProgram,
   Transaction
 } from "@solana/web3.js";
-import { oidcLogin } from "./CubeSignerClient";
+import { oidcLogin } from "../cubist/CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
 
@@ -190,6 +190,7 @@ async function transferSOL(senderWalletAddress: string, receiverWalletAddress: s
 
       // send transaction
       const txHash = await connection.sendRawTransaction(tx.serialize());
+      await connection.confirmTransaction(txHash);
       console.log(`txHash: ${txHash}`);
       return { trxHash: txHash, error: null };
     }

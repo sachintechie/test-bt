@@ -1,6 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { tenant, TransactionStatus } from "./models";
-import { getCubistConfig, getWalletAndTokenByWalletAddress, insertStakingTransaction, updateWallet } from "./dbFunctions";
+import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
+import { getCubistConfig, getStakeAccount, getWalletAndTokenByWalletAddress, insertStakeAccount, insertStakingTransaction, updateStakeAccountAmount, updateStakeAccountStatus, updateWallet } from "../db/dbFunctions";
 import {
   Connection,
   LAMPORTS_PER_SOL,
@@ -9,7 +9,7 @@ import {
   Keypair,
   Authorized, Transaction, Lockup
 } from "@solana/web3.js";
-import { oidcLogin, signTransaction } from "./CubeSignerClient";
+import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
 import {Key} from "@cubist-labs/cubesigner-sdk";
 
@@ -55,18 +55,38 @@ export async function solanaStaking(
           error: "Wallet not found for the given wallet address"
         };
       } else {
-        for (const token of wallet) {
+        const token = wallet[0];
+        const stakeAccount = await getStakeAccount(senderWalletAddress,tenant.id,token.customerid
+        );
           if (symbol === "SOL" && token.customerid != null) {
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             if (balance >= amount) {
               // Check if the stake
-              const trx = await stakeSol(senderWalletAddress, token.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken,lockupExpirationTimestamp,cubistConfig.orgid);
+              const trx = await stakeSol(senderWalletAddress, stakeAccount?.stakeaccountpubkey, amount, receiverWalletAddress, oidcToken,lockupExpirationTimestamp,cubistConfig.orgid);
               if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
                 console.log( "trx.stakeTxHash", trx.trxHash, "trx.delegateTxHash");
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
                 const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+                const stakeAccountStatus = StakeAccountStatus.OPEN;
 
+                if(stakeAccount == null){
+                const newStakeAccount = await insertStakeAccount(
+                  senderWalletAddress,
+                  receiverWalletAddress,
+                  amount,
+                  chainType,
+                  symbol,
+                  tenant.id,
+                  token.customerid,
+                  tenantUserId,
+                  process.env["SOLANA_NETWORK"] ?? "",
+                  stakeAccountStatus,
+                  tenantTransactionId,
+                  trx.stakeAccountPubKey.toString(),
+                  lockupExpirationTimestamp
+                );
+              
                 const transaction = await insertStakingTransaction(
                   senderWalletAddress,
                   receiverWalletAddress,
@@ -81,11 +101,40 @@ export async function solanaStaking(
                   process.env["SOLANA_NETWORK"] ?? "",
                   txStatus,
                   tenantTransactionId,
-                  trx.stakeAccountPubKey.toString()
+                  trx.stakeAccountPubKey.toString(),
+                  newStakeAccount.stakeaccountid,
+                  StakeType.STAKE
+
+                );
+                return { transaction, error: null };
+
+              }
+              else{
+                const transaction = await insertStakingTransaction(
+                  senderWalletAddress,
+                  receiverWalletAddress,
+                  amount,
+                  chainType,
+                  symbol,
+                  trx.trxHash,
+                  tenant.id,
+                  token.customerid,
+                  token.tokenid,
+                  tenantUserId,
+                  process.env["SOLANA_NETWORK"] ?? "",
+                  txStatus,
+                  tenantTransactionId,
+                  trx.stakeAccountPubKey.toString(),
+                  stakeAccount.id,
+                  StakeType.STAKE
                 );
 
-                const wallet = await updateWallet(token.customerid, tenant.id,trx.stakeAccountPubKey.toString(),chainType);
+                const update = await updateStakeAccountAmount(stakeAccount.id,amount);
                 return { transaction, error: null };
+              }
+                   
+                //const wallet = await updateWallet(token.customerid, tenant.id,trx.stakeAccountPubKey.toString(),chainType);
+          
               } else {
                 return { transaction: null, error: trx.error };
               }
@@ -110,7 +159,7 @@ export async function solanaStaking(
               };
             }
           }
-        }
+        
         return { transaction: null, error: "Wallet not found" };
       }
     }
@@ -156,12 +205,12 @@ export async function stakeSol(
 }
 else{
   //need to write code of merge stake account
-  await addStakeToExistingAccount(connection, senderKey[0], new PublicKey(stakeAccountPubKey), validatorAddress, amountToStake,lockupExpirationTimestamp);
-  return { trxHash: null, stakeAccountPubKey: null, error: "Stake merging not supported at yet" };  
+  const staketransaction = await addStakeToExistingAccount(connection, senderKey[0], new PublicKey(stakeAccountPubKey), validatorAddress, amountToStake,lockupExpirationTimestamp);
+  return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };  
 }
 
   } catch (err:any) {
-    console.log(await err.getLogs());
+    console.log(await err);
     return { trxHash: null, error: err };
   }
 }
@@ -248,6 +297,7 @@ async function addStakeToExistingAccount(
   transaction.feePayer = fromPublicKey;
 
   await signTransaction(transaction,from);
+  transaction.partialSign(tempStakeAccount);
 
   let tx = await connection.sendRawTransaction(transaction.serialize());
   await connection.confirmTransaction(tx);
@@ -267,10 +317,13 @@ async function addStakeToExistingAccount(
   transaction.feePayer = fromPublicKey;
 
   await signTransaction(transaction,from);
+  // transaction.partialSign(tempStakeAccount);
 
   tx = await connection.sendRawTransaction(transaction.serialize());
   await connection.confirmTransaction(tx);
   console.log('Stake accounts merged with signature:', tx);
+  return {txHash : tx,stakeAccountPubKey:existingStakeAccountPubkey};
+
 }
 
 

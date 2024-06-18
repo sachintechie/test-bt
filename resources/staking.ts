@@ -1,6 +1,6 @@
-import { getStakingTransactionByTenantTransactionId } from "./dbFunctions";
-import { tenant } from "./models";
-import { solanaStaking } from "./solanaStake";
+import { getStakingTransactionByTenantTransactionId } from "./db/dbFunctions";
+import { tenant } from "./db/models";
+import { solanaStaking } from "./solana/solanaStake";
 export const handler = async (event: any) => {
   try {
     console.log(event);
@@ -12,7 +12,7 @@ export const handler = async (event: any) => {
       const data = await solanaStaking(
         event.identity.resolverContext as tenant,
         event.arguments?.input?.senderWalletAddress,
-        event.arguments?.input?.receiverWalletAddress,
+        event.arguments?.input?.validatorNodeAddress,
         event.arguments?.input?.amount,
         event.arguments?.input?.symbol,
         event.request?.headers?.identity,

@@ -143,6 +143,23 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
+     new NodejsFunction(this, "unStaking", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/unstaking.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        SOLANA_NETWORK :"devnet",
+        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
+        DB_DATABASE: "dev",
+        DB_PORT: "5432"
+      },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
      new NodejsFunction(this, "masterTransfer", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/masterTransfer.ts"),

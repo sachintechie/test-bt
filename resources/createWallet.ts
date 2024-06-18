@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { tenant } from "./models";
-import { getCsClient } from "./CubeSignerClient";
-import {  createWallet, getCustomer, getWalletByCustomer } from "./dbFunctions";
+import { tenant } from "./db/models";
+import { getCsClient } from "./cubist/CubeSignerClient";
+import {  createWallet, getCustomer, getWalletByCustomer } from "./db/dbFunctions";
 
 
 

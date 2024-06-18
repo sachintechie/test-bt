@@ -2,7 +2,7 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { isStale, metadata, type SessionData, type SessionManager, type SessionMetadata } from "@cubist-labs/cubesigner-sdk";
-import { getCubistConfig, getPayerWallet } from "./dbFunctions";
+import { getCubistConfig, getPayerWallet } from "../db/dbFunctions";
 import {PublicKey, Transaction} from "@solana/web3.js";
 
 // const SECRET_NAME: string = "SchoolHackCubeSignerToken";
