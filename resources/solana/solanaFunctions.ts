@@ -68,3 +68,17 @@ export async function getSplTokenBalance(wallet: string, contractAddress: string
     return 0;
   }
 }
+
+export async function getStakeAccountInfo(stakeAccountPubKey: string,connection : Connection) {
+  const stakeAccountPubkey = new PublicKey(stakeAccountPubKey);
+  const stakeAccountInfo = await connection.getParsedAccountInfo(stakeAccountPubkey);
+  const stakeAccountData = stakeAccountInfo.value?.data;
+  if (!stakeAccountData || !('parsed' in stakeAccountData)) {
+    return { currentStakeAmount: null, error: "Failed to parse stake account data" };
+  }
+  const stakeAccount = stakeAccountData.parsed.info;
+
+  const currentStakeAmount = stakeAccount.stake?.delegation?.stake ?? 0;
+  return{ currentStakeAmount,error: null};
+  ;
+}
