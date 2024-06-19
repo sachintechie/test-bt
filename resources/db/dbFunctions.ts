@@ -21,7 +21,32 @@ export async function createCustomer(customer: customer) {
   }
 }
 
-export async function createWallet(org: any, cubistUserId: string, chainType: string, customerId?: string) {
+export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string ,key?  : any) {
+  try {
+     console.log("Creating wallet", cubistUserId, customerId,key);
+    // Create a key for the OIDC user
+    if(key == null){
+     key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
+    }
+    
+    //  console.log("Created key", key.PublicKey.toString());
+    let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
+      VALUES ('${customerId}','${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+     console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("wallet created Res", res);
+
+    const walletRow = res.rows[0];
+    // console.log("wallet Row", walletRow);
+
+    return walletRow;
+  } catch (err) {
+    // console.log(err);
+    //return null;
+    throw err;
+  }
+}
+export async function createWallet(org: any, cubistUserId: string, chainType: string,customerId?: string) {
   try {
     // console.log("Creating wallet", cubistUserId, customerId);
     // Create a key for the OIDC user
@@ -29,7 +54,7 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
     // // console.log("Created key", key.PublicKey.toString());
     let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
       VALUES ('${customerId}','${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
-    // console.log("Query", query);
+     console.log("Query", query);
     const res = await executeQuery(query);
     // console.log("wallet created Res", res);
 
@@ -301,12 +326,12 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
   }
 }
 
-export async function getCustomerWalletsByTenantUserId(tenantUserId: string, tenant: tenant) {
+export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {
   try {
     // console.log("tenantUserId", tenantUserId);
-      let query = `select customerid,walletaddress,wallet.stakeaccountpubkey,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
-      ON  wallet.customerid = customer.id where customer.tenantuserid =  '${tenantUserId}' AND customer.tenantid = '${tenant.id}';`;
-    const res = await executeQuery(query);
+      let query = `SELECT chaintype.chain as chaintype,w.createdat,w.customerid,w.walletaddress,chaintype.symbol,w.wallettype FROM chaintype LEFT JOIN (SELECT * FROM wallet WHERE wallet.customerid = '${customerid}') as W ON chaintype.chain = w.chaintype;`
+    console.log("Query", query);
+      const res = await executeQuery(query);
     const walletRow = res.rows;
     return walletRow;
   } catch (err) {

@@ -1,4 +1,4 @@
-import { getCustomerWalletsByTenantUserId, getTransactionsByWalletAddress, getWalletAndTokenByWalletAddress } from "./db/dbFunctions";
+import { getCustomerWalletsByCustomerId  } from "./db/dbFunctions";
 import { tenant } from "./db/models";
 
 export const handler = async (event: any) => {
@@ -7,7 +7,7 @@ export const handler = async (event: any) => {
   
       const wallets = await listCustomerWallets(
         event.identity.resolverContext as tenant,
-        event.arguments?.input?.tenantUserId
+        event.arguments?.input?.customerId
       );
       return {
         status: 200,
@@ -24,11 +24,11 @@ export const handler = async (event: any) => {
     }
   };
   
-  async function listCustomerWallets(tenant: tenant, tenantUserId: string) {
-    console.log("tenantUserId", tenantUserId);
+  async function listCustomerWallets(tenant: tenant, customerId: string) {
+    console.log("customerId", customerId);
   
     try {
-      const wallet = await getCustomerWalletsByTenantUserId(tenantUserId, tenant);
+      const wallet = await getCustomerWalletsByCustomerId(customerId, tenant);
       console.log(wallet, "Wallet");
       return wallet;
     } catch (err) {
