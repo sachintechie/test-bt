@@ -187,17 +187,23 @@ export async function stakeSol(
     };
   }
   const keys = await oidcClient.sessionKeys();
+ if( keys.length === 0 ){
+    return {
+      trxHash: null,
+      error: "Given identity token is not the owner of given wallet address"
+    };
+ } 
   const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
-
-  if(stakeAccountPubKey === null || stakeAccountPubKey === undefined){
-
   // Connect to the Solana cluster
-  if (senderKey.length === 0) {
+  if ( senderKey.length === 0) {
     return {
       trxHash: null,
       error: "Given identity token is not the owner of given wallet address"
     };
   }
+  if(stakeAccountPubKey === null || stakeAccountPubKey === undefined){
+
+
   const staketransaction = await createStakeAccountWithStakeProgram(connection, senderKey[0], amountToStake,validatorAddress,lockupExpirationTimestamp);
   // Delegate the stake to the validator
  // const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
@@ -335,6 +341,7 @@ async function addStakeToExistingAccount(
       stakePubkey: existingStakeAccountPubkey,
       sourceStakePubKey: tempStakeAccount.publicKey,
       authorizedPubkey: fromPublicKey,
+       
     })
   );
 

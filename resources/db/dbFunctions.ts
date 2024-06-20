@@ -21,18 +21,20 @@ export async function createCustomer(customer: customer) {
   }
 }
 
-export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string ,key?  : any) {
+export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string, key?: any) {
   try {
-     console.log("Creating wallet", cubistUserId, customerId,key);
+    console.log("Creating wallet", cubistUserId, customerId, key);
     // Create a key for the OIDC user
-    if(key == null){
-     key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
+    if (key == null) {
+      key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     }
-    
+
     //  console.log("Created key", key.PublicKey.toString());
     let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
-      VALUES ('${customerId}','${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
-     console.log("Query", query);
+      VALUES ('${customerId}','${key.materialId}','${
+      key.id
+    }','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+    console.log("Query", query);
     const res = await executeQuery(query);
     // console.log("wallet created Res", res);
 
@@ -46,22 +48,62 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     throw err;
   }
 }
-export async function createWallet(org: any, cubistUserId: string, chainType: string,customerId?: string) {
+export async function createWallet(org: any, cubistUserId: string, chainType: string, customerId?: string) {
   try {
-    // console.log("Creating wallet", cubistUserId, customerId);
-    // Create a key for the OIDC user
-    const key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
-    // // console.log("Created key", key.PublicKey.toString());
-    let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
-      VALUES ('${customerId}','${key.materialId}','${key.id}','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
-     console.log("Query", query);
-    const res = await executeQuery(query);
-    // console.log("wallet created Res", res);
+    console.log("Creating wallet", cubistUserId, chainType);
+    var keyType: any;
+    switch (chainType) {
+      case "Etherum":
+        keyType = cs.Secp256k1.Evm;
+        break;
+      case "Bitcoin":
+        keyType = cs.Secp256k1.Btc;
+        break;
+      // case "BTCTEST":
+      //     keyType = cs.Secp256k1.BtcTest
+      //     break;
+      // case "AVAX":
+      //     keyType = cs.Secp256k1.Ava
+      //     break;
+      case "Avlanche":
+        keyType = cs.Secp256k1.AvaTest;
+        break;
+      case "Cardano":
+        keyType = cs.Ed25519.Cardano;
+        break;
+      case "Solana":
+        keyType = cs.Ed25519.Solana;
+        break;
+      case "Stellar":
+        keyType = cs.Ed25519.Stellar;
+        break;
+      // case "APT":
+      //     keyType = cs.Ed25519.Aptos
+      //     break;
+      // case "SUI":
+      //     keyType = cs.Ed25519.Sui
+      //     break;
+      default:
+        keyType = null;
+    }
+    console.log("Creating wallet", keyType);
+    if (keyType != null) {
+      const key = await org.createKey(keyType, cubistUserId);
+      let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
+      VALUES ('${customerId}','${key.materialId}','${
+        key.id
+      }','${chainType}','${keyType.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+      console.log("Query", query);
+      const res = await executeQuery(query);
+      // console.log("wallet created Res", res);
 
-    const walletRow = res.rows[0];
-    // console.log("wallet Row", walletRow);
+      const walletRow = res.rows[0];
+      // console.log("wallet Row", walletRow);
 
-    return walletRow;
+      return { data: walletRow, error: null };
+    } else {
+      return { data: null, error: "Chain type not supported for key generation" };
+    }
   } catch (err) {
     // console.log(err);
     //return null;
@@ -115,8 +157,8 @@ export async function insertStakingTransaction(
   network: string,
   status: string,
   tenantTransactionId: string,
-  stakeaccountpubkey : string,
-  stakeaccountid : string,
+  stakeaccountpubkey: string,
+  stakeaccountid: string,
   stakeType: string,
   error?: string
 ) {
@@ -148,10 +190,9 @@ export async function insertStakeAccount(
   network: string,
   status: string,
   tenantTransactionId: string,
-  stakeaccountpubkey : string,
-  lockupExpirationTimestamp : number,
-  error?: string,
-
+  stakeaccountpubkey: string,
+  lockupExpirationTimestamp: number,
+  error?: string
 ) {
   try {
     // console.log("creating stakeaccount ", receiverWalletaddress, customerId);
@@ -168,10 +209,7 @@ export async function insertStakeAccount(
     throw err;
   }
 }
-export async function getStakeAccounts(
-  senderWalletAddress: string,
-  tenantId: string
-) {
+export async function getStakeAccounts(senderWalletAddress: string, tenantId: string) {
   try {
     // console.log("Fetching stake account public key for", senderWalletAddress, customerId);
     let query = `SELECT * FROM stakeaccount
@@ -191,11 +229,7 @@ export async function getStakeAccounts(
   }
 }
 
- export async function getStakeAccount(
-  senderWalletAddress: string,
-  tenantId: string,
-  customerId: string,
-) {
+export async function getStakeAccount(senderWalletAddress: string, tenantId: string, customerId: string) {
   try {
     // console.log("Fetching stake account public key for", senderWalletAddress, customerId);
     let query = `SELECT * FROM stakeaccount
@@ -307,7 +341,7 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
 
 export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
-     console.log("Wallet Address", walletAddress, symbol);
+    console.log("Wallet Address", walletAddress, symbol);
     let query;
     if (symbol != null && symbol != "") {
       query = `select wallet.walletaddress,token.name as tokenname,token.decimalprecision,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype,wallet.customerid,wallet.createdat from wallet  INNER JOIN token 
@@ -329,9 +363,9 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
 export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {
   try {
     // console.log("tenantUserId", tenantUserId);
-      let query = `SELECT chaintype.chain as chaintype,w.createdat,w.customerid,w.walletaddress,chaintype.symbol,w.wallettype FROM chaintype LEFT JOIN (SELECT * FROM wallet WHERE wallet.customerid = '${customerid}') as W ON chaintype.chain = w.chaintype;`
+    let query = `SELECT chaintype.chain as chaintype,w.createdat,w.customerid,w.walletaddress,chaintype.symbol,w.wallettype FROM chaintype LEFT JOIN (SELECT * FROM wallet WHERE wallet.customerid = '${customerid}') as W ON chaintype.chain = w.chaintype;`;
     console.log("Query", query);
-      const res = await executeQuery(query);
+    const res = await executeQuery(query);
     const walletRow = res.rows;
     return walletRow;
   } catch (err) {
@@ -364,7 +398,7 @@ export async function getStakeTransactions(stakeaccountid: string, tenant: tenan
   try {
     // console.log("Wallet Address", walletAddress, symbol);
     let query = `select * from staketransaction where stakeaccountid = '${stakeaccountid}' AND tenantid = '${tenant.id}';`;
-    
+
     const res = await executeQuery(query);
     const transactionRow = res.rows;
     return transactionRow;
@@ -435,7 +469,7 @@ export async function updateTransaction(transactionId: string, status: string, c
   }
 }
 
-export async function updateWallet(customerId: string, tenantId: string, stakeAccountPubKey: string,chainType : string) {
+export async function updateWallet(customerId: string, tenantId: string, stakeAccountPubKey: string, chainType: string) {
   try {
     let query = `update wallet set stakeaccountpubkey = '${stakeAccountPubKey}', updatedat= CURRENT_TIMESTAMP  where customerid = '${customerId}' AND teantid='${tenantId}' AND chaintype='${chainType} AND stakeaccountpubkey=null' RETURNING id;`;
     const res = await executeQuery(query);
@@ -472,7 +506,7 @@ export async function updateStakeAccountStatus(stakeAccountId: string, status: s
     throw err;
   }
 }
-export async function decreaseStakeAmount(stakeAccountId: string,amount:number) {
+export async function decreaseStakeAmount(stakeAccountId: string, amount: number) {
   try {
     let query = `update stakeaccount set  amount = amount - '${amount}' ,updatedat= CURRENT_TIMESTAMP  where id = '${stakeAccountId}' RETURNING id;`;
 
@@ -484,7 +518,7 @@ export async function decreaseStakeAmount(stakeAccountId: string,amount:number) 
     throw err;
   }
 }
-export async function updateStakeAccount(stakeAccountId: string, status: string,amount:number) {
+export async function updateStakeAccount(stakeAccountId: string, status: string, amount: number) {
   try {
     let query = `update stakeaccount set status = '${status}' , amount = amount - '${amount}' ,updatedat= CURRENT_TIMESTAMP  where id = '${stakeAccountId}' RETURNING id;`;
 
@@ -500,7 +534,7 @@ export async function updateStakeAccount(stakeAccountId: string, status: string,
 export async function updateStakeAccountAmount(stakeAccountId: string, amount: number) {
   try {
     let query = `update stakeaccount set amount = amount+'${amount}' ,updatedat= CURRENT_TIMESTAMP  where id = '${stakeAccountId}' RETURNING id;`;
-console.log("Query",query);
+    console.log("Query", query);
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];
     return transactionRow;
@@ -509,7 +543,6 @@ console.log("Query",query);
     throw err;
   }
 }
-
 
 export async function updateStakingTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
