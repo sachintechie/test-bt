@@ -345,7 +345,7 @@ async function addStakeToExistingAccount(
   await signTransaction(transaction,from);
   // transaction.partialSign(tempStakeAccount);
 
-  tx = await connection.sendRawTransaction(transaction.serialize());
+  tx = await connection.sendRawTransaction(transaction.serialize(),{skipPreflight:true});
   await connection.confirmTransaction(tx);
   console.log('Stake accounts merged with signature:', tx);
   return {txHash : tx,stakeAccountPubKey:existingStakeAccountPubkey};
