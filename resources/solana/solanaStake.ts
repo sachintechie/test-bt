@@ -205,7 +205,7 @@ export async function stakeSol(
 }
 else{
   //need to write code of merge stake account
-  const staketransaction = await addStakeToExistingAccount(connection, senderKey[0], new PublicKey(stakeAccountPubKey), validatorAddress, amountToStake,lockupExpirationTimestamp);
+  const staketransaction = await addStakeToExistingAccount(connection, senderKey[0], new PublicKey(stakeAccountPubKey), validatorAddress, amountToStake);
   return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };  
 }
 
@@ -260,19 +260,45 @@ async function createStakeAccountWithStakeProgram(
   return {txHash : tx,stakeAccountPubKey:stakeAccount.publicKey};
 }
 
+async function getLockupDetails(
+  connection: Connection,
+  stakeAccountPubkey: PublicKey
+) {
+  try {
+    const stakeAccountInfo = await connection.getParsedAccountInfo(stakeAccountPubkey);
+    const stakeAccountData = stakeAccountInfo.value?.data;
+
+    if (!stakeAccountData || !('parsed' in stakeAccountData)) {
+      throw new Error("Failed to parse stake account data");
+    }
+
+    const stakeAccount = (stakeAccountData as any).parsed.info;
+    const lockup = stakeAccount.meta.lockup;
+
+    return new Lockup(
+      lockup.unixTimestamp,
+      lockup.epoch,
+      new PublicKey(lockup.custodian),
+    )
+  } catch (err) {
+    console.error(err);
+    throw new Error("Error retrieving lockup details");
+  }
+}
+
 async function addStakeToExistingAccount(
   connection: Connection,
   from: Key,
   existingStakeAccountPubkey: PublicKey,
   voteAccountPubkey: PublicKey,
   amount: number,
-  lockupExpirationTimestamp: number
 ) {
   const fromPublicKey= new PublicKey(from.materialId);
   const tempStakeAccount = Keypair.generate();
   const lamportsForStake = amount * LAMPORTS_PER_SOL;
   const lamportsForRentExemption = await connection.getMinimumBalanceForRentExemption(StakeProgram.space);
   const totalLamports = lamportsForStake + lamportsForRentExemption;
+  const lockupDetails = await getLockupDetails(connection, existingStakeAccountPubkey);
 
   const authorized = new Authorized(fromPublicKey, fromPublicKey);
 
@@ -283,7 +309,7 @@ async function addStakeToExistingAccount(
       stakePubkey: tempStakeAccount.publicKey,
       authorized,
       lamports: totalLamports,
-      lockup: new Lockup(lockupExpirationTimestamp,0,fromPublicKey)
+      lockup: lockupDetails
     }),
     StakeProgram.delegate({
       stakePubkey: tempStakeAccount.publicKey,
@@ -323,7 +349,6 @@ async function addStakeToExistingAccount(
   await connection.confirmTransaction(tx);
   console.log('Stake accounts merged with signature:', tx);
   return {txHash : tx,stakeAccountPubKey:existingStakeAccountPubkey};
-
 }
 
 
