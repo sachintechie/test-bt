@@ -132,7 +132,7 @@ export async function unstakeSol(
     const stakeAccountPubkey = new PublicKey(stakeAccountPubKey);
     const stakeAccountInfo = await getStakeAccountInfo(stakeAccountPubKey, connection);
 
-    console.log("Current Stake Amount", stakeAccountInfo.currentStakeAmount);
+    console.log("Current Stake Amount",stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
     if (stakeAccountInfo.currentStakeAmount == null) {
       return { trxHash: null, error: "Failed to parse stake account data" };
     }

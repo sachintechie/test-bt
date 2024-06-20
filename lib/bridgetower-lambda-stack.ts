@@ -92,6 +92,15 @@ export class BridgeTowerLambdaStack extends Stack {
       vpc: DefaultVpc,
       securityGroups: securityGroups
     });
+    new NodejsFunction(this, "createWallet", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/createWallet.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
 
     new NodejsFunction(this, "listCustomerWallets", {
       runtime: lambda.Runtime.NODEJS_18_X,

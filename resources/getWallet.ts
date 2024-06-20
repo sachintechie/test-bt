@@ -123,11 +123,19 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             console.log("Created customer", customerId);
 
             const wallet = await createWallet(org, cubistUserId, chainType,customerId);
-            wallet.tenantuserid = tenantuserid;
-            wallet.tenantid = tenant.id;
-            wallet.emailid = email;
+            if((wallet != null || wallet != undefined) && wallet.data != null){
+            wallet.data.tenantuserid = tenantuserid;
+            wallet.data.tenantid = tenant.id;
+            wallet.data.emailid = email;
 
-            return { wallet, error: null };
+            return { wallet :wallet.data, error: null };
+            }
+            else{
+              return {
+                wallet: null,
+                error: wallet.error
+              };
+            }
           } else {
             const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
             if (wallet != null && wallet != undefined) {
