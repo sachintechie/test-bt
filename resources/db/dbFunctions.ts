@@ -54,6 +54,7 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
     var keyType: any;
     switch (chainType) {
       case "Ethereum":
+
         keyType = cs.Secp256k1.Evm;
         break;
       case "Bitcoin":
@@ -66,6 +67,7 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
       //     keyType = cs.Secp256k1.Ava
       //     break;
       case "Avalanche":
+
         keyType = cs.Secp256k1.AvaTest;
         break;
       case "Cardano":
