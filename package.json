@@ -25,7 +25,8 @@
     "axios": "^1.7.2",
     "constructs": "^10.3.0",
     "crypto-js": "^4.2.0",
-    "pg": "^8.11.5"
+    "pg": "^8.11.5",
+    "prettier": "^3.3.2"
   },
   "devDependencies": {
     "@types/pg": "^8.11.6",

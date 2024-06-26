@@ -1,9 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "./db/models";
 import { getCsClient } from "./cubist/CubeSignerClient";
-import {  createWallet, getCustomer, getWalletByCustomer } from "./db/dbFunctions";
-
-
+import { createWallet, getCustomer, getWalletByCustomer } from "./db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -54,20 +52,19 @@ async function createCustomerWallet(tenant: tenant, tenantuserid: string, chainT
               error: "Error creating cubesigner client"
             };
           }
-          const wallet = await createWallet(org, customer.cubistuserid, chainType,customer?.id );
-          if((wallet != null || wallet != undefined) && wallet.data != null){
+          const wallet = await createWallet(org, customer.cubistuserid, chainType, customer?.id);
+          if ((wallet != null || wallet != undefined) && wallet.data != null) {
             wallet.data.tenantuserid = tenantuserid;
             wallet.data.tenantid = tenant.id;
             wallet.data.emailid = customer.emailid;
 
-            return { wallet :wallet.data, error: null };
-            }
-            else{
-              return {
-                wallet: null,
-                error: wallet.error
-              };
-            }
+            return { wallet: wallet.data, error: null };
+          } else {
+            return {
+              wallet: null,
+              error: wallet.error
+            };
+          }
         } catch (e) {
           console.log(`Not verified: ${e}`);
           return {

@@ -42,9 +42,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
     console.log("createUser", tenant.id, tenantuserid);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
-     
-        return { customer, error: null };
-   
+      return { customer, error: null };
     } else {
       if (!oidcToken) {
         return {
@@ -53,8 +51,8 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         };
       } else {
         try {
-          const { client, org,orgId } = await getCsClient(tenant.id);
-          if(client == null || org == null) {
+          const { client, org, orgId } = await getCsClient(tenant.id);
+          if (client == null || org == null) {
             return {
               customer: null,
               error: "Error creating cubesigner client"
@@ -100,7 +98,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               createdat: new Date().toISOString()
             };
 
-            return { customer :customerData, error: null };
+            return { customer: customerData, error: null };
           } else {
             const customer = await getCustomer(tenantuserid, tenant.id);
 

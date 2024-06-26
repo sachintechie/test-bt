@@ -1,4 +1,10 @@
-import { getAllStakingTransactions, getAllTransactions, getTenantCallBackUrl, updateStakingTransaction, updateTransaction } from "./db/dbFunctions";
+import {
+  getAllStakingTransactions,
+  getAllTransactions,
+  getTenantCallBackUrl,
+  updateStakingTransaction,
+  updateTransaction
+} from "./db/dbFunctions";
 import { CallbackStatus, TransactionStatus } from "./db/models";
 import axios from "axios";
 import * as crypto from "crypto";
@@ -24,7 +30,6 @@ export const handler = async (event: any) => {
 };
 
 async function updateTransactions() {
-
   try {
     let updatedTransactions = [];
     const transactions = await getAllTransactions();
@@ -35,14 +40,13 @@ async function updateTransactions() {
         trx.status = status;
         if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
           const callback = await updateTenant(tenant, trx);
- const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
+          const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
-          const updatedTransaction = await updateTransaction(trx.transactionid, status,callbackStatus);
+          const updatedTransaction = await updateTransaction(trx.transactionid, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
 
           //call the callback url with the updated transaction status
-        }
-        else{
+        } else {
           console.log("Tenant callbackurl not found");
         }
       }
@@ -55,7 +59,6 @@ async function updateTransactions() {
 }
 
 async function updateStakingTransactions() {
-
   try {
     let updatedTransactions = [];
     const transactions = await getAllStakingTransactions();
@@ -66,14 +69,13 @@ async function updateStakingTransactions() {
         trx.status = status;
         if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
           const callback = await updateTenant(tenant, trx);
- const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
+          const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
-          const updatedTransaction = await updateStakingTransaction(trx.transactionid, status,callbackStatus);
+          const updatedTransaction = await updateStakingTransaction(trx.transactionid, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
 
           //call the callback url with the updated transaction status
-        }
-        else{
+        } else {
           console.log("Tenant callbackurl not found");
         }
       }
@@ -90,40 +92,35 @@ async function updateTenant(tenant: any, transaction: any) {
   const tenantSecret = tenant.tenantsecret;
   const tenantHeaderKey = tenant.tenantheaderkey;
   const payload = JSON.stringify(transaction);
-  const signature = await hash(payload,tenantSecret);
+  const signature = await hash(payload, tenantSecret);
 
   const tenantHeader = {
     "Content-Type": "application/json",
     [tenantHeaderKey]: signature
   };
   // Options for the axios request
-const options = {
-  method: 'post',
-  url: tenant.callbackurl,
-  headers: tenantHeader,
-  data: payload
-};
-// Send the request using axios
-await axios(options)
-    .then(response => {
-        if(response.data != null && response.data != undefined && response.data == "Webhook received and verified."){
-          data =true;
-
-        }
-        else{
-          data = false;
-        }
+  const options = {
+    method: "post",
+    url: tenant.callbackurl,
+    headers: tenantHeader,
+    data: payload
+  };
+  // Send the request using axios
+  await axios(options)
+    .then((response) => {
+      if (response.data != null && response.data != undefined && response.data == "Webhook received and verified.") {
+        data = true;
+      } else {
+        data = false;
+      }
     })
-    .catch(error => {
-        console.error('Error:', error.response ? error.response.data : error.message);
+    .catch((error) => {
+      console.error("Error:", error.response ? error.response.data : error.message);
     });
   return data;
 }
 
-async function hash(payload: any,secret:string) {
-  var data =  crypto
-  .createHmac('sha256', secret)
-  .update(payload, 'utf8')
-  .digest('hex');  
+async function hash(payload: any, secret: string) {
+  var data = crypto.createHmac("sha256", secret).update(payload, "utf8").digest("hex");
   return data;
 }
