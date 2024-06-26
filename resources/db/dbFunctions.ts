@@ -360,6 +360,17 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
   }
 }
 
+export async function hasWallet(walletAddress: string, tenant: tenant, symbol: string) {
+  const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
+  return wallet.length > 0;
+}
+
+export async function getFirstWallet(walletAddress: string, tenant: tenant, symbol: string) {
+  const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
+  if (wallet.length == 0) return null;
+  return wallet[0];
+}
+
 export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {
   try {
     // console.log("tenantUserId", tenantUserId);

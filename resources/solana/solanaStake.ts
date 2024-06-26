@@ -2,6 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
   getCubistConfig,
+  getFirstWallet,
   getStakeAccount,
   getWalletAndTokenByWalletAddress,
   insertStakeAccount,
@@ -18,7 +19,6 @@ import { Key } from "@cubist-labs/cubesigner-sdk";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
-//console.log(SOLANA_NETWORK_URL);
 
 export async function solanaStaking(
   tenant: tenant,
@@ -32,151 +32,117 @@ export async function solanaStaking(
   tenantTransactionId: string,
   lockupExpirationTimestamp: number
 ) {
-  console.log("Wallet Address", senderWalletAddress);
+  console.log("[solanaStaking]senderWalletAddress:", senderWalletAddress);
+  console.log("[solanaStaking]receiverWalletAddress:", receiverWalletAddress);
+  console.log("[solanaStaking]amount:", amount);
+  console.log("[solanaStaking]symbol:", symbol);
+  console.log("[solanaStaking]oidcToken:", oidcToken);
+  console.log("[solanaStaking]tenantUserId:", tenantUserId);
+  console.log("[solanaStaking]chainType:", chainType);
+  console.log("[solanaStaking]tenantTransactionId:", tenantTransactionId);
+  console.log("[solanaStaking]lockupExpirationTimestamp:", lockupExpirationTimestamp);
 
-  try {
-    if (!oidcToken) {
-      return {
-        wallet: null,
-        error: "Please send a valid identity token for verification"
-      };
-    } else {
-      const cubistConfig = await getCubistConfig(tenant.id);
-      if (cubistConfig == null) {
-        return {
-          transaction: null,
-          error: "Cubist Configuration not found for the given tenant"
-        };
-      }
-      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
-      let balance = 0;
-      console.log(wallet, "Wallet");
-      if (wallet.length == 0) {
-        return {
-          transaction: null,
-          error: "Wallet not found for the given wallet address"
-        };
-      } else {
-        const token = wallet[0];
-        const stakeAccount = await getStakeAccount(senderWalletAddress, tenant.id, token.customerid);
-        if (symbol === "SOL" && token.customerid != null) {
-          balance = await getSolBalance(senderWalletAddress);
-          token.balance = balance;
-          if (balance >= amount) {
-            // Check if the stake
-            const trx = await stakeSol(
-              senderWalletAddress,
-              stakeAccount?.stakeaccountpubkey,
-              amount,
-              receiverWalletAddress,
-              oidcToken,
-              lockupExpirationTimestamp,
-              cubistConfig.orgid
-            );
-            if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
-              console.log("trx.stakeTxHash", trx.trxHash, "trx.delegateTxHash");
-              const transactionStatus = await verifySolanaTransaction(trx.trxHash);
-              const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-              const stakeAccountStatus = StakeAccountStatus.OPEN;
-
-              if (stakeAccount == null) {
-                const newStakeAccount = await insertStakeAccount(
-                  senderWalletAddress,
-                  receiverWalletAddress,
-                  amount,
-                  chainType,
-                  symbol,
-                  tenant.id,
-                  token.customerid,
-                  tenantUserId,
-                  process.env["SOLANA_NETWORK"] ?? "",
-                  stakeAccountStatus,
-                  tenantTransactionId,
-                  trx.stakeAccountPubKey.toString(),
-                  lockupExpirationTimestamp
-                );
-
-                const transaction = await insertStakingTransaction(
-                  senderWalletAddress,
-                  receiverWalletAddress,
-                  amount,
-                  chainType,
-                  symbol,
-                  trx.trxHash,
-                  tenant.id,
-                  token.customerid,
-                  token.tokenid,
-                  tenantUserId,
-                  process.env["SOLANA_NETWORK"] ?? "",
-                  txStatus,
-                  tenantTransactionId,
-                  trx.stakeAccountPubKey.toString(),
-                  newStakeAccount.stakeaccountid,
-                  StakeType.STAKE
-                );
-                return { transaction, error: null };
-              } else {
-                const transaction = await insertStakingTransaction(
-                  senderWalletAddress,
-                  receiverWalletAddress,
-                  amount,
-                  chainType,
-                  symbol,
-                  trx.trxHash,
-                  tenant.id,
-                  token.customerid,
-                  token.tokenid,
-                  tenantUserId,
-                  process.env["SOLANA_NETWORK"] ?? "",
-                  txStatus,
-                  tenantTransactionId,
-                  trx.stakeAccountPubKey.toString(),
-                  stakeAccount.id,
-                  StakeType.STAKE
-                );
-
-                const update = await updateStakeAccountAmount(stakeAccount.id, amount);
-                return { transaction, error: null };
-              }
-
-              //const wallet = await updateWallet(token.customerid, tenant.id,trx.stakeAccountPubKey.toString(),chainType);
-            } else {
-              return { transaction: null, error: trx.error };
-            }
-          } else {
-            return {
-              transaction: null,
-              error: "Insufficient SOL balance"
-            };
-          }
-        } else if (symbol != "SOL" && token.customerid != null) {
-          balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");
-          token.balance = balance;
-          if (balance >= amount) {
-            return {
-              transaction: null,
-              error: "Not Supported"
-            };
-          } else {
-            return {
-              transaction: null,
-              error: "Insufficient Token balance"
-            };
-          }
-        }
-
-        return { transaction: null, error: "Wallet not found" };
-      }
-    }
-  } catch (err) {
-    console.log(err);
-    return { transaction: null, error: err };
+  // 1. Check if oidcToken exists, if not return error
+  if (!oidcToken)
+    return {
+      wallet: null,
+      error: "Please send a valid identity token for verification"
+    };
+  // 2. Get Cubist Configuration, if not found return error
+  const cubistConfig = await getCubistConfig(tenant.id);
+  if (cubistConfig == null)
+    return {
+      transaction: null,
+      error: "Cubist Configuration not found for the given tenant"
+    };
+  // 3. Get first wallet by wallet address, if not found return error
+  const wallet = await getFirstWallet(senderWalletAddress, tenant, symbol);
+  if (!wallet) {
+    return {
+      transaction: null,
+      error: "Wallet not found for the given wallet address"
+    };
   }
+  // 4. Check the Symbol, if SOL then stake SOL, if not then return error
+  if (symbol !== "SOL") {
+    return {
+      transaction: null,
+      error: "Symbol not Supported"
+    };
+  }
+  // 5. Check customer ID, if not found return error
+  if (!wallet.customerid) {
+    return {
+      transaction: null,
+      error: "Customer ID not found"
+    };
+  }
+
+  // 6. Get balance of the wallet, if balance is less than amount return error
+  const balance = await getSolBalance(senderWalletAddress);
+  if (balance < amount) {
+    return {
+      transaction: null,
+      error: "Insufficient SOL balance"
+    };
+  }
+
+  // 7. Stake SOL
+  const tx = await stakeSol(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
+  console.log("[solanaStaking]tx:", tx);
+  // 8. Check if transaction is successful, if not return error
+  if (tx.error) {
+    console.log("[solanaStaking]tx.error:", tx.error);
+    return {
+      transaction: null,
+      error: tx.error
+    };
+  }
+
+  // 9. Verify the transaction and insert the stake account and staking transaction
+  const transactionStatus = await verifySolanaTransaction(tx?.trxHash!);
+  const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+  const stakeAccountStatus = StakeAccountStatus.OPEN;
+
+  const newStakeAccount = await insertStakeAccount(
+    senderWalletAddress,
+    receiverWalletAddress,
+    amount,
+    chainType,
+    symbol,
+    tenant.id,
+    wallet.customerid,
+    tenantUserId,
+    process.env["SOLANA_NETWORK"] ?? "",
+    stakeAccountStatus,
+    tenantTransactionId,
+    tx?.stakeAccountPubKey?.toString() || "",
+    lockupExpirationTimestamp
+  );
+  const transaction = await insertStakingTransaction(
+    senderWalletAddress,
+    receiverWalletAddress,
+    amount,
+    chainType,
+    symbol,
+    tx?.trxHash || "",
+    tenant.id,
+    wallet.customerid,
+    wallet.tokenid,
+    tenantUserId,
+    process.env["SOLANA_NETWORK"] ?? "",
+    txStatus,
+    tenantTransactionId,
+    tx?.stakeAccountPubKey?.toString() || "",
+    newStakeAccount.stakeaccountid,
+    StakeType.STAKE
+  );
+  console.log("[solanaStaking]transaction:", transaction);
+  return { transaction, error: null };
 }
 
 export async function stakeSol(
   senderWalletAddress: string,
-  stakeAccountPubKey: string,
   amount: number,
   validatorNodeKey: string,
   oidcToken: string,
@@ -186,9 +152,7 @@ export async function stakeSol(
   try {
     const connection = await getSolConnection();
     const validatorAddress = new PublicKey(validatorNodeKey);
-    console.log("validatorAddress", validatorAddress.toString());
     const amountToStake = parseFloat(amount.toString());
-    // const amountToStake = sendingAmount * LAMPORTS_PER_SOL;
     const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
     if (!oidcClient) {
       return {
@@ -205,35 +169,20 @@ export async function stakeSol(
       };
     }
     const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
-    // Connect to the Solana cluster
     if (senderKey.length === 0) {
       return {
         trxHash: null,
         error: "Given identity token is not the owner of given wallet address"
       };
     }
-    if (stakeAccountPubKey === null || stakeAccountPubKey === undefined) {
-      const staketransaction = await createStakeAccountWithStakeProgram(
-        connection,
-        senderKey[0],
-        amountToStake,
-        validatorAddress,
-        lockupExpirationTimestamp
-      );
-      // Delegate the stake to the validator
-      // const tx=await delegateStake(connection, senderKey[0], stakeAccountWithStakeProgram.publicKey, validatorAddress);
-      return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };
-    } else {
-      //need to write code of merge stake account
-      const staketransaction = await addStakeToExistingAccount(
-        connection,
-        senderKey[0],
-        new PublicKey(stakeAccountPubKey),
-        validatorAddress,
-        amountToStake
-      );
-      return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };
-    }
+    const staketransaction = await createStakeAccountWithStakeProgram(
+      connection,
+      senderKey[0],
+      amountToStake,
+      validatorAddress,
+      lockupExpirationTimestamp
+    );
+    return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };
   } catch (err: any) {
     console.log(await err);
     return { trxHash: null, error: err };
@@ -247,41 +196,46 @@ async function createStakeAccountWithStakeProgram(
   validatorPubkey: PublicKey,
   lockupExpirationTimestamp: number
 ) {
-  const stakeAccount = Keypair.generate();
-  console.log("Stake account created with StakeProgram:", stakeAccount.publicKey.toBase58());
+  try {
+    const stakeAccount = Keypair.generate();
+    console.log("[createStakeAccountWithStakeProgram]stakeAccount:", stakeAccount.publicKey.toBase58());
 
-  const lamports = amount * LAMPORTS_PER_SOL;
-  const fromPublicKey = new PublicKey(from.materialId);
+    const lamports = amount * LAMPORTS_PER_SOL;
+    const fromPublicKey = new PublicKey(from.materialId);
 
-  const authorized = new Authorized(fromPublicKey, fromPublicKey);
+    const authorized = new Authorized(fromPublicKey, fromPublicKey);
 
-  const transaction = new Transaction().add(
-    StakeProgram.createAccount({
-      fromPubkey: fromPublicKey,
-      stakePubkey: stakeAccount.publicKey,
-      authorized,
-      lamports,
-      lockup: new Lockup(lockupExpirationTimestamp, 0, fromPublicKey)
-    }),
+    const transaction = new Transaction().add(
+      StakeProgram.createAccount({
+        fromPubkey: fromPublicKey,
+        stakePubkey: stakeAccount.publicKey,
+        authorized,
+        lamports,
+        lockup: new Lockup(lockupExpirationTimestamp, 0, fromPublicKey)
+      }),
 
-    StakeProgram.delegate({
-      stakePubkey: stakeAccount.publicKey,
-      authorizedPubkey: fromPublicKey,
-      votePubkey: validatorPubkey
-    })
-  );
+      StakeProgram.delegate({
+        stakePubkey: stakeAccount.publicKey,
+        authorizedPubkey: fromPublicKey,
+        votePubkey: validatorPubkey
+      })
+    );
 
-  const { blockhash } = await connection.getRecentBlockhash();
-  transaction.recentBlockhash = blockhash;
-  transaction.feePayer = fromPublicKey;
+    const { blockhash } = await connection.getRecentBlockhash();
+    transaction.recentBlockhash = blockhash;
+    transaction.feePayer = fromPublicKey;
 
-  await signTransaction(transaction, from);
-  transaction.partialSign(stakeAccount);
+    await signTransaction(transaction, from);
+    transaction.partialSign(stakeAccount);
 
-  const tx = await connection.sendRawTransaction(transaction.serialize());
-  console.log("Stake account Transaction:", tx);
+    const tx = await connection.sendRawTransaction(transaction.serialize());
+    console.log("[createStakeAccountWithStakeProgram]tx:", tx);
 
-  return { txHash: tx, stakeAccountPubKey: stakeAccount.publicKey };
+    return { txHash: tx, stakeAccountPubKey: stakeAccount.publicKey };
+  } catch (err) {
+    console.log(`[createStakeAccountWithStakeProgram]err:${err}`);
+    throw new Error("Error creating stake account with StakeProgram");
+  }
 }
 
 async function getLockupDetails(connection: Connection, stakeAccountPubkey: PublicKey) {
@@ -360,7 +314,6 @@ async function addStakeToExistingAccount(
   transaction.feePayer = fromPublicKey;
 
   await signTransaction(transaction, from);
-  // transaction.partialSign(tempStakeAccount);
 
   tx = await connection.sendRawTransaction(transaction.serialize(), { skipPreflight: true });
   await connection.confirmTransaction(tx);
