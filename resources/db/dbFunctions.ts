@@ -54,7 +54,6 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
     var keyType: any;
     switch (chainType) {
       case "Ethereum":
-
         keyType = cs.Secp256k1.Evm;
         break;
       case "Bitcoin":
@@ -67,7 +66,6 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
       //     keyType = cs.Secp256k1.Ava
       //     break;
       case "Avalanche":
-
         keyType = cs.Secp256k1.AvaTest;
         break;
       case "Cardano":
@@ -215,7 +213,7 @@ export async function getStakeAccounts(senderWalletAddress: string, tenantId: st
   try {
     // console.log("Fetching stake account public key for", senderWalletAddress, customerId);
     let query = `SELECT * FROM stakeaccount
-      WHERE walletaddress = '${senderWalletAddress}' AND tenantId = '${tenantId}' LIMIT 1;`;
+      WHERE walletaddress = '${senderWalletAddress}' AND tenantId = '${tenantId}';`;
     // console.log("Query", query);
     const res = await executeQuery(query);
     // console.log("Stake account public key fetch result", res);
@@ -396,10 +394,10 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
   }
 }
 
-export async function getStakeTransactions(stakeaccountid: string, tenant: tenant) {
+export async function getStakeTransactions(stakeaccountid: string, tenantId: string) {
   try {
-    // console.log("Wallet Address", walletAddress, symbol);
-    let query = `select * from staketransaction where stakeaccountid = '${stakeaccountid}' AND tenantid = '${tenant.id}';`;
+   console.log("stakeaccountid", stakeaccountid, tenantId);
+    let query = `select * from staketransaction where stakeaccountid = '${stakeaccountid}' AND tenantid = '${tenantId}';`;
 
     const res = await executeQuery(query);
     const transactionRow = res.rows;
