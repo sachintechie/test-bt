@@ -111,6 +111,26 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
+    new NodejsFunction(this, "listStakeAccounts", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/listStakeAccounts.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    new NodejsFunction(this, "listStakeTransactions", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/listStakeTransactions.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
     const transferLambda = new NodejsFunction(this, "transfer", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/transfer.ts"),
