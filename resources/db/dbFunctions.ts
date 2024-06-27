@@ -7,8 +7,8 @@ export async function createCustomer(customer: customer) {
     // // console.log("Creating customer", customer);
     let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isactive)
       VALUES ('${customer.tenantuserid}','${customer.tenantid}', '${customer.emailid}','${
-      customer.name
-    }','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
+        customer.name
+      }','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
     // console.log("Query", query);
     const res = await executeQuery(query);
     // console.log("customer created Res", res);
@@ -32,8 +32,8 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     //  console.log("Created key", key.PublicKey.toString());
     let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
       VALUES ('${customerId}','${key.materialId}','${
-      key.id
-    }','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+        key.id
+      }','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
     console.log("Query", query);
     const res = await executeQuery(query);
     // console.log("wallet created Res", res);
@@ -358,6 +358,17 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
     // console.log(err);
     throw err;
   }
+}
+
+export async function hasWallet(walletAddress: string, tenant: tenant, symbol: string) {
+  const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
+  return wallet.length > 0;
+}
+
+export async function getFirstWallet(walletAddress: string, tenant: tenant, symbol: string) {
+  const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
+  if (wallet.length == 0) return null;
+  return wallet[0];
 }
 
 export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {

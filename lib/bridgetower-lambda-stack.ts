@@ -12,8 +12,8 @@ const DB_CONFIG = {
   DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
   DB_DATABASE: "dev",
   DB_PORT: "5432",
-  SOLANA_NETWORK :"devnet",
-  SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+  SOLANA_NETWORK: "devnet",
+  SOLANA_NETWORK_URL: "https://api.devnet.solana.com"
 };
 export class BridgeTowerLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps) {
@@ -82,7 +82,6 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
-    
     new NodejsFunction(this, "listWalletTokens", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/listWalletTokens.ts"),
@@ -139,8 +138,8 @@ export class BridgeTowerLambdaStack extends Stack {
       memorySize: 512,
       environment: {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        SOLANA_NETWORK :"devnet",
-        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+        SOLANA_NETWORK: "devnet",
+        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
         DB_DATABASE: "dev",
         DB_PORT: "5432"
@@ -155,8 +154,8 @@ export class BridgeTowerLambdaStack extends Stack {
       memorySize: 512,
       environment: {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        SOLANA_NETWORK :"devnet",
-        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+        SOLANA_NETWORK: "devnet",
+        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
         DB_DATABASE: "dev",
         DB_PORT: "5432"
@@ -172,8 +171,8 @@ export class BridgeTowerLambdaStack extends Stack {
       memorySize: 512,
       environment: {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        SOLANA_NETWORK :"devnet",
-        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+        SOLANA_NETWORK: "devnet",
+        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
         DB_DATABASE: "dev",
         DB_PORT: "5432"
@@ -182,15 +181,15 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
-     new NodejsFunction(this, "unStaking", {
+    new NodejsFunction(this, "unStaking", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/unstaking.ts"),
       timeout: cdk.Duration.minutes(15),
       memorySize: 512,
       environment: {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        SOLANA_NETWORK :"devnet",
-        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+        SOLANA_NETWORK: "devnet",
+        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
         DB_DATABASE: "dev",
         DB_PORT: "5432"
@@ -199,15 +198,15 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
-     new NodejsFunction(this, "masterTransfer", {
+    new NodejsFunction(this, "masterTransfer", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/masterTransfer.ts"),
       timeout: cdk.Duration.minutes(15),
       memorySize: 512,
       environment: {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        SOLANA_NETWORK :"devnet",
-        SOLANA_NETWORK_URL:"https://api.devnet.solana.com",
+        SOLANA_NETWORK: "devnet",
+        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
         DB_DATABASE: "dev",
         DB_PORT: "5432"
@@ -225,8 +224,6 @@ export class BridgeTowerLambdaStack extends Stack {
       vpc: DefaultVpc,
       securityGroups: securityGroups
     });
-
- 
 
     // Defines the function url for the AWS Lambda
     const getWalletLambdaUrl = getWalletLambda.addFunctionUrl({

@@ -44,27 +44,25 @@ export interface token {
   decimalprecision: number;
 }
 
-
-export enum TransactionStatus{
+export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",
   PENDING = "PENDING"
 }
 
-export enum CallbackStatus{
+export enum CallbackStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",
   PENDING = "PENDING"
 }
 
-
-
-export enum StakeAccountStatus{
+export enum StakeAccountStatus {
   OPEN = "OPEN",
   CLOSED = "CLOSED",
   FAILED = "FAILED"
 }
 
-export enum StakeType{
+export enum StakeType {
   STAKE = "STAKE",
-  UNSTAKE = "UNSTAKE"}
+  UNSTAKE = "UNSTAKE"
+}
