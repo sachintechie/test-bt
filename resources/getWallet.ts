@@ -40,33 +40,33 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
   console.log("Creating user");
 
   try {
-    console.log("createUser", tenant.id, tenantuserid,chainType);
+    console.log("createUser", tenant.id, tenantuserid, chainType);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
       if (wallet != null && wallet != undefined) {
         return { wallet, error: null };
       } else {
-        const { org,orgId } = await getCsClient(tenant.id);
-        const oidcClient = await oidcLogin(env, orgId, oidcToken,["sign:*"]);
+        const { org, orgId } = await getCsClient(tenant.id);
+        const oidcClient = await oidcLogin(env, orgId, oidcToken, ["sign:*"]);
         const cubistUser = await oidcClient?.user();
-        console.log("Created cubesigner user", oidcClient,cubistUser);
-        if(oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid)){
+        console.log("Created cubesigner user", oidcClient, cubistUser);
+        if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid)) {
           return {
             wallet: null,
             error: "Please send a valid identity token for given tenantuserid"
           };
         }
-        const key = await getKey( oidcClient,chainType,customer.cubistuserid);
-        console.log("getKey cubesigner user", key,customer.cubistuserid);
+        const key = await getKey(oidcClient, chainType, customer.cubistuserid);
+        console.log("getKey cubesigner user", key, customer.cubistuserid);
 
-        const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType,customer.id,key);
+        const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType, customer.id, key);
         wallet.tenantuserid = tenantuserid;
         wallet.tenantid = tenant.id;
         wallet.emailid = customer.emailid;
 
         return { wallet, error: null };
-    
+
         // return {
         //   wallet: null,
         //   error: "Wallet not found for the given tenantuserid and chainType"
@@ -80,8 +80,8 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         };
       } else {
         try {
-          const { client, org ,orgId} = await getCsClient(tenant.id);
-          if(client == null || org == null) {
+          const { client, org, orgId } = await getCsClient(tenant.id);
+          if (client == null || org == null) {
             return {
               wallet: null,
               error: "Error creating cubesigner client"
@@ -122,15 +122,14 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             });
             console.log("Created customer", customerId);
 
-            const wallet = await createWallet(org, cubistUserId, chainType,customerId);
-            if((wallet != null || wallet != undefined) && wallet.data != null){
-            wallet.data.tenantuserid = tenantuserid;
-            wallet.data.tenantid = tenant.id;
-            wallet.data.emailid = email;
+            const wallet = await createWallet(org, cubistUserId, chainType, customerId);
+            if ((wallet != null || wallet != undefined) && wallet.data != null) {
+              wallet.data.tenantuserid = tenantuserid;
+              wallet.data.tenantid = tenant.id;
+              wallet.data.emailid = email;
 
-            return { wallet :wallet.data, error: null };
-            }
-            else{
+              return { wallet: wallet.data, error: null };
+            } else {
               return {
                 wallet: null,
                 error: wallet.error

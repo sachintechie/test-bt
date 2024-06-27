@@ -9,7 +9,7 @@ import {
 } from "../db/dbFunctions";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Transaction } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
-import {  getSolConnection, getStakeAccountInfo, verifySolanaTransaction } from "./solanaFunctions";
+import { getSolConnection, getStakeAccountInfo, verifySolanaTransaction } from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 
 const env: any = {
@@ -132,7 +132,7 @@ export async function unstakeSol(
     const stakeAccountPubkey = new PublicKey(stakeAccountPubKey);
     const stakeAccountInfo = await getStakeAccountInfo(stakeAccountPubKey, connection);
 
-    console.log("Current Stake Amount",stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
+    console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
     if (stakeAccountInfo.currentStakeAmount == null) {
       return { trxHash: null, error: "Failed to parse stake account data" };
     }

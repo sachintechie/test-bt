@@ -44,7 +44,7 @@ export async function transferSPLToken(
     let LAMPORTS_PER_SPLTOKEN = 10 ** decimalPrecision;
     console.log("LAMPORTS_PER_SPLTOKEN", LAMPORTS_PER_SPLTOKEN);
 
-    const sendingAmount = (amount * LAMPORTS_PER_SPLTOKEN);
+    const sendingAmount = amount * LAMPORTS_PER_SPLTOKEN;
     console.log("Sending Amount", sendingAmount);
     console.log("Amount", amount);
 
@@ -60,7 +60,7 @@ export async function transferSPLToken(
     }
 
     const cubistConfig = await getCubistConfig(tenant.id);
-    if(cubistConfig == null) {
+    if (cubistConfig == null) {
       return {
         transaction: null,
         error: "Cubist Configuration not found for the given tenant"
@@ -76,16 +76,17 @@ export async function transferSPLToken(
     if (payerKey.key == null) {
       return {
         trxHash: null,
-        error: payerKey.error}
-      }
+        error: payerKey.error
+      };
+    }
     const payerPublicKey = new PublicKey(payerKey.key.materialId);
-     //Check sol balance on payer address
+    //Check sol balance on payer address
     const payerSolBalance = await connection.getBalance(payerPublicKey);
-    if(payerSolBalance < 0.05){
+    if (payerSolBalance < 0.05) {
       return {
         trxHash: null,
         error: "Insufficient balance in payer account"
-      }
+      };
     }
     // 4. Get or create the associated token accounts for the sender and recipient
     const senderTokenAccount = await getOrCreateAssociatedTokenAccount(connection, payerKey.key, mintAddress, senderPublicKey);

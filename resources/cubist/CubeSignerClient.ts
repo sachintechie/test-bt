@@ -125,14 +125,13 @@ export async function oidcLogin(env: cs.EnvInterface, orgId: string, oidcToken: 
   }
 }
 
-export async function getKey(oidcClient: any, chainType: string,cubistUserid: string) {
+export async function getKey(oidcClient: any, chainType: string, cubistUserid: string) {
   try {
-    console.log("Getting key",cubistUserid);
-      const keys = await oidcClient.sessionKeys();
-      const key = await keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == cs.Ed25519.Solana);
-      console.log("Key", keys.length, key.length, key[0]);
-      return key[0];
-  
+    console.log("Getting key", cubistUserid);
+    const keys = await oidcClient.sessionKeys();
+    const key = await keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == cs.Ed25519.Solana);
+    console.log("Key", keys.length, key.length, key[0]);
+    return key[0];
   } catch (err) {
     console.error(err);
     return null;

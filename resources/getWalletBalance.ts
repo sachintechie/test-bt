@@ -2,7 +2,6 @@ import { tenant } from "./db/models";
 import { getWalletAndTokenByWalletAddress } from "./db/dbFunctions";
 import { getSolBalance, getSplTokenBalance } from "./solana/solanaFunctions";
 
-
 export const handler = async (event: any) => {
   try {
     console.log(event);
@@ -49,7 +48,3 @@ async function getBalance(tenant: tenant, walletAddress: string, symbol: string)
     throw err;
   }
 }
-
-
-
-
