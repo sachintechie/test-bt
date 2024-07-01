@@ -1,16 +1,17 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
-  decreaseStakeAmount,
+  decreaseStakeAmount, duplicateStakeAccount,
   getCubistConfig,
   getWalletAndTokenByWalletAddress,
-  insertStakingTransaction,
-  updateStakeAccount
+  insertStakingTransaction, reduceStakeAccountAmount,
+  updateStakeAccount, updateStakeAccountAmountByStakeAccountPubKey
 } from "../db/dbFunctions";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Transaction } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { getSolConnection, getStakeAccountInfo, verifySolanaTransaction } from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
+import {STAKE_STATUS} from "./solanaStake";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -145,7 +146,7 @@ export async function unstakeSol(
 
       isFullyUnStake = true;
       // Fully deactivate and withdraw the stake
-      return await deactivateAndWithdrawStake(
+      return await deactivateStake(
         connection,
         senderKey[0],
         stakeAccountPubkey,
@@ -157,7 +158,7 @@ export async function unstakeSol(
       console.log("partial stake", amount);
 
       // Partially withdraw the stake
-      return await partiallyWithdrawStake(
+      return await partiallyDeactivateStake(
         connection,
         senderKey[0],
         stakeAccountPubkey,
@@ -170,6 +171,36 @@ export async function unstakeSol(
     console.log(err);
     return { trxHash: null, error: err };
   }
+}
+
+async function deactivateStake(
+  connection: Connection,
+  from: Key,
+  stakeAccountPubkey: PublicKey,
+  receiverWalletAddress: string,
+  amount: number,
+  isFullyUnStake: boolean
+) {
+  const fromPublicKey = new PublicKey(from.materialId);
+
+  // Deactivate the stake
+  let transaction = new Transaction().add(
+    StakeProgram.deactivate({
+      stakePubkey: stakeAccountPubkey,
+      authorizedPubkey: fromPublicKey
+    })
+  );
+
+  let { blockhash } = await connection.getRecentBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPublicKey;
+
+  await signTransaction(transaction, from);
+  let tx = await connection.sendRawTransaction(transaction.serialize());
+  await connection.confirmTransaction(tx);
+  console.log("Stake deactivated with signature:", tx);
+
+  return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey, isFullyUnStake, error: null };
 }
 
 async function deactivateAndWithdrawStake(
@@ -222,6 +253,67 @@ async function deactivateAndWithdrawStake(
 
   return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey, isFullyUnStake, error: null };
 }
+
+async function partiallyDeactivateStake(
+  connection: Connection,
+  from: Key,
+  stakeAccountPubkey: PublicKey,
+  receiverWalletAddress: string,
+  amount: number,
+  isFullyUnStake: boolean
+) {
+  const fromPublicKey = new PublicKey(from.materialId);
+  const tempStakeAccount = Keypair.generate();
+  // Calculate the rent-exempt reserve
+  const lamportsForRentExemption = await connection.getMinimumBalanceForRentExemption(StakeProgram.space);
+
+  // Split the stake account
+  let transaction = new Transaction().add(
+    StakeProgram.split(
+      {
+        stakePubkey: stakeAccountPubkey,
+        authorizedPubkey: fromPublicKey,
+        splitStakePubkey: tempStakeAccount.publicKey,
+        lamports: amount
+      },
+      lamportsForRentExemption
+    )
+  );
+
+  let { blockhash } = await connection.getRecentBlockhash();
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPublicKey;
+
+  await signTransaction(transaction, from);
+  transaction.partialSign(tempStakeAccount);
+  let tx = await connection.sendRawTransaction(transaction.serialize());
+  await connection.confirmTransaction(tx);
+  console.log("Stake account split with signature:", tx);
+
+  await duplicateStakeAccount(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount);
+  await reduceStakeAccountAmount(stakeAccountPubkey.toString(),amount);
+
+  // Deactivate the split stake account
+  transaction = new Transaction().add(
+    StakeProgram.deactivate({
+      stakePubkey: tempStakeAccount.publicKey,
+      authorizedPubkey: fromPublicKey
+    })
+  );
+
+  blockhash = (await connection.getRecentBlockhash()).blockhash;
+  transaction.recentBlockhash = blockhash;
+  transaction.feePayer = fromPublicKey;
+
+  await signTransaction(transaction, from);
+  tx = await connection.sendRawTransaction(transaction.serialize());
+  await connection.confirmTransaction(tx);
+  console.log("Temporary stake account deactivated with signature:", tx);
+
+
+  return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey, isFullyUnStake, error: null };
+}
+
 
 async function partiallyWithdrawStake(
   connection: Connection,

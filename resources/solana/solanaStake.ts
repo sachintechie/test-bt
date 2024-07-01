@@ -20,6 +20,12 @@ const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
 
+export const STAKE_STATUS = {
+  INACTIVE: "INACTIVE",
+  ACTIVATING: "ACTIVATING",
+  ACTIVE: "ACTIVE",
+}
+
 export async function solanaStaking(
   tenant: tenant,
   senderWalletAddress: string,
@@ -117,7 +123,8 @@ export async function solanaStaking(
     stakeAccountStatus,
     tenantTransactionId,
     tx?.stakeAccountPubKey?.toString() || "",
-    lockupExpirationTimestamp
+    lockupExpirationTimestamp,
+    STAKE_STATUS.ACTIVATING
   );
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
