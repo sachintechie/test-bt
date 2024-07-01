@@ -11,7 +11,6 @@ import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Transac
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { getSolConnection, getStakeAccountInfo, verifySolanaTransaction } from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
-import {STAKE_STATUS} from "./solanaStake";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"

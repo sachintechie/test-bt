@@ -192,13 +192,12 @@ export async function insertStakeAccount(
   tenantTransactionId: string,
   stakeaccountpubkey: string,
   lockupExpirationTimestamp: number,
-  stateAccountStatus: string,
   error?: string
 ) {
   try {
     // console.log("creating stakeaccount ", receiverWalletaddress, customerId);
-    let query = `INSERT INTO stakeaccount (customerid,lockupExpirationTimestamp,tenanttransactionid,stakeaccountpubkey,network,status,error,tenantuserid, walletaddress,validatornodeaddress,chaintype,amount,symbol,tenantid,isactive,stateaccountstatus)
-      VALUES ('${customerId}','${lockupExpirationTimestamp}','${tenantTransactionId}','${stakeaccountpubkey}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${tenantId}',true,'inactive') RETURNING 
+    let query = `INSERT INTO stakeaccount (customerid,lockupExpirationTimestamp,tenanttransactionid,stakeaccountpubkey,network,status,error,tenantuserid, walletaddress,validatornodeaddress,chaintype,amount,symbol,tenantid,isactive)
+      VALUES ('${customerId}','${lockupExpirationTimestamp}','${tenantTransactionId}','${stakeaccountpubkey}', '${network}','${status}','${error}','${tenantUserId}','${senderWalletAddress}','${receiverWalletaddress}','${chainType}',${amount},'${symbol}','${tenantId}',true) RETURNING 
       customerid,walletaddress,validatornodeaddress,chaintype,symbol,amount,createdat,network,tenantuserid,status,id as stakeaccountid,tenanttransactionid; `;
     // console.log("Query", query);
     const res = await executeQuery(query);
@@ -570,18 +569,6 @@ export async function updateStakeAccountAmountByStakeAccountPubKey(stakeAccountP
   }
 }
 
-export async function updateStakeAccountStatusByStakeAccountPubKey(stakeAccountPubKey: string, status: string) {
-  try {
-    let query = `update stakeaccount set stateaccountstatus = '${status}' ,updatedat= CURRENT_TIMESTAMP  where stakeaccountpubkey = '${stakeAccountPubKey}' RETURNING id;`;
-    console.log("Query", query);
-    const res = await executeQuery(query);
-    const transactionRow = res.rows[0];
-    return transactionRow;
-  } catch (err) {
-    throw err;
-  }
-}
-
 export async function duplicateStakeAccount(
   stakeAccountPubKey: string,
   newStakeAccountPubKey: string,
@@ -598,9 +585,9 @@ export async function duplicateStakeAccount(
 
     // Step 2: Insert a new row with the new stakeaccountpubkey and amount
     let insertQuery = `INSERT INTO stakeaccount (
-      customerid, lockupExpirationTimestamp, tenanttransactionid, stakeaccountpubkey, network, status, error, tenantuserid, walletaddress, validatornodeaddress, chaintype, amount, symbol, tenantid, isactive, stateaccountstatus
+      customerid, lockupExpirationTimestamp, tenanttransactionid, stakeaccountpubkey, network, status, error, tenantuserid, walletaddress, validatornodeaddress, chaintype, amount, symbol, tenantid, isactive
     ) VALUES (
-      '${existingStakeAccount.customerid}', '${existingStakeAccount.lockupExpirationTimestamp}', '${existingStakeAccount.tenanttransactionid}', '${newStakeAccountPubKey}', '${existingStakeAccount.network}', '${existingStakeAccount.status}', '${existingStakeAccount.error}', '${existingStakeAccount.tenantuserid}', '${existingStakeAccount.walletaddress}', '${existingStakeAccount.validatornodeaddress}', '${existingStakeAccount.chaintype}', ${newAmount}, '${existingStakeAccount.symbol}', '${existingStakeAccount.tenantid}', ${existingStakeAccount.isactive}, '${existingStakeAccount.stateaccountstatus}'
+      '${existingStakeAccount.customerid}', '${existingStakeAccount.lockupExpirationTimestamp}', '${existingStakeAccount.tenanttransactionid}', '${newStakeAccountPubKey}', '${existingStakeAccount.network}', '${existingStakeAccount.status}', '${existingStakeAccount.error}', '${existingStakeAccount.tenantuserid}', '${existingStakeAccount.walletaddress}', '${existingStakeAccount.validatornodeaddress}', '${existingStakeAccount.chaintype}', ${newAmount}, '${existingStakeAccount.symbol}', '${existingStakeAccount.tenantid}', ${existingStakeAccount.isactive}
     ) RETURNING customerid, walletaddress, validatornodeaddress, chaintype, symbol, amount, createdat, network, tenantuserid, status, id as stakeaccountid, tenanttransactionid;`;
 
     const insertRes = await executeQuery(insertQuery);
