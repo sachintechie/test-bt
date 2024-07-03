@@ -679,6 +679,40 @@ export async function getTokens(chainType: string) {
   }
 }
 
+export async function getStakeAccountPubkeys(walletAddress: string, tenantId: string): Promise<string[]> {
+  const query = `
+        SELECT stakeaccountpubkey
+        FROM stakeaccount
+        WHERE walletaddress = '${walletAddress}' AND tenantId = '${tenantId}';
+    `;
+
+  console.log("Query", query);
+  const res = await executeQuery(query) ;
+  console.log("Stake account public key fetch result", res);
+
+  return res.rows.map((row: { stakeaccountpubkey: string }) => row.stakeaccountpubkey);
+}
+
+// Function to get walletid from walletaddress
+export async function getWalletIdFromAddress(walletAddress: string): Promise<string | null> {
+  const query = `
+        SELECT walletid
+        FROM wallet
+        WHERE walletaddress = '${walletAddress}' LIMIT 1;
+    `;
+
+  console.log("Query", query);
+  const res = await executeQuery(query);
+  console.log("Wallet ID fetch result", res);
+
+  if (res.rows.length > 0) {
+    return res.rows[0].walletid;
+  } else {
+    return null;
+  }
+}
+
+
 const to_wallet = (itemRow: wallet): wallet => {
   return {
     id: itemRow.id,
