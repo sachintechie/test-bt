@@ -1,12 +1,13 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
+  createWithdrawTransaction,
   getCubistConfig,
   getFirstWallet,
   getStakeAccount,
-  getWalletAndTokenByWalletAddress,
+  getWalletAndTokenByWalletAddress, insertMergeStakeAccountsTransaction,
   insertStakeAccount,
-  insertStakingTransaction,
+  insertStakingTransaction, mergeDbStakeAccounts, removeStakeAccount,
   updateStakeAccountAmount,
   updateStakeAccountStatus,
   updateWallet
@@ -359,6 +360,8 @@ export async function withdrawFromStakeAccounts(connection: Connection,stakeAcco
       await signTransaction(transaction, payerKey);
       try {
         const tx = await connection.sendRawTransaction(transaction.serialize());
+        await createWithdrawTransaction(accountPubkey, tx);
+        await removeStakeAccount(accountPubkey);
         console.log(`Withdrawn ${lamports} lamports from ${accountPubkey}, transaction signature: ${tx}`);
       } catch (error) {
         console.error(`Failed to withdraw from ${accountPubkey}:`, error);
@@ -413,7 +416,8 @@ export async function mergeStakeAccounts(connection: Connection,stakeAccounts:st
         await signTransaction(transaction, payerKey);
         const signature = await connection.sendRawTransaction(transaction.serialize());
         console.log(`Merged ${targetAccount} into ${baseAccount}, transaction signature: ${signature}`);
-
+        await insertMergeStakeAccountsTransaction(targetAccount,baseAccount, signature);
+        await mergeDbStakeAccounts(targetAccount, baseAccount);
         // Remove the merged account from the list
         stakeAccounts.splice(i, 1);
         canMerge = true;

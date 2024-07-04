@@ -1,26 +1,39 @@
 import {getSolConnection} from "./solana/solanaFunctions";
-import {getStakeAccountPubkeys, getWalletIdFromAddress} from "./db/dbFunctions";
+import {getCubistConfig, getStakeAccountPubkeys} from "./db/dbFunctions";
 import {mergeStakeAccounts} from "./solana/solanaStake";
-import {getCsClient} from "./cubist/CubeSignerClient";
-
+import {tenant} from "./db/models";
+import {getCubistKey} from "./cubist/CubeSignerClient";
+const env: any = {
+  SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
+};
 export const handler = async (event: any) => {
-  const walletAddress=event.senderWalletAddress;
-  const tenantId=event.tenantId;
+  const walletAddress=event.arguments?.input?.senderWalletAddress;
+  const tenant= event.identity.resolverContext as tenant;
+  const tenantId=tenant.id;
+  const oidcToken=event.request?.headers?.identity;
+  const cubistConfig = await getCubistConfig(tenant.id);
+  if (cubistConfig == null) {
+    return {
+      transaction: null,
+      error: "Cubist Configuration not found for the given tenant"
+    };
+  }
+  const cubistOrgId=cubistConfig.orgid;
 
   const connection = await getSolConnection();
   const stakeAccounts=await getStakeAccountPubkeys(walletAddress, tenantId);
-  const keyId=await getWalletIdFromAddress(walletAddress);
-  if(!keyId){
+  try{
+    const key=await getCubistKey(env,cubistOrgId, oidcToken, ["sign:*"], walletAddress);
+    await mergeStakeAccounts(connection, stakeAccounts, key);
     return {
-      status: 404,
-      error: "Wallet not found"
+      status: 200,
+      data: "Merged"
+    };
+  }catch (e) {
+    return {
+      status: 400,
+      data: null,
+      error: e
     };
   }
-  const {  org } = await getCsClient(tenantId);
-  const key=await org.getKey(keyId)
-  await mergeStakeAccounts(connection, stakeAccounts, key);
-  return {
-    status: 200,
-    data: "Withdrawn"
-  };
 };
