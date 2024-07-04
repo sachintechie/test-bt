@@ -360,6 +360,21 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
   }
 }
 
+export async function getTokenBySymbol(symbol: string) {
+  try {
+    console.log("symbol", symbol);
+    let query = `select token.name as tokenname,token.decimalprecision,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype from token where token.symbol = '${symbol}';`;
+
+    console.log("Query", query);
+    const res = await executeQuery(query);
+    const walletRow = res.rows[0];
+    return walletRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
 export async function hasWallet(walletAddress: string, tenant: tenant, symbol: string) {
   const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
   return wallet.length > 0;
@@ -407,7 +422,7 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
 
 export async function getStakeTransactions(stakeaccountid: string, tenantId: string) {
   try {
-   console.log("stakeaccountid", stakeaccountid, tenantId);
+    console.log("stakeaccountid", stakeaccountid, tenantId);
     let query = `select * from staketransaction where stakeaccountid = '${stakeaccountid}' AND tenantid = '${tenantId}';`;
 
     const res = await executeQuery(query);
@@ -422,6 +437,20 @@ export async function getStakeTransactions(stakeaccountid: string, tenantId: str
 export async function getAllTransactions() {
   try {
     let query = `select customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid from transaction where status = 'PENDING';`;
+    const res = await executeQuery(query);
+    const transactionRow = res.rows;
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function getAllCustomerWalletForBonus(tenantId: string) {
+  try {
+    let query = `select walletaddress ,customer.id as customerid from customer  INNER JOIN wallet 
+    ON  wallet.customerid = customer.id where customer.isBonusCredit is NULL AND wallet.chaintype ='Solana' AND customer.tenantid = '${tenantId}' limit 10;`;
+    // console.log("Query", query);
     const res = await executeQuery(query);
     const transactionRow = res.rows;
     return transactionRow;
@@ -470,6 +499,19 @@ export async function getCubistConfig(tenantId: string) {
 export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
     let query = `update transaction set status = '${status}' ,callbackstatus = '${callbackStatus}', updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;
+
+    const res = await executeQuery(query);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function updateCustomerBonusStatus(customerId: string, status: string, tenantId: string) {
+  try {
+    let query = `update customer set isBonusCredit = '${status}'   where id = '${customerId}' AND tenantid='${tenantId}' RETURNING id;`;
 
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];
