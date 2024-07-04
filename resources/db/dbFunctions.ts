@@ -209,6 +209,8 @@ export async function insertStakeAccount(
     throw err;
   }
 }
+
+
 export async function getStakeAccounts(senderWalletAddress: string, tenantId: string) {
   try {
     // console.log("Fetching stake account public key for", senderWalletAddress, customerId);
@@ -593,6 +595,87 @@ export async function updateStakeAccountAmount(stakeAccountId: string, amount: n
     return transactionRow;
   } catch (err) {
     // console.log(err);
+    throw err;
+  }
+}
+
+export async function updateStakeAccountAmountByStakeAccountPubKey(stakeAccountPubKey: string, amount: number) {
+  try {
+    let query = `update stakeaccount set amount = amount+'${amount}' ,updatedat= CURRENT_TIMESTAMP  where stakeaccountpubkey = '${stakeAccountPubKey}' RETURNING id;`;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+    const transactionRow = res.rows[0];
+    return transactionRow;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function duplicateStakeAccount(
+  stakeAccountPubKey: string,
+  newStakeAccountPubKey: string,
+  newAmount: number
+) {
+  try {
+    // Step 1: Retrieve the existing stake account row
+    let selectQuery = `SELECT * FROM stakeaccount WHERE stakeaccountpubkey = '${stakeAccountPubKey}';`;
+    const selectRes = await executeQuery(selectQuery);
+    if (selectRes.rows.length === 0) {
+      throw new Error('Stake account not found');
+    }
+    const existingStakeAccount = selectRes.rows[0];
+
+    // Step 2: Insert a new row with the new stakeaccountpubkey and amount
+    let insertQuery = `INSERT INTO stakeaccount (
+      customerid, lockupExpirationTimestamp, tenanttransactionid, stakeaccountpubkey, network, status, error, tenantuserid, walletaddress, validatornodeaddress, chaintype, amount, symbol, tenantid, isactive
+    ) VALUES (
+      '${existingStakeAccount.customerid}', '${existingStakeAccount.lockupExpirationTimestamp}', '${existingStakeAccount.tenanttransactionid}', '${newStakeAccountPubKey}', '${existingStakeAccount.network}', '${existingStakeAccount.status}', '${existingStakeAccount.error}', '${existingStakeAccount.tenantuserid}', '${existingStakeAccount.walletaddress}', '${existingStakeAccount.validatornodeaddress}', '${existingStakeAccount.chaintype}', ${newAmount}, '${existingStakeAccount.symbol}', '${existingStakeAccount.tenantid}', ${existingStakeAccount.isactive}
+    ) RETURNING customerid, walletaddress, validatornodeaddress, chaintype, symbol, amount, createdat, network, tenantuserid, status, id as stakeaccountid, tenanttransactionid;`;
+
+    const insertRes = await executeQuery(insertQuery);
+    const duplicatedStakeAccountRow = insertRes.rows[0];
+    return duplicatedStakeAccountRow;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+export async function reduceStakeAccountAmount(
+  stakeAccountPubKey: string,
+  amountToReduce: number
+) {
+  try {
+    // Fetch the current amount of the stake account
+    let selectQuery = `SELECT amount FROM stakeaccount WHERE stakeaccountpubkey = '${stakeAccountPubKey}';`;
+    const selectRes = await executeQuery(selectQuery);
+
+    // Check if the stake account exists
+    if (selectRes.rows.length === 0) {
+      throw new Error('Stake account not found');
+    }
+
+    // Get the current amount
+    const currentAmount = selectRes.rows[0].amount;
+
+    // Check if the amount to reduce is valid
+    if (amountToReduce > currentAmount) {
+      throw new Error('Amount to reduce exceeds the current amount');
+    }
+
+    // Calculate the new amount
+    const newAmount = currentAmount - amountToReduce;
+
+    // Update the amount in the stake account
+    let updateQuery = `UPDATE stakeaccount SET amount = ${newAmount} WHERE stakeaccountpubkey = '${stakeAccountPubKey}' RETURNING 
+      customerid, walletaddress, validatornodeaddress, chaintype, symbol, amount, createdat, network, tenantuserid, status, id as stakeaccountid, tenanttransactionid;`;
+    const updateRes = await executeQuery(updateQuery);
+
+    // Return the updated stake account row
+    const updatedStakeAccountRow = updateRes.rows[0];
+    return updatedStakeAccountRow;
+  } catch (err) {
+    console.log(err);
     throw err;
   }
 }
