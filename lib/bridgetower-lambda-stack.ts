@@ -236,6 +236,32 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
+    new NodejsFunction(this, "mergeStake", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/mergeStake.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        ...DB_CONFIG
+      },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    new NodejsFunction(this, "withdrawStake", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/withdraw.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: {
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        ...DB_CONFIG
+      },
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
     // Defines the function url for the AWS Lambda
     const getWalletLambdaUrl = getWalletLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE
