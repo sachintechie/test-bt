@@ -2,7 +2,7 @@ import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { isStale, metadata, type SessionData, type SessionManager, type SessionMetadata } from "@cubist-labs/cubesigner-sdk";
-import { getCubistConfig, getPayerWallet } from "../db/dbFunctions";
+import { deleteCustomer, deleteWallet, getCubistConfig, getPayerWallet } from "../db/dbFunctions";
 import { PublicKey, Transaction } from "@solana/web3.js";
 
 // const SECRET_NAME: string = "SchoolHackCubeSignerToken";
@@ -79,6 +79,25 @@ export async function getCsClient(teantid: string) {
  * Use a CubeSigner token from AWS Secrets Manager to retrieve information
  * about the current user
  */
+export async function getCsClientBySecretName(teantid: string,secretName:string) {
+  try {
+    const cubistConfig = await getCubistConfig(teantid);
+    const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(secretName));
+    const org = client.org();
+    const orgId = cubistConfig.orgid;
+    return { client, org, orgId };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+
+
+/**
+ * Use a CubeSigner token from AWS Secrets Manager to retrieve information
+ * about the current user
+ */
 export async function getPayerCsSignerKey(chainType: string, tenantId: string) {
   try {
     console.log("Creating client");
@@ -95,6 +114,46 @@ export async function getPayerCsSignerKey(chainType: string, tenantId: string) {
     const keys = await client.sessionKeys();
     const key = keys.filter((key: cs.Key) => key.materialId === payerWallet.walletaddress);
     return { key: key[0], error: null };
+  } catch (err) {
+    console.error(err);
+    return { key: null, error: "Erorr in creating cubist client for gas payer" };
+  }
+}
+
+/**
+ * Use a CubeSigner token from AWS Secrets Manager to retrieve information
+ * about the current user
+ */
+export async function deleteCubistUserKey( tenantId: string,customerWallets:any[]) {
+  try {
+    const cubistConfig = await getCubistConfig(tenantId);
+    if (cubistConfig == null) {
+      return { key: null, error: "Cubist config not found for this tenant" };
+    }
+    const {org} = await getCsClientBySecretName(tenantId,"SchoolHackDeleteUserAndKey");
+    const keys = await org.keys();
+
+   const users = await org.users();
+   console.log("total org user",users.length,"total org keys",keys.length);
+
+    // const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(cubistConfig.gaspayersecretname));
+   // console.log("Client created", client);
+   // const keys = await client.sessionKeys();
+   let deletedUsers = [];
+   for (const customer of customerWallets) {
+    const key = keys.filter((key: cs.Key) => key.materialId === customer.walletaddress);
+    const user =  users.filter((user )=> user.id === customer.cubistuserid);
+    // const key = await cs.CubeSignerKey.get(cubistUserId);
+    const deletedKey = await key[0].delete();
+    const deletedUser = await org.deleteUser(user[0].id);
+    const customerId = await deleteCustomer(customer.customerid,tenantId);
+    const walletId = await deleteWallet(customer.customerid,customer.walletaddress);
+    deletedUsers.push({customerId,walletId,deletedUser});
+    console.log("Deleted user", user);
+   }
+   
+
+    return {  user : deletedUsers,error: null };
   } catch (err) {
     console.error(err);
     return { key: null, error: "Erorr in creating cubist client for gas payer" };

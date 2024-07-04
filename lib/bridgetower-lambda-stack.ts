@@ -18,6 +18,7 @@ const DB_CONFIG = {
 export class BridgeTowerLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps) {
     super(scope, id, props);
+    console.log(props);
 
     const DefaultVpc = Vpc.fromVpcAttributes(this, "vpcdev", {
       vpcId: "vpc-02d0d267eb1e078f8",
@@ -71,10 +72,32 @@ export class BridgeTowerLambdaStack extends Stack {
       vpc: DefaultVpc,
       securityGroups: securityGroups
     });
+    
+    new NodejsFunction(this, "deleteKeyAndUserFromCubistAndDB", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/deleteKeyAndUserFromCubistAndDB.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    
 
     new NodejsFunction(this, "checkTransactionStatusAndUpdate", {
       runtime: lambda.Runtime.NODEJS_18_X,
       entry: path.join(__dirname, "../resources/checkTransactionStatusAndUpdate.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    new NodejsFunction(this, "checkAndTransferBonus", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/checkAndTransferBonus.ts"),
       timeout: cdk.Duration.minutes(15),
       memorySize: 512,
       environment: DB_CONFIG,
@@ -240,7 +263,7 @@ export class BridgeTowerLambdaStack extends Stack {
 
     new NodejsFunction(this, "withdrawStake", {
       runtime: lambda.Runtime.NODEJS_18_X,
-      entry: path.join(__dirname, "../resources/withdraw.ts"),
+      entry: path.join(__dirname, "../resources/withdrawStake.ts"),
       timeout: cdk.Duration.minutes(15),
       memorySize: 512,
       environment: {
