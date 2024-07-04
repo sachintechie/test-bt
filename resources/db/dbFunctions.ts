@@ -640,6 +640,21 @@ export async function getAllCustomerWalletForBonus(tenantId: string) {
   }
 }
 
+export async function getAllCustomerAndWalletByTenant(tenantId: string) {
+  try {
+    let query = `select walletaddress ,customer.id as customerid , cubistuserid from customer  INNER JOIN wallet 
+    ON  wallet.customerid = customer.id where customer.tenantid = '${tenantId}';`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    const customerRow = res.rows;
+    
+     return customerRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
 export async function getAllStakingTransactions() {
   try {
     let query = `select customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid from staketransaction where status = 'PENDING';`;
@@ -689,13 +704,38 @@ export async function updateTransaction(transactionId: string, status: string, c
   }
 }
 
+export async function deleteCustomer(customerid: string, tenantId: string) {
+  try {
+    let query = `delete from customer  where id = '${customerid}' AND tenantid='${tenantId}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const customerRow = res.rows[0];
+    return customerRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+export async function deleteWallet(customerid: string, walletaddress: string) {
+  try {
+    let query = `delete from wallet  where customerid = '${customerid}' AND walletaddress='${walletaddress}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const walletRow = res.rows[0];
+    return walletRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
 export async function updateCustomerBonusStatus(customerId: string, status: string, tenantId: string) {
   try {
     let query = `update customer set isBonusCredit = '${status}'   where id = '${customerId}' AND tenantid='${tenantId}' RETURNING id;`;
 
     const res = await executeQuery(query);
-    const transactionRow = res.rows[0];
-    return transactionRow;
+    const customerRow = res.rows[0];
+    return customerRow;
   } catch (err) {
     // console.log(err);
     throw err;

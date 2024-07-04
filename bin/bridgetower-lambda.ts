@@ -12,9 +12,9 @@ new BridgeTowerLambdaStack(app, "BridgeTowerLambdaStack", {
   // Defines the function url for the AWS Lambda
 });
 
-// const stackProps: cdk.StackProps = {
-//   env: isProduction ? prodEnv : devEnv,
-// };
+const stackProps: cdk.StackProps = {
+  env: isProduction ? prodEnv : devEnv,
+};
 //  new BridgeTowerLambdaStack(app, 'BridgeTowerLambdaStack', stackProps);
 //  new BridgeTowerLambdaStack(app, 'BridgeTowerLambdaStack', { env: devEnv });
 // new BridgeTowerLambdaStack(app, 'BridgeTowerLambdaStack-Prod', { env: prodEnv });
