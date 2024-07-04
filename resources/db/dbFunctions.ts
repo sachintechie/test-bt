@@ -210,6 +210,184 @@ export async function insertStakeAccount(
   }
 }
 
+export async function mergeDbStakeAccounts(
+  sourceStakeAccountPubkey: string,
+  targetStakeAccountPubkey: string,
+) {
+  try {
+    // Query to get details of source and target stake accounts
+    const sourceQuery = `SELECT * FROM stakeaccount WHERE stakeaccountpubkey = '${sourceStakeAccountPubkey}' LIMIT 1;`;
+    const targetQuery = `SELECT * FROM stakeaccount WHERE stakeaccountpubkey = '${targetStakeAccountPubkey}' LIMIT 1;`;
+
+    const sourceRes = await executeQuery(sourceQuery);
+    const targetRes = await executeQuery(targetQuery);
+
+    if (sourceRes.rows.length === 0) {
+      throw new Error('Source stake account not found');
+    }
+
+    if (targetRes.rows.length === 0) {
+      throw new Error('Target stake account not found');
+    }
+
+    const sourceAccount = sourceRes.rows[0];
+    const targetAccount = targetRes.rows[0];
+
+    // Calculate the new amount for the target account
+    const newAmount = sourceAccount.amount + targetAccount.amount;
+
+    // Update the target account with the new amount
+    const updateTargetQuery = `
+      UPDATE stakeaccount
+      SET amount = ${newAmount}
+      WHERE stakeaccountpubkey = '${targetStakeAccountPubkey}'
+      RETURNING *;
+    `;
+    const updateTargetRes = await executeQuery(updateTargetQuery);
+
+    if (updateTargetRes.rows.length === 0) {
+      throw new Error('Failed to update target stake account');
+    }
+
+    // Remove the source account
+    const deleteSourceQuery = `
+      DELETE FROM stakeaccount
+      WHERE stakeaccountpubkey = '${sourceStakeAccountPubkey}'
+      RETURNING customerid, walletaddress, validatornodeaddress, chaintype, symbol, amount, createdat, network, tenantuserid, status, id as stakeaccountid, tenanttransactionid;
+    `;
+    const deleteSourceRes = await executeQuery(deleteSourceQuery);
+
+    if (deleteSourceRes.rows.length === 0) {
+      throw new Error('Failed to delete source stake account');
+    }
+
+    // Return the updated target account and details of the removed source account
+    return {
+      updatedTargetAccount: updateTargetRes.rows[0],
+      removedSourceAccount: deleteSourceRes.rows[0]
+    };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+
+export async function removeStakeAccount(stakeaccountpubkey: string) {
+  try {
+    const query = `
+      DELETE FROM stakeaccount
+      WHERE stakeaccountpubkey = '${stakeaccountpubkey}'
+      RETURNING customerid, walletaddress, validatornodeaddress, chaintype, symbol, amount, createdat, network, tenantuserid, status, id as stakeaccountid, tenanttransactionid;
+    `;
+
+    console.log("Query", query);
+    const res = await executeQuery(query);
+
+    if (res.rows.length === 0) {
+      throw new Error('Stake account not found or could not be deleted');
+    }
+
+    const deletedStakeAccountRow = res.rows[0];
+    return deletedStakeAccountRow;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+export async function insertMergeStakeAccountsTransaction(
+  sourceStakeAccountPubkey: string,
+  targetStakeAccountPubkey: string,
+  txhash: string,
+) {
+  try {
+    // Query to get details of source and target stake accounts
+    const sourceQuery = `SELECT * FROM stakeaccount WHERE stakeaccountpubkey = '${sourceStakeAccountPubkey}' LIMIT 1;`;
+    const targetQuery = `SELECT * FROM stakeaccount WHERE stakeaccountpubkey = '${targetStakeAccountPubkey}' LIMIT 1;`;
+
+    const sourceRes = await executeQuery(sourceQuery);
+    const targetRes = await executeQuery(targetQuery);
+
+    if (sourceRes.rows.length === 0) {
+      throw new Error('Source stake account not found');
+    }
+
+    if (targetRes.rows.length === 0) {
+      throw new Error('Target stake account not found');
+    }
+
+    const sourceAccount = sourceRes.rows[0];
+    const targetAccount = targetRes.rows[0];
+
+    // Calculate the new amount
+    const newAmount = sourceAccount.amount + targetAccount.amount;
+
+    // Insert merge transaction into staketransaction table
+    const insertQuery = `
+      INSERT INTO staketransaction (
+        customerid, type, tokenid, tenanttransactionid, stakeaccountpubkey, network, status, error, tenantuserid,
+        walletaddress, receiverwalletaddress, chaintype, amount, symbol, txhash, tenantid, isactive
+      ) VALUES (
+        '${targetAccount.customerid}', 'MERGE', '${targetAccount.tokenid}', '${targetAccount.tenanttransactionid}', 
+        '${targetStakeAccountPubkey}', '${targetAccount.network}', 'SUCCESS', '', '${targetAccount.tenantuserid}',
+        '${targetAccount.walletaddress}', '${targetAccount.walletaddress}', '${targetAccount.chaintype}', ${newAmount}, 
+        '${targetAccount.symbol}', '${txhash}', '${targetAccount.tenantid}', true
+      ) RETURNING 
+        customerid, walletaddress, receiverwalletaddress, chaintype, txhash, type, symbol, amount, createdat, tokenid,
+        network, tenantuserid, status, stakeaccountid, id as transactionid, tenanttransactionid;
+    `;
+
+    console.log("Insert Query", insertQuery);
+    const insertRes = await executeQuery(insertQuery);
+    const mergeTransactionRow = insertRes.rows[0];
+    return mergeTransactionRow;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
+
+
+export async function createWithdrawTransaction(stakeaccountpubkey: string,txhash:string) {
+  try {
+    // Query to get the required fields from stakeaccount using stakeaccountpubkey
+    let query = `
+      SELECT customerid, walletaddress AS senderWalletAddress, receiverWalletAddress, amount, chaintype, symbol, tenantid, tenantuserid, network, tenanttransactionid, id AS stakeaccountid
+      FROM stakeaccount
+      WHERE stakeaccountpubkey = '${stakeaccountpubkey}'
+      LIMIT 1;
+    `;
+
+    const stakeAccountRes = await executeQuery(query);
+    if (stakeAccountRes.rows.length === 0) {
+      throw new Error('Stake account not found');
+    }
+
+    const stakeAccount = stakeAccountRes.rows[0];
+
+    const insertQuery = `
+      INSERT INTO staketransaction (
+        customerid, type, tokenid, tenanttransactionid, stakeaccountpubkey, network, status, error, tenantuserid,
+        walletaddress, receiverwalletaddress, chaintype, amount, symbol, txhash, tenantid, isactive
+      ) VALUES (
+        '${stakeAccount.customerid}', 'withdraw', 'tokenId_placeholder', '${stakeAccount.tenanttransactionid}', '${stakeaccountpubkey}', '${stakeAccount.network}',
+        'pending', NULL, '${stakeAccount.tenantuserid}', '${stakeAccount.senderWalletAddress}', '${stakeAccount.receiverwalletaddress}', '${stakeAccount.chaintype}',
+        ${stakeAccount.amount}, '${stakeAccount.symbol}', '${txhash}', '${stakeAccount.tenantid}', true
+      ) RETURNING 
+        customerid, walletaddress, receiverwalletaddress, chaintype, txhash, type, symbol, amount, createdat, tokenid,
+        network, tenantuserid, status, id as transactionid, tenanttransactionid;
+    `;
+
+    console.log("Insert Query", insertQuery);
+    const insertRes = await executeQuery(insertQuery);
+    const stakeTransactionRow = insertRes.rows[0];
+    return stakeTransactionRow;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
 
 export async function getStakeAccounts(senderWalletAddress: string, tenantId: string) {
   try {
@@ -678,6 +856,40 @@ export async function getTokens(chainType: string) {
     throw err;
   }
 }
+
+export async function getStakeAccountPubkeys(walletAddress: string, tenantId: string): Promise<string[]> {
+  const query = `
+        SELECT stakeaccountpubkey
+        FROM stakeaccount
+        WHERE walletaddress = '${walletAddress}' AND tenantId = '${tenantId}';
+    `;
+
+  console.log("Query", query);
+  const res = await executeQuery(query) ;
+  console.log("Stake account public key fetch result", res);
+
+  return res.rows.map((row: { stakeaccountpubkey: string }) => row.stakeaccountpubkey);
+}
+
+// Function to get walletid from walletaddress
+export async function getWalletIdFromAddress(walletAddress: string): Promise<string | null> {
+  const query = `
+        SELECT walletid
+        FROM wallet
+        WHERE walletaddress = '${walletAddress}' LIMIT 1;
+    `;
+
+  console.log("Query", query);
+  const res = await executeQuery(query);
+  console.log("Wallet ID fetch result", res);
+
+  if (res.rows.length > 0) {
+    return res.rows[0].walletid;
+  } else {
+    return null;
+  }
+}
+
 
 const to_wallet = (itemRow: wallet): wallet => {
   return {

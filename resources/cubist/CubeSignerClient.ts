@@ -146,3 +146,19 @@ export async function signTransaction(transaction: Transaction, key: cs.Key) {
   const sigBytesPayer = Buffer.from(sigPayer.slice(2), "hex");
   transaction.addSignature(new PublicKey(key.materialId), sigBytesPayer);
 }
+
+export async function getCubistKey(env: any, cubistOrgId: string,oidcToken:string,scopes: any,walletAddress:string) {
+  const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, scopes);
+  if (!oidcClient) {
+    throw new Error("Please send a valid identity token for verification");
+  }
+  const keys = await oidcClient.sessionKeys();
+  if (keys.length === 0) {
+    throw new Error("Given identity token is not the owner of given wallet address");
+  }
+  const senderKey = keys.filter((key: cs.Key) => key.materialId === walletAddress);
+  if (senderKey.length === 0) {
+    throw new Error("Given identity token is not the owner of given wallet address");
+  }
+  return senderKey[0]
+}

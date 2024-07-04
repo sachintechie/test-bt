@@ -1,17 +1,28 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
+  createWithdrawTransaction,
   getCubistConfig,
   getFirstWallet,
   getStakeAccount,
-  getWalletAndTokenByWalletAddress,
+  getWalletAndTokenByWalletAddress, insertMergeStakeAccountsTransaction,
   insertStakeAccount,
-  insertStakingTransaction,
+  insertStakingTransaction, mergeDbStakeAccounts, removeStakeAccount,
   updateStakeAccountAmount,
   updateStakeAccountStatus,
   updateWallet
 } from "../db/dbFunctions";
-import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Authorized, Transaction, Lockup } from "@solana/web3.js";
+import {
+  Connection,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  StakeProgram,
+  Keypair,
+  Authorized,
+  Transaction,
+  Lockup,
+  type Signer, sendAndConfirmTransaction
+} from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
@@ -320,4 +331,106 @@ async function addStakeToExistingAccount(
   await connection.confirmTransaction(tx);
   console.log("Stake accounts merged with signature:", tx);
   return { txHash: tx, stakeAccountPubKey: tempStakeAccount.publicKey };
+}
+
+
+export async function withdrawFromStakeAccounts(connection: Connection,stakeAccounts: any, payerKey: Key) {
+  const payerPublicKey = new PublicKey(payerKey.materialId);
+  for (const accountPubkey of stakeAccounts) {
+    const stakePubkey = new PublicKey(accountPubkey);
+    const accountInfo = await connection.getParsedAccountInfo(stakePubkey);
+
+    if (accountInfo.value !== null && (accountInfo.value.data as any).program === 'stake') {
+      const lamports = (accountInfo.value.data as any).parsed.info.stake?.delegation?.stake;
+
+
+      const transaction = new Transaction().add(
+        StakeProgram.withdraw({
+          stakePubkey: stakePubkey,
+          authorizedPubkey: payerPublicKey,
+          toPubkey: payerPublicKey,
+          lamports: lamports,
+        })
+      );
+
+      transaction.feePayer = payerPublicKey;
+      const blockhash = (await connection.getRecentBlockhash()).blockhash;
+      transaction.recentBlockhash = blockhash;
+
+      await signTransaction(transaction, payerKey);
+      try {
+        const tx = await connection.sendRawTransaction(transaction.serialize());
+        await createWithdrawTransaction(accountPubkey, tx);
+        await removeStakeAccount(accountPubkey);
+        console.log(`Withdrawn ${lamports} lamports from ${accountPubkey}, transaction signature: ${tx}`);
+      } catch (error) {
+        console.error(`Failed to withdraw from ${accountPubkey}:`, error);
+      }
+    } else {
+      console.log(`No stake account found or invalid account for pubkey: ${accountPubkey}`);
+    }
+  }
+}
+
+export async function mergeStakeAccounts(connection: Connection,stakeAccounts:string[], payerKey:Key) {
+  const payerPublicKey = new PublicKey(payerKey.materialId);
+  let mergedStakeAccounts = [];
+  let remainingStakeAccounts = [];
+
+  while (stakeAccounts.length > 0) {
+    const baseAccount = stakeAccounts.shift() as string;
+    const basePubkey = new PublicKey(baseAccount);
+    let canMerge = false;
+
+    for (let i = 0; i < stakeAccounts.length; i++) {
+      const targetAccount = stakeAccounts[i];
+      const targetPubkey = new PublicKey(targetAccount);
+
+      // Check if the stake accounts can be merged
+      const baseAccountInfo = await connection.getParsedAccountInfo(basePubkey);
+      const targetAccountInfo = await connection.getParsedAccountInfo(targetPubkey);
+
+      const baseWithdrawAuthority = (baseAccountInfo?.value?.data as any).parsed.info.meta.authorized.withdrawer;
+      const targetWithdrawAuthority = (targetAccountInfo?.value?.data as any).parsed.info.meta.authorized.withdrawer;
+      const baseLockup = (baseAccountInfo?.value?.data as any).parsed.info.meta.lockup;
+      const targetLockup = (targetAccountInfo?.value?.data as any).parsed.info.meta.lockup;
+
+      if (baseWithdrawAuthority === targetWithdrawAuthority &&
+        baseLockup.custodian === targetLockup.custodian &&
+        baseLockup.epoch === targetLockup.epoch &&
+        baseLockup.unixTimestamp === targetLockup.unixTimestamp) {
+
+        // Merge stake accounts
+        const transaction = new Transaction().add(
+          StakeProgram.merge({
+            stakePubkey: new PublicKey(baseAccount),
+            sourceStakePubKey: targetPubkey,
+            authorizedPubkey: new PublicKey(baseWithdrawAuthority)
+          })
+        );
+
+        transaction.feePayer = payerPublicKey;
+        const blockhash = (await connection.getRecentBlockhash()).blockhash;
+        transaction.recentBlockhash = blockhash;
+
+        await signTransaction(transaction, payerKey);
+        const signature = await connection.sendRawTransaction(transaction.serialize());
+        console.log(`Merged ${targetAccount} into ${baseAccount}, transaction signature: ${signature}`);
+        await insertMergeStakeAccountsTransaction(targetAccount,baseAccount, signature);
+        await mergeDbStakeAccounts(targetAccount, baseAccount);
+        // Remove the merged account from the list
+        stakeAccounts.splice(i, 1);
+        canMerge = true;
+        break;
+      }
+    }
+
+    if (canMerge) {
+      mergedStakeAccounts.push(baseAccount);
+    } else {
+      remainingStakeAccounts.push(baseAccount);
+    }
+  }
+
+  return { mergedStakeAccounts, remainingStakeAccounts };
 }
