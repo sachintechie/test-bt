@@ -274,6 +274,50 @@ export class BridgeTowerLambdaStack extends Stack {
       securityGroups: securityGroups
     });
 
+    //Kyc lambda functions
+
+    new NodejsFunction(this, "getKycAccessToken", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/getKycAccessToken.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    new NodejsFunction(this, "getKycApplicant", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/getKycApplicant.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    new NodejsFunction(this, "kycWebhook", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/kycWebhook.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+    
+    new NodejsFunction(this, "createKycApplicant", {
+      runtime: lambda.Runtime.NODEJS_18_X,
+      entry: path.join(__dirname, "../resources/createKycApplicant.ts"),
+      timeout: cdk.Duration.minutes(15),
+      memorySize: 512,
+      environment: DB_CONFIG,
+      vpc: DefaultVpc,
+      securityGroups: securityGroups
+    });
+
+    
+
     // Defines the function url for the AWS Lambda
     const getWalletLambdaUrl = getWalletLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE
