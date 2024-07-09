@@ -210,6 +210,31 @@ export async function insertStakeAccount(
   }
 }
 
+export async function insertCustomerKyc(
+  customerKyc: any,
+  kycType: string,
+  tenantId: string,
+  error?: string
+) {
+  try {
+    // console.log("creating stakeaccount ", receiverWalletaddress, customerId);
+    let query = `INSERT INTO customerkyc (customerid,kyctype,type,kycid,status,error, tenantid)
+      VALUES ('${customerKyc.externalUserId}','${kycType}','${customerKyc.type}','${customerKyc.id}', '${status}','${error}','${tenantId}') RETURNING 
+      id,customerid,type,kycType,kycid,status,tenantid; `;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("stake transaction created Res", res);
+    const stakeTransactionRow = res.rows[0];
+    return stakeTransactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+
+
+
 export async function mergeDbStakeAccounts(
   sourceStakeAccountPubkey: string,
   targetStakeAccountPubkey: string,
@@ -690,7 +715,17 @@ export async function getCubistConfig(tenantId: string) {
     throw err;
   }
 }
-
+export async function getMasterSumsubConfig() {
+  try {
+    let query = `select * from SumsubConfig where isMaster = true;`;
+    const res = await executeQuery(query);
+    const cubist = res.rows;
+    return cubist[0];
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
 export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
     let query = `update transaction set status = '${status}' ,callbackstatus = '${callbackStatus}', updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;

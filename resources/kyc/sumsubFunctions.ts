@@ -1,22 +1,20 @@
 import { createHmac } from "crypto";
-
-const baseUrl = "https://api.sumsub.com";
-const SUMSUB_APP_TOKEN = "sbx:BF1tANJmWRFzd70TkFUYV7Te.dAqhytbg5I5ogufa9A9jd7oQWBEbnex6";
-const SUMSUB_SECRET_KEY = "immowt8JzXcczhLMTyFFCz3FrU899EH3";
+import { getMasterSumsubConfig } from "../db/dbFunctions";
 
 export const generateAccessToken = async (userId: string, levelName = "basic-kyc-level") => {
+  const sumsubConfig = await getMasterSumsubConfig();
   const endPoint = `/resources/accessTokens?ttlInSecs=600&userId=${userId}&levelName=${levelName}`;
-  const url = `${baseUrl}${endPoint}`;
+  const url = `${sumsubConfig.baseurl}${endPoint}`;
   const options = {
     method: "POST",
     headers: {
       Accept: "application/json",
-      "X-App-Token": SUMSUB_APP_TOKEN
+      "X-App-Token": sumsubConfig.sumsub_app_token
     },
     url: endPoint,
     body: ""
   };
-  createSignature(options);
+  await createSignature(options);
   try {
     const res = await fetch(url, options);
     const data = await res.json();
@@ -27,15 +25,16 @@ export const generateAccessToken = async (userId: string, levelName = "basic-kyc
   }
 };
 export const createApplicant = async (userId: string, levelName = "basic-kyc-level") => {
+  const sumsubConfig = await getMasterSumsubConfig();
   const endPoint = `/resources/applicants?levelName=${encodeURIComponent(levelName)}`;
-  const url = `${baseUrl}${endPoint}`;
+  const url = `${sumsubConfig.baseUrl}${endPoint}`;
   const options = {
     url: endPoint,
     method: "POST",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
-      "X-App-Token": SUMSUB_APP_TOKEN
+      "X-App-Token": sumsubConfig.sumsub_app_token
     },
     body: JSON.stringify({ externalUserId: userId })
   };
@@ -51,14 +50,15 @@ export const createApplicant = async (userId: string, levelName = "basic-kyc-lev
   }
 };
 export const getApplicantDataByExternalId = async (userId: string) => {
+  const sumsubConfig = await getMasterSumsubConfig();
   const endPoint = `/resources/applicants/-;externalUserId=${userId}/one`;
-  const url = `${baseUrl}${endPoint}`;
+  const url = `${sumsubConfig.baseUrl}${endPoint}`;
   const options = {
     url: endPoint,
     method: "GET",
     headers: {
       "content-type": "application/json",
-      "X-App-Token": SUMSUB_APP_TOKEN
+      "X-App-Token": sumsubConfig.sumsub_app_token
     }
   };
   createSignature(options);
@@ -85,9 +85,10 @@ export const sumsubWebhookListener = async (event: any) => {
   }
 };
 
-function createSignature(config: any) {
+async function createSignature(config: any) {
+  const sumsubConfig = await getMasterSumsubConfig();
   var ts = Math.floor(Date.now() / 1000);
-  const signature = createHmac("sha256", SUMSUB_SECRET_KEY);
+  const signature = createHmac("sha256", sumsubConfig.sumsub_secret_key);
   signature.update(ts + config.method.toUpperCase() + config.url);
 
   if (config.body instanceof FormData) {
