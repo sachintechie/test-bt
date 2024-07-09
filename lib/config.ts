@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import {IVpc, SecurityGroup, Vpc} from "aws-cdk-lib/aws-ec2";
+import {ISecurityGroup, IVpc, SecurityGroup, Vpc} from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
 import {Construct} from "constructs";
@@ -105,28 +105,42 @@ export const getVpcConfig = (scope:Construct) => {
   }
 }
 
+let securityGroupsSingleton:ISecurityGroup[]
+
 export const getSecurityGroups = (scope:Construct) => {
   switch (environment) {
     case "dev":
-      return [
-        SecurityGroup.fromSecurityGroupId(scope, "lambda-rds-6", "sg-0f6682da4f545d758"),
-        SecurityGroup.fromSecurityGroupId(scope, "default", "sg-05c044e1e87960084")
-      ];
+      if(!securityGroupsSingleton){
+        securityGroupsSingleton=[
+          SecurityGroup.fromSecurityGroupId(scope, env`lambda-rds-6`, "sg-0f6682da4f545d758"),
+          SecurityGroup.fromSecurityGroupId(scope, env`default`, "sg-05c044e1e87960084")
+        ]
+      }
+      return securityGroupsSingleton;
     case "staging":
-      return [
-        SecurityGroup.fromSecurityGroupId(scope, "lambda-rds-6", "sg-0f6682da4f545d758"),
-        SecurityGroup.fromSecurityGroupId(scope, "default", "sg-05c044e1e87960084")
-      ];
+      if(!securityGroupsSingleton){
+        securityGroupsSingleton=[
+          SecurityGroup.fromSecurityGroupId(scope, env`lambda-rds-6`, "sg-0f6682da4f545d758"),
+          SecurityGroup.fromSecurityGroupId(scope, env`default`, "sg-05c044e1e87960084")
+        ]
+      }
+      return securityGroupsSingleton;
     case "prod":
-      return [
-        SecurityGroup.fromSecurityGroupId(scope, "lambda-rds-6", "sg-0f6682da4f545d758"),
-        SecurityGroup.fromSecurityGroupId(scope, "default", "sg-05c044e1e87960084")
-      ];
+      if(!securityGroupsSingleton){
+        securityGroupsSingleton=[
+          SecurityGroup.fromSecurityGroupId(scope, env`lambda-rds-6`, "sg-0f6682da4f545d758"),
+          SecurityGroup.fromSecurityGroupId(scope, env`default`, "sg-05c044e1e87960084")
+        ]
+      }
+      return securityGroupsSingleton;
     default:
-      return [
-        SecurityGroup.fromSecurityGroupId(scope, "lambda-rds-6", "sg-0f6682da4f545d758"),
-        SecurityGroup.fromSecurityGroupId(scope, "default", "sg-05c044e1e87960084")
-      ];
+      if(!securityGroupsSingleton){
+        securityGroupsSingleton=[
+          SecurityGroup.fromSecurityGroupId(scope, env`lambda-rds-6`, "sg-0f6682da4f545d758"),
+          SecurityGroup.fromSecurityGroupId(scope, env`default`, "sg-05c044e1e87960084")
+        ]
+      }
+      return securityGroupsSingleton;
   }
 }
 

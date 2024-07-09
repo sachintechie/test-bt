@@ -9,7 +9,6 @@ export class BridgeTowerLambdaStack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
 
     super(scope, id, props);
-    console.log(props);
 
     const getWalletLambda=newNodeJsFunction(this, "getWallet", "../resources/getWallet.ts");
     newNodeJsFunction(this, "getWalletBalance", "../resources/getWalletBalance.ts");
