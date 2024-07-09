@@ -16,7 +16,7 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
     timeout: cdk.Duration.minutes(15),
     memorySize: memorySize,
     environment: getEnvConfig(),
-    vpc: Vpc.fromVpcAttributes(scope, env`vpc`, getVpcConfig()),
+    vpc: getVpcConfig(scope),
     securityGroups: getSecurityGroups(scope)
   });
 }
@@ -62,32 +62,32 @@ export const getEnvConfig = () => {
   }
 }
 
-export const getVpcConfig = () => {
+export const getVpcConfig = (scope:Construct) => {
   switch (environment) {
     case "dev":
-      return {
+      return Vpc.fromVpcAttributes(scope, env`vpc`,{
         vpcId: "vpc-02d0d267eb1e078f8",
         availabilityZones: cdk.Fn.getAzs(),
         privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      };
+      });
     case "staging":
-      return {
+      return Vpc.fromVpcAttributes(scope, env`vpc`,{
         vpcId: "vpc-02d0d267eb1e078f8",
         availabilityZones: cdk.Fn.getAzs(),
         privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      };
+      });
     case "prod":
-      return {
+      return Vpc.fromVpcAttributes(scope, env`vpc`,{
         vpcId: "vpc-02d0d267eb1e078f8",
         availabilityZones: cdk.Fn.getAzs(),
         privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      };
+      });
     default:
-      return {
+      return Vpc.fromVpcAttributes(scope, env`vpc`,{
         vpcId: "vpc-02d0d267eb1e078f8",
         availabilityZones: cdk.Fn.getAzs(),
         privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      };
+      });
   }
 }
 
