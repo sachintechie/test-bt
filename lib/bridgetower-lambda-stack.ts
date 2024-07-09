@@ -30,51 +30,9 @@ export class BridgeTowerLambdaStack extends Stack {
     newNodeJsFunction(this, "withdrawStake", "../resources/withdrawStake.ts");
     newNodeJsFunction(this, "apigatewayAuthorizer", "../resources/apigatewayAuthorizer.ts");
     newNodeJsFunction(this, "appsyncAuthorizer", "../resources/appsyncAuthorizer.ts");
-
-
-    //Kyc lambda functions
-
-    new NodejsFunction(this, "getKycAccessToken", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      entry: path.join(__dirname, "../resources/getKycAccessToken.ts"),
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 512,
-      environment: DB_CONFIG,
-      vpc: DefaultVpc,
-      securityGroups: securityGroups
-    });
-
-    new NodejsFunction(this, "getKycApplicant", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      entry: path.join(__dirname, "../resources/getKycApplicant.ts"),
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 512,
-      environment: DB_CONFIG,
-      vpc: DefaultVpc,
-      securityGroups: securityGroups
-    });
-
-    new NodejsFunction(this, "kycWebhook", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      entry: path.join(__dirname, "../resources/kycWebhook.ts"),
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 512,
-      environment: DB_CONFIG,
-      vpc: DefaultVpc,
-      securityGroups: securityGroups
-    });
-    
-    new NodejsFunction(this, "createKycApplicant", {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      entry: path.join(__dirname, "../resources/createKycApplicant.ts"),
-      timeout: cdk.Duration.minutes(15),
-      memorySize: 512,
-      environment: DB_CONFIG,
-      vpc: DefaultVpc,
-      securityGroups: securityGroups
-    });
-
-    
+    newNodeJsFunction(this, "getKycAccessToken", "../resources/getKycAccessToken.ts");
+    newNodeJsFunction(this, "getKycApplicant", "../resources/getKycApplicant.ts");
+    newNodeJsFunction(this, "kycWebhook", "../resources/kycWebhook.ts");
 
     // Defines the function url for the AWS Lambda
     const getWalletLambdaUrl = getWalletLambda.addFunctionUrl({

@@ -3,6 +3,7 @@ import { sumsubWebhookListener } from "./kyc/sumsubFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
+    console.log("event", event);
 
     const resp = await sumsubWebhookListener(event);
     

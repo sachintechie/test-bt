@@ -210,6 +210,29 @@ export async function insertStakeAccount(
   }
 }
 
+export async function insertCustomerKyc(
+  customerKyc: any,
+  kycType: string,
+  tenantId: string,
+  error?: string
+) {
+  try {
+    let query = `INSERT INTO customerkyc (customerid,kyctype,type,kycid,status,error, tenantid)
+      VALUES ('${customerKyc.externalUserId}','${kycType}','${customerKyc.type}','${customerKyc.id}', '${status}','${error}','${tenantId}') RETURNING 
+      id,customerid,type,kycType,kycid,status,tenantid; `;
+     console.log("Query", query);
+    const res = await executeQuery(query);
+    const customerKycRow = res.rows[0];
+    return customerKycRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+
+
+
 export async function mergeDbStakeAccounts(
   sourceStakeAccountPubkey: string,
   targetStakeAccountPubkey: string,
@@ -428,6 +451,25 @@ export async function getStakeAccount(senderWalletAddress: string, tenantId: str
     throw err;
   }
 }
+export async function getCustomerKyc(customerId: string, tenantId: string) {
+  try {
+    let query = `SELECT * FROM customerkyc
+      WHERE customerid = '${customerId}' AND tenantId = '${tenantId}' LIMIT 1;`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("Stake account public key fetch result", res);
+
+    if (res.rows.length > 0) {
+      return res.rows[0];
+    } else {
+      return null;
+    }
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
 export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
     let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
@@ -690,7 +732,17 @@ export async function getCubistConfig(tenantId: string) {
     throw err;
   }
 }
-
+export async function getMasterSumsubConfig() {
+  try {
+    let query = `select * from SumsubConfig where isMaster = true;`;
+    const res = await executeQuery(query);
+    const cubist = res.rows;
+    return cubist[0];
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
 export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
     let query = `update transaction set status = '${status}' ,callbackstatus = '${callbackStatus}', updatedat= CURRENT_TIMESTAMP  where id = '${transactionId}' RETURNING customerid,walletaddress,receiverwalletaddress,chaintype,txhash,symbol,amount,createdat,tenantid,tokenid,network,tenantuserid,status,id as transactionid,tenanttransactionid;`;
