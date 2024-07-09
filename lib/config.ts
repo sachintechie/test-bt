@@ -4,6 +4,7 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
 import {Construct} from "constructs";
 import * as path from "path";
+import {Environment} from "aws-cdk-lib";
 
 
 const app = new cdk.App();
@@ -154,3 +155,9 @@ export function env(strings: TemplateStringsArray, ...values: any[]): string {
   // Append the environment name
   return result + '-' + environment;
 }
+
+export const envConfig: Environment = {
+  account: process.env.CDK_DEFAULT_ACCOUNT,
+  region: process.env.CDK_DEFAULT_REGION,
+};
+
