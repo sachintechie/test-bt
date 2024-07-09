@@ -15,9 +15,21 @@ const DB_CONFIG = {
   SOLANA_NETWORK: "devnet",
   SOLANA_NETWORK_URL: "https://api.devnet.solana.com"
 };
+
+interface EnvStackProps extends StackProps {
+  environment: string;
+}
 export class BridgeTowerLambdaStack extends Stack {
-  constructor(scope: Construct, id: string, props: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: EnvStackProps) {
     super(scope, id, props);
+
+    if (props.environment === 'dev') {
+      console.log("Dev-specific resources");
+    } else if (props.environment === 'staging') {
+      console.log("Staging-specific resources");
+    } else if (props.environment === 'prod') {
+      console.log("Prod-specific resources")
+    }
 
     const DefaultVpc = Vpc.fromVpcAttributes(this, "vpcdev", {
       vpcId: "vpc-02d0d267eb1e078f8",

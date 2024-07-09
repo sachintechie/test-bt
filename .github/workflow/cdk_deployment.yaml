@@ -1,0 +1,93 @@
+name: CDK Deploy Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - staging
+      - prod
+
+jobs:
+  cdk-deploy-dev:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Set up AWS credentials for dev
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
+          aws-region: ${{ secrets.AWS_REGION_DEV }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to dev
+        env:
+          CDK_ENV: 'dev'
+        run: npx cdk deploy --context env=dev --all --require-approval never
+
+  cdk-deploy-staging:
+    runs-on: ubuntu-latest
+    needs: cdk-deploy-dev
+    if: github.ref == 'refs/heads/staging'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Set up AWS credentials for staging
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_STAGING }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_STAGING }}
+          aws-region: ${{ secrets.AWS_REGION_STAGING }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to staging
+        env:
+          CDK_ENV: 'staging'
+        run: npx cdk deploy --context env=staging --all --require-approval never
+
+  cdk-deploy-prod:
+    runs-on: ubuntu-latest
+    needs: cdk-deploy-staging
+    if: github.ref == 'refs/heads/prod'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Set up AWS credentials for prod
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PROD }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}
+          aws-region: ${{ secrets.AWS_REGION_PROD }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to prod
+        env:
+          CDK_ENV: 'prod'
+        run: npx cdk deploy --context env=prod --all --require-approval never
