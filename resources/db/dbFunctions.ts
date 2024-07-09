@@ -451,6 +451,25 @@ export async function getStakeAccount(senderWalletAddress: string, tenantId: str
     throw err;
   }
 }
+export async function getCustomerKyc(customerId: string, tenantId: string) {
+  try {
+    let query = `SELECT * FROM customerkyc
+      WHERE customerid = '${customerId}' AND tenantId = '${tenantId}' LIMIT 1;`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("Stake account public key fetch result", res);
+
+    if (res.rows.length > 0) {
+      return res.rows[0];
+    } else {
+      return null;
+    }
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
 export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
     let query = `select customerid,walletaddress,wallet.chaintype,tenantid,tenantuserid,wallet.createdat,customer.emailid from customer  INNER JOIN wallet 
