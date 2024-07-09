@@ -217,15 +217,13 @@ export async function insertCustomerKyc(
   error?: string
 ) {
   try {
-    // console.log("creating stakeaccount ", receiverWalletaddress, customerId);
     let query = `INSERT INTO customerkyc (customerid,kyctype,type,kycid,status,error, tenantid)
       VALUES ('${customerKyc.externalUserId}','${kycType}','${customerKyc.type}','${customerKyc.id}', '${status}','${error}','${tenantId}') RETURNING 
       id,customerid,type,kycType,kycid,status,tenantid; `;
-    // console.log("Query", query);
+     console.log("Query", query);
     const res = await executeQuery(query);
-    // console.log("stake transaction created Res", res);
-    const stakeTransactionRow = res.rows[0];
-    return stakeTransactionRow;
+    const customerKycRow = res.rows[0];
+    return customerKycRow;
   } catch (err) {
     // console.log(err);
     throw err;
