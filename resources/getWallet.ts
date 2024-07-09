@@ -105,6 +105,8 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
+            org.deleteUser("nnbnb");
+            4;
             const cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name
             });

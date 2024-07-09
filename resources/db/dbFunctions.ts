@@ -540,6 +540,21 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
   }
 }
 
+export async function getTokenBySymbol(symbol: string) {
+  try {
+    console.log("symbol", symbol);
+    let query = `select token.name as tokenname,token.decimalprecision,token.id as tokenid,token.symbol,token.contractaddress,token.chaintype from token where token.symbol = '${symbol}';`;
+
+    console.log("Query", query);
+    const res = await executeQuery(query);
+    const walletRow = res.rows[0];
+    return walletRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
 export async function hasWallet(walletAddress: string, tenant: tenant, symbol: string) {
   const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
   return wallet.length > 0;
@@ -587,7 +602,7 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
 
 export async function getStakeTransactions(stakeaccountid: string, tenantId: string) {
   try {
-   console.log("stakeaccountid", stakeaccountid, tenantId);
+    console.log("stakeaccountid", stakeaccountid, tenantId);
     let query = `select * from staketransaction where stakeaccountid = '${stakeaccountid}' AND tenantid = '${tenantId}';`;
 
     const res = await executeQuery(query);
@@ -605,6 +620,35 @@ export async function getAllTransactions() {
     const res = await executeQuery(query);
     const transactionRow = res.rows;
     return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function getAllCustomerWalletForBonus(tenantId: string) {
+  try {
+    let query = `select walletaddress ,customer.id as customerid from customer  INNER JOIN wallet 
+    ON  wallet.customerid = customer.id where customer.isBonusCredit is NULL AND wallet.chaintype ='Solana' AND customer.tenantid = '${tenantId}' limit 10;`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    const transactionRow = res.rows;
+    return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function getAllCustomerAndWalletByTenant(tenantId: string) {
+  try {
+    let query = `select walletaddress ,customer.id as customerid , cubistuserid from customer  INNER JOIN wallet 
+    ON  wallet.customerid = customer.id where customer.tenantid = '${tenantId}';`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    const customerRow = res.rows;
+    
+     return customerRow;
   } catch (err) {
     // console.log(err);
     throw err;
@@ -654,6 +698,44 @@ export async function updateTransaction(transactionId: string, status: string, c
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];
     return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function deleteCustomer(customerid: string, tenantId: string) {
+  try {
+    let query = `delete from customer  where id = '${customerid}' AND tenantid='${tenantId}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const customerRow = res.rows[0];
+    return customerRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+export async function deleteWallet(customerid: string, walletaddress: string) {
+  try {
+    let query = `delete from wallet  where customerid = '${customerid}' AND walletaddress='${walletaddress}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const walletRow = res.rows[0];
+    return walletRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function updateCustomerBonusStatus(customerId: string, status: string, tenantId: string) {
+  try {
+    let query = `update customer set isBonusCredit = '${status}'   where id = '${customerId}' AND tenantid='${tenantId}' RETURNING id;`;
+
+    const res = await executeQuery(query);
+    const customerRow = res.rows[0];
+    return customerRow;
   } catch (err) {
     // console.log(err);
     throw err;
