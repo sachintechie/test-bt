@@ -151,7 +151,6 @@ export function env(strings: TemplateStringsArray, ...values: any[]): string {
   strings.forEach((str, i) => {
     result += str + (values[i] || '');
   });
-
   // Append the environment name
   return result + '-' + environment;
 }
