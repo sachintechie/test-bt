@@ -3,6 +3,7 @@ import { getMasterSumsubConfig } from "../db/dbFunctions";
 
 export const generateAccessToken = async (userId: string, levelName = "basic-kyc-level") => {
   const sumsubConfig = await getMasterSumsubConfig();
+  console.log(sumsubConfig);
   const endPoint = `/resources/accessTokens?ttlInSecs=600&userId=${userId}&levelName=${levelName}`;
   const url = `${sumsubConfig.baseurl}${endPoint}`;
   const options = {

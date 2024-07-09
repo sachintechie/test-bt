@@ -7,6 +7,6 @@ import {env, envConfig} from "../lib/config";
 const app = new cdk.App();
 
 // Create the stack with an environment-specific ID
-new BridgeTowerLambdaStack(app, env`BridgeTowerLambdaStack`, {
+new BridgeTowerLambdaStack(app, env`BTLambdaStack`, {
   env: envConfig,
 });
