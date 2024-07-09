@@ -16,7 +16,7 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
     timeout: cdk.Duration.minutes(15),
     memorySize: memorySize,
     environment: getEnvConfig(),
-    vpc: Vpc.fromVpcAttributes(scope, env`Vpc`, getVpcConfig()),
+    vpc: Vpc.fromVpcAttributes(scope, env`vpc`, getVpcConfig()),
     securityGroups: getSecurityGroups(scope)
   });
 }
