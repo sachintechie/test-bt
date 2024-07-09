@@ -1,5 +1,5 @@
 import * as cdk from "aws-cdk-lib";
-import {SecurityGroup, Vpc} from "aws-cdk-lib/aws-ec2";
+import {IVpc, SecurityGroup, Vpc} from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import {NodejsFunction} from "aws-cdk-lib/aws-lambda-nodejs";
 import {Construct} from "constructs";
@@ -62,32 +62,46 @@ export const getEnvConfig = () => {
   }
 }
 
+let vpcSingleton:IVpc
+
 export const getVpcConfig = (scope:Construct) => {
   switch (environment) {
     case "dev":
-      return Vpc.fromVpcAttributes(scope, env`vpc`,{
-        vpcId: "vpc-02d0d267eb1e078f8",
-        availabilityZones: cdk.Fn.getAzs(),
-        privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      });
+      if(!vpcSingleton){
+        vpcSingleton= Vpc.fromVpcAttributes(scope, env`vpc`,{
+          vpcId: "vpc-02d0d267eb1e078f8",
+          availabilityZones: cdk.Fn.getAzs(),
+          privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
+        });
+      }
+      return vpcSingleton;
     case "staging":
-      return Vpc.fromVpcAttributes(scope, env`vpc`,{
-        vpcId: "vpc-02d0d267eb1e078f8",
-        availabilityZones: cdk.Fn.getAzs(),
-        privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      });
+      if(!vpcSingleton){
+        vpcSingleton= Vpc.fromVpcAttributes(scope, env`vpc`,{
+          vpcId: "vpc-02d0d267eb1e078f8",
+          availabilityZones: cdk.Fn.getAzs(),
+          privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
+        });
+      }
+      return vpcSingleton;
     case "prod":
-      return Vpc.fromVpcAttributes(scope, env`vpc`,{
-        vpcId: "vpc-02d0d267eb1e078f8",
-        availabilityZones: cdk.Fn.getAzs(),
-        privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      });
+      if(!vpcSingleton){
+        vpcSingleton= Vpc.fromVpcAttributes(scope, env`vpc`,{
+          vpcId: "vpc-02d0d267eb1e078f8",
+          availabilityZones: cdk.Fn.getAzs(),
+          privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
+        });
+      }
+      return vpcSingleton;
     default:
-      return Vpc.fromVpcAttributes(scope, env`vpc`,{
-        vpcId: "vpc-02d0d267eb1e078f8",
-        availabilityZones: cdk.Fn.getAzs(),
-        privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
-      });
+      if(!vpcSingleton){
+        vpcSingleton= Vpc.fromVpcAttributes(scope, env`vpc`,{
+          vpcId: "vpc-02d0d267eb1e078f8",
+          availabilityZones: cdk.Fn.getAzs(),
+          privateSubnetIds: ["subnet-00a4eb60fb117cdd4", "subnet-04d671deee8eb1df2"]
+        });
+      }
+      return vpcSingleton;
   }
 }
 
