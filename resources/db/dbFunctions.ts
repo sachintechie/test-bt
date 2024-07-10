@@ -1,5 +1,5 @@
 import { executeQuery } from "./PgClient";
-import { CallbackStatus, customer, tenant, token, wallet } from "./models";
+import { CallbackStatus, customer, StakeAccountStatus, tenant, token, wallet } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 
 export async function createCustomer(customer: customer) {
@@ -346,16 +346,22 @@ export async function insertMergeStakeAccountsTransaction(
     // Calculate the new amount
     const newAmount = sourceAccount.amount + targetAccount.amount;
 
+    const updateSourceAccountQuery= `update stakeaccount set amount = '${newAmount}',updatedat= CURRENT_TIMESTAMP where stakeaccountpubkey = '${sourceStakeAccountPubkey}';`;
+    const updateTargetAccountQuery= `update stakeaccount set status = '${StakeAccountStatus.MERGED}' ,updatedat= CURRENT_TIMESTAMP where stakeaccountpubkey = '${targetStakeAccountPubkey}';`;
+    const updatedSourceAccount = await executeQuery(updateSourceAccountQuery);
+    const updatedTargetAccount = await executeQuery(updateTargetAccountQuery);
+    console.log("updatedSourceAccount",updatedSourceAccount,"updatedTargetAccount",updatedTargetAccount);
+
     // Insert merge transaction into staketransaction table
     const insertQuery = `
       INSERT INTO staketransaction (
         customerid, type, tokenid, tenanttransactionid, stakeaccountpubkey, network, status, error, tenantuserid,
-        walletaddress, receiverwalletaddress, chaintype, amount, symbol, txhash, tenantid, isactive
+        walletaddress, receiverwalletaddress, chaintype, amount, symbol, txhash, tenantid, isactive,stakeaccountid
       ) VALUES (
         '${targetAccount.customerid}', 'MERGE', '${targetAccount.tokenid}', '${targetAccount.tenanttransactionid}', 
         '${targetStakeAccountPubkey}', '${targetAccount.network}', 'SUCCESS', '', '${targetAccount.tenantuserid}',
         '${targetAccount.walletaddress}', '${targetAccount.walletaddress}', '${targetAccount.chaintype}', ${newAmount}, 
-        '${targetAccount.symbol}', '${txhash}', '${targetAccount.tenantid}', true
+        '${targetAccount.symbol}', '${txhash}', '${targetAccount.tenantid}', true, '${sourceAccount.id}'
       ) RETURNING 
         customerid, walletaddress, receiverwalletaddress, chaintype, txhash, type, symbol, amount, createdat, tokenid,
         network, tenantuserid, status, stakeaccountid, id as transactionid, tenanttransactionid;
@@ -423,6 +429,25 @@ export async function getStakeAccounts(senderWalletAddress: string, tenantId: st
 
     if (res.rows.length > 0) {
       return res.rows;
+    } else {
+      return null;
+    }
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function getMasterValidatorNode(chainType: string) {
+  try {
+    let query = `SELECT * FROM validatornodes
+      WHERE ismaster = 'true' and chaintype='${chainType}' limit 1 ;`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("Stake account public key fetch result", res);
+
+    if (res.rows.length > 0) {
+      return res.rows[0]; 
     } else {
       return null;
     }

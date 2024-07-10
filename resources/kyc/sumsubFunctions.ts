@@ -27,6 +27,7 @@ export const generateAccessToken = async (userId: string, levelName = "basic-kyc
 };
 export const createApplicant = async (userId: string, levelName = "basic-kyc-level") => {
   const sumsubConfig = await getMasterSumsubConfig();
+  console.log("sumsubConfig",sumsubConfig);
   const endPoint = `/resources/applicants?levelName=${encodeURIComponent(levelName)}`;
   const url = `${sumsubConfig.baseUrl}${endPoint}`;
   const options = {

@@ -45,10 +45,10 @@ export const getEnvConfig = () => {
     case "prod":
       return {
         DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_DATABASE: "dev",
+        DB_DATABASE: "prod",
         DB_PORT: "5432",
-        SOLANA_NETWORK: "devnet",
-        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
+        SOLANA_NETWORK: "mainnet",
+        SOLANA_NETWORK_URL: "https://api.mainnet-beta.solana.com/",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
       };
     default:
