@@ -2,7 +2,8 @@ import * as cdk from "aws-cdk-lib";
 import { Stack, StackProps } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import {env, newNodeJsFunction} from "./config";
+import {newNodeJsFunction} from "./lambda";
+import {env} from "./env";
 
 
 export class BridgeTowerLambdaStack extends Stack {
