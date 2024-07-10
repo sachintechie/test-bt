@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
 import { BridgeTowerLambdaStack } from "../lib/bridgetower-lambda-stack";
+import {env, envConfig} from "../lib/env";
 
-import {env, envConfig} from "../lib/config";
 
 const app = new cdk.App();
 
