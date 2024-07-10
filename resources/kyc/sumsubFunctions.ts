@@ -15,7 +15,7 @@ export const generateAccessToken = async (userId: string, levelName = "basic-kyc
     url: endPoint,
     body: ""
   };
-  await createSignature(options);
+   createSignature(options,sumsubConfig.sumsub_secret_key);
   try {
     const res = await fetch(url, options);
     const data = await res.json();
@@ -29,7 +29,7 @@ export const createApplicant = async (userId: string, levelName = "basic-kyc-lev
   const sumsubConfig = await getMasterSumsubConfig();
   console.log("sumsubConfig",sumsubConfig);
   const endPoint = `/resources/applicants?levelName=${encodeURIComponent(levelName)}`;
-  const url = `${sumsubConfig.baseUrl}${endPoint}`;
+  const url = `${sumsubConfig.baseurl}${endPoint}`;
   const options = {
     url: endPoint,
     method: "POST",
@@ -40,7 +40,7 @@ export const createApplicant = async (userId: string, levelName = "basic-kyc-lev
     },
     body: JSON.stringify({ externalUserId: userId })
   };
-  createSignature(options);
+  createSignature(options,sumsubConfig.sumsub_secret_key);
   // console.log(options);
   try {
     const res = await fetch(url, options);
@@ -54,7 +54,7 @@ export const createApplicant = async (userId: string, levelName = "basic-kyc-lev
 export const getApplicantDataByExternalId = async (userId: string) => {
   const sumsubConfig = await getMasterSumsubConfig();
   const endPoint = `/resources/applicants/-;externalUserId=${userId}/one`;
-  const url = `${sumsubConfig.baseUrl}${endPoint}`;
+  const url = `${sumsubConfig.baseurl}${endPoint}`;
   const options = {
     url: endPoint,
     method: "GET",
@@ -63,7 +63,8 @@ export const getApplicantDataByExternalId = async (userId: string) => {
       "X-App-Token": sumsubConfig.sumsub_app_token
     }
   };
-  createSignature(options);
+   createSignature(options,sumsubConfig.sumsub_secret_key);
+  console.log(options);
   try {
     const res = await fetch(url, options);
     const data = await res.json();
@@ -87,10 +88,9 @@ export const sumsubWebhookListener = async (event: any) => {
   }
 };
 
-async function createSignature(config: any) {
-  const sumsubConfig = await getMasterSumsubConfig();
+ function createSignature(config: any,sumsub_secret_key:string) {
   var ts = Math.floor(Date.now() / 1000);
-  const signature = createHmac("sha256", sumsubConfig.sumsub_secret_key);
+  const signature =  createHmac("sha256", sumsub_secret_key);
   signature.update(ts + config.method.toUpperCase() + config.url);
 
   if (config.body instanceof FormData) {

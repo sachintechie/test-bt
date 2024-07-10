@@ -218,7 +218,7 @@ export async function insertCustomerKyc(
 ) {
   try {
     let query = `INSERT INTO customerkyc (customerid,kyctype,type,kycid,status,error, tenantid)
-      VALUES ('${customerKyc.externalUserId}','${kycType}','${customerKyc.type}','${customerKyc.id}', '${status}','${error}','${tenantId}') RETURNING 
+      VALUES ('${customerKyc.externalUserId}','${kycType}','${customerKyc.type}','${customerKyc.id}', '${customerKyc.review.reviewStatus}','${error}','${tenantId}') RETURNING 
       id,customerid,type,kycType,kycid,status,tenantid; `;
      console.log("Query", query);
     const res = await executeQuery(query);

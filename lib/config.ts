@@ -14,7 +14,7 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
   return new NodejsFunction(scope, env`${id}`, {
     runtime: lambda.Runtime.NODEJS_18_X,
     entry: path.join(__dirname, resourcePath),
-    timeout: cdk.Duration.minutes(15),
+    timeout: cdk.Duration.minutes(5),
     memorySize: memorySize,
     environment: getEnvConfig(),
     vpc: getVpcConfig(scope),
@@ -159,4 +159,5 @@ export const envConfig: Environment = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION,
 };
+
 

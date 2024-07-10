@@ -9,7 +9,7 @@ export const handler = async (event: any) => {
     if(accounts!=null){
       const connection = await getSolConnection();
     for (const account of accounts) {
-      const stakeAccountInfo = await getStakeAccountInfo(account.stakeAccountPubKey, connection);
+      const stakeAccountInfo = await getStakeAccountInfo(account.stakeaccountpubkey, connection);
 
       console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
       if (stakeAccountInfo.currentStakeAmount == null) {
