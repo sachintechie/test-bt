@@ -10,6 +10,28 @@ export class BridgeTowerLambdaStack extends Stack {
   public readonly getWalletLambda: lambda.Function;
   public readonly transferLambda: lambda.Function;
   public readonly appsyncAuthorizerLambda: lambda.Function;
+  public readonly getWalletBalanceLambda: lambda.Function;
+  public readonly deleteKeyAndUserFromCubistAndDBLambda: lambda.Function;
+  public readonly checkTransactionStatusAndUpdateLambda: lambda.Function;
+  public readonly checkAndTransferBonusLambda: lambda.Function;
+  public readonly listWalletTokensLambda: lambda.Function;
+  public readonly createWalletLambda: lambda.Function;
+  public readonly listCustomerWalletsLambda: lambda.Function;
+  public readonly listStakeAccountsLambda: lambda.Function;
+  public readonly listStakeTransactionsLambda: lambda.Function;
+  public readonly signinLambda: lambda.Function;
+  public readonly stakingLambda: lambda.Function;
+  public readonly unStakingLambda: lambda.Function;
+  public readonly masterTransferLambda: lambda.Function;
+  public readonly listWalletTransactionsLambda: lambda.Function;
+  public readonly mergeStakeLambda: lambda.Function;
+  public readonly withdrawStakeLambda: lambda.Function;
+  public readonly apigatewayAuthorizerLambda: lambda.Function;
+  public readonly getKycAccessTokenLambda: lambda.Function;
+  public readonly getKycApplicantLambda: lambda.Function;
+  public readonly kycWebhookLambda: lambda.Function;
+
+
   constructor(scope: Construct, id: string, props: StackProps) {
 
     super(scope, id, props);
@@ -17,26 +39,28 @@ export class BridgeTowerLambdaStack extends Stack {
     this.getWalletLambda=newNodeJsFunction(this, "getWallet", "../resources/getWallet.ts");
     this.transferLambda=newNodeJsFunction(this, "transfer", "../resources/transfer.ts");
     this.appsyncAuthorizerLambda=newNodeJsFunction(this, "appsyncAuthorizer", "../resources/appsyncAuthorizer.ts");
-    newNodeJsFunction(this, "getWalletBalance", "../resources/getWalletBalance.ts");
-    newNodeJsFunction(this, "deleteKeyAndUserFromCubistAndDB", "../resources/deleteKeyAndUserFromCubistAndDB.ts");
-    newNodeJsFunction(this, "checkTransactionStatusAndUpdate", "../resources/checkTransactionStatusAndUpdate.ts");
-    newNodeJsFunction(this, "checkAndTransferBonus", "../resources/checkAndTransferBonus.ts");
-    newNodeJsFunction(this, "listWalletTokens", "../resources/listWalletTokens.ts");
-    newNodeJsFunction(this, "createWallet", "../resources/createWallet.ts");
-    newNodeJsFunction(this, "listCustomerWallets", "../resources/listCustomerWallets.ts");
-    newNodeJsFunction(this, "listStakeAccounts", "../resources/listStakeAccounts.ts");
-    newNodeJsFunction(this, "listStakeTransactions", "../resources/listStakeTransactions.ts");
-    newNodeJsFunction(this, "signin", "../resources/signin.ts");
-    newNodeJsFunction(this, "staking", "../resources/staking.ts");
-    newNodeJsFunction(this, "unStaking", "../resources/unstaking.ts");
-    newNodeJsFunction(this, "masterTransfer", "../resources/masterTransfer.ts");
-    newNodeJsFunction(this, "listWalletTransactions", "../resources/listWalletTransactions.ts");
-    newNodeJsFunction(this, "mergeStake", "../resources/mergeStake.ts");
-    newNodeJsFunction(this, "withdrawStake", "../resources/withdrawStake.ts");
-    newNodeJsFunction(this, "apigatewayAuthorizer", "../resources/apigatewayAuthorizer.ts");
-    newNodeJsFunction(this, "getKycAccessToken", "../resources/getKycAccessToken.ts");
-    newNodeJsFunction(this, "getKycApplicant", "../resources/getKycApplicant.ts");
-    newNodeJsFunction(this, "kycWebhook", "../resources/kycWebhook.ts");
+    this.getWalletBalanceLambda=newNodeJsFunction(this, "getWalletBalance", "../resources/getWalletBalance.ts");
+    this.deleteKeyAndUserFromCubistAndDBLambda=newNodeJsFunction(this, "deleteKeyAndUserFromCubistAndDB", "../resources/deleteKeyAndUserFromCubistAndDB.ts");
+    this.checkTransactionStatusAndUpdateLambda=newNodeJsFunction(this, "checkTransactionStatusAndUpdate", "../resources/checkTransactionStatusAndUpdate.ts");
+    this.checkAndTransferBonusLambda=newNodeJsFunction(this, "checkAndTransferBonus", "../resources/checkAndTransferBonus.ts");
+    this.listWalletTokensLambda=newNodeJsFunction(this, "listWalletTokens", "../resources/listWalletTokens.ts");
+    this.createWalletLambda=newNodeJsFunction(this, "createWallet", "../resources/createWallet.ts");
+    this.listCustomerWalletsLambda=newNodeJsFunction(this, "listCustomerWallets", "../resources/listCustomerWallets.ts");
+    this.listStakeAccountsLambda=newNodeJsFunction(this, "listStakeAccounts", "../resources/listStakeAccounts.ts");
+    this.listStakeTransactionsLambda=newNodeJsFunction(this, "listStakeTransactions", "../resources/listStakeTransactions.ts");
+    this.signinLambda=newNodeJsFunction(this, "signin", "../resources/signin.ts");
+    this.stakingLambda=newNodeJsFunction(this, "staking", "../resources/staking.ts");
+    this.unStakingLambda=newNodeJsFunction(this, "unStaking", "../resources/unStaking.ts");
+    this.masterTransferLambda=newNodeJsFunction(this, "masterTransfer", "../resources/masterTransfer.ts");
+    this.listWalletTransactionsLambda=newNodeJsFunction(this, "listWalletTransactions", "../resources/listWalletTransactions.ts");
+    this.mergeStakeLambda=newNodeJsFunction(this, "mergeStake", "../resources/mergeStake.ts");
+    this.withdrawStakeLambda=newNodeJsFunction(this, "withdrawStake", "../resources/withdrawStake.ts");
+    this.apigatewayAuthorizerLambda=newNodeJsFunction(this, "apigatewayAuthorizer", "../resources/apigatewayAuthorizer.ts");
+    this.getKycAccessTokenLambda=newNodeJsFunction(this, "getKycAccessToken", "../resources/getKycAccessToken.ts");
+    this.getKycApplicantLambda=newNodeJsFunction(this, "getKycApplicant", "../resources/getKycApplicant.ts");
+    this.kycWebhookLambda=newNodeJsFunction(this, "kycWebhook", "../resources/kycWebhook.ts");
+
+
 
     // Define function URLs for specific Lambdas
     const getWalletLambdaUrl = this.getWalletLambda.addFunctionUrl({

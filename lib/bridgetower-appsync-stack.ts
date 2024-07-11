@@ -1,10 +1,8 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as appsync from 'aws-cdk-lib/aws-appsync';
-import * as iam from 'aws-cdk-lib/aws-iam';
 import {BridgeTowerLambdaStack} from "./bridgetower-lambda-stack";
 import {env, envConfig} from "./env";
-import * as path from "path";
+import {configResolver, newAppSyncApi} from "./appsync";
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -16,75 +14,32 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     });
 
     // Create a new AppSync GraphQL API
-    const api = new appsync.GraphqlApi(this, env`Api`, {
-      name: env`GraphQLAPI`,
-      schema: appsync.SchemaFile.fromAsset(path.join(__dirname, "../resources/appsync/schema.graphql")),
-      logConfig: {
-        fieldLogLevel: appsync.FieldLogLevel.ALL,
-        excludeVerboseContent: false,
-        role: new iam.Role(this, env`AppSyncLoggingRole`, {
-          assumedBy: new iam.ServicePrincipal('appsync.amazonaws.com'),
-          managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSAppSyncPushToCloudWatchLogs')],
-        }),
-      },
-      authorizationConfig: {
-        defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.LAMBDA,
-          lambdaAuthorizerConfig: {
-            handler: lambdaStack.appsyncAuthorizerLambda,
-            resultsCacheTtl: cdk.Duration.minutes(5), // Optional cache TTL
-          },
-        },
-      },
-    });
+    const api = newAppSyncApi(this, env`BridgeTowerAppSync`, lambdaStack)
+
+    configResolver(api, lambdaStack.getWalletLambda, 'Query', 'GetWallet')
+    configResolver(api, lambdaStack.transferLambda, 'Query', 'Transfer')
+    configResolver(api, lambdaStack.getWalletBalanceLambda, 'Query', 'GetWalletBalance')
+    configResolver(api, lambdaStack.deleteKeyAndUserFromCubistAndDBLambda, 'Query', 'DeleteKeyAndUserFromCubistAndDB')
+    configResolver(api, lambdaStack.checkTransactionStatusAndUpdateLambda, 'Query', 'CheckTransactionStatusAndUpdate')
+    configResolver(api, lambdaStack.checkAndTransferBonusLambda, 'Query', 'CheckAndTransferBonus')
+    configResolver(api, lambdaStack.listWalletTokensLambda, 'Query', 'ListWalletTokens')
+    configResolver(api, lambdaStack.createWalletLambda, 'Query', 'CreateWallet')
+    configResolver(api, lambdaStack.listCustomerWalletsLambda, 'Query', 'ListCustomerWallets')
+    configResolver(api, lambdaStack.listStakeAccountsLambda, 'Query', 'ListStakeAccounts')
+    configResolver(api, lambdaStack.listStakeTransactionsLambda, 'Query', 'ListStakeTransactions')
+    configResolver(api, lambdaStack.signinLambda, 'Query', 'Signin')
+    configResolver(api, lambdaStack.stakingLambda, 'Query', 'Staking')
+    configResolver(api, lambdaStack.unStakingLambda, 'Query', 'UnStaking')
+    configResolver(api, lambdaStack.masterTransferLambda, 'Query', 'MasterTransfer')
+    configResolver(api, lambdaStack.listWalletTransactionsLambda, 'Query', 'ListWalletTransactions')
+    configResolver(api, lambdaStack.mergeStakeLambda, 'Query', 'MergeStake')
+    configResolver(api, lambdaStack.withdrawStakeLambda, 'Query', 'WithdrawStake')
+    configResolver(api, lambdaStack.apigatewayAuthorizerLambda, 'Query', 'ApigatewayAuthorizer')
+    configResolver(api, lambdaStack.getKycAccessTokenLambda, 'Query', 'GetKycAccessToken')
+    configResolver(api, lambdaStack.getKycApplicantLambda, 'Query', 'GetKycApplicant')
+    configResolver(api, lambdaStack.kycWebhookLambda, 'Query', 'KycWebhook')
 
 
-
-    // Create data sources for the existing Lambda functions
-    const getWalletDataSource = api.addLambdaDataSource(env`GetWalletLambdaDataSource`, lambdaStack.getWalletLambda);
-    const transferDataSource = api.addLambdaDataSource(env`TransferLambdaDataSource`, lambdaStack.transferLambda);
-
-    // Create a resolver for the getWallet query
-    getWalletDataSource.createResolver(env`GetWalletResolver`, {
-      typeName: 'Query',
-      fieldName: 'GetWallet',
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-      {
-        "version": "2018-05-29",
-        "operation": "Invoke",
-        "payload": {
-          "identity": $util.toJson($ctx.identity),
-          "resolverContext": $util.toJson($ctx.identity.resolverContext),
-          "headers": $util.toJson($ctx.request.headers),
-          "arguments": $util.toJson($ctx.arguments)
-        }
-      }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-      $util.toJson($ctx.result)
-      `),
-    });
-
-    // Create a resolver for the transfer mutation
-    transferDataSource.createResolver(env`TransferResolver`, {
-      typeName: 'Query',
-      fieldName: 'Transfer',
-      requestMappingTemplate: appsync.MappingTemplate.fromString(`
-      {
-        "version": "2018-05-29",
-        "operation": "Invoke",
-        "payload": {
-          "identity": $util.toJson($ctx.identity),
-          "resolverContext": $util.toJson($ctx.identity.resolverContext),
-          "headers": $util.toJson($ctx.request.headers),
-          "arguments": $util.toJson($ctx.arguments)
-        }
-      }
-      `),
-      responseMappingTemplate: appsync.MappingTemplate.fromString(`
-        $util.toJson($context.result)
-      `),
-    });
 
     new cdk.CfnOutput(this, env`GraphQLAPIURL`, {
       value: api.graphqlUrl,
