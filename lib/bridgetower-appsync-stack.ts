@@ -67,7 +67,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     // Create a resolver for the transfer mutation
     transferDataSource.createResolver(env`TransferResolver`, {
-      typeName: 'Mutation',
+      typeName: 'Query',
       fieldName: 'transfer',
       requestMappingTemplate: appsync.MappingTemplate.fromString(`
       {
