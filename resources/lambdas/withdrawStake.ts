@@ -1,8 +1,8 @@
-import {getSolConnection} from "./solana/solanaFunctions";
-import {getCubistConfig, getStakeAccountPubkeys, removeStakeAccount} from "./db/dbFunctions";
-import {withdrawFromStakeAccounts} from "./solana/solanaStake";
-import { getCubistKey} from "./cubist/CubeSignerClient";
-import {tenant} from "./db/models";
+import {getSolConnection} from "../solana/solanaFunctions";
+import {getCubistConfig, getStakeAccountPubkeys} from "../db/dbFunctions";
+import {withdrawFromStakeAccounts} from "../solana/solanaStake";
+import { getCubistKey} from "../cubist/CubeSignerClient";
+import {tenant} from "../db/models";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"

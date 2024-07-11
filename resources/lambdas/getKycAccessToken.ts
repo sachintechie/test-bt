@@ -1,4 +1,4 @@
-import { generateAccessToken } from "./kyc/sumsubFunctions";
+import { generateAccessToken } from "../kyc/sumsubFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {

@@ -1,34 +1,26 @@
-import { getMasterValidatorNode, getStakingTransactionByTenantTransactionId } from "./db/dbFunctions";
-import { tenant } from "./db/models";
-import { solanaStaking } from "./solana/solanaStake";
+import { getTransactionByTenantTransactionId } from "../db/dbFunctions";
+import { tenant } from "../db/models";
+import { solanaTransfer } from "../solana/solanaTransfer";
+
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    const isTransactionAlreadyExist = await getStakingTransactionByTenantTransactionId(
+    const isTransactionAlreadyExist = await getTransactionByTenantTransactionId(
       event.arguments?.input?.tenantTransactionId,
       event.identity.resolverContext.id
     );
     if (isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined) {
       if (event.arguments?.input?.chainType === "Solana") {
-        const validatorNode = await getMasterValidatorNode(event.arguments?.input?.chainType);
-        if(validatorNode == null || validatorNode == undefined){  
-          return {
-            status: 400,
-            data: null,
-            error: "Validator Node not found"
-          };
-        }
-        const data = await solanaStaking(
+        const data = await solanaTransfer(
           event.identity.resolverContext as tenant,
           event.arguments?.input?.senderWalletAddress,
-          validatorNode.validatornodeaddress,
+          event.arguments?.input?.receiverWalletAddress,
           event.arguments?.input?.amount,
           event.arguments?.input?.symbol,
           event.request?.headers?.identity,
           event.arguments?.input?.tenantUserId,
           event.arguments?.input?.chainType,
-          event.arguments?.input?.tenantTransactionId,
-          event.arguments?.input?.lockupExpirationTimestamp
+          event.arguments?.input?.tenantTransactionId
         );
 
         const response = {

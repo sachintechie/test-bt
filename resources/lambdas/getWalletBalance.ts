@@ -1,6 +1,6 @@
-import { tenant } from "./db/models";
-import { getWalletAndTokenByWalletAddress } from "./db/dbFunctions";
-import { getSolBalance, getSplTokenBalance } from "./solana/solanaFunctions";
+import { tenant } from "../db/models";
+import { getWalletAndTokenByWalletAddress } from "../db/dbFunctions";
+import { getSolBalance, getSplTokenBalance } from "../solana/solanaFunctions";
 
 export const handler = async (event: any) => {
   try {
