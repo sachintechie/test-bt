@@ -313,22 +313,22 @@ input UnStakingInput {
 }
 
 type Query {
-	GetWallet(input: GetWalletInput): GetWallet
-	CreateWallet(input: CreateWalletInput): GetWallet
-	SignIn(input: SigninInput): SignIn
-	GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
-	Transfer(input: TransferInput): Transfer
-	Staking(input: StakingInput): Staking
-	UnStaking(input: UnStakingInput): Staking
-	MasterTransfer(input: MasterTransferInput): Transfer
-	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
-	GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
+    CreateWallet(input: CreateWalletInput): GetWallet
+    GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
+    GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
+    GetWallet(input: GetWalletInput): GetWallet
+    GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
 	KycWebhook(input: AWSJSON): AWSJSON
-	ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
-	ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
 	ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
 	ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
-	ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
+    ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
+    ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
+    ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
+    MasterTransfer(input: MasterTransferInput): Transfer
+	SignIn(input: SigninInput): SignIn
+    Staking(input: StakingInput): Staking
+    Transfer(input: TransferInput): Transfer
+    Unstaking(input: UnStakingInput): Staking
 }
 
 schema {
