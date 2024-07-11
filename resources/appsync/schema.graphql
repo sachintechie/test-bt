@@ -325,7 +325,7 @@ type Query {
     ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
     ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
     MasterTransfer(input: MasterTransferInput): Transfer
-	SignIn(input: SigninInput): SignIn
+	Signin(input: SigninInput): SignIn
     Staking(input: StakingInput): Staking
     Transfer(input: TransferInput): Transfer
     Unstaking(input: UnStakingInput): Staking
