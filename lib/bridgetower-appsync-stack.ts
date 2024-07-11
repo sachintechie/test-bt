@@ -14,7 +14,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     });
 
     // Create a new AppSync GraphQL API
-    const api = newAppSyncApi(this, env`BridgeTowerAppSync`, lambdaStack)
+    const api = newAppSyncApi(this, env`Api`, lambdaStack)
 
     configResolver(api, lambdaStack.getWalletLambda, 'Query', 'GetWallet')
     configResolver(api, lambdaStack.transferLambda, 'Query', 'Transfer')
