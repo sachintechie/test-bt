@@ -5,10 +5,10 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 export async function createCustomer(customer: customer) {
   try {
     // // console.log("Creating customer", customer);
-    let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isactive)
+    let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isbonuscredit,isactive)
       VALUES ('${customer.tenantuserid}','${customer.tenantid}', '${customer.emailid}','${
         customer.name
-      }','${customer.cubistuserid.toString()}',${customer.isactive})RETURNING id; `;
+      }','${customer.cubistuserid.toString()}', '${customer.isBonusCredit}',${customer.isactive})RETURNING id; `;
     // console.log("Query", query);
     const res = await executeQuery(query);
     // console.log("customer created Res", res);
@@ -647,6 +647,8 @@ export async function getCustomerWalletsByCustomerId(customerid: string, tenant:
   }
 }
 
+
+
 export async function getTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
     // console.log("Wallet Address", walletAddress, symbol);
@@ -1090,6 +1092,7 @@ const to_customer = (itemRow: customer): customer => {
     name: itemRow.name,
     cubistuserid: itemRow.cubistuserid,
     isactive: itemRow.isactive,
+    isBonusCredit: itemRow.isBonusCredit,
     createdat: itemRow.createdat
   };
 };

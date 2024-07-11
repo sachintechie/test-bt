@@ -31,7 +31,7 @@ export const getEnvConfig = () => {
         DB_PORT: "5432",
         SOLANA_NETWORK: "mainnet",
         SOLANA_NETWORK_URL: "https://api.mainnet-beta.solana.com/",
-        CS_API_ROOT: "https://gamma.signer.cubist.dev"
+        CS_API_ROOT: "https://prod.signer.cubist.dev"
       };
     default:
       return {
@@ -44,6 +44,10 @@ export const getEnvConfig = () => {
       };
   }
 };
+
+export const getDescription = () => {
+  return environment;
+}
 
 export function env(strings: TemplateStringsArray, ...values: any[]): string {
   // Concatenate the strings and values

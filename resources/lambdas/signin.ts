@@ -14,7 +14,7 @@ export const handler = async (event: any, context: any) => {
     const data = await createUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
-      event.request?.headers?.identity
+      event.headers?.identity
     );
 
     const response = {
@@ -86,6 +86,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               tenantid: tenant.id,
               cubistuserid: cubistUserId,
               isactive: true,
+              isBonusCredit: false,
               createdat: new Date().toISOString()
             });
             console.log("Created customer", customerId);

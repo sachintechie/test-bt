@@ -17,7 +17,7 @@ export const handler = async (event: any) => {
           event.arguments?.input?.receiverWalletAddress,
           event.arguments?.input?.amount,
           event.arguments?.input?.symbol,
-          event.request?.headers?.identity,
+          event.headers?.identity,
           event.arguments?.input?.tenantUserId,
           event.arguments?.input?.chainType,
           event.arguments?.input?.tenantTransactionId

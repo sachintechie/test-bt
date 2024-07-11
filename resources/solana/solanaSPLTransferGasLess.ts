@@ -17,8 +17,6 @@ import { oidcLogin, getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import { getSolConnection } from "./solanaFunctions";
 import { tenant } from "../db/models";
 import { getCubistConfig } from "../db/dbFunctions";
-// Define the network to connect to (e.g., mainnet-beta, testnet, devnet)
-// const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.devnet.solana.com"; // Use 'https://api.mainnet-beta.solana.com' for mainnet
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
