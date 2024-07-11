@@ -10,6 +10,7 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'appsyncAuthorizer',
   'checkAndTransferBonus',
   'checkTransactionStatusAndUpdate',
+  'createKycApplicant',
   'deleteKeyAndUserFromCubistAndDB',
   'mergeStake',
   'withdrawStake'
