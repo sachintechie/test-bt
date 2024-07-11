@@ -40,7 +40,6 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     configResolver(api, lambdaStack.kycWebhookLambda, 'Query', 'KycWebhook')
 
 
-
     new cdk.CfnOutput(this, env`GraphQLAPIURL`, {
       value: api.graphqlUrl,
     });

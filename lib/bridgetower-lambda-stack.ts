@@ -61,7 +61,6 @@ export class BridgeTowerLambdaStack extends Stack {
     this.kycWebhookLambda=newNodeJsFunction(this, "kycWebhook", "../resources/kycWebhook.ts");
 
 
-
     // Define function URLs for specific Lambdas
     const getWalletLambdaUrl = this.getWalletLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE
