@@ -1,6 +1,6 @@
-import { getStakingTransactionByTenantTransactionId } from "./db/dbFunctions";
-import { tenant } from "./db/models";
-import { solanaStaking } from "./solana/solanaStake";
+import { getStakingTransactionByTenantTransactionId } from "../db/dbFunctions";
+import { tenant } from "../db/models";
+import { solanaStaking } from "../solana/solanaStake";
 export const handler = async (event: any) => {
   try {
     console.log(event);

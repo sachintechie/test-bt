@@ -1,4 +1,4 @@
-import { createApplicant } from "./kyc/sumsubFunctions";
+import { createApplicant } from "../kyc/sumsubFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {

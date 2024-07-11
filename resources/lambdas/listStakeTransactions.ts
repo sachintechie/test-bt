@@ -1,4 +1,4 @@
-import { getStakeTransactions } from "./db/dbFunctions";
+import { getStakeTransactions } from "../db/dbFunctions";
 
 export const handler = async (event: any) => {
   try {

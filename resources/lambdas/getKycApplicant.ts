@@ -1,5 +1,5 @@
-import { getCustomerKyc, insertCustomerKyc } from "./db/dbFunctions";
-import { createApplicant, getApplicantDataByExternalId } from "./kyc/sumsubFunctions";
+import { getCustomerKyc, insertCustomerKyc } from "../db/dbFunctions";
+import { createApplicant } from "../kyc/sumsubFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {

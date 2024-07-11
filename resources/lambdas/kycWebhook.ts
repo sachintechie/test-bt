@@ -1,4 +1,4 @@
-import { sumsubWebhookListener } from "./kyc/sumsubFunctions";
+import { sumsubWebhookListener } from "../kyc/sumsubFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
