@@ -4,6 +4,7 @@ import * as appsync from 'aws-cdk-lib/aws-appsync';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import {BridgeTowerLambdaStack} from "./bridgetower-lambda-stack";
 import {env, envConfig} from "./env";
+import * as path from "path";
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -15,9 +16,9 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     });
 
     // Create a new AppSync GraphQL API
-    const api = new appsync.GraphqlApi(this, 'Api', {
+    const api = new appsync.GraphqlApi(this, env`Api`, {
       name: env`GraphQLAPI`,
-      schema: appsync.SchemaFile.fromAsset("../resources/appsync/schema.graphql"),
+      schema: appsync.SchemaFile.fromAsset(path.join(__dirname, "../resources/appsync/schema.graphql")),
       logConfig: {
         fieldLogLevel: appsync.FieldLogLevel.ALL,
         excludeVerboseContent: false,
@@ -40,11 +41,11 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
 
     // Create data sources for the existing Lambda functions
-    const getWalletDataSource = api.addLambdaDataSource('GetWalletLambdaDataSource', lambdaStack.getWalletLambda);
-    const transferDataSource = api.addLambdaDataSource('TransferLambdaDataSource', lambdaStack.transferLambda);
+    const getWalletDataSource = api.addLambdaDataSource(env`GetWalletLambdaDataSource`, lambdaStack.getWalletLambda);
+    const transferDataSource = api.addLambdaDataSource(env`TransferLambdaDataSource`, lambdaStack.transferLambda);
 
     // Create a resolver for the getWallet query
-    getWalletDataSource.createResolver('GetWalletResolver', {
+    getWalletDataSource.createResolver(env`GetWalletResolver`, {
       typeName: 'Query',
       fieldName: 'getWallet',
       requestMappingTemplate: appsync.MappingTemplate.fromString(`
@@ -65,7 +66,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     });
 
     // Create a resolver for the transfer mutation
-    transferDataSource.createResolver('TransferResolver', {
+    transferDataSource.createResolver(env`TransferResolver`, {
       typeName: 'Mutation',
       fieldName: 'transfer',
       requestMappingTemplate: appsync.MappingTemplate.fromString(`
