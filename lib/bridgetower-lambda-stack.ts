@@ -50,7 +50,7 @@ export class BridgeTowerLambdaStack extends Stack {
     this.listStakeTransactionsLambda=newNodeJsFunction(this, "listStakeTransactions", "../resources/listStakeTransactions.ts");
     this.signinLambda=newNodeJsFunction(this, "signin", "../resources/signin.ts");
     this.stakingLambda=newNodeJsFunction(this, "staking", "../resources/staking.ts");
-    this.unStakingLambda=newNodeJsFunction(this, "unStaking", "../resources/unStaking.ts");
+    this.unStakingLambda=newNodeJsFunction(this, "unStaking", "../resources/unstaking.ts");
     this.masterTransferLambda=newNodeJsFunction(this, "masterTransfer", "../resources/masterTransfer.ts");
     this.listWalletTransactionsLambda=newNodeJsFunction(this, "listWalletTransactions", "../resources/listWalletTransactions.ts");
     this.mergeStakeLambda=newNodeJsFunction(this, "mergeStake", "../resources/mergeStake.ts");
