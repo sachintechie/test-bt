@@ -7,11 +7,16 @@ import {env} from "./env";
 
 
 export class BridgeTowerLambdaStack extends Stack {
+  public readonly getWalletLambda: lambda.Function;
+  public readonly transferLambda: lambda.Function;
+  public readonly appsyncAuthorizerLambda: lambda.Function;
   constructor(scope: Construct, id: string, props: StackProps) {
 
     super(scope, id, props);
 
-    const getWalletLambda=newNodeJsFunction(this, "getWallet", "../resources/getWallet.ts");
+    this.getWalletLambda=newNodeJsFunction(this, "getWallet", "../resources/getWallet.ts");
+    this.transferLambda=newNodeJsFunction(this, "transfer", "../resources/transfer.ts");
+    this.appsyncAuthorizerLambda=newNodeJsFunction(this, "appsyncAuthorizer", "../resources/appsyncAuthorizer.ts");
     newNodeJsFunction(this, "getWalletBalance", "../resources/getWalletBalance.ts");
     newNodeJsFunction(this, "deleteKeyAndUserFromCubistAndDB", "../resources/deleteKeyAndUserFromCubistAndDB.ts");
     newNodeJsFunction(this, "checkTransactionStatusAndUpdate", "../resources/checkTransactionStatusAndUpdate.ts");
@@ -21,7 +26,6 @@ export class BridgeTowerLambdaStack extends Stack {
     newNodeJsFunction(this, "listCustomerWallets", "../resources/listCustomerWallets.ts");
     newNodeJsFunction(this, "listStakeAccounts", "../resources/listStakeAccounts.ts");
     newNodeJsFunction(this, "listStakeTransactions", "../resources/listStakeTransactions.ts");
-    const transferLambda=newNodeJsFunction(this, "transfer", "../resources/transfer.ts");
     newNodeJsFunction(this, "signin", "../resources/signin.ts");
     newNodeJsFunction(this, "staking", "../resources/staking.ts");
     newNodeJsFunction(this, "unStaking", "../resources/unstaking.ts");
@@ -35,16 +39,19 @@ export class BridgeTowerLambdaStack extends Stack {
     newNodeJsFunction(this, "getKycApplicant", "../resources/getKycApplicant.ts");
     newNodeJsFunction(this, "kycWebhook", "../resources/kycWebhook.ts");
 
-    // Defines the function url for the AWS Lambda
-    const getWalletLambdaUrl = getWalletLambda.addFunctionUrl({
+    // Define function URLs for specific Lambdas
+    const getWalletLambdaUrl = this.getWalletLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE
     });
-    const transferLambdaUrl = transferLambda.addFunctionUrl({
+    const transferLambdaUrl = this.transferLambda.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE
     });
 
-    new cdk.CfnOutput(this, env`FunctionUrl`, {
+    new cdk.CfnOutput(this, env`GetWalletFunctionUrl`, {
       value: getWalletLambdaUrl.url
+    });
+    new cdk.CfnOutput(this, env`TransferFunctionUrl`, {
+      value: transferLambdaUrl.url
     });
   }
 }
