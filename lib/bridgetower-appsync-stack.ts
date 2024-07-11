@@ -47,7 +47,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     // Create a resolver for the getWallet query
     getWalletDataSource.createResolver(env`GetWalletResolver`, {
       typeName: 'Query',
-      fieldName: 'getWallet',
+      fieldName: 'GetWallet',
       requestMappingTemplate: appsync.MappingTemplate.fromString(`
       {
         "version": "2018-05-29",
@@ -68,7 +68,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     // Create a resolver for the transfer mutation
     transferDataSource.createResolver(env`TransferResolver`, {
       typeName: 'Query',
-      fieldName: 'transfer',
+      fieldName: 'Transfer',
       requestMappingTemplate: appsync.MappingTemplate.fromString(`
       {
         "version": "2018-05-29",
