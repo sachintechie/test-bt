@@ -34,7 +34,6 @@ export class BridgeTowerLambdaStack extends Stack {
     newNodeJsFunction(this, "mergeStake", "../resources/mergeStake.ts");
     newNodeJsFunction(this, "withdrawStake", "../resources/withdrawStake.ts");
     newNodeJsFunction(this, "apigatewayAuthorizer", "../resources/apigatewayAuthorizer.ts");
-    newNodeJsFunction(this, "appsyncAuthorizer", "../resources/appsyncAuthorizer.ts");
     newNodeJsFunction(this, "getKycAccessToken", "../resources/getKycAccessToken.ts");
     newNodeJsFunction(this, "getKycApplicant", "../resources/getKycApplicant.ts");
     newNodeJsFunction(this, "kycWebhook", "../resources/kycWebhook.ts");
