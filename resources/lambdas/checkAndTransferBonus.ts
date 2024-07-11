@@ -6,10 +6,10 @@ import {
   getTokenBySymbol,
   updateCustomerBonusStatus,
   updateTransaction
-} from "./db/dbFunctions";
-import { CallbackStatus, TransactionStatus } from "./db/models";
-import { verifySolanaTransaction } from "./solana/solanaFunctions";
-import { airdropSPLToken } from "./solana/airdropSplToken";
+} from "../db/dbFunctions";
+import { CallbackStatus, TransactionStatus } from "../db/models";
+import { verifySolanaTransaction } from "../solana/solanaFunctions";
+import { airdropSPLToken } from "../solana/airdropSplToken";
 
 export const handler = async (event: any) => {
   try {
