@@ -48,6 +48,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         return { wallet, error: null };
       } else {
         const { org, orgId } = await getCsClient(tenant.id);
+     
         const oidcClient = await oidcLogin(env, orgId, oidcToken, ["sign:*"]);
         const cubistUser = await oidcClient?.user();
         console.log("Created cubesigner user", oidcClient, cubistUser);

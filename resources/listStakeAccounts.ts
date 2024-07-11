@@ -1,3 +1,4 @@
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { getStakeAccounts } from "./db/dbFunctions";
 import { getSolConnection, getStakeAccountInfo } from "./solana/solanaFunctions";
 
@@ -11,11 +12,13 @@ export const handler = async (event: any) => {
     for (const account of accounts) {
       const stakeAccountInfo = await getStakeAccountInfo(account.stakeaccountpubkey, connection);
 
+
       console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
       if (stakeAccountInfo.currentStakeAmount == null) {
+
         account.amount = 0;
       } else{
-        account.amount = stakeAccountInfo.currentStakeAmount;
+        account.amount = stakeAccountInfo.currentStakeAmount / LAMPORTS_PER_SOL;
       }
      
     }
