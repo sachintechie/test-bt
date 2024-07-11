@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import {BridgeTowerLambdaStack} from "./bridgetower-lambda-stack";
 import {env, envConfig} from "./env";
 import {configResolver, newAppSyncApi} from "./appsync";
+import {capitalize} from "./utils";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'apigatewayAuthorizer',
@@ -43,7 +44,3 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
   }
 }
 
-const capitalize = (s: string) => {
-  if (typeof s !== 'string') return ''
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
