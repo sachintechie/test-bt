@@ -1,13 +1,14 @@
-import { getStakeTransactions } from "./db/dbFunctions";
+import { getCustomerKyc } from "../db/dbFunctions";
+import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const accounts = await getStakeTransactions(event.arguments?.input?.stakeAccountId, event.identity.resolverContext.id);
+    const wallets = await getCustomerKyc( event.arguments?.input?.customerId,event.identity.resolverContext.id,);
     return {
       status: 200,
-      data: accounts,
+      data: wallets,
       error: null
     };
   } catch (err) {
@@ -19,3 +20,4 @@ export const handler = async (event: any) => {
     };
   }
 };
+

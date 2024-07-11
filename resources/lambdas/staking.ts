@@ -1,24 +1,26 @@
-import { getStakeAccountById } from "./db/dbFunctions";
-import { tenant } from "./db/models";
-import { solanaUnStaking } from "./solana/solanaUnstake";
+import { getStakingTransactionByTenantTransactionId } from "../db/dbFunctions";
+import { tenant } from "../db/models";
+import { solanaStaking } from "../solana/solanaStake";
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    const isTransactionAlreadyExist = await getStakeAccountById(event.arguments?.input?.stakeAccountId, event.identity.resolverContext.id);
-    if (isTransactionAlreadyExist != null) {
+    const isTransactionAlreadyExist = await getStakingTransactionByTenantTransactionId(
+      event.arguments?.input?.tenantTransactionId,
+      event.identity.resolverContext.id
+    );
+    if (isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined) {
       if (event.arguments?.input?.chainType === "Solana") {
-        console.log("Inside Solana", isTransactionAlreadyExist);
-        const data = await solanaUnStaking(
+        const data = await solanaStaking(
           event.identity.resolverContext as tenant,
-          event.arguments?.input?.stakeAccountId,
-          isTransactionAlreadyExist.walletaddress,
-          isTransactionAlreadyExist.stakeaccountpubkey,
+          event.arguments?.input?.senderWalletAddress,
+          event.arguments?.input?.validatorNodeAddress,
           event.arguments?.input?.amount,
-          isTransactionAlreadyExist.symbol,
-          event.request?.headers?.identity,
-          isTransactionAlreadyExist.tenantuserid,
+          event.arguments?.input?.symbol,
+          event.headers?.identity,
+          event.arguments?.input?.tenantUserId,
           event.arguments?.input?.chainType,
-          isTransactionAlreadyExist.tenanttransactionid
+          event.arguments?.input?.tenantTransactionId,
+          event.arguments?.input?.lockupExpirationTimestamp
         );
 
         const response = {
@@ -39,7 +41,7 @@ export const handler = async (event: any) => {
       return {
         status: 400,
         data: null,
-        error: "Transaction not found"
+        error: "Transaction already exist"
       };
     }
   } catch (err) {

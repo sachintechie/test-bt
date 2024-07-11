@@ -1,18 +1,18 @@
-import { sumsubWebhookListener } from "./kyc/sumsubFunctions";
+import { createApplicant } from "../kyc/sumsubFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
-    console.log("event", event);
 
-    const resp = await sumsubWebhookListener(event);
-    
+    const applicant = await createApplicant(event.arguments?.input?.customerId, event.arguments?.input?.levelName);
+    console.log("applicant",applicant);
+
     const response = {
       status: 200,
-      data: resp,
+      data: applicant,
       error: ""
     };
-    console.log("generate sumsub token", response);
+    console.log("Create sumsub applicant", response);
 
     return response;
   } catch (err: any) {

@@ -1,6 +1,6 @@
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
-import { getStakeAccounts } from "./db/dbFunctions";
-import { getSolConnection, getStakeAccountInfo } from "./solana/solanaFunctions";
+import { getSolConnection, getStakeAccountInfo } from "../solana/solanaFunctions";
+import { getStakeAccounts } from "../db/dbFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -45,3 +45,4 @@ export const handler = async (event: any) => {
     };
   }
 };
+

@@ -1,4 +1,4 @@
-import { executeQuery } from "./db/PgClient";
+import { executeQuery } from "../db/PgClient";
 
 export const handler = async (event: any) => {
   try {
@@ -16,8 +16,9 @@ export const handler = async (event: any) => {
         console.log(tenant);
 
         return {
-          isAuthorized: true,
-          resolverContext: {
+          principalId: "user",
+          policyDocument: await getPolicyDocument(event, "Allow"),
+          context: {
             id: tenant.id,
             name: tenant.name,
             api_key: tenant.api_key,
@@ -28,21 +29,34 @@ export const handler = async (event: any) => {
         };
       }
       return {
-        isAuthorized: false
+        principalId: "Unauthorized", // The user making the request
+        policyDocument: await getPolicyDocument(event, "Deny")
       };
     } else {
       console.log("No token provided");
       return {
-        isAuthorized: false
+        principalId: "Unauthorized", // The user making the request
+        policyDocument: await getPolicyDocument(event, "Deny")
       };
     }
   } catch (err) {
-    console.log("Disconnected from database.", err);
-
     return {
-      isAuthorized: false
+      principalId: "Unauthorized", // The user making the request
+      policyDocument: await getPolicyDocument(event, "Deny")
     };
-  } finally {
-    console.log("Disconnected from database.");
   }
 };
+
+async function getPolicyDocument(event: any, effect: string) {
+  const policyDocument = {
+    Version: "2012-10-17",
+    Statement: [
+      {
+        Action: "execute-api:Invoke",
+        Effect: effect,
+        Resource: event.methodArn
+      }
+    ]
+  };
+  return policyDocument;
+}

@@ -1,6 +1,6 @@
-import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "./db/dbFunctions";
-import { tenant } from "./db/models";
-import { solanaTransfer } from "./solana/solanaTransfer";
+import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "../db/dbFunctions";
+import { tenant } from "../db/models";
+import { solanaTransfer } from "../solana/solanaTransfer";
 
 export const handler = async (event: any) => {
   try {
@@ -24,7 +24,7 @@ export const handler = async (event: any) => {
             receiverWallet.walletaddress,
             event.arguments?.input?.amount,
             event.arguments?.input?.symbol,
-            event.request?.headers?.identity,
+            event.headers?.identity,
             event.arguments?.input?.tenantUserId,
             event.arguments?.input?.chainType,
             event.arguments?.input?.tenantTransactionId

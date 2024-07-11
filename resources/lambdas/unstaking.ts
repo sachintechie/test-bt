@@ -1,26 +1,24 @@
-import { getTransactionByTenantTransactionId } from "./db/dbFunctions";
-import { tenant } from "./db/models";
-import { solanaTransfer } from "./solana/solanaTransfer";
-
+import { getStakeAccountById } from "../db/dbFunctions";
+import { tenant } from "../db/models";
+import { solanaUnStaking } from "../solana/solanaUnstake";
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    const isTransactionAlreadyExist = await getTransactionByTenantTransactionId(
-      event.arguments?.input?.tenantTransactionId,
-      event.identity.resolverContext.id
-    );
-    if (isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined) {
+    const isTransactionAlreadyExist = await getStakeAccountById(event.arguments?.input?.stakeAccountId, event.identity.resolverContext.id);
+    if (isTransactionAlreadyExist != null) {
       if (event.arguments?.input?.chainType === "Solana") {
-        const data = await solanaTransfer(
+        console.log("Inside Solana", isTransactionAlreadyExist);
+        const data = await solanaUnStaking(
           event.identity.resolverContext as tenant,
-          event.arguments?.input?.senderWalletAddress,
-          event.arguments?.input?.receiverWalletAddress,
+          event.arguments?.input?.stakeAccountId,
+          isTransactionAlreadyExist.walletaddress,
+          isTransactionAlreadyExist.stakeaccountpubkey,
           event.arguments?.input?.amount,
-          event.arguments?.input?.symbol,
+          isTransactionAlreadyExist.symbol,
           event.headers?.identity,
-          event.arguments?.input?.tenantUserId,
+          isTransactionAlreadyExist.tenantuserid,
           event.arguments?.input?.chainType,
-          event.arguments?.input?.tenantTransactionId
+          isTransactionAlreadyExist.tenanttransactionid
         );
 
         const response = {
@@ -41,7 +39,7 @@ export const handler = async (event: any) => {
       return {
         status: 400,
         data: null,
-        error: "Transaction already exist"
+        error: "Transaction not found"
       };
     }
   } catch (err) {

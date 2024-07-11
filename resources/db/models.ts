@@ -6,6 +6,7 @@ export interface customer {
   name: string;
   cubistuserid: string;
   isactive: boolean;
+  isBonusCredit: boolean;
   createdat: string;
 }
 

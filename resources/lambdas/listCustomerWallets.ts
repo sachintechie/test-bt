@@ -1,5 +1,5 @@
-import { getCustomerWalletsByCustomerId } from "./db/dbFunctions";
-import { tenant } from "./db/models";
+import { getCustomerWalletsByCustomerId } from "../db/dbFunctions";
+import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
@@ -33,3 +33,4 @@ async function listCustomerWallets(tenant: tenant, customerId: string) {
     throw err;
   }
 }
+

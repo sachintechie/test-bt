@@ -1,17 +1,7 @@
-import { getAccount } from "@solana/spl-token";
 import {
   getAllCustomerAndWalletByTenant,
-  getAllCustomerWalletForBonus,
-  getAllTransactions,
   getTenantCallBackUrl,
-  getTokenBySymbol,
-  updateCustomerBonusStatus,
-  updateTransaction
-} from "./db/dbFunctions";
-import { CallbackStatus, TransactionStatus } from "./db/models";
-import { verifySolanaTransaction } from "./solana/solanaFunctions";
-import { airdropSPLToken } from "./solana/airdropSplToken";
-import { deleteKeyAndUser } from "./cubist/cubistFunctions";
+} from "../db/dbFunctions";
 
 export const handler = async (event: any) => {
   try {

@@ -1,7 +1,6 @@
-import * as cs from "@cubist-labs/cubesigner-sdk";
-import { tenant } from "./db/models";
-import { getCsClient } from "./cubist/CubeSignerClient";
-import { createWallet, getCustomer, getWalletByCustomer } from "./db/dbFunctions";
+import { tenant } from "../db/models";
+import { getCsClient } from "../cubist/CubeSignerClient";
+import { createWallet, getCustomer, getWalletByCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {

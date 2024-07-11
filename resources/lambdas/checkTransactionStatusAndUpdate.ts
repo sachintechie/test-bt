@@ -4,11 +4,11 @@ import {
   getTenantCallBackUrl,
   updateStakingTransaction,
   updateTransaction
-} from "./db/dbFunctions";
-import { CallbackStatus, TransactionStatus } from "./db/models";
+} from "../db/dbFunctions";
+import { CallbackStatus, TransactionStatus } from "../db/models";
 import axios from "axios";
 import * as crypto from "crypto";
-import { verifySolanaTransaction } from "./solana/solanaFunctions";
+import { verifySolanaTransaction } from "../solana/solanaFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -68,8 +68,8 @@ async function updateStakingTransactions() {
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
         if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
-          const callback = await updateTenant(tenant, trx);
-          const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
+        //  const callback = await updateTenant(tenant, trx);
+          const callbackStatus =  CallbackStatus.PENDING;
 
           const updatedTransaction = await updateStakingTransaction(trx.transactionid, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
