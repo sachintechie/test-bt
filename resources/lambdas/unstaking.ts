@@ -15,7 +15,7 @@ export const handler = async (event: any) => {
           isTransactionAlreadyExist.stakeaccountpubkey,
           event.arguments?.input?.amount,
           isTransactionAlreadyExist.symbol,
-          event.request?.headers?.identity,
+          event.headers?.identity,
           isTransactionAlreadyExist.tenantuserid,
           event.arguments?.input?.chainType,
           isTransactionAlreadyExist.tenanttransactionid

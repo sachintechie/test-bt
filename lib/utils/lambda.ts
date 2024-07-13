@@ -4,13 +4,14 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as path from "path";
 import * as cdk from "aws-cdk-lib";
 import {getVpcConfig} from "./vpc";
-import {env, getEnvConfig} from "./env";
+import {env, getDescription, getEnvConfig} from "./env";
 import {getLambdaRole} from "./iam";
 import {getSecurityGroups} from "./security_group";
 
 export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dbUrl:string, memorySize: number = 512) => {
   return new NodejsFunction(scope, env`${id}`, {
     functionName: env`${id}-lambda`,
+    description:getDescription(),
     runtime: lambda.Runtime.NODEJS_18_X,
     entry: path.join(__dirname, resourcePath),
     timeout: cdk.Duration.minutes(15),
