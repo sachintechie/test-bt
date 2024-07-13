@@ -60,6 +60,7 @@ export function env(strings: TemplateStringsArray, ...values: any[]): string {
   return result + "-" + environment;
 }
 
+
 export const envConfig: Environment = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
   region: process.env.CDK_DEFAULT_REGION

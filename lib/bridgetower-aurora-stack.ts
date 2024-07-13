@@ -6,6 +6,8 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import {env} from "./utils/env";
 
 export const AURORA_CREDENTIALS_SECRET_NAME = 'AuroraCredentials';
+const DB_NAME = 'auroradb';
+const USERNAME = 'auroraadmin'
 
 export class AuroraStack extends cdk.Stack {
   public readonly dbEndpoint: cdk.CfnOutput;
@@ -33,9 +35,10 @@ export class AuroraStack extends cdk.Stack {
 
     // Create a secret for the Aurora DB credentials
     const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+      secretName: env`aurora-db-credentials`,
       generateSecretString: {
         secretStringTemplate: JSON.stringify({
-          username: 'admin',
+          username: USERNAME,
         }),
         excludePunctuation: true,
         includeSpace: false,
@@ -46,14 +49,14 @@ export class AuroraStack extends cdk.Stack {
     // Create the Aurora cluster
     const cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_13_4,
+        version: rds.AuroraPostgresEngineVersion.VER_15_4,
       }),
       credentials: rds.Credentials.fromSecret(secret),
-      defaultDatabaseName: env`aurora-db`,
+      defaultDatabaseName: DB_NAME,
       instances: 2,
       instanceProps: {
         vpc,
-        instanceType: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.SMALL),
+        instanceType: ec2.InstanceType.of(ec2.InstanceClass.R6I, ec2.InstanceSize.LARGE),
         securityGroups: [securityGroup],
         publiclyAccessible: true, // Make the database publicly accessible
       },
@@ -73,7 +76,7 @@ export class AuroraStack extends cdk.Stack {
     });
 
     this.dbName = new cdk.CfnOutput(this, env`DBName`, {
-      value:  env`aurora-db`,
+      value:  DB_NAME,
       description: 'The name of the database',
     });
   }

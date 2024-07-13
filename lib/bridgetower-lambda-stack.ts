@@ -6,7 +6,7 @@ import {readFilesFromFolder} from "./utils/utils";
 import {AuroraStack} from "./bridgetower-aurora-stack";
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as cdk from 'aws-cdk-lib';
-import {env} from "./utils/env";
+import {env, envConfig} from "./utils/env";
 import {getDatabaseUrl} from "./utils/aurora";
 
 
@@ -27,14 +27,16 @@ export class BridgeTowerLambdaStack extends Stack {
     this.lambdaMap=new Map<string, lambda.Function>();
 
     // Import the Aurora stack
-    const auroraStack = new AuroraStack(scope, env`BTAuroraStack`);
+    const auroraStack = new AuroraStack(this, env`BTAuroraStack`, {
+      env:envConfig
+    });
 
     // Fetch the database credentials from Secrets Manager
-    const databaseUrl = getDatabaseUrl(scope, auroraStack);
+    const databaseUrl = getDatabaseUrl(this, auroraStack);
 
-    const lambdaResourceNames = readFilesFromFolder("../resources/lambdas");
+    const lambdaResourceNames = readFilesFromFolder("../../resources/lambdas");
     for(const lambdaResourceName of lambdaResourceNames){
-      this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `../resources/lambdas/${lambdaResourceName}.ts`, databaseUrl));
+      this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `../../resources/lambdas/${lambdaResourceName}.ts`, databaseUrl));
     }
 
     // Create a custom resource to trigger the migration Lambda function

@@ -11,9 +11,9 @@ export const getDatabaseUrl = (scope: Construct,auroraStack:AuroraStack):string 
   // Construct the DATABASE_URL environment variable for Prisma
   return cdk.Fn.join('', [
     'postgresql://',
-    secret.secretValueFromJson('username').toString(),
+    secret.secretValueFromJson('username').unsafeUnwrap(),
     ':',
-    secret.secretValueFromJson('password').toString(),
+    secret.secretValueFromJson('password').unsafeUnwrap(),
     '@',
     auroraStack.dbEndpoint.value,
     ':5432/',
