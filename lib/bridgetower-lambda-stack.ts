@@ -41,7 +41,7 @@ export class BridgeTowerLambdaStack extends Stack {
       }
     }
 
-    this.lambdaMap.set(APPSYNC_AUTHORIZER_LAMBDA_NAME, newMigrationFunction(this, APPSYNC_AUTHORIZER_LAMBDA_NAME, `../../resources/lambdas/${APPSYNC_AUTHORIZER_LAMBDA_NAME}.ts`, databaseUrl))
+    this.lambdaMap.set(MIGRATION_LAMBDA_NAME, newMigrationFunction(this, MIGRATION_LAMBDA_NAME, `../../resources/lambdas/${MIGRATION_LAMBDA_NAME}.ts`, databaseUrl))
 
     // Create a custom resource to trigger the migration Lambda function
     const provider = new cr.Provider(this, env`MigrateProvider`, {
