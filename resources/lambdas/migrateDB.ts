@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-const { PrismaClient } = require('@prisma/client');
+import {PrismaClient} from '@prisma/client';
 const prisma = new PrismaClient();
 export const handler = async () => {
   try {
