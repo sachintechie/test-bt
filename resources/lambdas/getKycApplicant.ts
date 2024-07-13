@@ -9,6 +9,8 @@ export const handler = async (event: any, context: any) => {
     console.log("customerKyc", customerKyc);
     if (customerKyc == null || customerKyc == undefined) {
       const sumsubResponse = await createApplicant(event.arguments?.input?.customerId, event.arguments?.input?.levelName);
+      console.log("sumsubResponse", sumsubResponse);
+      if(sumsubResponse.errorCode == null){
       const userKyc = await insertCustomerKyc(sumsubResponse,"SUMSUB", event.identity.resolverContext.id
       );
       const response = {
@@ -19,6 +21,17 @@ export const handler = async (event: any, context: any) => {
       console.log("getApplicantDataByExternalId", response);
   
       return response;
+    }
+    else{
+      const response = {
+        status: 400,
+        data: null,
+        error: sumsubResponse
+      };
+      console.log("getApplicantDataByExternalId", response);
+  
+      return response
+    }
     }
     else{
     const response = {

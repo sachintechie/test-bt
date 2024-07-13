@@ -6,6 +6,7 @@ export interface customer {
   name: string;
   cubistuserid: string;
   isactive: boolean;
+  isBonusCredit: boolean;
   createdat: string;
 }
 
@@ -59,7 +60,8 @@ export enum CallbackStatus {
 export enum StakeAccountStatus {
   OPEN = "OPEN",
   CLOSED = "CLOSED",
-  FAILED = "FAILED"
+  FAILED = "FAILED",
+  MERGED = "MERGED"
 }
 
 export enum StakeType {

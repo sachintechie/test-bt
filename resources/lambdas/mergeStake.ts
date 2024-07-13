@@ -10,7 +10,7 @@ export const handler = async (event: any) => {
   const walletAddress=event.arguments?.input?.senderWalletAddress;
   const tenant= event.identity.resolverContext as tenant;
   const tenantId=tenant.id;
-  const oidcToken=event.request?.headers?.identity;
+  const oidcToken=event.headers?.identity;
   const cubistConfig = await getCubistConfig(tenant.id);
   if (cubistConfig == null) {
     return {

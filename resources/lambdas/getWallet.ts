@@ -14,7 +14,7 @@ export const handler = async (event: any, context: any) => {
     const data = await createUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
-      event.request?.headers?.identity,
+      event.headers?.identity,
       event.arguments?.input?.chainType
     );
 
@@ -48,6 +48,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         return { wallet, error: null };
       } else {
         const { org, orgId } = await getCsClient(tenant.id);
+     
         const oidcClient = await oidcLogin(env, orgId, oidcToken, ["sign:*"]);
         const cubistUser = await oidcClient?.user();
         console.log("Created cubesigner user", oidcClient, cubistUser);
@@ -120,6 +121,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               tenantid: tenant.id,
               cubistuserid: cubistUserId,
               isactive: true,
+              isBonusCredit: false,
               createdat: new Date().toISOString()
             });
             console.log("Created customer", customerId);

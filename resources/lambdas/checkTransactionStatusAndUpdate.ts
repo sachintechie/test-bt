@@ -67,9 +67,9 @@ async function updateStakingTransactions() {
         const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
-        if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
-          const callback = await updateTenant(tenant, trx);
-          const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
+        if (tenant != null ) {
+        //  const callback = await updateTenant(tenant, trx);
+          const callbackStatus =  CallbackStatus.PENDING;
 
           const updatedTransaction = await updateStakingTransaction(trx.transactionid, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);

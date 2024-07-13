@@ -16,7 +16,7 @@ type GetKycAccessTokenData {
 
 type GetKycApplicant {
 	status: Int
-	data: KycApplicantData
+	data: CustomerKycData
 	error: AWSJSON
 }
 
@@ -81,16 +81,6 @@ input GetWalletInput {
 input KycAccessTokenInput {
 	customerId: String!
 	levelName: String!
-}
-
-type KycApplicantData {
-	id: String
-	createdat: String
-	status: String
-	customerid: String
-	type: String
-	kycid: String
-	kyctype: String
 }
 
 type KycReview {
@@ -279,6 +269,22 @@ type Transfer {
 	error: AWSJSON
 }
 
+type CustomerKyc {
+	status: Int
+	data: CustomerKycData
+	error: AWSJSON
+}
+
+type CustomerKycData{
+	id: String
+	createdat: String
+	status: String
+	customerid: String
+	type: String
+	kycid: String
+	kyctype: String
+}
+
 type TransferData {
 	customerid: String
 	walletaddress: String
@@ -311,6 +317,9 @@ input UnStakingInput {
 	amount: Float!
 	chainType: String!
 }
+input CustomerKycInput {
+   customerId:String!
+}
 
 type Query {
     CreateWallet(input: CreateWalletInput): GetWallet
@@ -318,6 +327,7 @@ type Query {
     GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
     GetWallet(input: GetWalletInput): GetWallet
     GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
+	CustomerKyc(input: CustomerKycInput): CustomerKyc
 	KycWebhook(input: AWSJSON): AWSJSON
 	ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
 	ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
