@@ -8,14 +8,14 @@ import {env, getEnvConfig} from "./env";
 import {getLambdaRole} from "./iam";
 import {getSecurityGroups} from "./security_group";
 
-export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: string, memorySize: number = 512) => {
+export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dbUrl:string, memorySize: number = 512) => {
   return new NodejsFunction(scope, env`${id}`, {
     functionName: env`${id}-lambda`,
     runtime: lambda.Runtime.NODEJS_18_X,
     entry: path.join(__dirname, resourcePath),
     timeout: cdk.Duration.minutes(15),
     memorySize: memorySize,
-    environment: getEnvConfig(),
+    environment: {...getEnvConfig(), DATABASE_URL: dbUrl},
     vpc: getVpcConfig(scope),
     securityGroups: getSecurityGroups(scope),
     role: getLambdaRole(scope)
