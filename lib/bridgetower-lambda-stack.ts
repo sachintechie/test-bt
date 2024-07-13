@@ -1,7 +1,7 @@
 import { Stack, StackProps } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import {newNodeJsFunction} from "./utils/lambda";
+import {newMigrationFunction, newNodeJsFunction} from "./utils/lambda";
 import {readFilesFromFolder} from "./utils/utils";
 import {AuroraStack} from "./bridgetower-aurora-stack";
 import * as cr from 'aws-cdk-lib/custom-resources';
@@ -36,8 +36,12 @@ export class BridgeTowerLambdaStack extends Stack {
 
     const lambdaResourceNames = readFilesFromFolder("../../resources/lambdas");
     for(const lambdaResourceName of lambdaResourceNames){
-      this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `../../resources/lambdas/${lambdaResourceName}.ts`, databaseUrl));
+      if(lambdaResourceName===MIGRATION_LAMBDA_NAME){
+        this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `../../resources/lambdas/${lambdaResourceName}.ts`, databaseUrl));
+      }
     }
+
+    this.lambdaMap.set(APPSYNC_AUTHORIZER_LAMBDA_NAME, newMigrationFunction(this, APPSYNC_AUTHORIZER_LAMBDA_NAME, `../../resources/lambdas/${APPSYNC_AUTHORIZER_LAMBDA_NAME}.ts`, databaseUrl))
 
     // Create a custom resource to trigger the migration Lambda function
     const provider = new cr.Provider(this, env`MigrateProvider`, {

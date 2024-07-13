@@ -22,3 +22,35 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
     role: getLambdaRole(scope)
   });
 }
+
+export const newMigrationFunction = (scope: Construct, id: string, resourcePath: string, dbUrl:string, memorySize: number = 512) => {
+  return new NodejsFunction(scope, env`${id}`, {
+    functionName: env`${id}-lambda`,
+    description:getDescription(),
+    runtime: lambda.Runtime.NODEJS_14_X,
+    entry: path.join(__dirname, resourcePath),
+    timeout: cdk.Duration.minutes(15),
+    memorySize: memorySize,
+    environment: {...getEnvConfig(), DATABASE_URL: dbUrl},
+    vpc: getVpcConfig(scope),
+    securityGroups: getSecurityGroups(scope),
+    role: getLambdaRole(scope),
+    bundling: {
+      nodeModules: ['prisma', '@prisma/client'],
+      commandHooks: {
+        beforeBundling(inputDir: string, outputDir: string): string[] {
+          return [];
+        },
+        afterBundling(inputDir: string, outputDir: string): string[] {
+          return [
+            `cp ${inputDir}/schema.prisma ${outputDir}/`,
+            `npx prisma generate --schema=${outputDir}/schema.prisma`,
+          ];
+        },
+        beforeInstall() {
+          return [];
+        },
+      },
+    },
+  });
+}
