@@ -36,7 +36,22 @@ export const newMigrationFunction = (scope: Construct, id: string, resourcePath:
     securityGroups: getSecurityGroups(scope),
     role: getLambdaRole(scope),
     bundling: {
-      externalModules: ['prisma', '@prisma/client']
+      nodeModules: ['@prisma/client', 'prisma'],
+      commandHooks: {
+        beforeBundling(inputDir: string, outputDir: string): string[] {
+          return [];
+        },
+        beforeInstall(inputDir: string, outputDir: string): string[] {
+          return [`cp -R ${inputDir}/prisma ${outputDir}/`];
+        },
+        afterBundling(inputDir: string, outputDir: string): string[] {
+          return [
+            `cd ${outputDir}`,
+            `npx prisma generate`,
+            `rm -rf node_modules/@prisma/client/node_modules node_modules/.bin node_modules/prisma`,
+          ];
+        }
+      },
     },
   });
 }
