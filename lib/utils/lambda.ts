@@ -43,7 +43,7 @@ export const newMigrationFunction = (scope: Construct, id: string, resourcePath:
         },
         afterBundling(inputDir: string, outputDir: string): string[] {
           return [
-            `cp ${inputDir}/../../prisma/schema.prisma ${outputDir}/`,
+            `cp ${inputDir}/schema.prisma ${outputDir}/`,
             `npx prisma generate --schema=${outputDir}/schema.prisma`,
           ];
         },
