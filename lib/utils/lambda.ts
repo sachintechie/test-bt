@@ -44,8 +44,8 @@ export const newMigrationFunction = (scope: Construct, id: string, resourcePath:
         beforeInstall(inputDir: string, outputDir: string): string[] {
           return [
             `cp -R ${inputDir}/prisma ${outputDir}/`,
-            `cp ${inputDir}/package.json ${outputDir}/`,
-            `cp ${inputDir}/package-lock.json ${outputDir}/`,
+            `cp ${inputDir}/package.json ${outputDir}/node_modules/`,
+            `cp ${inputDir}/package-lock.json ${outputDir}/node_modules/`,
           ];
         },
         afterBundling(inputDir: string, outputDir: string): string[] {
