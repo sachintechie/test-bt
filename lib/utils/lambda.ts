@@ -48,6 +48,7 @@ export const newMigrationFunction = (scope: Construct, id: string, resourcePath:
           return [
             `cd ${outputDir}`,
             `npx prisma generate`,
+            `npx prisma migrate deploy`,
             `rm -rf node_modules/@prisma/client/node_modules node_modules/.bin node_modules/prisma`,
           ];
         }
