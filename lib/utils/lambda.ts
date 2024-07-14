@@ -36,7 +36,7 @@ export const newMigrationFunction = (scope: Construct, id: string, resourcePath:
     securityGroups: getSecurityGroups(scope),
     role: getLambdaRole(scope),
     bundling: {
-      nodeModules: ['prisma', '@prisma/client']
+      externalModules: ['prisma', '@prisma/client']
     },
   });
 }

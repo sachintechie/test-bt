@@ -1,23 +1,15 @@
-import {execSync} from 'child_process';
+import { exec } from 'child_process';
 
-exports.handler = async (event:any) => {
-  try {
-    // Your migration logic here
-    execSync('npx prisma migrate deploy', {
-      env: {
-        ...process.env,
-        DATABASE_URL: process.env.DATABASE_URL,
-      },
-      stdio: 'inherit',
+export const handler = async (): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    exec('npx prisma migrate deploy', (error, stdout, stderr) => {
+      if (error) {
+        console.error(`Error executing migration: ${stderr}`);
+        reject(`Migration failed: ${stderr}`);
+      } else {
+        console.log(`Migration successful: ${stdout}`);
+        resolve(`Migration successful: ${stdout}`);
+      }
     });
-
-    console.log('Migrations applied successfully');
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ message: 'Migrations applied successfully' }),
-    };
-  } catch (error) {
-    console.error('Error applying migrations:', error);
-    throw error;
-  }
+  });
 };
