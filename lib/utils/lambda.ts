@@ -44,13 +44,13 @@ export const newMigrationFunction = (scope: Construct, id: string, resourcePath:
         beforeInstall(inputDir: string, outputDir: string): string[] {
           return [
             `cp -R ${inputDir}/prisma ${outputDir}/`,
-            `cp ${inputDir}/package.json ${outputDir}/node_modules/`,
-            `cp ${inputDir}/package-lock.json ${outputDir}/node_modules/`,
           ];
         },
         afterBundling(inputDir: string, outputDir: string): string[] {
           return [
             `npx prisma generate --schema=${outputDir}/prisma/schema.prisma`,
+            `cp ${inputDir}/package.json ${outputDir}/node_modules/`,
+            `cp ${inputDir}/package-lock.json ${outputDir}/node_modules/`,
             `cp -R ${outputDir}/node_modules/prisma/build/* ${outputDir}/node_modules/.bin/`];
         }
       },
