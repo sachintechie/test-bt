@@ -4,6 +4,8 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import {env} from "./utils/env";
+import {getVpcConfig} from "./utils/vpc";
+import {getSecurityGroups} from "./utils/security_group";
 
 export const AURORA_CREDENTIALS_SECRET_NAME = 'AuroraCredentials';
 const DB_NAME = 'auroradb';
@@ -16,22 +18,7 @@ export class AuroraStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    // Create a VPC
-    const vpc = new ec2.Vpc(this, env`AuroraVpc`, {
-      maxAzs: 2,
-      natGateways: 1,
-    });
-
-    // Create a security group for the Aurora cluster
-    const securityGroup = new ec2.SecurityGroup(this, env`AuroraSecurityGroup`, {
-      vpc,
-      allowAllOutbound: true,
-    });
-
-    // Allow inbound traffic from anywhere on port 5432 (PostgreSQL)
-    securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(5432), 'Allow PostgreSQL traffic');
-
+    
     // Create a secret for the Aurora DB credentials
     const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
       secretName: env`aurora-db-credentials`,
@@ -54,9 +41,9 @@ export class AuroraStack extends cdk.Stack {
       defaultDatabaseName: DB_NAME,
       instances: 2,
       instanceProps: {
-        vpc,
+        vpc:getVpcConfig(this),
         instanceType: ec2.InstanceType.of(ec2.InstanceClass.R6I, ec2.InstanceSize.LARGE),
-        securityGroups: [securityGroup],
+        securityGroups: getSecurityGroups(this),
         publiclyAccessible: true, // Make the database publicly accessible
       },
       storageEncrypted: true,
