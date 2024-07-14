@@ -1,12 +1,7 @@
 import {execSync} from 'child_process';
-import {PrismaClient} from '@prisma/client';
-import * as path from "path";
 
 exports.handler = async (event:any) => {
   try {
-    // Initialize Prisma client
-    const prisma = new PrismaClient();
-
     // Your migration logic here
     execSync('npx prisma migrate deploy', {
       env: {
