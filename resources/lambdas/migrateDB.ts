@@ -4,16 +4,6 @@ import * as path from "path";
 
 exports.handler = async (event:any) => {
   try {
-    // Run prisma generate
-    execSync('npx prisma generate', {
-      cwd: path.resolve(__dirname),
-      env: {
-        ...process.env,
-        DATABASE_URL: process.env.DATABASE_URL,
-      },
-      stdio: 'inherit',
-    });
-
     // Initialize Prisma client
     const prisma = new PrismaClient();
 
