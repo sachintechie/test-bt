@@ -36,7 +36,7 @@ export class BridgeTowerLambdaStack extends Stack {
 
     const lambdaResourceNames = readFilesFromFolder("../../resources/lambdas");
     for(const lambdaResourceName of lambdaResourceNames){
-      if(lambdaResourceName===MIGRATION_LAMBDA_NAME){
+      if(lambdaResourceName!==MIGRATION_LAMBDA_NAME){
         this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `../../resources/lambdas/${lambdaResourceName}.ts`, databaseUrl));
       }
     }
