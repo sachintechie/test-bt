@@ -14,7 +14,6 @@ export class AuroraStack extends cdk.Stack {
   public readonly dbSecretArn: cdk.CfnOutput;
   public readonly dbName: cdk.CfnOutput;
 
-
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
