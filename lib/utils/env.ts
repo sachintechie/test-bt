@@ -1,43 +1,51 @@
 import * as cdk from "aws-cdk-lib";
 import { Environment } from "aws-cdk-lib";
+import {DatabaseInfo} from "./aurora";
 
 const app = new cdk.App();
 export const environment = app.node.tryGetContext("env");
 
-export const getEnvConfig = () => {
+export const isDevOrProd = () => {
+  return environment === "dev"|| environment === "prod";
+}
+
+export const isDev = () => {
+  return environment === "dev";
+}
+
+export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
+  const databaseInfoEnv = {
+    DB_HOST: databaseInfo.host,
+    DB_DATABASE: databaseInfo.dbName,
+    DB_PORT: databaseInfo.port,
+    SECRET_NAME: databaseInfo.secretName,
+    DATABASE_URL: databaseInfo.databaseUrl
+  }
   switch (environment) {
     case "dev":
       return {
-        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_DATABASE: "dev",
-        DB_PORT: "5432",
+        ...databaseInfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev"
       };
     case "staging":
       return {
-        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_DATABASE: "dev",
-        DB_PORT: "5432",
+        ...databaseInfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev"
       };
     case "prod":
       return {
-        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_DATABASE: "prod",
-        DB_PORT: "5432",
+        ...databaseInfoEnv,
         SOLANA_NETWORK: "mainnet",
         SOLANA_NETWORK_URL: "https://api.mainnet-beta.solana.com/",
         CS_API_ROOT: "https://prod.signer.cubist.dev"
       };
     default:
       return {
-        DB_HOST: "schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com",
-        DB_DATABASE: "dev",
-        DB_PORT: "5432",
+        ...databaseInfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev"

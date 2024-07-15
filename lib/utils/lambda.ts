@@ -7,8 +7,9 @@ import {getVpcConfig} from "./vpc";
 import {env, getDescription, getEnvConfig} from "./env";
 import {getLambdaRole} from "./iam";
 import {getSecurityGroups} from "./security_group";
+import {DatabaseInfo} from "./aurora";
 
-export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dbUrl:string, memorySize: number = 512) => {
+export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dataInfo:DatabaseInfo, memorySize: number = 512) => {
   return new NodejsFunction(scope, env`${id}`, {
     functionName: env`${id}-lambda`,
     description:getDescription(),
@@ -16,7 +17,7 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
     entry: path.join(__dirname, resourcePath),
     timeout: cdk.Duration.minutes(15),
     memorySize: memorySize,
-    environment: {...getEnvConfig(), DATABASE_URL: dbUrl},
+    environment: {...getEnvConfig(dataInfo)},
     vpc: getVpcConfig(scope),
     securityGroups: getSecurityGroups(scope),
     role: getLambdaRole(scope),

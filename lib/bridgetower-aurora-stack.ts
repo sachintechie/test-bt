@@ -19,6 +19,7 @@ export class AuroraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    
     // Create a secret for the Aurora DB credentials
     const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
       secretName: env`aurora-db-credentials`,
