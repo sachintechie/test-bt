@@ -44,6 +44,6 @@ export class BridgeTowerLambdaStack extends Stack {
       onEventHandler: this.lambdaMap.get(MIGRATION_LAMBDA_NAME)!,
     });
 
-    new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.2'} });
+    new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.3'} });
   }
 }

@@ -56,7 +56,7 @@ model Wallet {
   customer_id       String?
   tenant_id         String?
   wallet_address    String?
-  symbol            String
+  symbol            String?
   wallet_id         String
   chain_type        String?
   wallet_type       String?
