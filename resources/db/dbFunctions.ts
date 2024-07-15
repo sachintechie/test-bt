@@ -1,24 +1,20 @@
 import { executeQuery } from "./PgClient";
 import { CallbackStatus, customer, StakeAccountStatus, tenant, token, wallet } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import {PrismaClient} from '@prisma/client';
-const prisma = new PrismaClient();
-
 
 export async function createCustomer(customer: customer) {
   try {
-    const customerResult=await prisma.customer.create({
-      data: {
-        tenant_user_id: customer.tenantuserid,
-        tenant_id: customer.tenantid,
-        email: customer.emailid,
-        name: customer.name,
-        cubist_user_id: customer.cubistuserid.toString(),
-        is_bonus_credit: customer.isBonusCredit,
-        is_active: customer.isactive
-      }
-    })
-    return customerResult.id;
+    // // console.log("Creating customer", customer);
+    let query = `INSERT INTO customer (tenantuserid, tenantid, emailid,name,cubistuserid,isbonuscredit,isactive)
+      VALUES ('${customer.tenantuserid}','${customer.tenantid}', '${customer.emailid}','${
+        customer.name
+      }','${customer.cubistuserid.toString()}', '${customer.isBonusCredit}',${customer.isactive})RETURNING id; `;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("customer created Res", res);
+    const customerRow = res.rows[0];
+    // console.log("Customer Row", customerRow);
+    return customerRow.id;
   } catch (err) {
     // console.log(err);
     throw err;
@@ -28,20 +24,27 @@ export async function createCustomer(customer: customer) {
 export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string, key?: any) {
   try {
     console.log("Creating wallet", cubistUserId, customerId, key);
-    if (!key) {
+    // Create a key for the OIDC user
+    if (key == null) {
       key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     }
-    return await prisma.wallet.create({
-      data: {
-        customer_id: customerId,
-        wallet_address: key.materialId,
-        wallet_id: key.id,
-        chain_type: chainType,
-        wallet_type: cs.Ed25519.Solana.toString(),
-        is_active: true
-      }
-    })
+
+    //  console.log("Created key", key.PublicKey.toString());
+    let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
+      VALUES ('${customerId}','${key.materialId}','${
+        key.id
+      }','${chainType}','${cs.Ed25519.Solana.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+    console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("wallet created Res", res);
+
+    const walletRow = res.rows[0];
+    // console.log("wallet Row", walletRow);
+
+    return walletRow;
   } catch (err) {
+    // console.log(err);
+    //return null;
     throw err;
   }
 }
@@ -86,19 +89,18 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
     console.log("Creating wallet", keyType);
     if (keyType != null) {
       const key = await org.createKey(keyType, cubistUserId);
+      let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
+      VALUES ('${customerId}','${key.materialId}','${
+        key.id
+      }','${chainType}','${keyType.toString()}',true) RETURNING customerid,walletaddress,chaintype,createdat; `;
+      console.log("Query", query);
+      const res = await executeQuery(query);
+      // console.log("wallet created Res", res);
 
-      const wallet=await prisma.wallet.create({
-        data: {
-          customer_id: customerId,
-          wallet_address: key.materialId,
-          wallet_id: key.id,
-          chain_type: chainType,
-          wallet_type: keyType.toString(),
-          is_active: true
-        }
-      });
+      const walletRow = res.rows[0];
+      // console.log("wallet Row", walletRow);
 
-      return { data: wallet, error: null };
+      return { data: walletRow, error: null };
     } else {
       return { data: null, error: "Chain type not supported for key generation" };
     }
@@ -502,22 +504,7 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
 
     const walletRow = res.rows[0];
     // console.log("Wallet Row", walletRow);
-    const result = await prisma.customer.findFirst({
-      where: {
-        tenant_user_id: tenantUserId,
-        tenant_id: tenant.id,
-        wallets: {
-          some: {
-            chain_type: chaintype,
-          },
-        },
-      },
-      include: {
-        wallets: true
-      },
-    });
-
-    return result;
+    return walletRow;
   } catch (err) {
     // console.log(err);
     throw err;
