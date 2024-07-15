@@ -9,7 +9,8 @@ import { CallbackStatus, TransactionStatus } from "../db/models";
 import axios from "axios";
 import * as crypto from "crypto";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
-
+import {PrismaClient} from '@prisma/client';
+const prisma = new PrismaClient();
 export const handler = async (event: any) => {
   try {
     const transactions = await updateTransactions();

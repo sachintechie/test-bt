@@ -28,6 +28,7 @@ model Customer {
   wallets            Wallet[]
   transactions       Transaction[]
   stake_accounts     StakeAccount[]
+  is_bonus_credit    Boolean
   customer_kycs      CustomerKyc[]
   tenant             Tenant?            @relation(fields: [tenantId], references: [id])
   tenantId           String?

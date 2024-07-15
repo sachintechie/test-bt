@@ -67,11 +67,6 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         wallet.emailid = customer.emailid;
 
         return { wallet, error: null };
-
-        // return {
-        //   wallet: null,
-        //   error: "Wallet not found for the given tenantuserid and chainType"
-        // };
       }
     } else {
       if (!oidcToken) {
