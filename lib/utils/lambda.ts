@@ -19,21 +19,6 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
     environment: {...getEnvConfig(), DATABASE_URL: dbUrl},
     vpc: getVpcConfig(scope),
     securityGroups: getSecurityGroups(scope),
-    role: getLambdaRole(scope)
-  });
-}
-
-export const newMigrationFunction = (scope: Construct, id: string, resourcePath: string, dbUrl:string, memorySize: number = 512) => {
-  return new NodejsFunction(scope, env`${id}`, {
-    functionName: env`${id}-lambda`,
-    description:getDescription(),
-    runtime: lambda.Runtime.NODEJS_18_X,
-    entry: path.join(__dirname, resourcePath),
-    timeout: cdk.Duration.minutes(15),
-    memorySize: memorySize,
-    environment: {...getEnvConfig(), DATABASE_URL: dbUrl},
-    vpc: getVpcConfig(scope),
-    securityGroups: getSecurityGroups(scope),
     role: getLambdaRole(scope),
     bundling: {
       nodeModules: ['@prisma/client', 'prisma'],
