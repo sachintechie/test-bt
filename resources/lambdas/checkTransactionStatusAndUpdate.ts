@@ -40,6 +40,7 @@ async function updateTransactions() {
         trx.status = status;
         if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
           const callback = await updateTenant(tenant, trx);
+          console.log(callback);
           const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
           const updatedTransaction = await updateTransaction(trx.transactionid, status, callbackStatus);
@@ -108,6 +109,7 @@ async function updateTenant(tenant: any, transaction: any) {
   // Send the request using axios
   await axios(options)
     .then((response) => {
+      console.log("Response:", response);
       if (response.data != null && response.data != undefined && response.data == "Webhook received and verified.") {
         data = true;
       } else {
