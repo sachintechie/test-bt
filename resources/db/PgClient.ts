@@ -9,7 +9,7 @@ const dbConfig: any = {
   database: process.env["DB_DATABASE"]!,
   port: parseInt(process.env["DB_PORT"]!)
 };
-const secretName = "rds!cluster-e0c060a9-d50c-4c22-8ff5-4596c2b90deb";
+const secretName =process.env["SECRET_NAME"]!;
 export async function executeQuery(query: string) {
   const dbSecretString: any = await getSecretValue(secretName);
   const dbSecret = JSON.parse(dbSecretString);
