@@ -476,7 +476,7 @@ export async function getStakeAccount(senderWalletAddress: string, tenantId: str
     throw err;
   }
 }
-export async function getCustomerKyc(customerId: string, tenantId: string) {
+export async function getCustomerKycByTenantId(customerId: string, tenantId: string) {
   try {
     let query = `SELECT * FROM customerkyc
       WHERE customerid = '${customerId}' AND tenantId = '${tenantId}' LIMIT 1;`;
@@ -494,6 +494,27 @@ export async function getCustomerKyc(customerId: string, tenantId: string) {
     throw err;
   }
 }
+
+export async function getCustomerKyc(customerId: string) {
+  try {
+    let query = `SELECT * FROM customerkyc
+      WHERE customerid = '${customerId}' LIMIT 1;`;
+    // console.log("Query", query);
+    const res = await executeQuery(query);
+    // console.log("Stake account public key fetch result", res);
+
+    if (res.rows.length > 0) {
+      return res.rows[0];
+    } else {
+      return null;
+    }
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+
 
 export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
@@ -777,6 +798,19 @@ export async function updateTransaction(transactionId: string, status: string, c
     const res = await executeQuery(query);
     const transactionRow = res.rows[0];
     return transactionRow;
+  } catch (err) {
+    // console.log(err);
+    throw err;
+  }
+}
+
+export async function updateCustomerKycStatus(customerId: string, status: string) {
+  try {
+    let query = `update customerkyc set status = '${status}' , updatedat= CURRENT_TIMESTAMP  where customerid = '${customerId}' RETURNING customerid,status,id;`;
+
+    const res = await executeQuery(query);
+    const customerkyc = res.rows[0];
+    return customerkyc;
   } catch (err) {
     // console.log(err);
     throw err;

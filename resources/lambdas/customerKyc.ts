@@ -1,11 +1,10 @@
-import { getCustomerKyc } from "../db/dbFunctions";
-import { tenant } from "../db/models";
+import {  getCustomerKycByTenantId } from "../db/dbFunctions";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const wallets = await getCustomerKyc( event.arguments?.input?.customerId,event.identity.resolverContext.id,);
+    const wallets = await getCustomerKycByTenantId( event.arguments?.input?.customerId,event.identity.resolverContext.id,);
     return {
       status: 200,
       data: wallets,
