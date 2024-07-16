@@ -1,9 +1,9 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import {BridgeTowerLambdaStack} from "./bridgetower-lambda-stack";
-import {env, envConfig} from "./env";
-import {configResolver, newAppSyncApi} from "./appsync";
-import {capitalize} from "./utils";
+import {env, envConfig} from "./utils/env";
+import {configResolver, newAppSyncApi} from "./utils/appsync";
+import {capitalize} from "./utils/utils";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'apigatewayAuthorizer',
@@ -13,7 +13,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'createKycApplicant',
   'deleteKeyAndUserFromCubistAndDB',
   'mergeStake',
-  'withdrawStake'
+  'withdrawStake',
+  'migrateDB'
 ]
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {

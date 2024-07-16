@@ -1,7 +1,8 @@
 
 !jest.config.js
 *.d.ts
-node_modules
+# Ignore everything in node_modules except .prisma
+node_modules/*
 !resources/*.js
 *.d.ts
 # CDK asset staging directory

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import {env, envConfig} from "../lib/env";
+import {env, envConfig} from "../lib/utils/env";
 import {BridgeTowerAppSyncStack} from "../lib/bridgetower-appsync-stack";
 
 
