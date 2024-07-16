@@ -47,11 +47,13 @@ export class BridgeTowerLambdaStack extends Stack {
       this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `../../resources/lambdas/${lambdaResourceName}.ts`, databaseInfo));
     }
 
-    // Create a custom resource to trigger the migration Lambda function
-    const provider = new cr.Provider(this, env`MigrateProvider`, {
-      onEventHandler: this.lambdaMap.get(MIGRATION_LAMBDA_NAME)!,
-    });
+    if(!isDevOrProd()){
+      // Create a custom resource to trigger the migration Lambda function
+      const provider = new cr.Provider(this, env`MigrateProvider`, {
+        onEventHandler: this.lambdaMap.get(MIGRATION_LAMBDA_NAME)!,
+      });
 
-    new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.3'} });
+      new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.3'} });
+    }
   }
 }
