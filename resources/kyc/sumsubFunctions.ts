@@ -1,5 +1,5 @@
 import { createHmac } from "crypto";
-import { getMasterSumsubConfig } from "../db/dbFunctions";
+import { getCustomerKyc, getMasterSumsubConfig, updateCustomerKycStatus } from "../db/dbFunctions";
 
 export const generateAccessToken = async (userId: string, levelName = "basic-kyc-level") => {
   const sumsubConfig = await getMasterSumsubConfig();
@@ -77,6 +77,12 @@ export const getApplicantDataByExternalId = async (userId: string) => {
 
 export const sumsubWebhookListener = async (event: any) => {
   try {
+
+    const customerKyc = await getCustomerKyc(event.payload.userId);
+    if(customerKyc != null ){
+      const updateKyc = await updateCustomerKycStatus(event.payload.userId,event.payload);
+      
+    }
     console.log(event);
     return {
       status: 200,
