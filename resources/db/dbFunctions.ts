@@ -48,7 +48,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     throw err;
   }
 }
-export async function createWallet(org: any, cubistUserId: string, chainType: string, customerId?: string) {
+export async function createWallet(org: cs.Org, cubistUserId: string, chainType: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
     var keyType: any;
@@ -88,7 +88,16 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
     }
     console.log("Creating wallet", keyType);
     if (keyType != null) {
-      const key = await org.createKey(keyType, cubistUserId);
+      let key;
+      if (keyType == cs.Ed25519.Solana) { 
+        key  = await org.createKey(keyType, cubistUserId);
+        const role = await org.createRole();
+        await role.addUser("User#7df2fa4c-f1ab-436e-b649-c0c601b4bee3"); //ops user cubist-user-id
+        role.addKey(key)
+      }
+      key  = await org.createKey(keyType, cubistUserId);
+
+
       let query = `INSERT INTO wallet (customerid, walletaddress,walletid,chaintype,wallettype,isactive)
       VALUES ('${customerId}','${key.materialId}','${
         key.id
@@ -101,6 +110,8 @@ export async function createWallet(org: any, cubistUserId: string, chainType: st
       // console.log("wallet Row", walletRow);
 
       return { data: walletRow, error: null };
+
+     
     } else {
       return { data: null, error: "Chain type not supported for key generation" };
     }
