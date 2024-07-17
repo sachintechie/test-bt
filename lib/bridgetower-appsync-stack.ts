@@ -14,7 +14,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'deleteKeyAndUserFromCubistAndDB',
   'mergeStake',
   'withdrawStake',
-  'migrateDB'
+  'migrateDB',
+  'createOrganizationUnitAndAwsAccount'
 ]
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {

@@ -78,17 +78,24 @@ export const getApplicantDataByExternalId = async (userId: string) => {
 export const sumsubWebhookListener = async (event: any) => {
   try {
 
-    const customerKyc = await getCustomerKyc(event.payload.userId);
+    const customerKyc = await getCustomerKyc(event.arguments.input.externalUserId);
     if(customerKyc != null ){
-      const updateKyc = await updateCustomerKycStatus(event.payload.userId,event.payload);
-      
+      const updateKyc = await updateCustomerKycStatus(event.arguments.input.externalUserId,event.arguments.input.reviewStatus);
+      console.log(updateKyc);
+      return {
+        status: 200,
+        data: customerKyc,
+        error: null
+      };
     }
-    console.log(event);
-    return {
-      status: 200,
-      data: event,
-      error: null
-    };
+    else{
+      return {
+        status: 400,
+        data: null,
+        error: "Customer Kyc not found"
+      };
+    }
+  
   } catch (err) {
     throw "error in webhook listener";
   }
