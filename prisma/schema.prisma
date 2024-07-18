@@ -103,51 +103,55 @@ model masterwallet {
 
 model stakeaccount {
   id                        String             @id @default(uuid())
-  tenantid                  String
   customerid                String
-  customer                  customer           @relation(fields: [customerid], references: [id])
-  symbol                    String
   walletaddress             String
-  network                   String
-  stakeaccountpubkey        String
-  status                    String
-  amount                    Float
   validatornodeaddress      String
+  chaintype                 String
+  symbol                    String
+  amount                    Float
+  status                    String
+  network                   String
+  tenantid                  String
   tenantuserid              String
   tenanttransactionid       String
-  chaintype                 String
-  lockupexpirationtimestamp String
+  stakeaccountpubkey        String
+  lockupexpirationtimestamp Int
   isactive                  Boolean
-  createdat                 String
-  updatedat                 String
-  error                     String
-  staketransactions         staketransaction[]
+  createdat                 DateTime           @default(now())
+  updatedat                 DateTime           @updatedAt
+  error                     String?
+  customer                  customer           @relation(fields: [customerid], references: [id])
+  tenant                    tenant             @relation(fields: [tenantid], references: [id])
+  staketransaction          staketransaction[]
 }
 
 model staketransaction {
   id                    String       @id @default(uuid())
-  tenantid              String
   customerid            String
-  customer              customer     @relation(fields: [customerid], references: [id])
+  type                  String
   tokenid               String
+  tenanttransactionid   String
+  stakeaccountpubkey    String
+  network               String
+  status                String
+  callbackstatus        String?
+  error                 String?
+  tenantuserid          String
   walletaddress         String
-  symbol                String
   receiverwalletaddress String
   chaintype             String
   amount                Float
+  symbol                String
   txhash                String
-  status                String
-  tenantuserid          String
+  tenantid              String
   isactive              Boolean
-  createdat             String
-  updatedat             String
-  error                 String
-  network               String
-  tenanttransactionid   String
-  callbackstatus        String
   stakeaccountid        String
+  createdat             DateTime     @default(now())
+  updatedat             DateTime     @updatedAt
+  customer              customer     @relation(fields: [customerid], references: [id])
+  token                 token        @relation(fields: [tokenid], references: [id])
   stakeaccount          stakeaccount @relation(fields: [stakeaccountid], references: [id])
-  type                  String
+  tenant                tenant       @relation(fields: [tenantid], references: [id])
 }
 
 model sumsubconfig {
@@ -163,24 +167,26 @@ model sumsubconfig {
 }
 
 model tenant {
-  id              String           @id @default(uuid())
-  name            String
-  apiKey          String
-  logo            String
-  isactive        Boolean
-  createdat       String
-  tenantsecret    String
-  tenantheaderkey String
-  callbackurl     String
-  cubistorgid     String
-  cubistconfig    cubistconfig[]
-  customer        customer[]
-  customerkyc     customerkyc[]
-  gaspayerwallet  gaspayerwallet[]
+  id               String             @id @default(uuid())
+  name             String
+  apiKey           String
+  logo             String
+  isactive         Boolean
+  createdat        String
+  tenantsecret     String
+  tenantheaderkey  String
+  callbackurl      String
+  cubistorgid      String
+  cubistconfig     cubistconfig[]
+  customer         customer[]
+  customerkyc      customerkyc[]
+  gaspayerwallet   gaspayerwallet[]
+  stakeaccount     stakeaccount[]
+  staketransaction staketransaction[]
 }
 
 model token {
-  id               String        @id @default(uuid())
+  id               String             @id @default(uuid())
   name             String
   chaintype        String
   contractaddress  String
@@ -189,6 +195,7 @@ model token {
   isactive         Boolean
   createdat        String
   transactions     transaction[]
+  staketransaction staketransaction[]
 }
 
 model transaction {
@@ -212,7 +219,7 @@ model transaction {
   error                 String
   network               String
   tenanttransactionid   String
-  callbackstatus        String
+  callbackstatus        String?
 }
 
 model validatornodes {
