@@ -10,7 +10,7 @@ const env: any = {
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
-    console.log('DATABASE_URL',process.env.DATABASE_URL)
+
     const data = await createUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
