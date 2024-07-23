@@ -2,10 +2,10 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
   decreaseStakeAmount, duplicateStakeAccount,
-  getCubistConfig, getToken, getWallet,
+  getCubistConfig,
   getWalletAndTokenByWalletAddress,
   insertStakingTransaction, reduceStakeAccountAmount,
-  updateStakeAccount
+  updateStakeAccount, updateStakeAccountAmountByStakeAccountPubKey
 } from "../db/dbFunctions";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Transaction } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
@@ -42,15 +42,16 @@ export async function solanaUnStaking(
           error: "Cubist Configuration not found for the given tenant"
         };
       }
-      const wallet = await getWallet(senderWalletAddress)
-      const token = await getToken(symbol)
-      if (!wallet) {
+      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
+      console.log(wallet, "Wallet");
+      if (wallet.length == 0) {
         return {
           transaction: null,
           error: "Wallet not found for the given wallet address"
         };
       } else {
-        if (symbol === "SOL" && wallet.customerid != null) {
+        const token = wallet[0];
+        if (symbol === "SOL" && token.customerid != null) {
           const trx = await unstakeSol(senderWalletAddress, stakeAccountPubKey, amount, oidcToken, cubistConfig.orgid);
           if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
             const transactionStatus = await verifySolanaTransaction(trx.trxHash);
@@ -64,8 +65,8 @@ export async function solanaUnStaking(
               symbol,
               trx.trxHash,
               tenant.id,
-              wallet.customerid,
-              token?.id as string,
+              token.customerid,
+              token.tokenid,
               tenantUserId,
               process.env["SOLANA_NETWORK"] ?? "",
               txStatus,
@@ -83,7 +84,7 @@ export async function solanaUnStaking(
           } else {
             return { transaction: null, error: trx.error };
           }
-        } else if (symbol != "SOL" && wallet.customerid != null) {
+        } else if (symbol != "SOL" && token.customerid != null) {
           return {
             transaction: null,
             error: "Not Supported"
