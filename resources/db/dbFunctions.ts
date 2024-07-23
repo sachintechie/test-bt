@@ -651,15 +651,13 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
 export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
     const prisma=await getPrismaClient();
-    const wallet = await prisma.wallet.findMany({where: {
+    const wallet = await prisma.wallet.findFirst({where: {
         walletaddress: walletAddress,
       }});
     const token = await prisma.token.findFirst({where: {
         symbol: symbol,
       }});
-    return wallet.map((w) => {
-      return { ...wallet, ...(token||{}) };
-    })
+    return [{ ...wallet, ...token }];
   } catch (err) {
     throw err;
   }
