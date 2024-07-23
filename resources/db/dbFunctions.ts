@@ -1,8 +1,20 @@
 import { PrismaClient } from '@prisma/client';
 import { CallbackStatus, customer, StakeAccountStatus, tenant, token, wallet } from './models';
 import * as cs from '@cubist-labs/cubesigner-sdk';
+import {getDatabaseUrl} from "./PgClient";
 
-const prisma = new PrismaClient();
+let prisma: PrismaClient;
+
+export async function init() {
+  const databaseUrl = await getDatabaseUrl();
+  prisma = new PrismaClient({
+    datasourceUrl: databaseUrl,
+  });
+}
+
+init().then(() => {}).catch((err) => {console.log(err)});
+
+
 const OPERATION_USER_ID = "User#7df2fa4c-f1ab-436e-b649-c0c601b4bee3";
 
 export async function createCustomer(customer: customer) {
