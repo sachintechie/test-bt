@@ -41,6 +41,7 @@ export class BridgeTowerLambdaStack extends Stack {
     }else{
        databaseInfo = getDevOrProdDatabaseInfo(this);
     }
+    console.log(databaseInfo);
 
     const lambdaResourceNames = readFilesFromFolder("../../resources/lambdas");
     for(const lambdaResourceName of lambdaResourceNames){
