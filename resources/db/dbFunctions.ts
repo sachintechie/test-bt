@@ -1,5 +1,5 @@
-import { PrismaClient } from '@prisma/client';
-import { CallbackStatus, customer, StakeAccountStatus, tenant, token, wallet } from './models';
+import {PrismaClient} from '@prisma/client';
+import {CallbackStatus, customer, StakeAccountStatus, tenant} from './models';
 import * as cs from '@cubist-labs/cubesigner-sdk';
 import {getDatabaseUrl} from "./PgClient";
 import {logWithTrace} from "../utils/utils";
@@ -714,12 +714,13 @@ export async function getCustomerWalletsByCustomerId(customerid: string, tenant:
     const wallets = await prisma.wallet.findMany({
       where: { customerid: customerid },
     });
-    return wallets.map(async (w) => {
+    const walletsWithChainTypePromises= wallets.map(async (w) => {
       const chainType=await prisma.chaintype.findFirst({
         where:{chain:w.chaintype}
       })
       return { ...w, ...chainType };
     })
+    return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
     throw err;
   }
