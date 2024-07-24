@@ -1,6 +1,7 @@
 import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import { solanaTransfer } from "../solana/solanaTransfer";
+import {logWithTrace} from "../utils/utils";
 
 export const handler = async (event: any) => {
   try {
