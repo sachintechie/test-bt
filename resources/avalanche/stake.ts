@@ -1,16 +1,11 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
-  createWithdrawTransaction,
   getCubistConfig,
   getFirstWallet,
-  getStakeAccount,
-  getWalletAndTokenByWalletAddress, insertMergeStakeAccountsTransaction,
   insertStakeAccount,
-  insertStakingTransaction, mergeDbStakeAccounts, removeStakeAccount,
-  updateStakeAccountAmount,
-  updateStakeAccountStatus,
-  updateWallet
+  insertStakingTransaction
+  
 } from "../db/dbFunctions";
 import { Avalanche, BinTools, Buffer } from "avalanche";
 import { AVMAPI, KeyChain as AVMKeyChain, KeyChain, Tx } from "avalanche/dist/apis/avm";
@@ -62,6 +57,7 @@ export async function staking(
       error: "Wallet not found for the given wallet address"
     };
   }
+
   // 4. Check the Symbol, if SOL then stake SOL, if not then return error
   if (symbol !== "SOL") {
     return {
