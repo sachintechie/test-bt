@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { CallbackStatus, customer, StakeAccountStatus, tenant, token, wallet } from './models';
 import * as cs from '@cubist-labs/cubesigner-sdk';
 import {getDatabaseUrl} from "./PgClient";
+import {logWithTrace} from "../utils/utils";
 
 let prismaClient: PrismaClient;
 
@@ -49,7 +50,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
       key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     }
 
-    console.log("Created key", key.PublicKey.toString());
+    logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,

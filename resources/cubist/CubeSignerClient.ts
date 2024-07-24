@@ -184,7 +184,7 @@ export async function getKey(oidcClient: any, chainType: string, cubistUserid: s
   try {
     console.log("Getting key", cubistUserid);
     const keys = await oidcClient.sessionKeys();
-    const key = await keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == cs.Ed25519.Solana);
+    const key = keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == cs.Ed25519.Solana);
     console.log("Key", keys.length, key.length, key[0]);
     return key[0];
   } catch (err) {
