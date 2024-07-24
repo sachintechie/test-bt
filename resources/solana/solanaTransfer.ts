@@ -156,7 +156,10 @@ async function transferSOL(
     // Just grab the first key for the user
     const keys = await oidcClient.sessionKeys();
     console.log("Keys", keys);
-    const key = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
+    const key = keys.filter((key: cs.Key) => {
+      console.log(key.materialId)
+      return key.materialId === senderWalletAddress
+    });
 
     if (key.length === 0) {
       return {

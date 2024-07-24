@@ -9,7 +9,7 @@ export const handler = async (event: any) => {
       event.arguments?.input?.tenantTransactionId,
       event.identity.resolverContext.id
     );
-    if (isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined) {
+    if (!isTransactionAlreadyExist) {
       if (event.arguments?.input?.chainType === "Solana") {
         const receiverWallet = await getMasterWalletAddress(
           event.arguments?.input?.chainType,
@@ -17,11 +17,11 @@ export const handler = async (event: any) => {
           event.arguments?.input?.symbol
         );
         console.log("Receiver Wallet", receiverWallet);
-        if (receiverWallet != null && receiverWallet != undefined) {
+        if (receiverWallet != null) {
           const data = await solanaTransfer(
             event.identity.resolverContext as tenant,
             event.arguments?.input?.senderWalletAddress,
-            receiverWallet.walletaddress,
+            receiverWallet.walletaddress as string,
             event.arguments?.input?.amount,
             event.arguments?.input?.symbol,
             event.headers?.identity,
