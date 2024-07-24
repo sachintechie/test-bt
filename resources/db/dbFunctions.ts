@@ -1,12 +1,27 @@
-import { PrismaClient } from '@prisma/client';
-import { CallbackStatus, customer, StakeAccountStatus, tenant, token, wallet } from './models';
-import * as cs from '@cubist-labs/cubesigner-sdk';
+import { PrismaClient } from "@prisma/client";
+import { CallbackStatus, customer, StakeAccountStatus, tenant } from "./models";
+import * as cs from "@cubist-labs/cubesigner-sdk";
+import { getDatabaseUrl } from "./PgClient";
+import { logWithTrace } from "../utils/utils";
 
-const prisma = new PrismaClient();
-const OPERATION_USER_ID = "User#7df2fa4c-f1ab-436e-b649-c0c601b4bee3";
+let prismaClient: PrismaClient;
+
+export async function getPrismaClient() {
+  if (prismaClient) {
+    return prismaClient;
+  }
+  const databaseUrl = await getDatabaseUrl();
+  prismaClient = new PrismaClient({
+    datasourceUrl: databaseUrl
+  });
+  return prismaClient;
+}
+
+const OPERATION_ROLE_ID = "Role#7b0e9b7f-4137-4e45-b4c7-9d73083771f3"; //Stake Merge Account Role
 
 export async function createCustomer(customer: customer) {
   try {
+    const prisma = await getPrismaClient();
     const newCustomer = await prisma.customer.create({
       data: {
         tenantuserid: customer.tenantuserid,
@@ -17,7 +32,7 @@ export async function createCustomer(customer: customer) {
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
         createdat: new Date().toISOString()
-      },
+      }
     });
     return newCustomer.id;
   } catch (err) {
@@ -27,12 +42,13 @@ export async function createCustomer(customer: customer) {
 
 export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string, key?: any) {
   try {
+    const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
     if (key == null) {
       key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     }
 
-    console.log("Created key", key.PublicKey.toString());
+    logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
@@ -42,7 +58,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
         wallettype: cs.Ed25519.Solana.toString(),
         isactive: true,
         createdat: new Date().toISOString()
-      },
+      }
     });
     return newWallet;
   } catch (err) {
@@ -77,13 +93,13 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     }
     console.log("Creating wallet", keyType);
     if (keyType != null) {
-    const  key  = await org.createKey(keyType, cubistUserId);
-      if (keyType == cs.Ed25519.Solana) { 
-        const role = await org.getRole("Role#7b0e9b7f-4137-4e45-b4c7-9d73083771f3"); //stakeMerge Role
-        await role.addKey(key); 
-       }
-     
+      const key = await org.createKey(keyType, cubistUserId);
 
+      if (keyType == cs.Ed25519.Solana) {
+        const role = await org.getRole(OPERATION_ROLE_ID);
+        role.addKey(key);
+      }
+      const prisma = await getPrismaClient();
       const newWallet = await prisma.wallet.create({
         data: {
           customerid: customerId as string,
@@ -93,7 +109,7 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
           wallettype: keyType.toString(),
           isactive: true,
           createdat: new Date().toISOString()
-        },
+        }
       });
       return { data: newWallet, error: null };
     } else {
@@ -121,6 +137,7 @@ export async function insertTransaction(
   error?: string
 ) {
   try {
+    const prisma = await getPrismaClient();
     const newTransaction = await prisma.transaction.create({
       data: {
         customerid: customerId,
@@ -140,8 +157,8 @@ export async function insertTransaction(
         tenantid: tenantId,
         isactive: true,
         createdat: new Date().toISOString(),
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return newTransaction;
   } catch (err) {
@@ -169,6 +186,7 @@ export async function insertStakingTransaction(
   error?: string
 ) {
   try {
+    const prisma = await getPrismaClient();
     const newStaketransaction = await prisma.staketransaction.create({
       data: {
         customerid: customerId,
@@ -190,7 +208,7 @@ export async function insertStakingTransaction(
         isactive: true,
         stakeaccountid: stakeaccountid,
         createdat: new Date().toISOString()
-      },
+      }
     });
     return newStaketransaction;
   } catch (err) {
@@ -214,6 +232,7 @@ export async function insertStakeAccount(
   error?: string
 ) {
   try {
+    const prisma = await getPrismaClient();
     const newStakeaccount = await prisma.stakeaccount.create({
       data: {
         customerid: customerId,
@@ -233,7 +252,7 @@ export async function insertStakeAccount(
         createdat: new Date().toISOString(),
         updatedat: new Date().toISOString(),
         error: error
-      },
+      }
     });
     return newStakeaccount;
   } catch (err) {
@@ -241,14 +260,9 @@ export async function insertStakeAccount(
   }
 }
 
-
-export async function insertCustomerKyc(
-  customerKyc: any,
-  kycType: string,
-  tenantId: string,
-  error?: string
-) {
+export async function insertCustomerKyc(customerKyc: any, kycType: string, tenantId: string, error?: string) {
   try {
+    const prisma = await getPrismaClient();
     const newCustomerKyc = await prisma.customerkyc.create({
       data: {
         customerid: customerKyc.externalUserId,
@@ -261,7 +275,7 @@ export async function insertCustomerKyc(
         isactive: true,
         createdat: new Date().toISOString(),
         updatedat: new Date().toISOString()
-      },
+      }
     });
     return newCustomerKyc;
   } catch (err) {
@@ -269,18 +283,15 @@ export async function insertCustomerKyc(
   }
 }
 
-
-export async function mergeDbStakeAccounts(
-  sourceStakeAccountPubkey: string,
-  targetStakeAccountPubkey: string,
-) {
+export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, targetStakeAccountPubkey: string) {
   try {
+    const prisma = await getPrismaClient();
     const sourceAccount = await prisma.stakeaccount.findFirst({
       where: { stakeaccountpubkey: sourceStakeAccountPubkey }
     });
 
     if (!sourceAccount) {
-      throw new Error('Source stake account not found');
+      throw new Error("Source stake account not found");
     }
 
     const targetAccount = await prisma.stakeaccount.findFirst({
@@ -288,10 +299,10 @@ export async function mergeDbStakeAccounts(
     });
 
     if (!targetAccount) {
-      throw new Error('Target stake account not found');
+      throw new Error("Target stake account not found");
     }
 
-    const newAmount = sourceAccount.amount + targetAccount.amount;
+    const newAmount = sourceAccount.amount || 0 + Number(targetAccount.amount || 0);
 
     const updatedTargetAccount = await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: targetStakeAccountPubkey },
@@ -311,8 +322,9 @@ export async function mergeDbStakeAccounts(
 
 export async function removeStakeAccount(stakeaccountpubkey: string) {
   try {
+    const prisma = await getPrismaClient();
     const deletedStakeAccount = await prisma.stakeaccount.deleteMany({
-      where: { stakeaccountpubkey: stakeaccountpubkey },
+      where: { stakeaccountpubkey: stakeaccountpubkey }
     });
 
     return deletedStakeAccount;
@@ -325,15 +337,16 @@ export async function removeStakeAccount(stakeaccountpubkey: string) {
 export async function insertMergeStakeAccountsTransaction(
   sourceStakeAccountPubkey: string,
   targetStakeAccountPubkey: string,
-  txhash: string,
+  txhash: string
 ) {
   try {
+    const prisma = await getPrismaClient();
     const sourceAccount = await prisma.stakeaccount.findFirst({
       where: { stakeaccountpubkey: sourceStakeAccountPubkey }
     });
 
     if (!sourceAccount) {
-      throw new Error('Source stake account not found');
+      throw new Error("Source stake account not found");
     }
 
     const targetAccount = await prisma.stakeaccount.findFirst({
@@ -341,10 +354,10 @@ export async function insertMergeStakeAccountsTransaction(
     });
 
     if (!targetAccount) {
-      throw new Error('Target stake account not found');
+      throw new Error("Target stake account not found");
     }
 
-    const newAmount = sourceAccount.amount + targetAccount.amount;
+    const newAmount = sourceAccount.amount || 0 + Number(targetAccount.amount || 0);
 
     await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: sourceStakeAccountPubkey },
@@ -356,19 +369,19 @@ export async function insertMergeStakeAccountsTransaction(
       data: { status: StakeAccountStatus.MERGED, updatedat: new Date().toISOString() }
     });
 
-    const sourceStakeTransaction=await prisma.staketransaction.findFirst({
+    const sourceStakeTransaction = await prisma.staketransaction.findFirst({
       where: { stakeaccountid: sourceAccount.id }
-    })
+    });
 
     const mergeTransaction = await prisma.staketransaction.create({
       data: {
         customerid: targetAccount.customerid,
-        type: 'MERGE',
+        type: "MERGE",
         tokenid: sourceStakeTransaction!.tokenid,
         tenanttransactionid: targetAccount.tenanttransactionid,
         stakeaccountpubkey: targetStakeAccountPubkey,
         network: targetAccount.network,
-        status: 'SUCCESS',
+        status: "SUCCESS",
         tenantuserid: targetAccount.tenantuserid,
         walletaddress: targetAccount.walletaddress,
         receiverwalletaddress: targetAccount.walletaddress,
@@ -380,7 +393,7 @@ export async function insertMergeStakeAccountsTransaction(
         isactive: true,
         stakeaccountid: sourceAccount.id,
         createdat: new Date().toISOString()
-      },
+      }
     });
 
     return mergeTransaction;
@@ -390,31 +403,31 @@ export async function insertMergeStakeAccountsTransaction(
   }
 }
 
-
 export async function createWithdrawTransaction(stakeaccountpubkey: string, txhash: string) {
   try {
+    const prisma = await getPrismaClient();
     const stakeAccount = await prisma.stakeaccount.findFirst({
       where: { stakeaccountpubkey: stakeaccountpubkey }
     });
 
     if (!stakeAccount) {
-      throw new Error('Stake account not found');
+      throw new Error("Stake account not found");
     }
 
-    const sourceStakeTransaction=await prisma.staketransaction.findFirst({
+    const sourceStakeTransaction = await prisma.staketransaction.findFirst({
       where: { stakeaccountid: stakeAccount.id }
-    })
+    });
 
     await prisma.staketransaction.create({
       data: {
         customerid: stakeAccount.customerid,
-        type: 'withdraw',
+        type: "withdraw",
         tokenid: sourceStakeTransaction!.tokenid,
         tenanttransactionid: stakeAccount.tenanttransactionid,
         stakeaccountpubkey: stakeaccountpubkey,
         stakeaccountid: stakeAccount.id,
         network: stakeAccount.network,
-        status: 'pending',
+        status: "pending",
         tenantuserid: stakeAccount.tenantuserid,
         walletaddress: stakeAccount.walletaddress,
         receiverwalletaddress: stakeAccount.stakeaccountpubkey,
@@ -425,9 +438,8 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
         tenantid: stakeAccount.tenantid,
         isactive: true,
         createdat: new Date().toISOString()
-      },
+      }
     });
-
   } catch (err) {
     console.error(err);
     throw err;
@@ -436,11 +448,12 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
 
 export async function getStakeAccounts(senderWalletAddress: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const stakeAccounts = await prisma.stakeaccount.findMany({
       where: {
         walletaddress: senderWalletAddress,
-        tenantid: tenantId,
-      },
+        tenantid: tenantId
+      }
     });
 
     return stakeAccounts.length > 0 ? stakeAccounts : null;
@@ -450,11 +463,12 @@ export async function getStakeAccounts(senderWalletAddress: string, tenantId: st
 }
 export async function getMasterValidatorNode(chainType: string) {
   try {
+    const prisma = await getPrismaClient();
     const validatorNode = await prisma.validatornodes.findFirst({
       where: {
         ismaster: true,
-        chaintype: chainType,
-      },
+        chaintype: chainType
+      }
     });
 
     return validatorNode ? validatorNode : null;
@@ -465,12 +479,13 @@ export async function getMasterValidatorNode(chainType: string) {
 
 export async function getStakeAccount(senderWalletAddress: string, tenantId: string, customerId: string) {
   try {
+    const prisma = await getPrismaClient();
     const stakeAccount = await prisma.stakeaccount.findFirst({
       where: {
         walletaddress: senderWalletAddress,
         customerid: customerId,
-        tenantid: tenantId,
-      },
+        tenantid: tenantId
+      }
     });
 
     return stakeAccount ? stakeAccount : null;
@@ -480,11 +495,12 @@ export async function getStakeAccount(senderWalletAddress: string, tenantId: str
 }
 export async function getCustomerKycByTenantId(customerId: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const customerKyc = await prisma.customerkyc.findFirst({
       where: {
         customerid: customerId,
-        tenantid: tenantId,
-      },
+        tenantid: tenantId
+      }
     });
 
     return customerKyc ? customerKyc : null;
@@ -492,14 +508,14 @@ export async function getCustomerKycByTenantId(customerId: string, tenantId: str
     throw err;
   }
 }
-
 
 export async function getCustomerKyc(customerId: string) {
   try {
+    const prisma = await getPrismaClient();
     const customerKyc = await prisma.customerkyc.findFirst({
       where: {
-        customerid: customerId,
-      },
+        customerid: customerId
+      }
     });
 
     return customerKyc ? customerKyc : null;
@@ -508,23 +524,21 @@ export async function getCustomerKyc(customerId: string) {
   }
 }
 
-
-
-
 export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
+    const prisma = await getPrismaClient();
     const wallet = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
-        tenantid: tenant.id,
+        tenantid: tenant.id
       },
       include: {
         wallets: {
           where: {
-            chaintype: chaintype,
-          },
-        },
-      },
+            chaintype: chaintype
+          }
+        }
+      }
     });
 
     return wallet ? wallet.wallets[0] : null;
@@ -535,11 +549,12 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
 
 export async function getPayerWallet(chaintype: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const payerWallet = await prisma.gaspayerwallet.findFirst({
       where: {
         tenantid: tenantId,
-        symbol: chaintype,
-      },
+        symbol: chaintype
+      }
     });
 
     return payerWallet ? payerWallet : null;
@@ -549,12 +564,13 @@ export async function getPayerWallet(chaintype: string, tenantId: string) {
 }
 export async function getMasterWalletAddress(chaintype: string, tenantId: string, symbol: string) {
   try {
+    const prisma = await getPrismaClient();
     const masterWallet = await prisma.masterwallet.findFirst({
       where: {
         tenantid: tenantId,
         chaintype: chaintype,
-        symbol: symbol,
-      },
+        symbol: symbol
+      }
     });
 
     return masterWallet ? masterWallet : null;
@@ -563,14 +579,14 @@ export async function getMasterWalletAddress(chaintype: string, tenantId: string
   }
 }
 
-
 export async function getTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const transaction = await prisma.transaction.findFirst({
       where: {
         tenantid: tenantId,
-        tenanttransactionid: tenantTransactionId,
-      },
+        tenanttransactionid: tenantTransactionId
+      }
     });
 
     return transaction ? transaction : null;
@@ -581,11 +597,12 @@ export async function getTransactionByTenantTransactionId(tenantTransactionId: s
 
 export async function getStakingTransactionByStakeAccountId(stakeAccountId: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const stakingTransaction = await prisma.staketransaction.findFirst({
       where: {
         tenantid: tenantId,
-        stakeaccountid: stakeAccountId,
-      },
+        stakeaccountid: stakeAccountId
+      }
     });
 
     return stakingTransaction ? stakingTransaction : null;
@@ -596,11 +613,12 @@ export async function getStakingTransactionByStakeAccountId(stakeAccountId: stri
 
 export async function getStakeAccountById(stakeAccountId: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const stakeAccount = await prisma.stakeaccount.findFirst({
       where: {
         tenantid: tenantId,
-        id: stakeAccountId,
-      },
+        id: stakeAccountId
+      }
     });
 
     return stakeAccount ? stakeAccount : null;
@@ -609,19 +627,20 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
   }
 }
 
-
 export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
-    const wallet = await prisma.wallet.findMany({where: {
+    const prisma = await getPrismaClient();
+    const wallet = await prisma.wallet.findFirst({
+      where: {
         walletaddress: walletAddress
-      }});
-    
-    const token = await prisma.token.findFirst({where: {
-        symbol: symbol,
-      }});
-    return wallet.map((w) => {
-      return { ...wallet, ...(token||{}) };
-    })
+      }
+    });
+    const token = await prisma.token.findFirst({
+      where: {
+        symbol: symbol
+      }
+    });
+    return [{ ...wallet, ...token, tokenid: token?.id }];
   } catch (err) {
     throw err;
   }
@@ -629,8 +648,9 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
 
 export async function getWallet(walletAddress: string) {
   try {
+    const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
-      where: { walletaddress: walletAddress },
+      where: { walletaddress: walletAddress }
     });
     return wallet;
   } catch (err) {
@@ -640,8 +660,9 @@ export async function getWallet(walletAddress: string) {
 
 export async function getToken(symbol: string) {
   try {
+    const prisma = await getPrismaClient();
     const token = await prisma.token.findFirst({
-      where: { symbol: symbol },
+      where: { symbol: symbol }
     });
 
     return token;
@@ -652,8 +673,9 @@ export async function getToken(symbol: string) {
 
 export async function getTokenBySymbol(symbol: string) {
   try {
+    const prisma = await getPrismaClient();
     const token = await prisma.token.findFirst({
-      where: { symbol: symbol },
+      where: { symbol: symbol }
     });
 
     return token;
@@ -670,34 +692,38 @@ export async function getFirstWallet(walletAddress: string, tenant: tenant, symb
 
 export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {
   try {
+    const prisma = await getPrismaClient();
     const wallets = await prisma.wallet.findMany({
-      where: { customerid: customerid },
+      where: { customerid: customerid }
     });
-    const chainType=await prisma.chaintype.findFirst({
-      where:{chain:wallets[0].chaintype}
-    })
-
-    return wallets.map((w) => {
+    const walletsWithChainTypePromises = wallets.map(async (w: any) => {
+      const chainType = await prisma.chaintype.findFirst({
+        where: { chain: w.chaintype }
+      });
       return { ...w, ...chainType };
-    })
+    });
+    return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
     throw err;
   }
 }
 
-
-
 export async function getTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
-    const transactions = await prisma.transaction.findMany({where: {
-      walletaddress: walletAddress,
-        tenantid: tenant.id,
-    }});
-    const token = await prisma.token.findFirst({where: {
-        symbol: symbol,
-      }});
-    return transactions.map((t) => {
-      return { ...t, ...(token||{}) };
+    const prisma = await getPrismaClient();
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        walletaddress: walletAddress,
+        tenantid: tenant.id
+      }
+    });
+    const token = await prisma.token.findFirst({
+      where: {
+        symbol: symbol
+      }
+    });
+    return transactions.map((t: any) => {
+      return { ...t, ...(token || {}) };
     });
   } catch (err) {
     throw err;
@@ -706,11 +732,12 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
 
 export async function getStakeTransactions(stakeaccountid: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const stakeTransactions = await prisma.staketransaction.findMany({
       where: {
         stakeaccountid: stakeaccountid,
-        tenantid: tenantId,
-      },
+        tenantid: tenantId
+      }
     });
 
     return stakeTransactions;
@@ -719,13 +746,13 @@ export async function getStakeTransactions(stakeaccountid: string, tenantId: str
   }
 }
 
-
 export async function getAllTransactions() {
   try {
+    const prisma = await getPrismaClient();
     const transactions = await prisma.transaction.findMany({
       where: {
-        status: 'PENDING',
-      },
+        status: "PENDING"
+      }
     });
     return transactions;
   } catch (err) {
@@ -733,22 +760,22 @@ export async function getAllTransactions() {
   }
 }
 
-
 export async function getAllCustomerWalletForBonus(tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const wallets = await prisma.customer.findMany({
       where: {
         isbonuscredit: false,
-        tenantid: tenantId,
+        tenantid: tenantId
       },
       include: {
         wallets: {
           where: {
-            chaintype: 'Solana',
-          },
-        },
+            chaintype: "Solana"
+          }
+        }
       },
-      take: 10,
+      take: 10
     });
     return wallets;
   } catch (err) {
@@ -758,13 +785,14 @@ export async function getAllCustomerWalletForBonus(tenantId: string) {
 
 export async function getAllCustomerAndWalletByTenant(tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const customers = await prisma.customer.findMany({
       where: {
-        tenantid: tenantId,
+        tenantid: tenantId
       },
       include: {
-        wallets: true,
-      },
+        wallets: true
+      }
     });
     return customers;
   } catch (err) {
@@ -772,13 +800,13 @@ export async function getAllCustomerAndWalletByTenant(tenantId: string) {
   }
 }
 
-
 export async function getAllStakingTransactions() {
   try {
+    const prisma = await getPrismaClient();
     const stakingTransactions = await prisma.staketransaction.findMany({
       where: {
-        status: 'PENDING',
-      },
+        status: "PENDING"
+      }
     });
     return stakingTransactions;
   } catch (err) {
@@ -788,8 +816,9 @@ export async function getAllStakingTransactions() {
 
 export async function getTenantCallBackUrl(tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const tenant = await prisma.tenant.findUnique({
-      where: { id: tenantId },
+      where: { id: tenantId }
     });
     return tenant;
   } catch (err) {
@@ -799,8 +828,9 @@ export async function getTenantCallBackUrl(tenantId: string) {
 
 export async function getCubistConfig(tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const cubistConfig = await prisma.cubistconfig.findFirst({
-      where: { tenantid: tenantId },
+      where: { tenantid: tenantId }
     });
     return cubistConfig;
   } catch (err) {
@@ -810,8 +840,9 @@ export async function getCubistConfig(tenantId: string) {
 
 export async function getMasterSumsubConfig() {
   try {
+    const prisma = await getPrismaClient();
     const sumsubConfig = await prisma.sumsubconfig.findFirst({
-      where: { ismaster: true },
+      where: { ismaster: true }
     });
     return sumsubConfig;
   } catch (err) {
@@ -821,13 +852,14 @@ export async function getMasterSumsubConfig() {
 
 export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
+    const prisma = await getPrismaClient();
     const updatedTransaction = await prisma.transaction.update({
       where: { id: transactionId },
       data: {
         status: status,
         callbackstatus: callbackStatus,
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return updatedTransaction;
   } catch (err) {
@@ -837,12 +869,13 @@ export async function updateTransaction(transactionId: string, status: string, c
 
 export async function updateCustomerKycStatus(customerId: string, status: string) {
   try {
+    const prisma = await getPrismaClient();
     const updatedCustomerKyc = await prisma.customerkyc.updateMany({
       where: { customerid: customerId },
       data: {
         status: status,
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return updatedCustomerKyc;
   } catch (err) {
@@ -850,11 +883,11 @@ export async function updateCustomerKycStatus(customerId: string, status: string
   }
 }
 
-
 export async function deleteCustomer(customerid: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const deletedCustomer = await prisma.customer.delete({
-      where: { id: customerid, tenantid: tenantId },
+      where: { id: customerid, tenantid: tenantId }
     });
     return deletedCustomer;
   } catch (err) {
@@ -862,14 +895,14 @@ export async function deleteCustomer(customerid: string, tenantId: string) {
   }
 }
 
-
 export async function deleteWallet(customerid: string, walletaddress: string) {
   try {
+    const prisma = await getPrismaClient();
     const deletedWallet = await prisma.wallet.findMany({
-      where: { customerid: customerid, walletaddress: walletaddress },
+      where: { customerid: customerid, walletaddress: walletaddress }
     });
     await prisma.wallet.deleteMany({
-      where: { customerid: customerid, walletaddress: walletaddress },
+      where: { customerid: customerid, walletaddress: walletaddress }
     });
     return deletedWallet;
   } catch (err) {
@@ -879,11 +912,12 @@ export async function deleteWallet(customerid: string, walletaddress: string) {
 
 export async function updateCustomerBonusStatus(customerId: string, status: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const updatedCustomer = await prisma.customer.updateMany({
       where: { id: customerId, tenantid: tenantId },
       data: {
-        isbonuscredit: status.toLowerCase()==='true',
-      },
+        isbonuscredit: status.toLowerCase() === "true"
+      }
     });
     return updatedCustomer;
   } catch (err) {
@@ -891,15 +925,14 @@ export async function updateCustomerBonusStatus(customerId: string, status: stri
   }
 }
 
-
-
 export async function getStakingTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const stakingTransaction = await prisma.staketransaction.findFirst({
       where: {
         tenantid: tenantId,
-        tenanttransactionid: tenantTransactionId,
-      },
+        tenanttransactionid: tenantTransactionId
+      }
     });
 
     return stakingTransaction ? stakingTransaction : null;
@@ -909,12 +942,13 @@ export async function getStakingTransactionByTenantTransactionId(tenantTransacti
 }
 export async function updateStakeAccountStatus(stakeAccountId: string, status: string) {
   try {
+    const prisma = await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
         status: status,
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return updatedStakeAccount;
   } catch (err) {
@@ -923,12 +957,13 @@ export async function updateStakeAccountStatus(stakeAccountId: string, status: s
 }
 export async function decreaseStakeAmount(stakeAccountId: string, amount: number) {
   try {
+    const prisma = await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
         amount: { decrement: amount },
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return updatedStakeAccount;
   } catch (err) {
@@ -937,13 +972,14 @@ export async function decreaseStakeAmount(stakeAccountId: string, amount: number
 }
 export async function updateStakeAccount(stakeAccountId: string, status: string, amount: number) {
   try {
+    const prisma = await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
         status: status,
         amount: { decrement: amount },
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return updatedStakeAccount;
   } catch (err) {
@@ -953,12 +989,13 @@ export async function updateStakeAccount(stakeAccountId: string, status: string,
 
 export async function updateStakeAccountAmount(stakeAccountId: string, amount: number) {
   try {
+    const prisma = await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
         amount: { increment: amount },
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return updatedStakeAccount;
   } catch (err) {
@@ -966,18 +1003,15 @@ export async function updateStakeAccountAmount(stakeAccountId: string, amount: n
   }
 }
 
-export async function duplicateStakeAccount(
-  stakeAccountPubKey: string,
-  newStakeAccountPubKey: string,
-  newAmount: number
-) {
+export async function duplicateStakeAccount(stakeAccountPubKey: string, newStakeAccountPubKey: string, newAmount: number) {
   try {
+    const prisma = await getPrismaClient();
     const existingStakeAccount = await prisma.stakeaccount.findFirst({
-      where: { stakeaccountpubkey: stakeAccountPubKey },
+      where: { stakeaccountpubkey: stakeAccountPubKey }
     });
 
     if (!existingStakeAccount) {
-      throw new Error('Stake account not found');
+      throw new Error("Stake account not found");
     }
 
     const duplicatedStakeAccount = await prisma.stakeaccount.create({
@@ -999,7 +1033,7 @@ export async function duplicateStakeAccount(
         isactive: existingStakeAccount.isactive,
         createdat: new Date().toISOString(),
         updatedat: new Date().toISOString()
-      },
+      }
     });
 
     return duplicatedStakeAccount;
@@ -1008,17 +1042,15 @@ export async function duplicateStakeAccount(
     throw err;
   }
 }
-export async function reduceStakeAccountAmount(
-  stakeAccountPubKey: string,
-  amountToReduce: number
-) {
+export async function reduceStakeAccountAmount(stakeAccountPubKey: string, amountToReduce: number) {
   try {
+    const prisma = await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: stakeAccountPubKey },
       data: {
         amount: { decrement: amountToReduce },
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
 
     return updatedStakeAccount;
@@ -1029,13 +1061,14 @@ export async function reduceStakeAccountAmount(
 }
 export async function updateStakingTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
+    const prisma = await getPrismaClient();
     const updatedTransaction = await prisma.staketransaction.update({
       where: { id: transactionId },
       data: {
         status: status,
         callbackstatus: callbackStatus,
-        updatedat: new Date().toISOString(),
-      },
+        updatedat: new Date().toISOString()
+      }
     });
     return updatedTransaction;
   } catch (err) {
@@ -1044,11 +1077,12 @@ export async function updateStakingTransaction(transactionId: string, status: st
 }
 export async function getCustomer(tenantUserId: string, tenantId: string) {
   try {
+    const prisma = await getPrismaClient();
     const customer = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
-        tenantid: tenantId,
-      },
+        tenantid: tenantId
+      }
     });
     return customer ? customer : null;
   } catch (err) {
@@ -1056,17 +1090,17 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
   }
 }
 
-
 export async function getStakeAccountPubkeys(walletAddress: string, tenantId: string): Promise<string[]> {
+  const prisma = await getPrismaClient();
   const stakeAccounts = await prisma.stakeaccount.findMany({
     where: {
       walletaddress: walletAddress,
-      tenantid: tenantId,
+      tenantid: tenantId
     },
     select: {
-      stakeaccountpubkey: true,
-    },
+      stakeaccountpubkey: true
+    }
   });
 
-  return stakeAccounts.map(stakeAccount => stakeAccount.stakeaccountpubkey);
+  return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
 }

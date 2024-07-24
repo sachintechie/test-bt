@@ -30,6 +30,7 @@ export class AuroraStack extends cdk.Stack {
         excludePunctuation: true,
         includeSpace: false,
         generateStringKey: 'password',
+        excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
       },
     });
 

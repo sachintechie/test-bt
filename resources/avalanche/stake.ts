@@ -22,119 +22,119 @@ const env: any = {
 
 
 
-export async function staking(
-  tenant: tenant,
-  senderWalletAddress: string,
-  receiverWalletAddress: string,
-  amount: number,
-  symbol: string,
-  oidcToken: string,
-  tenantUserId: string,
-  chainType: string,
-  tenantTransactionId: string,
-  lockupExpirationTimestamp: number
-) {
+// export async function staking(
+//   tenant: tenant,
+//   senderWalletAddress: string,
+//   receiverWalletAddress: string,
+//   amount: number,
+//   symbol: string,
+//   oidcToken: string,
+//   tenantUserId: string,
+//   chainType: string,
+//   tenantTransactionId: string,
+//   lockupExpirationTimestamp: number
+// ) {
   
 
-  // 1. Check if oidcToken exists, if not return error
-  if (!oidcToken)
-    return {
-      wallet: null,
-      error: "Please send a valid identity token for verification"
-    };
-  // 2. Get Cubist Configuration, if not found return error
-  const cubistConfig = await getCubistConfig(tenant.id);
-  if (cubistConfig == null)
-    return {
-      transaction: null,
-      error: "Cubist Configuration not found for the given tenant"
-    };
-  // 3. Get first wallet by wallet address, if not found return error
-  const wallet = await getFirstWallet(senderWalletAddress, tenant, symbol);
-  if (!wallet) {
-    return {
-      transaction: null,
-      error: "Wallet not found for the given wallet address"
-    };
-  }
+//   // 1. Check if oidcToken exists, if not return error
+//   if (!oidcToken)
+//     return {
+//       wallet: null,
+//       error: "Please send a valid identity token for verification"
+//     };
+//   // 2. Get Cubist Configuration, if not found return error
+//   const cubistConfig = await getCubistConfig(tenant.id);
+//   if (cubistConfig == null)
+//     return {
+//       transaction: null,
+//       error: "Cubist Configuration not found for the given tenant"
+//     };
+//   // 3. Get first wallet by wallet address, if not found return error
+//   const wallet = await getFirstWallet(senderWalletAddress, tenant, symbol);
+//   if (!wallet) {
+//     return {
+//       transaction: null,
+//       error: "Wallet not found for the given wallet address"
+//     };
+//   }
 
-  // 4. Check the Symbol, if SOL then stake SOL, if not then return error
-  if (symbol !== "SOL") {
-    return {
-      transaction: null,
-      error: "Symbol not Supported"
-    };
-  }
-  // 5. Check customer ID, if not found return error
-  if (!wallet.customerid) {
-    return {
-      transaction: null,
-      error: "Customer ID not found"
-    };
-  }
+//   // 4. Check the Symbol, if SOL then stake SOL, if not then return error
+//   if (symbol !== "SOL") {
+//     return {
+//       transaction: null,
+//       error: "Symbol not Supported"
+//     };
+//   }
+//   // 5. Check customer ID, if not found return error
+//   if (!wallet.customerid) {
+//     return {
+//       transaction: null,
+//       error: "Customer ID not found"
+//     };
+//   }
 
-  // 6. Get balance of the wallet, if balance is less than amount return error
-  const balance = await getAvaxBalance(senderWalletAddress);
-  if ( balance != null && balance < amount) {
-    return {
-      transaction: null,
-      error: "Insufficient AVAX balance"
-    };
-  }
+//   // 6. Get balance of the wallet, if balance is less than amount return error
+//   const balance = await getAvaxBalance(senderWalletAddress);
+//   if ( balance != null && balance < amount) {
+//     return {
+//       transaction: null,
+//       error: "Insufficient AVAX balance"
+//     };
+//   }
 
-  // 7. Stake SOL
-  const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
-  console.log("[solanaStaking]tx:", tx);
-  // 8. Check if transaction is successful, if not return error
-  if (tx.error) {
-    console.log("[solanaStaking]tx.error:", tx.error);
-    return {
-      transaction: null,
-      error: tx.error
-    };
-  }
+//   // 7. Stake SOL
+//   const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
+//   console.log("[solanaStaking]tx:", tx);
+//   // 8. Check if transaction is successful, if not return error
+//   if (tx.error) {
+//     console.log("[solanaStaking]tx.error:", tx.error);
+//     return {
+//       transaction: null,
+//       error: tx.error
+//     };
+//   }
 
-  // 9. Verify the transaction and insert the stake account and staking transaction
-  const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
-  const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-  const stakeAccountStatus = StakeAccountStatus.OPEN;
+//   // 9. Verify the transaction and insert the stake account and staking transaction
+//   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
+//   const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+//   const stakeAccountStatus = StakeAccountStatus.OPEN;
 
-  const newStakeAccount = await insertStakeAccount(
-    senderWalletAddress,
-    receiverWalletAddress,
-    amount,
-    chainType,
-    symbol,
-    tenant.id,
-    wallet.customerid,
-    tenantUserId,
-    process.env["SOLANA_NETWORK"] ?? "",
-    stakeAccountStatus,
-    tenantTransactionId,
-    tx?.stakeAccountPubKey?.toString() || "",
-    lockupExpirationTimestamp
-  );
-  const transaction = await insertStakingTransaction(
-    senderWalletAddress,
-    receiverWalletAddress,
-    amount,
-    chainType,
-    symbol,
-    tx?.trxHash || "",
-    tenant.id,
-    wallet.customerid,
-    wallet.tokenid,
-    tenantUserId,
-    process.env["SOLANA_NETWORK"] ?? "",
-    txStatus,
-    tenantTransactionId,
-    tx?.stakeAccountPubKey?.toString() || "",
-    newStakeAccount.stakeaccountid,
-    StakeType.STAKE
-  );
-  console.log("[solanaStaking]transaction:", transaction);
-  return { transaction, error: null };
-}
+//   const newStakeAccount = await insertStakeAccount(
+//     senderWalletAddress,
+//     receiverWalletAddress,
+//     amount,
+//     chainType,
+//     symbol,
+//     tenant.id,
+//     wallet.customerid,
+//     tenantUserId,
+//     process.env["SOLANA_NETWORK"] ?? "",
+//     stakeAccountStatus,
+//     tenantTransactionId,
+//     tx?.stakeAccountPubKey?.toString() || "",
+//     lockupExpirationTimestamp
+//   );
+//   const transaction = await insertStakingTransaction(
+//     senderWalletAddress,
+//     receiverWalletAddress,
+//     amount,
+//     chainType,
+//     symbol,
+//     tx?.trxHash || "",
+//     tenant.id,
+//     wallet.customerid,
+//     wallet.tokenid,
+//     tenantUserId,
+//     process.env["SOLANA_NETWORK"] ?? "",
+//     txStatus,
+//     tenantTransactionId,
+//     tx?.stakeAccountPubKey?.toString() || "",
+//     newStakeAccount.stakeaccountid,
+//     StakeType.STAKE
+//   );
+//   console.log("[solanaStaking]transaction:", transaction);
+//   return { transaction, error: null };
+// }
 
 export async function stakeAvax(
   senderWalletAddress: string,
