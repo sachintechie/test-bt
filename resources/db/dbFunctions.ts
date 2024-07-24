@@ -658,7 +658,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
     const token = await prisma.token.findFirst({where: {
         symbol: symbol,
       }});
-    return [{ ...wallet, ...token }];
+    return [{ ...wallet, ...token,tokenid:token?.id }];
   } catch (err) {
     throw err;
   }
