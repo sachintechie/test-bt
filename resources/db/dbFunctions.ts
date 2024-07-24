@@ -1,12 +1,29 @@
-import { PrismaClient } from '@prisma/client';
-import { CallbackStatus, customer, StakeAccountStatus, tenant, token, wallet } from './models';
+import {PrismaClient} from '@prisma/client';
+import {CallbackStatus, customer, StakeAccountStatus, tenant} from './models';
 import * as cs from '@cubist-labs/cubesigner-sdk';
+import {getDatabaseUrl} from "./PgClient";
+import {logWithTrace} from "../utils/utils";
 
-const prisma = new PrismaClient();
+let prismaClient: PrismaClient;
+
+export async function getPrismaClient() {
+  if (prismaClient) {
+    return prismaClient;
+  }
+  const databaseUrl = await getDatabaseUrl();
+  prismaClient = new PrismaClient({
+    datasourceUrl: databaseUrl,
+  });
+  return prismaClient
+}
+
+
+
 const OPERATION_USER_ID = "User#7df2fa4c-f1ab-436e-b649-c0c601b4bee3";
 
 export async function createCustomer(customer: customer) {
   try {
+    const prisma=await getPrismaClient();
     const newCustomer = await prisma.customer.create({
       data: {
         tenantuserid: customer.tenantuserid,
@@ -27,12 +44,13 @@ export async function createCustomer(customer: customer) {
 
 export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string, key?: any) {
   try {
+    const prisma=await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
     if (key == null) {
       key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     }
 
-    console.log("Created key", key.PublicKey.toString());
+    logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
@@ -85,7 +103,7 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
         role.addKey(key)
       }
       key = await org.createKey(keyType, cubistUserId);
-
+      const prisma=await getPrismaClient();
       const newWallet = await prisma.wallet.create({
         data: {
           customerid: customerId as string,
@@ -123,6 +141,7 @@ export async function insertTransaction(
   error?: string
 ) {
   try {
+    const prisma=await getPrismaClient();
     const newTransaction = await prisma.transaction.create({
       data: {
         customerid: customerId,
@@ -171,6 +190,7 @@ export async function insertStakingTransaction(
   error?: string
 ) {
   try {
+    const prisma=await getPrismaClient();
     const newStaketransaction = await prisma.staketransaction.create({
       data: {
         customerid: customerId,
@@ -216,6 +236,7 @@ export async function insertStakeAccount(
   error?: string
 ) {
   try {
+    const prisma=await getPrismaClient();
     const newStakeaccount = await prisma.stakeaccount.create({
       data: {
         customerid: customerId,
@@ -251,6 +272,7 @@ export async function insertCustomerKyc(
   error?: string
 ) {
   try {
+    const prisma=await getPrismaClient();
     const newCustomerKyc = await prisma.customerkyc.create({
       data: {
         customerid: customerKyc.externalUserId,
@@ -277,6 +299,7 @@ export async function mergeDbStakeAccounts(
   targetStakeAccountPubkey: string,
 ) {
   try {
+    const prisma=await getPrismaClient();
     const sourceAccount = await prisma.stakeaccount.findFirst({
       where: { stakeaccountpubkey: sourceStakeAccountPubkey }
     });
@@ -313,6 +336,7 @@ export async function mergeDbStakeAccounts(
 
 export async function removeStakeAccount(stakeaccountpubkey: string) {
   try {
+    const prisma=await getPrismaClient();
     const deletedStakeAccount = await prisma.stakeaccount.deleteMany({
       where: { stakeaccountpubkey: stakeaccountpubkey },
     });
@@ -330,6 +354,7 @@ export async function insertMergeStakeAccountsTransaction(
   txhash: string,
 ) {
   try {
+    const prisma=await getPrismaClient();
     const sourceAccount = await prisma.stakeaccount.findFirst({
       where: { stakeaccountpubkey: sourceStakeAccountPubkey }
     });
@@ -395,6 +420,7 @@ export async function insertMergeStakeAccountsTransaction(
 
 export async function createWithdrawTransaction(stakeaccountpubkey: string, txhash: string) {
   try {
+    const prisma=await getPrismaClient();
     const stakeAccount = await prisma.stakeaccount.findFirst({
       where: { stakeaccountpubkey: stakeaccountpubkey }
     });
@@ -438,6 +464,7 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
 
 export async function getStakeAccounts(senderWalletAddress: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const stakeAccounts = await prisma.stakeaccount.findMany({
       where: {
         walletaddress: senderWalletAddress,
@@ -452,6 +479,7 @@ export async function getStakeAccounts(senderWalletAddress: string, tenantId: st
 }
 export async function getMasterValidatorNode(chainType: string) {
   try {
+    const prisma=await getPrismaClient();
     const validatorNode = await prisma.validatornodes.findFirst({
       where: {
         ismaster: true,
@@ -467,6 +495,7 @@ export async function getMasterValidatorNode(chainType: string) {
 
 export async function getStakeAccount(senderWalletAddress: string, tenantId: string, customerId: string) {
   try {
+    const prisma=await getPrismaClient();
     const stakeAccount = await prisma.stakeaccount.findFirst({
       where: {
         walletaddress: senderWalletAddress,
@@ -482,6 +511,7 @@ export async function getStakeAccount(senderWalletAddress: string, tenantId: str
 }
 export async function getCustomerKycByTenantId(customerId: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const customerKyc = await prisma.customerkyc.findFirst({
       where: {
         customerid: customerId,
@@ -498,6 +528,7 @@ export async function getCustomerKycByTenantId(customerId: string, tenantId: str
 
 export async function getCustomerKyc(customerId: string) {
   try {
+    const prisma=await getPrismaClient();
     const customerKyc = await prisma.customerkyc.findFirst({
       where: {
         customerid: customerId,
@@ -515,6 +546,7 @@ export async function getCustomerKyc(customerId: string) {
 
 export async function getWalletByCustomer(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
+    const prisma=await getPrismaClient();
     const wallet = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
@@ -537,6 +569,7 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
 
 export async function getPayerWallet(chaintype: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const payerWallet = await prisma.gaspayerwallet.findFirst({
       where: {
         tenantid: tenantId,
@@ -551,6 +584,7 @@ export async function getPayerWallet(chaintype: string, tenantId: string) {
 }
 export async function getMasterWalletAddress(chaintype: string, tenantId: string, symbol: string) {
   try {
+    const prisma=await getPrismaClient();
     const masterWallet = await prisma.masterwallet.findFirst({
       where: {
         tenantid: tenantId,
@@ -568,6 +602,7 @@ export async function getMasterWalletAddress(chaintype: string, tenantId: string
 
 export async function getTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const transaction = await prisma.transaction.findFirst({
       where: {
         tenantid: tenantId,
@@ -583,6 +618,7 @@ export async function getTransactionByTenantTransactionId(tenantTransactionId: s
 
 export async function getStakingTransactionByStakeAccountId(stakeAccountId: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const stakingTransaction = await prisma.staketransaction.findFirst({
       where: {
         tenantid: tenantId,
@@ -598,6 +634,7 @@ export async function getStakingTransactionByStakeAccountId(stakeAccountId: stri
 
 export async function getStakeAccountById(stakeAccountId: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const stakeAccount = await prisma.stakeaccount.findFirst({
       where: {
         tenantid: tenantId,
@@ -614,15 +651,14 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
 
 export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
-    const wallet = await prisma.wallet.findMany({where: {
+    const prisma=await getPrismaClient();
+    const wallet = await prisma.wallet.findFirst({where: {
         walletaddress: walletAddress,
       }});
     const token = await prisma.token.findFirst({where: {
         symbol: symbol,
       }});
-    return wallet.map((w) => {
-      return { ...wallet, ...(token||{}) };
-    })
+    return [{ ...wallet, ...token,tokenid:token?.id }];
   } catch (err) {
     throw err;
   }
@@ -630,6 +666,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
 
 export async function getWallet(walletAddress: string) {
   try {
+    const prisma=await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
       where: { walletaddress: walletAddress },
     });
@@ -641,6 +678,7 @@ export async function getWallet(walletAddress: string) {
 
 export async function getToken(symbol: string) {
   try {
+    const prisma=await getPrismaClient();
     const token = await prisma.token.findFirst({
       where: { symbol: symbol },
     });
@@ -653,6 +691,7 @@ export async function getToken(symbol: string) {
 
 export async function getTokenBySymbol(symbol: string) {
   try {
+    const prisma=await getPrismaClient();
     const token = await prisma.token.findFirst({
       where: { symbol: symbol },
     });
@@ -671,16 +710,17 @@ export async function getFirstWallet(walletAddress: string, tenant: tenant, symb
 
 export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {
   try {
+    const prisma=await getPrismaClient();
     const wallets = await prisma.wallet.findMany({
       where: { customerid: customerid },
     });
-    const chainType=await prisma.chaintype.findFirst({
-      where:{chain:wallets[0].chaintype}
-    })
-
-    return wallets.map((w) => {
+    const walletsWithChainTypePromises= wallets.map(async (w) => {
+      const chainType=await prisma.chaintype.findFirst({
+        where:{chain:w.chaintype}
+      })
       return { ...w, ...chainType };
     })
+    return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
     throw err;
   }
@@ -690,6 +730,7 @@ export async function getCustomerWalletsByCustomerId(customerid: string, tenant:
 
 export async function getTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
+    const prisma=await getPrismaClient();
     const transactions = await prisma.transaction.findMany({where: {
       walletaddress: walletAddress,
         tenantid: tenant.id,
@@ -707,6 +748,7 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
 
 export async function getStakeTransactions(stakeaccountid: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const stakeTransactions = await prisma.staketransaction.findMany({
       where: {
         stakeaccountid: stakeaccountid,
@@ -723,6 +765,7 @@ export async function getStakeTransactions(stakeaccountid: string, tenantId: str
 
 export async function getAllTransactions() {
   try {
+    const prisma=await getPrismaClient();
     const transactions = await prisma.transaction.findMany({
       where: {
         status: 'PENDING',
@@ -737,6 +780,7 @@ export async function getAllTransactions() {
 
 export async function getAllCustomerWalletForBonus(tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const wallets = await prisma.customer.findMany({
       where: {
         isbonuscredit: false,
@@ -759,6 +803,7 @@ export async function getAllCustomerWalletForBonus(tenantId: string) {
 
 export async function getAllCustomerAndWalletByTenant(tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const customers = await prisma.customer.findMany({
       where: {
         tenantid: tenantId,
@@ -776,6 +821,7 @@ export async function getAllCustomerAndWalletByTenant(tenantId: string) {
 
 export async function getAllStakingTransactions() {
   try {
+    const prisma=await getPrismaClient();
     const stakingTransactions = await prisma.staketransaction.findMany({
       where: {
         status: 'PENDING',
@@ -789,6 +835,7 @@ export async function getAllStakingTransactions() {
 
 export async function getTenantCallBackUrl(tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const tenant = await prisma.tenant.findUnique({
       where: { id: tenantId },
     });
@@ -800,6 +847,7 @@ export async function getTenantCallBackUrl(tenantId: string) {
 
 export async function getCubistConfig(tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const cubistConfig = await prisma.cubistconfig.findFirst({
       where: { tenantid: tenantId },
     });
@@ -811,6 +859,7 @@ export async function getCubistConfig(tenantId: string) {
 
 export async function getMasterSumsubConfig() {
   try {
+    const prisma=await getPrismaClient();
     const sumsubConfig = await prisma.sumsubconfig.findFirst({
       where: { ismaster: true },
     });
@@ -822,6 +871,7 @@ export async function getMasterSumsubConfig() {
 
 export async function updateTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
+    const prisma=await getPrismaClient();
     const updatedTransaction = await prisma.transaction.update({
       where: { id: transactionId },
       data: {
@@ -838,6 +888,7 @@ export async function updateTransaction(transactionId: string, status: string, c
 
 export async function updateCustomerKycStatus(customerId: string, status: string) {
   try {
+    const prisma=await getPrismaClient();
     const updatedCustomerKyc = await prisma.customerkyc.updateMany({
       where: { customerid: customerId },
       data: {
@@ -854,6 +905,7 @@ export async function updateCustomerKycStatus(customerId: string, status: string
 
 export async function deleteCustomer(customerid: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const deletedCustomer = await prisma.customer.delete({
       where: { id: customerid, tenantid: tenantId },
     });
@@ -866,6 +918,7 @@ export async function deleteCustomer(customerid: string, tenantId: string) {
 
 export async function deleteWallet(customerid: string, walletaddress: string) {
   try {
+    const prisma=await getPrismaClient();
     const deletedWallet = await prisma.wallet.findMany({
       where: { customerid: customerid, walletaddress: walletaddress },
     });
@@ -880,6 +933,7 @@ export async function deleteWallet(customerid: string, walletaddress: string) {
 
 export async function updateCustomerBonusStatus(customerId: string, status: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const updatedCustomer = await prisma.customer.updateMany({
       where: { id: customerId, tenantid: tenantId },
       data: {
@@ -896,6 +950,7 @@ export async function updateCustomerBonusStatus(customerId: string, status: stri
 
 export async function getStakingTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const stakingTransaction = await prisma.staketransaction.findFirst({
       where: {
         tenantid: tenantId,
@@ -910,6 +965,7 @@ export async function getStakingTransactionByTenantTransactionId(tenantTransacti
 }
 export async function updateStakeAccountStatus(stakeAccountId: string, status: string) {
   try {
+    const prisma=await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
@@ -924,6 +980,7 @@ export async function updateStakeAccountStatus(stakeAccountId: string, status: s
 }
 export async function decreaseStakeAmount(stakeAccountId: string, amount: number) {
   try {
+    const prisma=await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
@@ -938,6 +995,7 @@ export async function decreaseStakeAmount(stakeAccountId: string, amount: number
 }
 export async function updateStakeAccount(stakeAccountId: string, status: string, amount: number) {
   try {
+    const prisma=await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
@@ -954,6 +1012,7 @@ export async function updateStakeAccount(stakeAccountId: string, status: string,
 
 export async function updateStakeAccountAmount(stakeAccountId: string, amount: number) {
   try {
+    const prisma=await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.update({
       where: { id: stakeAccountId },
       data: {
@@ -973,6 +1032,7 @@ export async function duplicateStakeAccount(
   newAmount: number
 ) {
   try {
+    const prisma=await getPrismaClient();
     const existingStakeAccount = await prisma.stakeaccount.findFirst({
       where: { stakeaccountpubkey: stakeAccountPubKey },
     });
@@ -1014,6 +1074,7 @@ export async function reduceStakeAccountAmount(
   amountToReduce: number
 ) {
   try {
+    const prisma=await getPrismaClient();
     const updatedStakeAccount = await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: stakeAccountPubKey },
       data: {
@@ -1030,6 +1091,7 @@ export async function reduceStakeAccountAmount(
 }
 export async function updateStakingTransaction(transactionId: string, status: string, callbackStatus: string) {
   try {
+    const prisma=await getPrismaClient();
     const updatedTransaction = await prisma.staketransaction.update({
       where: { id: transactionId },
       data: {
@@ -1045,6 +1107,7 @@ export async function updateStakingTransaction(transactionId: string, status: st
 }
 export async function getCustomer(tenantUserId: string, tenantId: string) {
   try {
+    const prisma=await getPrismaClient();
     const customer = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
@@ -1059,6 +1122,7 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
 
 
 export async function getStakeAccountPubkeys(walletAddress: string, tenantId: string): Promise<string[]> {
+  const prisma=await getPrismaClient();
   const stakeAccounts = await prisma.stakeaccount.findMany({
     where: {
       walletaddress: walletAddress,

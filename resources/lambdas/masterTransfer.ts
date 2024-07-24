@@ -1,6 +1,7 @@
 import { getMasterWalletAddress, getTransactionByTenantTransactionId } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import { solanaTransfer } from "../solana/solanaTransfer";
+import {logWithTrace} from "../utils/utils";
 
 export const handler = async (event: any) => {
   try {
@@ -9,19 +10,19 @@ export const handler = async (event: any) => {
       event.arguments?.input?.tenantTransactionId,
       event.identity.resolverContext.id
     );
-    if (isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined) {
+    if (!isTransactionAlreadyExist) {
       if (event.arguments?.input?.chainType === "Solana") {
         const receiverWallet = await getMasterWalletAddress(
           event.arguments?.input?.chainType,
           event.identity.resolverContext.id,
           event.arguments?.input?.symbol
         );
-        console.log("Receiver Wallet", receiverWallet);
-        if (receiverWallet != null && receiverWallet != undefined) {
+        logWithTrace("Receiver Wallet", receiverWallet);
+        if (receiverWallet != null) {
           const data = await solanaTransfer(
             event.identity.resolverContext as tenant,
             event.arguments?.input?.senderWalletAddress,
-            receiverWallet.walletaddress,
+            receiverWallet.walletaddress as string,
             event.arguments?.input?.amount,
             event.arguments?.input?.symbol,
             event.headers?.identity,
@@ -35,7 +36,7 @@ export const handler = async (event: any) => {
             data: data?.transaction,
             error: data?.error
           };
-          console.log("Wallet", response);
+          logWithTrace("Wallet", response);
           return response;
         } else {
           return {
