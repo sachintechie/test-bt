@@ -16,7 +16,7 @@ export const handler = async (event: any) => {
           event.identity.resolverContext.id,
           event.arguments?.input?.symbol
         );
-        console.log("Receiver Wallet", receiverWallet);
+        logWithTrace("Receiver Wallet", receiverWallet);
         if (receiverWallet != null) {
           const data = await solanaTransfer(
             event.identity.resolverContext as tenant,
@@ -35,7 +35,7 @@ export const handler = async (event: any) => {
             data: data?.transaction,
             error: data?.error
           };
-          console.log("Wallet", response);
+          logWithTrace("Wallet", response);
           return response;
         } else {
           return {

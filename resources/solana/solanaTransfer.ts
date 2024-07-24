@@ -21,7 +21,7 @@ export async function solanaTransfer(
   chainType: string,
   tenantTransactionId: string
 ) {
-  console.log("Wallet Address", senderWalletAddress);
+  logWithTrace("Wallet Address", senderWalletAddress);
 
   try {
     if (!oidcToken) {
@@ -39,7 +39,7 @@ export async function solanaTransfer(
       }
       const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
       let balance = 0;
-      console.log(wallet, "Wallet");
+      logWithTrace(wallet, "Wallet");
       if (wallet.length == 0) {
         return {
           transaction: null,
