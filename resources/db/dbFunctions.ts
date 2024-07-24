@@ -91,9 +91,11 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
       let key;
       if (keyType == cs.Ed25519.Solana) { 
         key  = await org.createKey(keyType, cubistUserId);
-        const role = await org.createRole();
-        await role.addUser("User#7df2fa4c-f1ab-436e-b649-c0c601b4bee3"); //ops user cubist-user-id
+        
+       const role = await org.getRole("Role#7b0e9b7f-4137-4e45-b4c7-9d73083771f3");
+       if(role != null){
         role.addKey(key)
+       }
       }
       key  = await org.createKey(keyType, cubistUserId);
 

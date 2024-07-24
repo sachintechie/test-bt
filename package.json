@@ -23,6 +23,7 @@
     "@prisma/client": "^5.16.2",
     "@solana/spl-token": "^0.4.6",
     "@solana/web3.js": "^1.91.8",
+    "avalanche": "^3.16.0",
     "aws-cdk-lib": "^2.142.1",
     "aws-sdk": "^2.1629.0",
     "axios": "^1.7.2",
