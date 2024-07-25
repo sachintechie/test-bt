@@ -642,7 +642,31 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
   }
 }
 
-export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol?: string) {
+export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant,symbol: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallet = await prisma.wallet.findFirst({
+      where: {
+        walletaddress: walletAddress
+      }
+    });
+      const tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || ""  }
+      });
+      const walletsWithChainTypePromises = tokens.map(async (t: any) => {
+        const wallet = await prisma.wallet.findFirst({
+          where: { chaintype: t.chaintype,walletaddress: walletAddress
+          }
+        });
+        return { ...t, ...wallet,tokenname: t.name,tokenid: t.id };
+      });
+      return await Promise.all(walletsWithChainTypePromises);
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getWalletAndTokenByWalletAddressBySymbol(walletAddress: string, tenant: tenant, symbol: string) {
   try {
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
@@ -665,6 +689,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
     throw err;
   }
 }
+
 
 export async function getWallet(walletAddress: string) {
   try {
