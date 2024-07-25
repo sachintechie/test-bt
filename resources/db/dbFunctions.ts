@@ -638,12 +638,17 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
         walletaddress: walletAddress
       }
     });
-    const token = await prisma.token.findFirst({
-      where: {
-        symbol: symbol
-      }
-    });
-    return [{ ...wallet, ...token, tokenid: token?.id || "",balance:0 }];
+      const tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "" }
+      });
+      const walletsWithChainTypePromises = tokens.map(async (t: any) => {
+        const wallet = await prisma.wallet.findFirst({
+          where: { chaintype: t.chaintype,walletaddress: walletAddress
+          }
+        });
+        return { ...t, ...wallet };
+      });
+      return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
     throw err;
   }
