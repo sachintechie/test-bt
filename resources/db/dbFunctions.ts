@@ -62,6 +62,8 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
 
     });
 
+    console.log("Created wallet", newWallet);
+
     return { data: newWallet, error: null };
 
   } catch (err) {
