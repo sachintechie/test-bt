@@ -163,7 +163,7 @@ export async function insertTransaction(
         updatedat: new Date().toISOString()
       }
     });
-    return newTransaction;
+    return {...newTransaction ,transactionid:newTransaction.id};
   } catch (err) {
     throw err;
   }
@@ -213,7 +213,7 @@ export async function insertStakingTransaction(
         createdat: new Date().toISOString()
       }
     });
-    return newStaketransaction;
+    return {...newStaketransaction ,transactionid:newStaketransaction.id};
   } catch (err) {
     throw err;
   }
@@ -257,7 +257,8 @@ export async function insertStakeAccount(
         error: error
       }
     });
-    return newStakeaccount;
+    return {...newStakeaccount ,stakeaccountid:newStakeaccount.id};
+
   } catch (err) {
     throw err;
   }
@@ -641,7 +642,7 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
   }
 }
 
-export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol?: string) {
   try {
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
@@ -650,7 +651,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
       }
     });
       const tokens = await prisma.token.findMany({
-        where: { chaintype: wallet?.chaintype || "" }
+        where: { chaintype: wallet?.chaintype || "" ,symbol: symbol }
       });
       const walletsWithChainTypePromises = tokens.map(async (t: any) => {
         const wallet = await prisma.wallet.findFirst({
