@@ -48,6 +48,8 @@ export async function solanaTransfer(
         };
       } else {
         for (const token of wallet) {
+          console.log(wallet, "wallet data");
+          console.log(token, "Token data");
           if (symbol === "SOL" && token.customerid != null) {
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
