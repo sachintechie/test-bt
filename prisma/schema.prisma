@@ -158,9 +158,9 @@ model sumsubconfig {
   id              String   @id @default(uuid())
   tenantid        String?
   baseurl         String?
-  sumsubAppToken  String?
-  sumsubSecretKey String?
-  ismaster        Boolean?
+  sumsub_app_token  String
+  sumsub_secret_key String
+  ismaster        Boolean
   isactive        Boolean?
   createdat       String?
   updatedat       String?
