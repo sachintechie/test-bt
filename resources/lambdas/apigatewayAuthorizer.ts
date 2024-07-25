@@ -6,10 +6,10 @@ export const handler = async (event: any) => {
     let token = event.authorizationToken;
     if (token != null) {
       console.log("Token provided", token);
-      let query = `SELECT * FROM tenant where api_key = '${token}';`;
+      let query = `SELECT * FROM tenant where apikey = '${token}';`;
       const res = await executeQuery(query);
       // console.log(res.rows);
-      if (res.rows.length > 0 && res.rows[0].api_key === token) {
+      if (res.rows.length > 0 && res.rows[0].apikey === token) {
         console.log("tenant-insie-if");
 
         const tenant = res.rows[0];
@@ -21,7 +21,7 @@ export const handler = async (event: any) => {
           context: {
             id: tenant.id,
             name: tenant.name,
-            api_key: tenant.api_key,
+            apikey: tenant.apikey,
             logo: tenant.logo,
             isactive: tenant.isactive,
             createdat: tenant.createdat

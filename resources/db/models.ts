@@ -13,7 +13,7 @@ export interface customer {
 export interface tenant {
   id: string;
   name: string;
-  api_key: string;
+  apikey: string;
   logo: string;
   isactive: boolean;
   createdat: string;
