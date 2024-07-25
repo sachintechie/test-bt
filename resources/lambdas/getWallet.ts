@@ -45,6 +45,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
     if (customer != null && customer?.cubistuserid) {
       const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
       if (wallet != null && wallet != undefined) {
+        console.log("Wallet found", wallet);
         return { wallet, error: null };
       } else {
         const { org, orgId } = await getCsClient(tenant.id);
