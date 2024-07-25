@@ -163,7 +163,7 @@ export async function insertTransaction(
         updatedat: new Date().toISOString()
       }
     });
-    return newTransaction;
+    return {...newTransaction ,transactionid:newTransaction.id};
   } catch (err) {
     throw err;
   }
@@ -213,7 +213,7 @@ export async function insertStakingTransaction(
         createdat: new Date().toISOString()
       }
     });
-    return newStaketransaction;
+    return {...newStaketransaction ,transactionid:newStaketransaction.id};
   } catch (err) {
     throw err;
   }
@@ -257,7 +257,8 @@ export async function insertStakeAccount(
         error: error
       }
     });
-    return newStakeaccount;
+    return {...newStakeaccount ,stakeaccountid:newStakeaccount.id};
+
   } catch (err) {
     throw err;
   }
