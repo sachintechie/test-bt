@@ -650,9 +650,18 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
         walletaddress: walletAddress
       }
     });
-      const tokens = await prisma.token.findMany({
+    let tokens;
+    if(symbol == null){
+       tokens = await prisma.token.findMany({
         where: { chaintype: wallet?.chaintype || ""  }
       });
+    }
+    else{
+       tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "",symbol: symbol }
+      });
+    }
+      
       const walletsWithChainTypePromises = tokens.map(async (t: any) => {
         const wallet = await prisma.wallet.findFirst({
           where: { chaintype: t.chaintype,walletaddress: walletAddress
