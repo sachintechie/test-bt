@@ -1,6 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "../db/models";
-import { getCubistConfig, getWalletAndTokenByWalletAddress, insertTransaction } from "../db/dbFunctions";
+import { getCubistConfig, getWalletAndTokenByWalletAddressBySymbol, insertTransaction } from "../db/dbFunctions";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
@@ -38,7 +38,7 @@ export async function solanaTransfer(
           error: "Cubist Configuration not found for the given tenant"
         };
       }
-      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
+      const wallet = await getWalletAndTokenByWalletAddressBySymbol(senderWalletAddress, tenant, symbol);
       let balance = 0;
       logWithTrace(wallet, "Wallet");
       if (wallet.length == 0) {
