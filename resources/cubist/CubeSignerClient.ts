@@ -65,10 +65,15 @@ class ReadOnlyAwsSecretsSessionManager implements SessionManager {
 export async function getCsClient(teantid: string) {
   try {
     const cubistConfig = await getCubistConfig(teantid);
+    if(cubistConfig !== null){
     const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(cubistConfig?.signersecretname!));
     const org = client.org();
     const orgId = cubistConfig?.orgid;
     return { client, org, orgId };
+    }
+    else{
+      return { client: null, org: null, orgId: null};
+    }
   } catch (err) {
     console.error(err);
     throw err;

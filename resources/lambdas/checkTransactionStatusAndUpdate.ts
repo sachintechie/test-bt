@@ -43,7 +43,7 @@ async function updateTransactions() {
           console.log(callback);
           const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
-          const updatedTransaction = await updateTransaction(trx.transactionid, status, callbackStatus);
+          const updatedTransaction = await updateTransaction(trx.id, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
 
           //call the callback url with the updated transaction status
@@ -72,7 +72,7 @@ async function updateStakingTransactions() {
         //  const callback = await updateTenant(tenant, trx);
           const callbackStatus =  CallbackStatus.PENDING;
 
-          const updatedTransaction = await updateStakingTransaction(trx.transactionid, status, callbackStatus);
+          const updatedTransaction = await updateStakingTransaction(trx.id, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
 
           //call the callback url with the updated transaction status

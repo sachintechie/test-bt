@@ -56,7 +56,6 @@ export async function solanaTransfer(
               if (trx.trxHash != null) {
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
                 const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-
                 const transaction = await insertTransaction(
                   senderWalletAddress,
                   receiverWalletAddress,
@@ -85,7 +84,7 @@ export async function solanaTransfer(
           } else if (symbol != "SOL" && token.customerid != null) {
             balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");
             token.balance = balance;
-            if (balance >= amount) {
+            if (balance >= amount && token.decimalprecision != undefined && token.contractaddress != null) {
               const trx = await transferSPLToken(
                 senderWalletAddress,
                 receiverWalletAddress,
