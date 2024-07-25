@@ -98,10 +98,10 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     if (keyType != null) {
       const key = await org.createKey(keyType, cubistUserId);
 
-      if (keyType == cs.Ed25519.Solana) {
-        const role = await org.getRole(OPERATION_ROLE_ID);
-        role.addKey(key);
-      }
+      // if (keyType == cs.Ed25519.Solana) {
+      //   const role = await org.getRole(OPERATION_ROLE_ID);
+      //   role.addKey(key);
+      // }
       const prisma = await getPrismaClient();
       const newWallet = await prisma.wallet.create({
         data: {
