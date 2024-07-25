@@ -65,10 +65,15 @@ class ReadOnlyAwsSecretsSessionManager implements SessionManager {
 export async function getCsClient(teantid: string) {
   try {
     const cubistConfig = await getCubistConfig(teantid);
-    const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(cubistConfig.signersecretname));
+    if(cubistConfig !== null){
+    const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(cubistConfig?.signersecretname!));
     const org = client.org();
-    const orgId = cubistConfig.orgid;
+    const orgId = cubistConfig?.orgid;
     return { client, org, orgId };
+    }
+    else{
+      return { client: null, org: null, orgId: null};
+    }
   } catch (err) {
     console.error(err);
     throw err;
@@ -84,7 +89,7 @@ export async function getCsClientBySecretName(teantid: string,secretName:string)
     const cubistConfig = await getCubistConfig(teantid);
     const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(secretName));
     const org = client.org();
-    const orgId = cubistConfig.orgid;
+    const orgId = cubistConfig?.orgid;
     return { client, org, orgId };
   } catch (err) {
     console.error(err);
@@ -173,10 +178,6 @@ export async function oidcLogin(env: cs.EnvInterface, orgId: string, oidcToken: 
     const resp = await cs.CubeSignerClient.createOidcSession(env, orgId, oidcToken, scopes);
     const csClient = await cs.CubeSignerClient.create(resp.data());
 
-    // const keys = await csClient.sessionKeys()
-    // console.log("Keys", keys);
-    // console.log("Key", keys[0].publicKey.toString());
-    // return keys[0]
     return csClient;
   } catch (err) {
     console.error(err);
@@ -188,7 +189,7 @@ export async function getKey(oidcClient: any, chainType: string, cubistUserid: s
   try {
     console.log("Getting key", cubistUserid);
     const keys = await oidcClient.sessionKeys();
-    const key = await keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == cs.Ed25519.Solana);
+    const key = keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == cs.Ed25519.Solana);
     console.log("Key", keys.length, key.length, key[0]);
     return key[0];
   } catch (err) {

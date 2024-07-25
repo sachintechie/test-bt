@@ -16,37 +16,37 @@ datasource db {
 }
 
 model chaintype {
-  id         String  @id @default(uuid())
-  symbol     String
-  chain      String
-  wallettype String
-  isactive   Boolean
-  createdat  String
+  id         String   @id @default(uuid())
+  symbol     String?
+  chain      String?
+  wallettype String?
+  isactive   Boolean?
+  createdat  String?
 }
 
 model cubistconfig {
-  id                 String  @id @default(uuid())
-  tenantid           String
-  tenant             tenant  @relation(fields: [tenantid], references: [id])
+  id                 String   @id @default(uuid())
+  tenantid           String?
+  tenant             tenant?  @relation(fields: [tenantid], references: [id])
   orgid              String
-  isactive           Boolean
-  createdat          String
-  updatedat          String
+  isactive           Boolean?
+  createdat          String?
+  updatedat          String?
   signersecretname   String
   gaspayersecretname String
 }
 
 model customer {
   id                String             @id @default(uuid())
-  tenantuserid      String
-  tenantid          String
-  tenant            tenant             @relation(fields: [tenantid], references: [id])
-  emailid           String
-  name              String
-  cubistuserid      String
-  isactive          Boolean
-  createdat         String
-  isbonuscredit     Boolean
+  tenantuserid      String?
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  emailid           String?
+  name              String?
+  cubistuserid      String?
+  isactive          Boolean?
+  createdat         String?
+  isbonuscredit     Boolean?
   customerkycs      customerkyc[]
   wallets           wallet[]
   transactions      transaction[]
@@ -55,187 +55,194 @@ model customer {
 }
 
 model customerkyc {
-  id         String   @id @default(uuid())
-  customerid String
-  customer   customer @relation(fields: [customerid], references: [id])
-  kyctype    String
-  type       String
-  kycid      String
-  status     String
-  error      String
-  tenantid   String
-  tenant     tenant   @relation(fields: [tenantid], references: [id])
-  isactive   Boolean
-  createdat  String
-  updatedat  String
+  id         String    @id @default(uuid())
+  customerid String?
+  customer   customer? @relation(fields: [customerid], references: [id])
+  kyctype    String?
+  type       String?
+  kycid      String?
+  status     String?
+  error      String?
+  tenantid   String?
+  tenant     tenant?   @relation(fields: [tenantid], references: [id])
+  isactive   Boolean?
+  createdat  String?
+  updatedat  String?
 }
 
 model gaspayerwallet {
-  id             String  @id @default(uuid())
-  tenantid       String
-  tenant         tenant  @relation(fields: [tenantid], references: [id])
-  walletaddress  String
-  symbol         String
-  walletid       String
-  wallettype     String
-  iscubistwallet Boolean
-  cubistuserid   String
-  isgaspayer     Boolean
-  isactive       Boolean
-  createdat      String
-  publickey      String
+  id             String   @id @default(uuid())
+  tenantid       String?
+  tenant         tenant?  @relation(fields: [tenantid], references: [id])
+  walletaddress  String?
+  symbol         String?
+  walletid       String?
+  wallettype     String?
+  iscubistwallet Boolean?
+  cubistuserid   String?
+  isgaspayer     Boolean?
+  isactive       Boolean?
+  createdat      String?
+  publickey      String?
 }
 
 model masterwallet {
-  id             String  @id @default(uuid())
-  tenantid       String
-  purpose        String
-  walletaddress  String
-  symbol         String
-  walletid       String
-  wallettype     String
-  iscubistwallet Boolean
-  cubistuserid   String
-  isactive       Boolean
-  createdat      String
-  chaintype      String
+  id             String   @id @default(uuid())
+  tenantid       String?
+  purpose        String?
+  walletaddress  String?
+  symbol         String?
+  walletid       String?
+  wallettype     String?
+  iscubistwallet Boolean?
+  cubistuserid   String?
+  isactive       Boolean?
+  createdat      String?
+  chaintype      String?
 }
 
 model stakeaccount {
   id                        String             @id @default(uuid())
-  tenantid                  String
-  customerid                String
-  customer                  customer           @relation(fields: [customerid], references: [id])
-  symbol                    String
+  customerid                String?
   walletaddress             String
-  network                   String
-  stakeaccountpubkey        String
-  status                    String
-  amount                    Float
-  validatornodeaddress      String
+  validatornodeaddress      String?
+  chaintype                 String?
+  symbol                    String
+  amount                    Float?
+  status                    String?
+  network                   String?
+  tenantid                  String?
   tenantuserid              String
   tenanttransactionid       String
-  chaintype                 String
-  lockupexpirationtimestamp String
-  isactive                  Boolean
-  createdat                 String
-  updatedat                 String
-  error                     String
-  staketransactions         staketransaction[]
+  stakeaccountpubkey        String
+  lockupexpirationtimestamp Int?
+  isactive                  Boolean?
+  createdat                 DateTime?          @default(now())
+  updatedat                 DateTime?          @updatedAt
+  error                     String?
+  customer                  customer?          @relation(fields: [customerid], references: [id])
+  tenant                    tenant?            @relation(fields: [tenantid], references: [id])
+  staketransaction          staketransaction[]
 }
 
 model staketransaction {
-  id                    String       @id @default(uuid())
-  tenantid              String
-  customerid            String
-  customer              customer     @relation(fields: [customerid], references: [id])
+  id                    String        @id @default(uuid())
+  customerid            String?
+  type                  String?
   tokenid               String
-  walletaddress         String
-  symbol                String
-  receiverwalletaddress String
-  chaintype             String
-  amount                Float
-  txhash                String
-  status                String
-  tenantuserid          String
-  isactive              Boolean
-  createdat             String
-  updatedat             String
-  error                 String
-  network               String
   tenanttransactionid   String
-  callbackstatus        String
-  stakeaccountid        String
-  stakeaccount          stakeaccount @relation(fields: [stakeaccountid], references: [id])
-  type                  String
+  stakeaccountpubkey    String
+  network               String?
+  status                String?
+  callbackstatus        String?
+  error                 String?
+  tenantuserid          String?
+  walletaddress         String?
+  receiverwalletaddress String?
+  chaintype             String?
+  amount                Float?
+  symbol                String?
+  txhash                String
+  tenantid              String?
+  isactive              Boolean?
+  stakeaccountid        String?
+  createdat             DateTime?     @default(now())
+  updatedat             DateTime?     @updatedAt
+  customer              customer?     @relation(fields: [customerid], references: [id])
+  token                 token?        @relation(fields: [tokenid], references: [id])
+  stakeaccount          stakeaccount? @relation(fields: [stakeaccountid], references: [id])
+  tenant                tenant?       @relation(fields: [tenantid], references: [id])
 }
 
 model sumsubconfig {
-  id              String  @id @default(uuid())
-  tenantid        String
-  baseurl         String
-  sumsubAppToken  String
-  sumsubSecretKey String
+  id              String   @id @default(uuid())
+  tenantid        String?
+  baseurl         String?
+  sumsub_app_token  String
+  sumsub_secret_key String
   ismaster        Boolean
-  isactive        Boolean
-  createdat       String
-  updatedat       String
+  isactive        Boolean?
+  createdat       String?
+  updatedat       String?
 }
 
 model tenant {
-  id              String           @id @default(uuid())
-  name            String
-  apiKey          String
-  logo            String
-  isactive        Boolean
-  createdat       String
-  tenantsecret    String
-  tenantheaderkey String
-  callbackurl     String
-  cubistorgid     String
-  cubistconfig    cubistconfig[]
-  customer        customer[]
-  customerkyc     customerkyc[]
-  gaspayerwallet  gaspayerwallet[]
+  id               String             @id @default(uuid())
+  name             String?
+  apiKey           String?
+  logo             String?
+  isactive         Boolean?
+  createdat        String?
+  tenantsecret     String?
+  tenantheaderkey  String?
+  callbackurl      String?
+  cubistorgid      String?
+  cubistconfig     cubistconfig[]
+  customer         customer[]
+  customerkyc      customerkyc[]
+  gaspayerwallet   gaspayerwallet[]
+  stakeaccount     stakeaccount[]
+  staketransaction staketransaction[]
 }
 
 model token {
-  id               String        @id @default(uuid())
-  name             String
+  id               String             @id @default(uuid())
+  name             String?
   chaintype        String
   contractaddress  String
-  symbol           String
+  symbol           String?
   decimalprecision Int
-  isactive         Boolean
-  createdat        String
+  isactive         Boolean?
+  createdat        String?
   transactions     transaction[]
+  staketransaction staketransaction[]
 }
 
 model transaction {
-  id                    String   @id @default(uuid())
+  id                    String    @id @default(uuid())
   tenantid              String
-  customerid            String
-  customer              customer @relation(fields: [customerid], references: [id])
-  tokenid               String
-  token                 token    @relation(fields: [tokenid], references: [id])
-  walletaddress         String
-  symbol                String
-  receiverwalletaddress String
-  chaintype             String
-  amount                Float
+  customerid            String?
+  customer              customer? @relation(fields: [customerid], references: [id])
+  tokenid               String?
+  token                 token?    @relation(fields: [tokenid], references: [id])
+  walletaddress         String?
+  symbol                String?
+  receiverwalletaddress String?
+  chaintype             String?
+  amount                Float?
   txhash                String
-  status                String
-  tenantuserid          String
-  isactive              Boolean
-  createdat             String
-  updatedat             String
-  error                 String
-  network               String
-  tenanttransactionid   String
-  callbackstatus        String
+  status                String?
+  tenantuserid          String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  error                 String?
+  network               String?
+  tenanttransactionid   String?
+  callbackstatus        String?
 }
 
 model validatornodes {
-  id                   String  @id @default(uuid())
-  tenantid             String
-  validatornodeaddress String
-  name                 String
-  reward               String
-  ismaster             Boolean
-  isactive             Boolean
-  createdat            String
-  updatedat            String
-  chaintype            String
+  id                   String   @id @default(uuid())
+  tenantid             String?
+  validatornodeaddress String?
+  name                 String?
+  reward               String?
+  ismaster             Boolean?
+  isactive             Boolean?
+  createdat            String?
+  updatedat            String?
+  chaintype            String?
 }
 
 model wallet {
-  id            String   @id @default(uuid())
-  customerid    String
-  customer      customer @relation(fields: [customerid], references: [id])
-  walletaddress String
-  chaintype     String
-  wallettype    String
-  walletid      String
-  isactive      Boolean
-  createdat     String
+  id            String    @id @default(uuid())
+  customerid    String?
+  customer      customer? @relation(fields: [customerid], references: [id])
+  walletaddress String?
+  chaintype     String?
+  wallettype    String?
+  walletid      String?
+  isactive      Boolean?
+  createdat     String?
 }

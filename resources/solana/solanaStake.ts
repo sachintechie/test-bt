@@ -3,14 +3,10 @@ import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/
 import {
   createWithdrawTransaction,
   getCubistConfig,
-  getFirstWallet,
-  getStakeAccount,
-  getWalletAndTokenByWalletAddress, insertMergeStakeAccountsTransaction,
+  getFirstWallet, getToken, getWallet,
+  insertMergeStakeAccountsTransaction,
   insertStakeAccount,
   insertStakingTransaction, mergeDbStakeAccounts, removeStakeAccount,
-  updateStakeAccountAmount,
-  updateStakeAccountStatus,
-  updateWallet
 } from "../db/dbFunctions";
 import {
   Connection,
@@ -68,7 +64,7 @@ export async function solanaStaking(
       error: "Cubist Configuration not found for the given tenant"
     };
   // 3. Get first wallet by wallet address, if not found return error
-  const wallet = await getFirstWallet(senderWalletAddress, tenant, symbol);
+  const wallet = await getWallet(senderWalletAddress);
   if (!wallet) {
     return {
       transaction: null,
@@ -131,6 +127,7 @@ export async function solanaStaking(
     tx?.stakeAccountPubKey?.toString() || "",
     lockupExpirationTimestamp
   );
+  const token=await getToken(symbol)
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
     receiverWalletAddress,
@@ -140,13 +137,13 @@ export async function solanaStaking(
     tx?.trxHash || "",
     tenant.id,
     wallet.customerid,
-    wallet.tokenid,
+    token?.id as string,
     tenantUserId,
     process.env["SOLANA_NETWORK"] ?? "",
     txStatus,
     tenantTransactionId,
     tx?.stakeAccountPubKey?.toString() || "",
-    newStakeAccount.stakeaccountid,
+    newStakeAccount.id,
     StakeType.STAKE
   );
   console.log("[solanaStaking]transaction:", transaction);

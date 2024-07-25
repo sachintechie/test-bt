@@ -5,6 +5,7 @@ import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
+import {logWithTrace} from "../utils/utils";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -21,7 +22,7 @@ export async function solanaTransfer(
   chainType: string,
   tenantTransactionId: string
 ) {
-  console.log("Wallet Address", senderWalletAddress);
+  logWithTrace("Wallet Address", senderWalletAddress);
 
   try {
     if (!oidcToken) {
@@ -39,7 +40,7 @@ export async function solanaTransfer(
       }
       const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
       let balance = 0;
-      console.log(wallet, "Wallet");
+      logWithTrace(wallet, "Wallet");
       if (wallet.length == 0) {
         return {
           transaction: null,
@@ -55,7 +56,6 @@ export async function solanaTransfer(
               if (trx.trxHash != null) {
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
                 const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-
                 const transaction = await insertTransaction(
                   senderWalletAddress,
                   receiverWalletAddress,
@@ -84,7 +84,7 @@ export async function solanaTransfer(
           } else if (symbol != "SOL" && token.customerid != null) {
             balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");
             token.balance = balance;
-            if (balance >= amount) {
+            if (balance >= amount && token.decimalprecision != undefined && token.contractaddress != null) {
               const trx = await transferSPLToken(
                 senderWalletAddress,
                 receiverWalletAddress,
@@ -156,7 +156,10 @@ async function transferSOL(
     // Just grab the first key for the user
     const keys = await oidcClient.sessionKeys();
     console.log("Keys", keys);
-    const key = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
+    const key = keys.filter((key: cs.Key) => {
+      console.log(key.materialId)
+      return key.materialId === senderWalletAddress
+    });
 
     if (key.length === 0) {
       return {

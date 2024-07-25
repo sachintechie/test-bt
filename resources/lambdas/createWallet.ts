@@ -53,11 +53,17 @@ async function createCustomerWallet(tenant: tenant, tenantuserid: string, chainT
           }
           const wallet = await createWallet(org, customer.cubistuserid, chainType, customer?.id);
           if ((wallet != null || wallet != undefined) && wallet.data != null) {
-            wallet.data.tenantuserid = tenantuserid;
-            wallet.data.tenantid = tenant.id;
-            wallet.data.emailid = customer.emailid;
+            const newWallet = {
+              walletaddress: wallet.data.walletaddress,
+              createdat: wallet.data.createdat,
+              chaintype: wallet.data.chaintype,
+              tenantuserid: tenantuserid,
+              tenantid: tenant.id,
+              emailid: customer.emailid,
+              customerid: customer.id
+            };
 
-            return { wallet: wallet.data, error: null };
+            return { wallet: newWallet, error: null };
           } else {
             return {
               wallet: null,
