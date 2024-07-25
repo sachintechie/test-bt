@@ -143,7 +143,7 @@ model staketransaction {
   amount                Float?
   symbol                String?
   txhash                String
-  tenantid              String?
+  tenantid              String
   isactive              Boolean?
   stakeaccountid        String?
   createdat             DateTime?     @default(now())
@@ -169,7 +169,7 @@ model sumsubconfig {
 model tenant {
   id               String             @id @default(uuid())
   name             String?
-  apiKey           String?
+  apikey           String?
   logo             String?
   isactive         Boolean?
   createdat        String?

@@ -163,7 +163,7 @@ export async function insertTransaction(
         updatedat: new Date().toISOString()
       }
     });
-    return newTransaction;
+    return {...newTransaction ,transactionid:newTransaction.id};
   } catch (err) {
     throw err;
   }
@@ -213,7 +213,7 @@ export async function insertStakingTransaction(
         createdat: new Date().toISOString()
       }
     });
-    return newStaketransaction;
+    return {...newStaketransaction ,transactionid:newStaketransaction.id};
   } catch (err) {
     throw err;
   }
@@ -257,7 +257,8 @@ export async function insertStakeAccount(
         error: error
       }
     });
-    return newStakeaccount;
+    return {...newStakeaccount ,stakeaccountid:newStakeaccount.id};
+
   } catch (err) {
     throw err;
   }
@@ -544,7 +545,18 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
       }
     });
 
-    return wallet ? wallet.wallets[0] : null;
+    const newWallet = {
+      walletaddress: wallet?.wallets[0].walletaddress,
+      createdat: wallet?.wallets[0].createdat,
+      chaintype: wallet?.wallets[0].chaintype,
+      tenantuserid: wallet?.tenantuserid,
+      tenantid: tenant.id,
+      emailid:  wallet?.emailid,
+      customerid:  wallet?.id
+    };
+    
+
+    return newWallet ? newWallet : null;
   } catch (err) {
     throw err;
   }
@@ -630,7 +642,7 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
   }
 }
 
-export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant,symbol: string) {
   try {
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
@@ -638,16 +650,55 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
         walletaddress: walletAddress
       }
     });
-    const token = await prisma.token.findFirst({
-      where: {
-        symbol: symbol
-      }
-    });
-    return [{ ...wallet, ...token, tokenid: token?.id || "",balance:0 }];
+    let tokens;
+    if(symbol == null){
+       tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || ""  }
+      });
+    }
+    else{
+       tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "",symbol: symbol }
+      });
+    }
+      
+      const walletsWithChainTypePromises = tokens.map(async (t: any) => {
+        const wallet = await prisma.wallet.findFirst({
+          where: { chaintype: t.chaintype,walletaddress: walletAddress
+          }
+        });
+        return { ...t, ...wallet,tokenname: t.name,tokenid: t.id };
+      });
+      return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
     throw err;
   }
 }
+
+export async function getWalletAndTokenByWalletAddressBySymbol(walletAddress: string, tenant: tenant, symbol: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallet = await prisma.wallet.findFirst({
+      where: {
+        walletaddress: walletAddress
+      }
+    });
+      const tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "" ,symbol: symbol }
+      });
+      const walletsWithChainTypePromises = tokens.map(async (t: any) => {
+        const wallet = await prisma.wallet.findFirst({
+          where: { chaintype: t.chaintype,walletaddress: walletAddress
+          }
+        });
+        return { ...t, ...wallet,tokenname: t.name,tokenid: t.id };
+      });
+      return await Promise.all(walletsWithChainTypePromises);
+  } catch (err) {
+    throw err;
+  }
+}
+
 
 export async function getWallet(walletAddress: string) {
   try {
