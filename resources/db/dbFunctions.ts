@@ -544,7 +544,18 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
       }
     });
 
-    return wallet ? wallet.wallets[0] : null;
+    const newWallet = {
+      walletaddress: wallet?.wallets[0].walletaddress,
+      createdat: wallet?.wallets[0].createdat,
+      chaintype: wallet?.wallets[0].chaintype,
+      tenantuserid: wallet?.tenantuserid,
+      tenantid: tenant.id,
+      emailid:  wallet?.emailid,
+      customerid:  wallet?.id
+    };
+    
+
+    return newWallet ? newWallet : null;
   } catch (err) {
     throw err;
   }
