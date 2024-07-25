@@ -28,12 +28,12 @@ model cubistconfig {
   id                 String   @id @default(uuid())
   tenantid           String?
   tenant             tenant?  @relation(fields: [tenantid], references: [id])
-  orgid              String?
+  orgid              String
   isactive           Boolean?
   createdat          String?
   updatedat          String?
-  signersecretname   String?
-  gaspayersecretname String?
+  signersecretname   String
+  gaspayersecretname String
 }
 
 model customer {
@@ -104,17 +104,17 @@ model masterwallet {
 model stakeaccount {
   id                        String             @id @default(uuid())
   customerid                String?
-  walletaddress             String?
+  walletaddress             String
   validatornodeaddress      String?
   chaintype                 String?
-  symbol                    String?
+  symbol                    String
   amount                    Float?
   status                    String?
   network                   String?
-  tenantid                  String?
-  tenantuserid              String?
-  tenanttransactionid       String?
-  stakeaccountpubkey        String?
+  tenantid                  String
+  tenantuserid              String
+  tenanttransactionid       String
+  stakeaccountpubkey        String
   lockupexpirationtimestamp Int?
   isactive                  Boolean?
   createdat                 DateTime?          @default(now())
@@ -129,9 +129,9 @@ model staketransaction {
   id                    String        @id @default(uuid())
   customerid            String?
   type                  String?
-  tokenid               String?
-  tenanttransactionid   String?
-  stakeaccountpubkey    String?
+  tokenid               String
+  tenanttransactionid   String
+  stakeaccountpubkey    String
   network               String?
   status                String?
   callbackstatus        String?
@@ -142,8 +142,8 @@ model staketransaction {
   chaintype             String?
   amount                Float?
   symbol                String?
-  txhash                String?
-  tenantid              String?
+  txhash                String
+  tenantid              String
   isactive              Boolean?
   stakeaccountid        String?
   createdat             DateTime?     @default(now())
@@ -158,9 +158,9 @@ model sumsubconfig {
   id              String   @id @default(uuid())
   tenantid        String?
   baseurl         String?
-  sumsubAppToken  String?
-  sumsubSecretKey String?
-  ismaster        Boolean?
+  sumsub_app_token  String
+  sumsub_secret_key String
+  ismaster        Boolean
   isactive        Boolean?
   createdat       String?
   updatedat       String?
@@ -169,7 +169,7 @@ model sumsubconfig {
 model tenant {
   id               String             @id @default(uuid())
   name             String?
-  apiKey           String?
+  apikey           String?
   logo             String?
   isactive         Boolean?
   createdat        String?
@@ -188,10 +188,10 @@ model tenant {
 model token {
   id               String             @id @default(uuid())
   name             String?
-  chaintype        String?
-  contractaddress  String?
+  chaintype        String
+  contractaddress  String
   symbol           String?
-  decimalprecision Int?
+  decimalprecision Int
   isactive         Boolean?
   createdat        String?
   transactions     transaction[]
@@ -200,7 +200,7 @@ model token {
 
 model transaction {
   id                    String    @id @default(uuid())
-  tenantid              String?
+  tenantid              String
   customerid            String?
   customer              customer? @relation(fields: [customerid], references: [id])
   tokenid               String?
@@ -210,7 +210,7 @@ model transaction {
   receiverwalletaddress String?
   chaintype             String?
   amount                Float?
-  txhash                String?
+  txhash                String
   status                String?
   tenantuserid          String?
   isactive              Boolean?

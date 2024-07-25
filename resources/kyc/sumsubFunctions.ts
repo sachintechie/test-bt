@@ -4,13 +4,14 @@ import { getCustomerKyc, getMasterSumsubConfig, updateCustomerKycStatus } from "
 export const generateAccessToken = async (userId: string, levelName = "basic-kyc-level") => {
   const sumsubConfig = await getMasterSumsubConfig();
   console.log(sumsubConfig);
+  if(sumsubConfig != null) {
   const endPoint = `/resources/accessTokens?ttlInSecs=600&userId=${userId}&levelName=${levelName}`;
   const url = `${sumsubConfig.baseurl}${endPoint}`;
   const options = {
     method: "POST",
     headers: {
       Accept: "application/json",
-      "X-App-Token": sumsubConfig.sumsub_app_token
+      "X-App-Token": sumsubConfig.sumsub_app_token 
     },
     url: endPoint,
     body: ""
@@ -24,10 +25,16 @@ export const generateAccessToken = async (userId: string, levelName = "basic-kyc
     // console.log(error);
     throw "error in getting access token";
   }
+}
+else{
+  throw "error in getting sumsub config";
+
+}
 };
 export const createApplicant = async (userId: string, levelName = "basic-kyc-level") => {
   const sumsubConfig = await getMasterSumsubConfig();
   console.log("sumsubConfig",sumsubConfig);
+  if(sumsubConfig != null) {
   const endPoint = `/resources/applicants?levelName=${encodeURIComponent(levelName)}`;
   const url = `${sumsubConfig.baseurl}${endPoint}`;
   const options = {
@@ -50,9 +57,15 @@ export const createApplicant = async (userId: string, levelName = "basic-kyc-lev
     console.log(error);
     throw "error in creating applicant";
   }
+}
+else{
+  throw "error in getting sumsub config";
 };
+}
 export const getApplicantDataByExternalId = async (userId: string) => {
   const sumsubConfig = await getMasterSumsubConfig();
+  if(sumsubConfig != null) {
+
   const endPoint = `/resources/applicants/-;externalUserId=${userId}/one`;
   const url = `${sumsubConfig.baseurl}${endPoint}`;
   const options = {
@@ -60,7 +73,7 @@ export const getApplicantDataByExternalId = async (userId: string) => {
     method: "GET",
     headers: {
       "content-type": "application/json",
-      "X-App-Token": sumsubConfig.sumsub_app_token
+      "X-App-Token": sumsubConfig.sumsub_app_token 
     }
   };
    createSignature(options,sumsubConfig.sumsub_secret_key);
@@ -73,6 +86,10 @@ export const getApplicantDataByExternalId = async (userId: string) => {
      console.log(error);
     throw "error in getting applicant data";
   }
+}
+else{
+  throw "error in getting sumsub config";
+}
 };
 
 export const sumsubWebhookListener = async (event: any) => {

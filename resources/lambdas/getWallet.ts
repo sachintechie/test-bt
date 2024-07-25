@@ -45,11 +45,13 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
     if (customer != null && customer?.cubistuserid) {
       const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
       if (wallet != null && wallet != undefined) {
+        console.log("Wallet found", wallet);
+        
         return { wallet, error: null };
       } else {
         const { org, orgId } = await getCsClient(tenant.id);
      
-        const oidcClient = await oidcLogin(env, orgId, oidcToken, ["sign:*"]);
+        const oidcClient = await oidcLogin(env, orgId || "", oidcToken, ["sign:*"]);
         const cubistUser = await oidcClient?.user();
         console.log("Created cubesigner user", oidcClient, cubistUser);
         if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid)) {
@@ -62,11 +64,19 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         console.log("getKey cubesigner user", key, customer.cubistuserid);
 
         const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType, customer.id, key);
-        wallet.tenantuserid = tenantuserid;
-        wallet.tenantid = tenant.id;
-        wallet.emailid = customer.emailid;
+        const newWallet = { 
+          walletaddress: wallet.data.walletaddress,
+          createdat: wallet.data.createdat,
+          chaintype: wallet.data.chaintype,
+          tenantuserid: tenantuserid,
+          tenantid: tenant.id,
+          emailid: customer.emailid,
+          customerid: customer.id
+        };
+        
+  
 
-        return { wallet, error: null };
+        return { newWallet, error: null };
 
         // return {
         //   wallet: null,
@@ -89,7 +99,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             };
           }
           console.log("Created cubesigner client", client);
-          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
+          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId || "", oidcToken);
 
           console.log("Verifying identity", proof);
 
@@ -128,11 +138,18 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
 
             const wallet = await createWallet(org, cubistUserId, chainType, customerId);
             if ((wallet != null || wallet != undefined) && wallet.data != null) {
-              wallet.data.tenantuserid = tenantuserid;
-              wallet.data.tenantid = tenant.id;
-              wallet.data.emailid = email;
+            const newWallet = {
+              walletaddress: wallet.data.walletaddress,
+              createdat: wallet.data.createdat,
+              chaintype: wallet.data.chaintype,
+              tenantuserid: tenantuserid,
+              tenantid: tenant.id,
+              emailid: email,
+              customerid: customerId
+            };
+            
 
-              return { wallet: wallet.data, error: null };
+              return { wallet: newWallet, error: null };
             } else {
               return {
                 wallet: null,

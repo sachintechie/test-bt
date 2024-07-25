@@ -1,6 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "../db/models";
-import { getCubistConfig, getWalletAndTokenByWalletAddress, insertTransaction } from "../db/dbFunctions";
+import { getCubistConfig, getWalletAndTokenByWalletAddressBySymbol, insertTransaction } from "../db/dbFunctions";
 import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
@@ -22,7 +22,7 @@ export async function solanaTransfer(
   chainType: string,
   tenantTransactionId: string
 ) {
-  logWithTrace("Wallet Address", senderWalletAddress);
+  logWithTrace("Wallet Address", senderWalletAddress,symbol,"symbol");
 
   try {
     if (!oidcToken) {
@@ -38,7 +38,7 @@ export async function solanaTransfer(
           error: "Cubist Configuration not found for the given tenant"
         };
       }
-      const wallet = await getWalletAndTokenByWalletAddress(senderWalletAddress, tenant, symbol);
+      const wallet = await getWalletAndTokenByWalletAddressBySymbol(senderWalletAddress, tenant, symbol);
       let balance = 0;
       logWithTrace(wallet, "Wallet");
       if (wallet.length == 0) {
@@ -48,15 +48,17 @@ export async function solanaTransfer(
         };
       } else {
         for (const token of wallet) {
-          if (symbol === "SOL" && token.customerid != null) {
+
+          if (token.symbol == symbol && symbol === "SOL" && token.customerid != null) {
+            console.log(token, "SOL data");
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
+            console.log("Balance", balance);
             if (balance >= amount) {
               const trx = await transferSOL(senderWalletAddress, receiverWalletAddress, amount, oidcToken, cubistConfig.orgid);
               if (trx.trxHash != null) {
                 const transactionStatus = await verifySolanaTransaction(trx.trxHash);
                 const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-
                 const transaction = await insertTransaction(
                   senderWalletAddress,
                   receiverWalletAddress,
@@ -82,10 +84,14 @@ export async function solanaTransfer(
                 error: "Insufficient SOL balance"
               };
             }
-          } else if (symbol != "SOL" && token.customerid != null) {
+          } 
+          else if (token.symbol == symbol && symbol !== "SOL" && token.customerid != null) {
+            console.log(token, "Token data");
+
             balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");
+            console.log("Balance", balance);  
             token.balance = balance;
-            if (balance >= amount) {
+            if (balance >= amount && token.decimalprecision != undefined && token.contractaddress != null) {
               const trx = await transferSPLToken(
                 senderWalletAddress,
                 receiverWalletAddress,
@@ -129,6 +135,7 @@ export async function solanaTransfer(
               };
             }
           }
+
         }
         return { transaction: null, error: "Wallet not found" };
       }
