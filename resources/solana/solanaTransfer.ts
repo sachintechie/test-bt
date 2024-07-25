@@ -48,7 +48,8 @@ export async function solanaTransfer(
         };
       } else {
         for (const token of wallet) {
-          if (symbol === "SOL" && token.customerid != null) {
+
+          if (token.symbol === "SOL" && token.customerid != null) {
             console.log(token, "SOL data");
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
@@ -83,7 +84,8 @@ export async function solanaTransfer(
                 error: "Insufficient SOL balance"
               };
             }
-          } else if (symbol != "SOL" && token.customerid != null) {
+          } 
+          else if (token.symbol !== "SOL" && token.customerid != null) {
             console.log(token, "Token data");
 
             balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");
@@ -133,6 +135,7 @@ export async function solanaTransfer(
               };
             }
           }
+
         }
         return { transaction: null, error: "Wallet not found" };
       }
