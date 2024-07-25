@@ -40,7 +40,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
       return {
         ...databaseInfoEnv,
         SOLANA_NETWORK: "mainnet",
-        SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=1dd727f9-2fa9-4081-ae1f-7fe985afd321",
+        SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
         CS_API_ROOT: "https://prod.signer.cubist.dev"
       };
     default:
