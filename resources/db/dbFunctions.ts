@@ -657,7 +657,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
           where: { chaintype: t.chaintype,walletaddress: walletAddress
           }
         });
-        return { ...t, ...wallet,tokenname: t.name };
+        return { ...t, ...wallet,tokenname: t.name,tokenid: t.id };
       });
       return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
