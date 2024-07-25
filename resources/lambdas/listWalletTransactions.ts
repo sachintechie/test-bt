@@ -1,4 +1,4 @@
-import { getTransactionsByWalletAddress, getWalletAndTokenByWalletAddress } from "../db/dbFunctions";
+import { getTransactionsByWalletAddress } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {

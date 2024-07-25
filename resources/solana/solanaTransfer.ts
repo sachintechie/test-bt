@@ -49,7 +49,7 @@ export async function solanaTransfer(
       } else {
         for (const token of wallet) {
 
-          if (token.symbol === "SOL" && token.customerid != null) {
+          if (token.symbol == symbol && symbol === "SOL" && token.customerid != null) {
             console.log(token, "SOL data");
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
@@ -85,7 +85,7 @@ export async function solanaTransfer(
               };
             }
           } 
-          else if (token.symbol !== "SOL" && token.customerid != null) {
+          else if (token.symbol == symbol && symbol !== "SOL" && token.customerid != null) {
             console.log(token, "Token data");
 
             balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");

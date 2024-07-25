@@ -641,7 +641,7 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
   }
 }
 
-export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol?: string) {
   try {
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
@@ -650,7 +650,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
       }
     });
       const tokens = await prisma.token.findMany({
-        where: { chaintype: wallet?.chaintype || "" }
+        where: { chaintype: wallet?.chaintype || "" ,symbol: symbol }
       });
       const walletsWithChainTypePromises = tokens.map(async (t: any) => {
         const wallet = await prisma.wallet.findFirst({
