@@ -22,7 +22,7 @@ export async function solanaTransfer(
   chainType: string,
   tenantTransactionId: string
 ) {
-  logWithTrace("Wallet Address", senderWalletAddress);
+  logWithTrace("Wallet Address", senderWalletAddress,symbol,"symbol");
 
   try {
     if (!oidcToken) {
@@ -49,9 +49,10 @@ export async function solanaTransfer(
       } else {
         for (const token of wallet) {
           if (symbol === "SOL" && token.customerid != null) {
-            console.log(token, "Token data");
+            console.log(token, "SOL data");
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
+            console.log("Balance", balance);
             if (balance >= amount) {
               const trx = await transferSOL(senderWalletAddress, receiverWalletAddress, amount, oidcToken, cubistConfig.orgid);
               if (trx.trxHash != null) {
