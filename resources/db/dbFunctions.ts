@@ -59,8 +59,11 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
         isactive: true,
         createdat: new Date().toISOString()
       }
+
     });
-    return newWallet;
+
+    return { data: newWallet, error: null };
+
   } catch (err) {
     throw err;
   }
@@ -640,7 +643,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
         symbol: symbol
       }
     });
-    return [{ ...wallet, ...token, tokenid: token?.id }];
+    return [{ ...wallet, ...token, tokenid: token?.id || "",balance:0 }];
   } catch (err) {
     throw err;
   }
