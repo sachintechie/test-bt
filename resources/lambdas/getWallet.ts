@@ -76,7 +76,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         
   
 
-        return { newWallet, error: null };
+        return { wallet:newWallet, error: null };
 
         // return {
         //   wallet: null,
