@@ -651,7 +651,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
       }
     });
     let tokens;
-    if(symbol == null){
+    if(symbol == null || symbol== ""){
        tokens = await prisma.token.findMany({
         where: { chaintype: wallet?.chaintype || ""  }
       });
