@@ -25,11 +25,10 @@ async function deleteMasterUserAndWallet() {
     const schoolhackTenantId = "4a997e70-812f-4c0d-af79-71d0cbb5d562"; //prod
     const tenant = await getTenantCallBackUrl(schoolhackTenantId);
     console.log("Tenant", tenant);
-    // const customerWallets = ["User#2a088449-8006-4cfa-8b71-ca07e5594e74","User#ba347561-6f2b-4e51-83d3-e849b013687f","User#cf9fc58e-e2c1-4e5b-a2eb-639c3842fdfb","User#f27ffff3-0a6a-4f88-b305-043f08cdb8e8"]
+    // const customerWallets = ["User#2a088449-8006-4cfa-8b71-ca07e5594e74","User#cf9fc58e-e2c1-4e5b-a2eb-639c3842fdfb","User#f27ffff3-0a6a-4f88-b305-043f08cdb8e8"]
     const customerWallets = ["User#ba347561-6f2b-4e51-83d3-e849b013687f"];
     if (tenant != null && customerWallets != null && customerWallets?.length > 0) {
       const updatedCustomer = await deleteMasterCubistUser(customerWallets, tenant.id);
-
       return {
         status: 200,
         data: updatedCustomer
