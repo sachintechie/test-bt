@@ -176,7 +176,7 @@ export async function deleteMasterCubistUser( customerWallets:any[],tenantId: st
     if (cubistConfig == null) {
       return { key: null, error: "Cubist config not found for this tenant" };
     }
-    const {org} = await getCsClientBySecretName(tenantId,"SchoolHackDeleteUserAndKey");
+    const {org} = await getCsClientBySecretName(tenantId,"SchoolHackDeleteUser-PROD");
     const keys = await org.keys();
 
    const users = await org.users();
