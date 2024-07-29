@@ -76,7 +76,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         
   
 
-        return { newWallet, error: null };
+        return { wallet:newWallet, error: null };
 
         // return {
         //   wallet: null,
@@ -116,8 +116,6 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
-            org.deleteUser("nnbnb");
-            4;
             const cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name
             });
@@ -158,6 +156,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             }
           } else {
             const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
+            console.log("Wallet found", wallet);
             if (wallet != null && wallet != undefined) {
               return { wallet, error: null };
             } else {
