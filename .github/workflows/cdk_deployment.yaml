@@ -7,6 +7,7 @@ on:
       - dev
       - staging
       - prod
+      - schoolhack-dev
 
 
 jobs:
@@ -90,3 +91,30 @@ jobs:
         env:
           CDK_ENV: 'prod'
         run: npx cdk deploy --context env=prod --all --require-approval never
+
+  cdk-deploy-schoolhack-dev:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/schoolhack-dev'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Set up AWS credentials for schoolhack-dev
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_SCHOOLHACK_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_SCHOOLHACK_DEV }}
+          aws-region: ${{ secrets.AWS_REGION_SCHOOLHACK_DEV }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to schoolhack-dev
+        env:
+          CDK_ENV: 'schoolhack-dev'
+        run: npx cdk deploy --context env=schoolhack-dev --all --require-approval never    
