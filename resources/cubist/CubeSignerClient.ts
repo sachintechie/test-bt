@@ -177,10 +177,9 @@ export async function deleteMasterCubistUser( customerWallets:any[],tenantId: st
       return { key: null, error: "Cubist config not found for this tenant" };
     }
     const {org} = await getCsClientBySecretName(tenantId,"SchoolHackDeleteUser-PROD");
-    const keys = await org.keys();
 
    const users = await org.users();
-   console.log("total org user",users.length,"total org keys",keys.length);
+   console.log("total org user",users.length);
 
     // const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(cubistConfig.gaspayersecretname));
    // console.log("Client created", client);
