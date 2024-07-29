@@ -129,7 +129,7 @@ export async function getPayerCsSignerKey(chainType: string, tenantId: string) {
  * Use a CubeSigner token from AWS Secrets Manager to retrieve information
  * about the current user
  */
-export async function deleteCubistUserKey( tenantId: string,customerWallets:any[]) {
+export async function deleteCubistUserKey( customerWallets:any[],tenantId: string,) {
   try {
     const cubistConfig = await getCubistConfig(tenantId);
     if (cubistConfig == null) {
@@ -154,6 +154,42 @@ export async function deleteCubistUserKey( tenantId: string,customerWallets:any[
     const customerId = await deleteCustomer(customer.customerid,tenantId);
     const walletId = await deleteWallet(customer.customerid,customer.walletaddress);
     deletedUsers.push({customerId,walletId,deletedUser});
+    console.log("Deleted user", user);
+   }
+   
+
+    return {  user : deletedUsers,error: null };
+  } catch (err) {
+    console.error(err);
+    return { key: null, error: "Erorr in creating cubist client for gas payer" };
+  }
+}
+
+
+/**
+ * Use a CubeSigner token from AWS Secrets Manager to retrieve information
+ * about the current user
+ */
+export async function deleteMasterCubistUser( customerWallets:any[],tenantId: string) {
+  try {
+    const cubistConfig = await getCubistConfig(tenantId);
+    if (cubistConfig == null) {
+      return { key: null, error: "Cubist config not found for this tenant" };
+    }
+    const {org} = await getCsClientBySecretName(tenantId,"SchoolHackDeleteUser-PROD");
+
+   const users = await org.users();
+   console.log("total org user",users.length);
+
+    // const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(cubistConfig.gaspayersecretname));
+   // console.log("Client created", client);
+   // const keys = await client.sessionKeys();
+   let deletedUsers = [];
+   for (const customer of customerWallets) {
+    const user =  users.filter((user )=> user.id === customer);
+    // const key = await cs.CubeSignerKey.get(cubistUserId);
+    const deletedUser = await org.deleteUser(user[0].id);
+    deletedUsers.push({deletedUser});
     console.log("Deleted user", user);
    }
    
