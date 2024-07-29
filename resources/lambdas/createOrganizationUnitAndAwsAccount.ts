@@ -15,9 +15,9 @@ const roleName = 'OrganizationAccountAccessRole';
 
 
 export const handler = async (event: any, context: any) => {
+  console.log("Creating new OU and AWS account",event);
   const { ouName, accountName, email } = event.arguments?.input;
   try {
-    console.log("Creating new OU and AWS account",event);
     // Step 1: Create the new OU
     const createOUCommand = new CreateOrganizationalUnitCommand({
       ParentId: parentId,
