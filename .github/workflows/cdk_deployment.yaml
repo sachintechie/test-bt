@@ -92,7 +92,7 @@ jobs:
           CDK_ENV: 'prod'
         run: npx cdk deploy --context env=prod --all --require-approval never
 
-   cdk-deploy-schoolhack-dev:
+  cdk-deploy-schoolhack-dev:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/schoolhack-dev'
     steps:
