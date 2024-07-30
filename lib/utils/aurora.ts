@@ -58,3 +58,23 @@ export const getDevOrProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
     secretName:SECRET_NAME
   };
 }
+
+export const getSchoolhackProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
+  const secret = secretsmanager.Secret.fromSecretCompleteArn(scope, env`${AURORA_CREDENTIALS_SECRET_NAME}`, 'arn:aws:secretsmanager:us-east-1:010928220518:secret:aurora-db-credentials-schoolhack-dev-ZXtymM');
+  // Construct the DATABASE_URL environment variable for Prisma
+  return {databaseUrl:cdk.Fn.join('', [
+      'postgresql://',
+      secret.secretValueFromJson('username').unsafeUnwrap(),
+      ':',
+      secret.secretValueFromJson('password').unsafeUnwrap(),
+      '@',
+      'btappsyncstackschoolhackd-auroraclusterschoolhackd-a5d1ljzhz7ux.cluster-cvk24k6w6y5j.us-east-1.rds.amazonaws.com',
+      ':5432/',
+      isDevLike()?DB_NAME:PROD_DB_NAME,
+    ]),
+    host:'btappsyncstackschoolhackd-auroraclusterschoolhackd-a5d1ljzhz7ux.cluster-cvk24k6w6y5j.us-east-1.rds.amazonaws.com',
+    port:"5432",
+    dbName: isDevLike()?DB_NAME:PROD_DB_NAME,
+    secretName:'aurora-db-credentials-schoolhack-dev'
+  };
+}

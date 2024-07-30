@@ -9,6 +9,10 @@ export const isDevOrProd = () => {
   return environment === "dev"|| environment === "prod";
 }
 
+export const isSchoolhackProd = () => {
+  return environment === "schoolhack-prod";
+}
+
 export const isDev = () => {
   return environment === "dev";
 }
