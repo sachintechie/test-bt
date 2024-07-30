@@ -171,6 +171,7 @@ export async function stakeSol(
       };
     }
     const keys = await oidcClient.sessionKeys();
+    console.log("Keys", keys);  
     if (keys.length === 0) {
       return {
         trxHash: null,
