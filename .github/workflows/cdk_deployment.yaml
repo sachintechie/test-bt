@@ -8,6 +8,7 @@ on:
       - staging
       - prod
       - schoolhack-dev
+      - schoolhack-prod
 
 
 jobs:
