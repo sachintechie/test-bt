@@ -31,15 +31,15 @@ export class BridgeTowerLambdaStack extends Stack {
     this.lambdaMap=new Map<string, lambda.Function>();
 
     let databaseInfo:DatabaseInfo;
-    if(!isDevOrProd()){
+    if(isSchoolhackProd()){
+      databaseInfo = getSchoolhackProdDatabaseInfo(this);
+    }else if(!isDevOrProd()){
       // Import the Aurora stack
       const auroraStack = new AuroraStack(this, env`BTAuroraStack`, {
         env:envConfig
       });
       // Fetch the database credentials from Secrets Manager
-       databaseInfo = getDatabaseInfo(this, auroraStack);
-    }else if(isSchoolhackProd()){
-      databaseInfo = getSchoolhackProdDatabaseInfo(this);
+      databaseInfo = getDatabaseInfo(this, auroraStack);
     }else{
       databaseInfo = getDevOrProdDatabaseInfo(this);
     }
