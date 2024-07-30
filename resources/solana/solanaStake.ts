@@ -125,7 +125,7 @@ export async function solanaStaking(
     stakeAccountStatus,
     tenantTransactionId,
     tx?.stakeAccountPubKey?.toString() || "",
-    lockupExpirationTimestamp
+    lockupExpirationTimestamp = null ? 0: lockupExpirationTimestamp
   );
   const token=await getToken(symbol)
   const transaction = await insertStakingTransaction(
@@ -171,6 +171,7 @@ export async function stakeSol(
       };
     }
     const keys = await oidcClient.sessionKeys();
+    console.log("Keys", keys);  
     if (keys.length === 0) {
       return {
         trxHash: null,
