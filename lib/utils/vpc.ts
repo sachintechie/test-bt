@@ -2,7 +2,7 @@ import {IVpc, Vpc} from "aws-cdk-lib/aws-ec2";
 import {Construct} from "constructs";
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import {env, environment} from "./env";
+import { env, environment} from "./env";
 
 let vpcSingleton:IVpc
 
