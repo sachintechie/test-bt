@@ -9,7 +9,7 @@ import {getSecurityGroups} from "./utils/security_group";
 
 export const AURORA_CREDENTIALS_SECRET_NAME = 'AuroraCredentials';
 const DB_NAME = 'auroradb';
-const USERNAME = 'auroraadmin'
+const USERNAME = 'auroraadmin';
 
 export class AuroraStack extends cdk.Stack {
   public readonly dbEndpoint: cdk.CfnOutput;
