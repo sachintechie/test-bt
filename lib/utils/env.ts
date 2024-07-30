@@ -75,6 +75,16 @@ export function env(strings: TemplateStringsArray, ...values: any[]): string {
   return result + "-" + environment;
 }
 
+export function devenv(strings: TemplateStringsArray, ...values: any[]): string {
+  const envVar=env(strings, ...values);
+  return envVar.replace( '-prod','-dev');
+}
+
+export function isDevLike(){
+  return (environment as string).includes("dev");
+}
+
+
 
 export const envConfig: Environment = {
   account: process.env.CDK_DEFAULT_ACCOUNT,
