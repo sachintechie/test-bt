@@ -6,7 +6,7 @@ import {readFilesFromFolder} from "./utils/utils";
 import {AuroraStack} from "./bridgetower-aurora-stack";
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as cdk from 'aws-cdk-lib';
-import {env, envConfig, isDev, isDevOrProd, isSchoolhackProd} from "./utils/env";
+import {env, envConfig, isDevOrProd} from "./utils/env";
 import {
   DatabaseInfo,
   getDatabaseInfo,
