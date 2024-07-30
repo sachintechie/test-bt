@@ -70,11 +70,11 @@ export const getSchoolhackProdDatabaseInfo = (scope: Construct):DatabaseInfo => 
       '@',
       'btappsyncstackschoolhackd-auroraclusterschoolhackd-a5d1ljzhz7ux.cluster-cvk24k6w6y5j.us-east-1.rds.amazonaws.com',
       ':5432/',
-      isDevLike()?DB_NAME:PROD_DB_NAME,
+      PROD_DB_NAME,
     ]),
     host:'btappsyncstackschoolhackd-auroraclusterschoolhackd-a5d1ljzhz7ux.cluster-cvk24k6w6y5j.us-east-1.rds.amazonaws.com',
     port:"5432",
-    dbName: isDevLike()?DB_NAME:PROD_DB_NAME,
+    dbName: PROD_DB_NAME,
     secretName:'aurora-db-credentials-schoolhack-dev'
   };
 }
