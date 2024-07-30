@@ -125,7 +125,7 @@ export async function solanaStaking(
     stakeAccountStatus,
     tenantTransactionId,
     tx?.stakeAccountPubKey?.toString() || "",
-    lockupExpirationTimestamp
+    lockupExpirationTimestamp = null ? 0: lockupExpirationTimestamp
   );
   const token=await getToken(symbol)
   const transaction = await insertStakingTransaction(
