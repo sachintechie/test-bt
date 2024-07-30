@@ -114,6 +114,11 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Bootstrap the CDK
+        env:
+          CDK_ENV: 'schoolhack-dev'
+        run: npx cdk bootstrap
+
       - name: Deploy to schoolhack-dev
         env:
           CDK_ENV: 'schoolhack-dev'
