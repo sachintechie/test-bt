@@ -117,7 +117,7 @@ model stakeaccount {
   stakeaccountpubkey        String
   lockupexpirationtimestamp Int?
   isactive                  Boolean?
-  createdat                 String?          @default(now())
+  createdat                 String?          
   updatedat                 String?          @updatedAt
   error                     String?
   customer                  customer?          @relation(fields: [customerid], references: [id])
@@ -146,7 +146,7 @@ model staketransaction {
   tenantid              String
   isactive              Boolean?
   stakeaccountid        String?
-  createdat             String?     @default(now())
+  createdat             String?    
   updatedat             String?     @updatedAt
   customer              customer?     @relation(fields: [customerid], references: [id])
   token                 token?        @relation(fields: [tokenid], references: [id])
