@@ -139,9 +139,9 @@ jobs:
       - name: Set up AWS credentials for schoolhack-prod
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_SCHOOLHACK_PROD }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_SCHOOLHACK_PROD }}
-          aws-region: ${{ secrets.AWS_REGION_SCHOOLHACK_PROD }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_SCHOOLHACK_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_SCHOOLHACK_DEV }}
+          aws-region: ${{ secrets.AWS_REGION_SCHOOLHACK_DEV }}
 
       - name: Install dependencies
         run: npm install
