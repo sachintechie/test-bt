@@ -79,11 +79,6 @@ export function env(strings: TemplateStringsArray, ...values: any[]): string {
   return result + "-" + environment;
 }
 
-export function devenv(strings: TemplateStringsArray, ...values: any[]): string {
-  const envVar=env(strings, ...values);
-  return envVar.replace( '-prod','-dev');
-}
-
 export function isDevLike(){
   return (environment as string).includes("dev");
 }

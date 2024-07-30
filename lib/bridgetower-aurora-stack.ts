@@ -3,7 +3,7 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import {devenv, env} from "./utils/env";
+import { env} from "./utils/env";
 import {getVpcConfig} from "./utils/vpc";
 import {getSecurityGroups} from "./utils/security_group";
 
@@ -22,7 +22,7 @@ export class AuroraStack extends cdk.Stack {
 
     
     // Create a secret for the Aurora DB credentials
-    const secret = new secretsmanager.Secret(this, devenv`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+    const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
       secretName: SECRET_NAME,
       generateSecretString: {
         secretStringTemplate: JSON.stringify({
@@ -36,7 +36,7 @@ export class AuroraStack extends cdk.Stack {
     });
 
     // Create the Aurora cluster
-    const cluster = new rds.DatabaseCluster(this, devenv`AuroraCluster`, {
+    const cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
       engine: rds.DatabaseClusterEngine.auroraPostgres({
         version: rds.AuroraPostgresEngineVersion.VER_15_4,
       }),
