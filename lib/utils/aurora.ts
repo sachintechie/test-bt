@@ -1,8 +1,14 @@
 // Fetch the database credentials from Secrets Manager
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
-import {env, isDev} from "./env";
+import {env, isDev, isDevLike} from "./env";
 import * as cdk from "aws-cdk-lib";
-import {AURORA_CREDENTIALS_SECRET_NAME, AuroraStack} from "../bridgetower-aurora-stack";
+import {
+  AURORA_CREDENTIALS_SECRET_NAME,
+  AuroraStack,
+  DB_NAME,
+  PROD_DB_NAME,
+  SECRET_NAME
+} from "../bridgetower-aurora-stack";
 import {Construct} from "constructs";
 
 export interface DatabaseInfo {
@@ -28,8 +34,8 @@ export const getDatabaseInfo = (scope: Construct,auroraStack:AuroraStack):Databa
   ]),
     host:auroraStack.dbEndpoint.value,
     port:"5432",
-    dbName:auroraStack.dbName.value,
-    secretName:secret.secretName
+    dbName:isDevLike()?DB_NAME:PROD_DB_NAME,
+    secretName:SECRET_NAME
   };
 }
 
@@ -49,6 +55,6 @@ export const getDevOrProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
     host:'schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com',
     port:"5432",
     dbName: isDev()?"dev":"prod",
-    secretName:secret.secretName
+    secretName:SECRET_NAME
   };
 }

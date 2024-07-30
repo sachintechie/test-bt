@@ -3,13 +3,15 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
-import {env} from "./utils/env";
+import {devenv, env} from "./utils/env";
 import {getVpcConfig} from "./utils/vpc";
 import {getSecurityGroups} from "./utils/security_group";
 
 export const AURORA_CREDENTIALS_SECRET_NAME = 'AuroraCredentials';
-const DB_NAME = 'auroradb';
+export const DB_NAME = 'auroradb';
+export const PROD_DB_NAME = 'auroradb_prod';
 const USERNAME = 'auroraadmin'
+export const SECRET_NAME=env`aurora-db-credentials`
 
 export class AuroraStack extends cdk.Stack {
   public readonly dbEndpoint: cdk.CfnOutput;
@@ -21,8 +23,8 @@ export class AuroraStack extends cdk.Stack {
 
     
     // Create a secret for the Aurora DB credentials
-    const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
-      secretName: env`aurora-db-credentials`,
+    const secret = new secretsmanager.Secret(this, devenv`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+      secretName: SECRET_NAME,
       generateSecretString: {
         secretStringTemplate: JSON.stringify({
           username: USERNAME,
@@ -35,7 +37,7 @@ export class AuroraStack extends cdk.Stack {
     });
 
     // Create the Aurora cluster
-    const cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
+    const cluster = new rds.DatabaseCluster(this, devenv`AuroraCluster`, {
       engine: rds.DatabaseClusterEngine.auroraPostgres({
         version: rds.AuroraPostgresEngineVersion.VER_15_4,
       }),
@@ -51,6 +53,7 @@ export class AuroraStack extends cdk.Stack {
       storageEncrypted: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production use
     });
+
 
     // Output the necessary environment variables
     this.dbEndpoint = new cdk.CfnOutput(this, env`DBEndpoint`, {
