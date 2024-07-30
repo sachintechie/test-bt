@@ -10,7 +10,7 @@ import {env, envConfig, isDev, isDevOrProd, isSchoolhackProd} from "./utils/env"
 import {
   DatabaseInfo,
   getDatabaseInfo,
-  getDevOrProdDatabaseInfo, getSchoolhackProdDatabaseInfo
+  getDevOrProdDatabaseInfo
 } from "./utils/aurora";
 
 
@@ -31,9 +31,7 @@ export class BridgeTowerLambdaStack extends Stack {
     this.lambdaMap=new Map<string, lambda.Function>();
 
     let databaseInfo:DatabaseInfo;
-    if(isSchoolhackProd()){
-      databaseInfo = getSchoolhackProdDatabaseInfo(this);
-    }else if(!isDevOrProd()){
+    if(!isDevOrProd()){
       // Import the Aurora stack
       const auroraStack = new AuroraStack(this, env`BTAuroraStack`, {
         env:envConfig
@@ -55,7 +53,6 @@ export class BridgeTowerLambdaStack extends Stack {
       const provider = new cr.Provider(this, env`MigrateProvider`, {
         onEventHandler: this.lambdaMap.get(MIGRATION_LAMBDA_NAME)!,
       });
-
       new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.6'} });
     }
   }

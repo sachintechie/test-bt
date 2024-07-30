@@ -9,7 +9,6 @@ import {getSecurityGroups} from "./utils/security_group";
 
 export const AURORA_CREDENTIALS_SECRET_NAME = 'AuroraCredentials';
 export const DB_NAME = 'auroradb';
-export const PROD_DB_NAME = 'auroradb_prod';
 const USERNAME = 'auroraadmin'
 export const SECRET_NAME=env`aurora-db-credentials`
 

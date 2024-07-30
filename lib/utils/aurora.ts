@@ -1,12 +1,11 @@
 // Fetch the database credentials from Secrets Manager
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
-import {env, isDev, isDevLike} from "./env";
+import {env, isDev} from "./env";
 import * as cdk from "aws-cdk-lib";
 import {
   AURORA_CREDENTIALS_SECRET_NAME,
   AuroraStack,
   DB_NAME,
-  PROD_DB_NAME,
   SECRET_NAME
 } from "../bridgetower-aurora-stack";
 import {Construct} from "constructs";
@@ -34,7 +33,7 @@ export const getDatabaseInfo = (scope: Construct,auroraStack:AuroraStack):Databa
   ]),
     host:auroraStack.dbEndpoint.value,
     port:"5432",
-    dbName:isDevLike()?DB_NAME:PROD_DB_NAME,
+    dbName:DB_NAME,
     secretName:SECRET_NAME
   };
 }
@@ -56,25 +55,5 @@ export const getDevOrProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
     port:"5432",
     dbName: isDev()?"dev":"prod",
     secretName:SECRET_NAME
-  };
-}
-
-export const getSchoolhackProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
-  const secret = secretsmanager.Secret.fromSecretCompleteArn(scope, env`${AURORA_CREDENTIALS_SECRET_NAME}`, 'arn:aws:secretsmanager:us-east-1:010928220518:secret:aurora-db-credentials-schoolhack-dev-ZXtymM');
-  // Construct the DATABASE_URL environment variable for Prisma
-  return {databaseUrl:cdk.Fn.join('', [
-      'postgresql://',
-      secret.secretValueFromJson('username').unsafeUnwrap(),
-      ':',
-      secret.secretValueFromJson('password').unsafeUnwrap(),
-      '@',
-      'btappsyncstackschoolhackd-auroraclusterschoolhackd-a5d1ljzhz7ux.cluster-cvk24k6w6y5j.us-east-1.rds.amazonaws.com',
-      ':5432/',
-      PROD_DB_NAME,
-    ]),
-    host:'btappsyncstackschoolhackd-auroraclusterschoolhackd-a5d1ljzhz7ux.cluster-cvk24k6w6y5j.us-east-1.rds.amazonaws.com',
-    port:"5432",
-    dbName: PROD_DB_NAME,
-    secretName:'aurora-db-credentials-schoolhack-dev'
   };
 }
