@@ -275,6 +275,18 @@ type CustomerKyc {
 	error: AWSJSON
 }
 
+type CustomerAndWalletCounts{
+status: Int
+	data: CustomerAndWalletCountData
+	error: AWSJSON
+	}
+
+	type CustomerAndWalletCountData{
+		customer: Int
+		wallet: Int
+	}
+
+
 type CustomerKycData{
 	id: String
 	createdat: String
@@ -334,6 +346,7 @@ type Query {
     ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
     ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
     ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
+	CustomerAndWalletCounts() : CustomerAndWalletCounts
     MasterTransfer(input: MasterTransferInput): Transfer
 	Signin(input: SigninInput): SignIn
     Staking(input: StakingInput): Staking
