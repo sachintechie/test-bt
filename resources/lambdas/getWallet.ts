@@ -42,6 +42,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
   try {
     console.log("createUser", tenant.id, tenantuserid, chainType);
     const customer = await getCustomer(tenantuserid, tenant.id);
+    console.log("Customer found", customer);
     if (customer != null && customer?.cubistuserid != null) {
       const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
       if (wallet != null && wallet != undefined) {
@@ -87,7 +88,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
       if (!oidcToken) {
         return {
           wallet: null,
-          error: "Please send a valid identity token for verification"
+          error: "Please provide an identity token for verification"
         };
       } else {
         try {

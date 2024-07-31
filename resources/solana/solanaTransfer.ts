@@ -28,7 +28,7 @@ export async function solanaTransfer(
     if (!oidcToken) {
       return {
         wallet: null,
-        error: "Please send a valid identity token for verification"
+        error: "Please provide an identity token for verification"
       };
     } else {
       const cubistConfig = await getCubistConfig(tenant.id);
