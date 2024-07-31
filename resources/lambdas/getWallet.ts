@@ -9,8 +9,7 @@ const env: any = {
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log(event, context);
-    console.log('DATABASE_URL',process.env.DATABASE_URL)
+    
     const data = await createUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
@@ -42,6 +41,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
   try {
     console.log("createUser", tenant.id, tenantuserid, chainType);
     const customer = await getCustomer(tenantuserid, tenant.id);
+    console.log("Customer found", customer);
     if (customer != null && customer?.cubistuserid != null) {
       const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
       if (wallet != null && wallet != undefined) {
@@ -84,10 +84,10 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         // };
       }
     } else {
-      if (!oidcToken) {
+      if (oidcToken == null) {
         return {
           wallet: null,
-          error: "Please send a valid identity token for verification"
+          error: "Please provide an identity token for verification"
         };
       } else {
         try {
