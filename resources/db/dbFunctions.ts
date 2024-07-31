@@ -770,8 +770,8 @@ export async function CustomerAndWalletCounts( tenant: tenant) {
     const wallet = await prisma.wallet.count({
     });
 
-    const customer = await prisma.customer.count({where:{tenantid:tenant.id}});
-    return {wallet,customer};
+    //const customer = await prisma.customer.count({where:{tenantid:tenant.id}});
+    return {wallet};
   } catch (err) {
     throw err;
   }
