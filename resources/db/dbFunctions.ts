@@ -764,6 +764,21 @@ export async function getCustomerWalletsByCustomerId(customerid: string, tenant:
   }
 }
 
+export async function CustomerAndWalletCounts( tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallet = await prisma.wallet.count({
+    });
+
+    //const customer = await prisma.customer.count({where:{tenantid:tenant.id}});
+    return {wallet};
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
 export async function getTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
     const prisma = await getPrismaClient();
