@@ -346,7 +346,7 @@ type Query {
     ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
     ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
     ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
-	CustomerAndWalletCounts() : CustomerAndWalletCounts
+	CustomerAndWalletCounts : CustomerAndWalletCounts
     MasterTransfer(input: MasterTransferInput): Transfer
 	Signin(input: SigninInput): SignIn
     Staking(input: StakingInput): Staking
