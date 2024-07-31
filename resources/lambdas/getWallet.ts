@@ -85,7 +85,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         // };
       }
     } else {
-      if (!oidcToken) {
+      if (oidcToken == null) {
         return {
           wallet: null,
           error: "Please provide an identity token for verification"
