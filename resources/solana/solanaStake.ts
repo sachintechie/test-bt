@@ -54,7 +54,7 @@ export async function solanaStaking(
   if (!oidcToken)
     return {
       wallet: null,
-      error: "Please send a valid identity token for verification"
+      error: "Please provide an identity token for verification"
     };
   // 2. Get Cubist Configuration, if not found return error
   const cubistConfig = await getCubistConfig(tenant.id);
