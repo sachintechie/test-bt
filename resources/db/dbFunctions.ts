@@ -546,7 +546,7 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
         }
       }
     });
-    if(wallet?.wallets.length == 0) return null;
+    if(wallet?.wallets.length == 0 || wallet == null) return null;
     const newWallet = {
       walletaddress: wallet?.wallets[0].walletaddress,
       createdat: wallet?.wallets[0].createdat,

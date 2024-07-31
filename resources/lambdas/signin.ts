@@ -47,7 +47,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
       if (!oidcToken) {
         return {
           customer: null,
-          error: "Please send a valid identity token for verification"
+          error: "Please provide an identity token for verification"
         };
       } else {
         try {
