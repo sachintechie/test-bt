@@ -73,18 +73,10 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           emailid: customer.emailid,
           customerid: customer.id
         };
-        
-  
-
-        return { wallet:newWallet, error: null };
-
-        // return {
-        //   wallet: null,
-        //   error: "Wallet not found for the given tenantuserid and chainType"
-        // };
+              return { wallet:newWallet, error: null };
       }
     } else {
-      if (oidcToken == null) {
+      if (!oidcToken) {
         return {
           wallet: null,
           error: "Please provide an identity token for verification"
@@ -130,6 +122,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               cubistuserid: cubistUserId,
               isactive: true,
               isBonusCredit: false,
+              iss:iss,
               createdat: new Date().toISOString()
             });
             console.log("Created customer", customerId);
