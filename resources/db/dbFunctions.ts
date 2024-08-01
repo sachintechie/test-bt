@@ -17,7 +17,6 @@ export async function getPrismaClient() {
   return prismaClient;
 }
 
-
 export async function createCustomer(customer: customer) {
   try {
     const prisma = await getPrismaClient();
@@ -59,13 +58,11 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
         isactive: true,
         createdat: new Date().toISOString()
       }
-
     });
 
     console.log("Created wallet", newWallet);
 
     return { data: newWallet, error: null };
-
   } catch (err) {
     throw err;
   }
@@ -165,7 +162,7 @@ export async function insertTransaction(
         updatedat: new Date().toISOString()
       }
     });
-    return {...newTransaction ,transactionid:newTransaction.id};
+    return { ...newTransaction, transactionid: newTransaction.id };
   } catch (err) {
     throw err;
   }
@@ -215,7 +212,7 @@ export async function insertStakingTransaction(
         createdat: new Date().toISOString()
       }
     });
-    return {...newStaketransaction ,transactionid:newStaketransaction.id};
+    return { ...newStaketransaction, transactionid: newStaketransaction.id };
   } catch (err) {
     throw err;
   }
@@ -259,8 +256,7 @@ export async function insertStakeAccount(
         error: error
       }
     });
-    return {...newStakeaccount ,stakeaccountid:newStakeaccount.id};
-
+    return { ...newStakeaccount, stakeaccountid: newStakeaccount.id };
   } catch (err) {
     throw err;
   }
@@ -546,17 +542,16 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
         }
       }
     });
-    if(wallet?.wallets.length == 0 || wallet == null) return null;
+    if (wallet?.wallets.length == 0 || wallet == null) return null;
     const newWallet = {
       walletaddress: wallet?.wallets[0].walletaddress,
       createdat: wallet?.wallets[0].createdat,
       chaintype: wallet?.wallets[0].chaintype,
       tenantuserid: wallet?.tenantuserid,
       tenantid: tenant.id,
-      emailid:  wallet?.emailid,
-      customerid:  wallet?.id
+      emailid: wallet?.emailid,
+      customerid: wallet?.id
     };
-    
 
     return newWallet ? newWallet : null;
   } catch (err) {
@@ -580,7 +575,7 @@ export async function getCustomerAndWallet(tenantUserId: string, chaintype: stri
         }
       }
     });
-    if( wallet == null) return null;
+    if (wallet == null) return null;
     return wallet ? wallet : null;
   } catch (err) {
     throw err;
@@ -667,7 +662,7 @@ export async function getStakeAccountById(stakeAccountId: string, tenantId: stri
   }
 }
 
-export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant,symbol: string) {
+export async function getWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
@@ -676,25 +671,23 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
       }
     });
     let tokens;
-    if(symbol == null || symbol== ""){
-       tokens = await prisma.token.findMany({
-        where: { chaintype: wallet?.chaintype || ""  }
+    if (symbol == null || symbol == "") {
+      tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "" }
+      });
+    } else {
+      tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "", symbol: symbol }
       });
     }
-    else{
-       tokens = await prisma.token.findMany({
-        where: { chaintype: wallet?.chaintype || "",symbol: symbol }
+
+    const walletsWithChainTypePromises = tokens.map(async (t: any) => {
+      const wallet = await prisma.wallet.findFirst({
+        where: { chaintype: t.chaintype, walletaddress: walletAddress }
       });
-    }
-      
-      const walletsWithChainTypePromises = tokens.map(async (t: any) => {
-        const wallet = await prisma.wallet.findFirst({
-          where: { chaintype: t.chaintype,walletaddress: walletAddress
-          }
-        });
-        return { ...t, ...wallet,tokenname: t.name,tokenid: t.id };
-      });
-      return await Promise.all(walletsWithChainTypePromises);
+      return { ...t, ...wallet, tokenname: t.name, tokenid: t.id };
+    });
+    return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
     throw err;
   }
@@ -708,22 +701,20 @@ export async function getWalletAndTokenByWalletAddressBySymbol(walletAddress: st
         walletaddress: walletAddress
       }
     });
-      const tokens = await prisma.token.findMany({
-        where: { chaintype: wallet?.chaintype || "" ,symbol: symbol }
+    const tokens = await prisma.token.findMany({
+      where: { chaintype: wallet?.chaintype || "", symbol: symbol }
+    });
+    const walletsWithChainTypePromises = tokens.map(async (t: any) => {
+      const wallet = await prisma.wallet.findFirst({
+        where: { chaintype: t.chaintype, walletaddress: walletAddress }
       });
-      const walletsWithChainTypePromises = tokens.map(async (t: any) => {
-        const wallet = await prisma.wallet.findFirst({
-          where: { chaintype: t.chaintype,walletaddress: walletAddress
-          }
-        });
-        return { ...t, ...wallet,tokenname: t.name,tokenid: t.id };
-      });
-      return await Promise.all(walletsWithChainTypePromises);
+      return { ...t, ...wallet, tokenname: t.name, tokenid: t.id };
+    });
+    return await Promise.all(walletsWithChainTypePromises);
   } catch (err) {
     throw err;
   }
 }
-
 
 export async function getWallet(walletAddress: string) {
   try {
@@ -772,34 +763,25 @@ export async function getFirstWallet(walletAddress: string, tenant: tenant, symb
 export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {
   try {
     const prisma = await getPrismaClient();
-    const wallets = await prisma.wallet.findMany({
-      where: { customerid: customerid }
-    });
-    const walletsWithChainTypePromises = wallets.map(async (w: any) => {
-      const chainType = await prisma.chaintype.findMany({
-      });
-      return { ...w, ...chainType };
-    });
-    return await Promise.all(walletsWithChainTypePromises);
+    const chainType = await prisma.chaintype.findMany({});
+    const wallet = await prisma.wallet.findMany({ where: { customerid: customerid } });
+    return { ...chainType, ...wallet };
   } catch (err) {
     throw err;
   }
 }
 
-export async function CustomerAndWalletCounts( tenant: tenant) {
+export async function CustomerAndWalletCounts(tenant: tenant) {
   try {
     const prisma = await getPrismaClient();
-    const wallet = await prisma.wallet.count({
-    });
+    const wallet = await prisma.wallet.count({});
 
     //const customer = await prisma.customer.count({where:{tenantid:tenant.id}});
-    return {wallet};
+    return { wallet };
   } catch (err) {
     throw err;
   }
 }
-
-
 
 export async function getTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
   try {
