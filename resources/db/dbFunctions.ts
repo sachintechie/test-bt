@@ -564,6 +564,29 @@ export async function getWalletByCustomer(tenantUserId: string, chaintype: strin
   }
 }
 
+export async function getCustomerAndWallet(tenantUserId: string, chaintype: string, tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallet = await prisma.customer.findFirst({
+      where: {
+        tenantuserid: tenantUserId,
+        tenantid: tenant.id
+      },
+      include: {
+        wallets: {
+          where: {
+            chaintype: chaintype
+          }
+        }
+      }
+    });
+    if( wallet == null) return null;
+    return wallet ? wallet : null;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getPayerWallet(chaintype: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
