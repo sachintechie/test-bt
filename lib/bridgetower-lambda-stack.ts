@@ -6,7 +6,7 @@ import {readFilesFromFolder} from "./utils/utils";
 import {AuroraStack} from "./bridgetower-aurora-stack";
 import * as cr from 'aws-cdk-lib/custom-resources';
 import * as cdk from 'aws-cdk-lib';
-import {env, envConfig, isDevOrProd} from "./utils/env";
+import {env, envConfig, isDev, isDevOrProd} from "./utils/env";
 import {
   DatabaseInfo,
   getDatabaseInfo,
@@ -37,9 +37,9 @@ export class BridgeTowerLambdaStack extends Stack {
         env:envConfig
       });
       // Fetch the database credentials from Secrets Manager
-      databaseInfo = getDatabaseInfo(this, auroraStack);
+       databaseInfo = getDatabaseInfo(this, auroraStack);
     }else{
-      databaseInfo = getDevOrProdDatabaseInfo(this);
+       databaseInfo = getDevOrProdDatabaseInfo(this);
     }
     console.log(databaseInfo);
 
@@ -53,7 +53,8 @@ export class BridgeTowerLambdaStack extends Stack {
       const provider = new cr.Provider(this, env`MigrateProvider`, {
         onEventHandler: this.lambdaMap.get(MIGRATION_LAMBDA_NAME)!,
       });
-      new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.6'} });
+
+      new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.3'} });
     }
   }
 }

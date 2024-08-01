@@ -8,6 +8,7 @@ export const environment = app.node.tryGetContext("env");
 export const isDevOrProd = () => {
   return environment === "dev"|| environment === "prod";
 }
+
 export const isDev = () => {
   return environment === "dev";
 }
@@ -42,13 +43,6 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
         CS_API_ROOT: "https://prod.signer.cubist.dev"
       };
-    case "schoolhack-prod":
-        return {
-          ...databaseInfoEnv,
-          SOLANA_NETWORK: "mainnet",
-          SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
-          CS_API_ROOT: "https://prod.signer.cubist.dev"
-        };
     default:
       return {
         ...databaseInfoEnv,
@@ -73,11 +67,6 @@ export function env(strings: TemplateStringsArray, ...values: any[]): string {
   // Append the environment name
   return result + "-" + environment;
 }
-
-export function isDevLike(){
-  return (environment as string).includes("dev");
-}
-
 
 
 export const envConfig: Environment = {

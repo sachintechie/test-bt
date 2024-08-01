@@ -54,7 +54,7 @@ export async function solanaStaking(
   if (!oidcToken)
     return {
       wallet: null,
-      error: "Please send a valid identity token for verification"
+      error: "Please provide an identity token for verification"
     };
   // 2. Get Cubist Configuration, if not found return error
   const cubistConfig = await getCubistConfig(tenant.id);
@@ -125,7 +125,7 @@ export async function solanaStaking(
     stakeAccountStatus,
     tenantTransactionId,
     tx?.stakeAccountPubKey?.toString() || "",
-    lockupExpirationTimestamp = null ? 0: lockupExpirationTimestamp
+    lockupExpirationTimestamp
   );
   const token=await getToken(symbol)
   const transaction = await insertStakingTransaction(
@@ -171,7 +171,6 @@ export async function stakeSol(
       };
     }
     const keys = await oidcClient.sessionKeys();
-    console.log("Keys", keys);  
     if (keys.length === 0) {
       return {
         trxHash: null,
