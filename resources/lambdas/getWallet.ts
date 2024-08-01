@@ -187,7 +187,7 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
 
   const customerAndWallet = await getCustomerAndWallet(tenantuserid, chainType, tenant);
   if (customerAndWallet != null) {
-    if (customerAndWallet?.wallets[0].walletaddress != null && customerAndWallet.wallets[0].chaintype == chainType) {
+    if (customerAndWallet.wallets.length > 0 && customerAndWallet?.wallets[0].walletaddress != null && customerAndWallet.wallets[0].chaintype == chainType) {
       const newWallet = {
         walletaddress: customerAndWallet.wallets[0].walletaddress,
         createdat: customerAndWallet.wallets[0].createdat,
