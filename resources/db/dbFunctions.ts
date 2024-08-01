@@ -765,7 +765,9 @@ export async function getCustomerWalletsByCustomerId(customerid: string, tenant:
     const prisma = await getPrismaClient();
     const chainType = await prisma.chaintype.findMany({});
     const wallet = await prisma.wallet.findMany({ where: { customerid: customerid } });
-    return { ...chainType, ...wallet };
+    return chainType.map((c: any) => {
+      return { ...c, ...wallet };
+    });
   } catch (err) {
     throw err;
   }
