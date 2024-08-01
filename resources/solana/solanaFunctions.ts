@@ -79,7 +79,6 @@ export async function getStakeAccountInfo(stakeAccountPubKey: string, connection
   const stakeAccount = stakeAccountData.parsed.info;
   console.log(stakeAccount);
 
-  //const currentStakeAmount = stakeAccount.stake?.delegation?.stake ?? 0;
-  const currentStakeAmount = stakeAccount.stake?.balance ?? 0;
+  const currentStakeAmount = stakeAccount.stake?.delegation?.stake ?? 0;
   return { currentStakeAmount, error: null };
 }
