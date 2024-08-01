@@ -34,7 +34,7 @@ export async function createCustomer(customer: customer) {
         createdat: new Date().toISOString()
       }
     });
-    return newCustomer.id;
+    return newCustomer;
   } catch (err) {
     throw err;
   }
