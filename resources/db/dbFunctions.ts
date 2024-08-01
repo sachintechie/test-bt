@@ -17,7 +17,6 @@ export async function getPrismaClient() {
   return prismaClient;
 }
 
-const OPERATION_ROLE_ID = "Role#7b0e9b7f-4137-4e45-b4c7-9d73083771f3"; //Stake Merge Account Role
 
 export async function createCustomer(customer: customer) {
   try {
@@ -28,6 +27,7 @@ export async function createCustomer(customer: customer) {
         tenantid: customer.tenantid as string,
         emailid: customer.emailid,
         name: customer.name,
+        iss: customer.iss,
         cubistuserid: customer.cubistuserid.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,

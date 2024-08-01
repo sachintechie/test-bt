@@ -73,18 +73,10 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           emailid: customer.emailid,
           customerid: customer.id
         };
-        
-  
-
-        return { wallet:newWallet, error: null };
-
-        // return {
-        //   wallet: null,
-        //   error: "Wallet not found for the given tenantuserid and chainType"
-        // };
+              return { wallet:newWallet, error: null };
       }
     } else {
-      if (oidcToken == null) {
+      if (!oidcToken) {
         return {
           wallet: null,
           error: "Please provide an identity token for verification"
@@ -130,6 +122,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               cubistuserid: cubistUserId,
               isactive: true,
               isBonusCredit: false,
+              iss:iss,
               createdat: new Date().toISOString()
             });
             console.log("Created customer", customerId);
@@ -155,16 +148,61 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               };
             }
           } else {
-            const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
-            console.log("Wallet found", wallet);
-            if (wallet != null && wallet != undefined) {
-              return { wallet, error: null };
-            } else {
-              return {
-                wallet: null,
-                error: "Wallet not found for the given tenantuserid and chainType"
-              };
+            const customer = await getCustomer(tenantuserid, tenant.id);
+            console.log("Customer found", customer);
+            if (customer != null && customer?.cubistuserid != null) {
+              const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
+              console.log("Wallet found", wallet);
+              if (wallet != null && wallet != undefined) {
+                return { wallet, error: null };
+              } else {
+                return {
+                  wallet: null,
+                  error: "Wallet not found for the given tenantuserid and chainType"
+                };
+              }
             }
+            else{
+              const cubistUserId=proof.user_info?.user_id;
+              console.log(`Creating key for user ${cubistUserId}...`);
+
+              const customerId = await createCustomer({
+                emailid: email ? email : "",
+                name: name ? name : "----",
+                tenantuserid,
+                tenantid: tenant.id,
+                cubistuserid: cubistUserId,
+                isactive: true,
+                isBonusCredit: false,
+                iss:iss,
+                createdat: new Date().toISOString()
+              });
+              console.log("Created customer", customerId);
+  
+              const wallet = await createWallet(org, cubistUserId, chainType, customerId);
+              if ((wallet != null || wallet != undefined) && wallet.data != null) {
+              const newWallet = {
+                walletaddress: wallet.data.walletaddress,
+                createdat: wallet.data.createdat,
+                chaintype: wallet.data.chaintype,
+                tenantuserid: tenantuserid,
+                tenantid: tenant.id,
+                emailid: email,
+                customerid: customerId
+              };
+              
+  
+                return { wallet: newWallet, error: null };
+              } else {
+                return {
+                  wallet: null,
+                  error: wallet.error
+                };
+              }
+              
+            }
+
+            
           }
         } catch (e) {
           console.log(`Not verified: ${e}`);
