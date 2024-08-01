@@ -183,6 +183,7 @@ type StakeAccountData {
   amount: Float
   createdat: String
   lockupexpirationtimestamp: String
+  chaintype: String
   tenantuserid: String
   status: String
   stakeaccountpubkey: String
