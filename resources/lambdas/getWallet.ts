@@ -197,7 +197,8 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
         emailid: customerAndWallet.emailid,
         customerid: customerAndWallet.id
       };
-      return newWallet;
+      return { wallet: newWallet, error: null };
+
     } else {
       const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
       return wallet;
