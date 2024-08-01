@@ -8,6 +8,7 @@ export interface customer {
   isactive: boolean;
   isBonusCredit: boolean;
   createdat: string;
+  iss?: string;
 }
 
 export interface tenant {
