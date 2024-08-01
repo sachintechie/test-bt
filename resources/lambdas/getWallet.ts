@@ -132,7 +132,7 @@ async function createCustomerAndWallet(
 
   const wallet = await createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customer);
  console.log("Created wallet", wallet);
-  return { wallet, error: null };
+  return wallet;
 } catch (e) {
   return {
     wallet: null,
