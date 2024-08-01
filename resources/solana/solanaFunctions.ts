@@ -77,7 +77,9 @@ export async function getStakeAccountInfo(stakeAccountPubKey: string, connection
     return { currentStakeAmount: null, error: "Failed to parse stake account data" };
   }
   const stakeAccount = stakeAccountData.parsed.info;
+  stakeAccount.stake.balance
 
-  const currentStakeAmount = stakeAccount.stake?.delegation?.stake ?? 0;
+  //const currentStakeAmount = stakeAccount.stake?.delegation?.stake ?? 0;
+  const currentStakeAmount = stakeAccount.stake?.balance ?? 0;
   return { currentStakeAmount, error: null };
 }
