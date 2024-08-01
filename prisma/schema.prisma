@@ -46,6 +46,7 @@ model customer {
   cubistuserid      String?
   isactive          Boolean?
   createdat         String?
+  iss               String?
   isbonuscredit     Boolean?
   customerkycs      customerkyc[]
   wallets           wallet[]
