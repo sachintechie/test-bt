@@ -1,12 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
-import {
-  createCustomer,
-  createWallet,
-  createWalletAndKey,
-  getCustomerAndWallet
-} from "../db/dbFunctions";
+import { createCustomer, createWallet, createWalletAndKey, getCustomerAndWallet } from "../db/dbFunctions";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -72,29 +67,29 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           const sub = proof.identity!.sub;
           const email = proof.email;
           const name = proof.preferred_username;
-          var cubistUserId= "";
+          var cubistUserId = "";
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
-              cubistUserId = await org.createOidcUser({ iss, sub }, email, {
+            cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name
             });
-          }else{
-          cubistUserId = proof.user_info?.user_id;
+          } else {
+            cubistUserId = proof.user_info?.user_id;
           }
-            console.log(`Creating key for user ${cubistUserId}...`);
-            var wallet = await createCustomerAndWallet(
-              cubistUserId,
-              email || "",
-              name || "",
-              tenantuserid,
-              tenant.id,
-              iss,
-              chainType,
-              tenant,
-              org
-            );
-            return wallet;
+          console.log(`Creating key for user ${cubistUserId}...`);
+          var wallet = await createCustomerAndWallet(
+            cubistUserId,
+            email || "",
+            name || "",
+            tenantuserid,
+            tenant.id,
+            iss,
+            chainType,
+            tenant,
+            org
+          );
+          return wallet;
         } catch (e) {
           console.log(`Not verified: ${e}`);
           return {
