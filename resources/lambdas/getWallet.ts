@@ -37,7 +37,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
   try {
     const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, oidcToken);
     if (isExist != null) {
-      return { wallet: isExist, error: null };
+      return isExist;
     } else {
       if (!oidcToken) {
         return {
