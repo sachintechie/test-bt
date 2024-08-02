@@ -768,15 +768,15 @@ export async function getCustomerWalletsByCustomerId(customerid: string, tenant:
     });
     const chainType = await prisma.chaintype.findMany({
     });
-    var newWallet ;
-    chainType.forEach((chain: any) => {
-      if(!chain){
+    var newWallet=[] ;
+    for (const chain of chainType){
+    //  chainType.forEach((chain: any) => {
      const w = wallets.find((w: any) => 
         w.chainType = chain?.chain
       );
-      newWallet.push({...chain,...w,chaintype:chain?.chain});
+      newWallet.push({chain,...w,chaintype:chain?.chain});
+    
     }
-    })
     return newWallet;
   } catch (err) {
     throw err;
