@@ -763,24 +763,31 @@ export async function getFirstWallet(walletAddress: string, tenant: tenant, symb
 export async function getCustomerWalletsByCustomerId(customerid: string, tenant: tenant) {
   try {
     const prisma = await getPrismaClient();
-    const wallets = await prisma.wallet.findMany({
-      where: { customerid: customerid }
-    });
+   
     const chainType = await prisma.chaintype.findMany({
     });
     var newWallet=[] ;
     for (const chain of chainType){
     //  chainType.forEach((chain: any) => {
-     const w = wallets.find((w: any) => 
-        w.chainType = chain?.chain
-      );
-      if(w){
-      newWallet.push({chain,...w,chaintype:chain?.chain});
-      }
-      else{
-        newWallet.push({chain,chaintype:chain?.chain});
+      const wallet = await prisma.wallet.findFirst({
+        where: { customerid: customerid,chaintype:chain?.chain }
+      });
+      console.log(wallet);
 
+      const walletData = {
+        chaintype: chain?.chain,
+        walletaddress: wallet?.walletaddress,
+        wallettype: wallet?.wallettype,
+        symbol : chain?.symbol,
+        createdat: wallet?.createdat,
+        customerid: wallet?.customerid
       }
+console.log(walletData);
+      
+    
+        newWallet.push(walletData);
+
+      
     
     }
     return newWallet;
