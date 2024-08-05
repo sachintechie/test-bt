@@ -774,7 +774,13 @@ export async function getCustomerWalletsByCustomerId(customerid: string, tenant:
      const w = wallets.find((w: any) => 
         w.chainType = chain?.chain
       );
+      if(w){
       newWallet.push({chain,...w,chaintype:chain?.chain});
+      }
+      else{
+        newWallet.push({chain,chaintype:chain?.chain});
+
+      }
     
     }
     return newWallet;
