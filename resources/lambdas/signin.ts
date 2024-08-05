@@ -79,7 +79,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             const cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name
             });
-            const customerId = await createCustomer({
+            const customer = await createCustomer({
               emailid: email ? email : "",
               name: name ? name : "----",
               tenantuserid,
@@ -89,13 +89,13 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               isBonusCredit: false,
               createdat: new Date().toISOString()
             });
-            console.log("Created customer", customerId);
+            console.log("Created customer", customer.id);
             const customerData = {
               cubistuserid: cubistUserId,
               tenantuserid: tenantuserid,
               tenantid: tenant.id,
               emailid: email,
-              id: customerId,
+              id: customer.id,
               createdat: new Date().toISOString()
             };
 
