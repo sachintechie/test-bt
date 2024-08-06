@@ -21,7 +21,7 @@ export const handler = async (event: any) => {
 
 async function deleteMasterUserAndWallet(customerWallets : string[], tenantId: string) {
   try {
-  
+  console.log("TenantId", tenantId,customerWallets  ,"customerWallets");
     const tenant = await getTenantCallBackUrl(tenantId);
     console.log("Tenant", tenant);
 
