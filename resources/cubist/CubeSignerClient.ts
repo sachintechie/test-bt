@@ -84,15 +84,15 @@ export async function getCsClient(teantid: string) {
  * Use a CubeSigner token from AWS Secrets Manager to retrieve information
  * about the current user
  */
-export async function getCsClientBySecretName(teantid: string,secretName:string) {
+export async function getCsClientBySecretName(tenantId: string,secretName:string) {
   try {
-    const cubistConfig = await getCubistConfig(teantid);
+    const cubistConfig = await getCubistConfig(tenantId);
     const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(secretName));
     const org = client.org();
     const orgId = cubistConfig?.orgid;
     return { client, org, orgId };
   } catch (err) {
-    console.error(err);
+    console.log(err);
     throw err;
   }
 }
