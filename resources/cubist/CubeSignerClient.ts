@@ -188,7 +188,7 @@ export async function deleteMasterCubistUser( customerWallets:any[],tenantId: st
    for (const customer of customerWallets) {
     const user =  users.filter((user )=> user.id === customer);
     // const key = await cs.CubeSignerKey.get(cubistUserId);
-    const deletedUser = await org.deleteUser(user[0].id);
+    const deletedUser = await org.deleteUser(customer);
     deletedUsers.push({deletedUser});
     console.log("Deleted user", user);
    }
