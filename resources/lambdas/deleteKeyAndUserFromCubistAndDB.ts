@@ -3,7 +3,7 @@ import { getAllCustomerAndWalletByTenant, getTenantCallBackUrl } from "../db/dbF
 
 export const handler = async (event: any) => {
   try {
-    const users = await deleteMasterUserAndWallet(event.arguments.customerWallets);
+    const users = await deleteMasterUserAndWallet(event.arguments.customerWallets,event.arguments.tenantId);
     return {
       status: 200,
       data: users,
@@ -19,11 +19,10 @@ export const handler = async (event: any) => {
   }
 };
 
-async function deleteMasterUserAndWallet(customerWallets : string[]) {
+async function deleteMasterUserAndWallet(customerWallets : string[], tenantId: string) {
   try {
-    // const schoolhackTenantId = "46a1ef54-2531-40a0-a42f-308b0598c24a"; //dev
-    const schoolhackTenantId = "4a997e70-812f-4c0d-af79-71d0cbb5d562"; //prod
-    const tenant = await getTenantCallBackUrl(schoolhackTenantId);
+  
+    const tenant = await getTenantCallBackUrl(tenantId);
     console.log("Tenant", tenant);
 
     if (tenant != null && customerWallets != null && customerWallets?.length > 0) {
