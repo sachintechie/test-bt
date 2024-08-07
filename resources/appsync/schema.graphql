@@ -337,6 +337,14 @@ input TransferInput {
 	tenantTransactionId: String!
 }
 
+input MergeStakeInput {
+  senderWalletAddress: String!
+}
+
+input WithdrawStakeInput {
+  senderWalletAddress: String!
+}
+
 input UnStakingInput {
 	stakeAccountId: String!
 	amount: Float!
@@ -363,6 +371,7 @@ type Query {
 	Staking(input: StakingInput): Staking
 	Transfer(input: TransferInput): Transfer
 	Unstaking(input: UnStakingInput): Staking
+
 }
 
 schema {
