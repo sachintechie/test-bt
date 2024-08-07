@@ -84,15 +84,15 @@ export async function getCsClient(teantid: string) {
  * Use a CubeSigner token from AWS Secrets Manager to retrieve information
  * about the current user
  */
-export async function getCsClientBySecretName(teantid: string,secretName:string) {
+export async function getCsClientBySecretName(tenantId: string,secretName:string) {
   try {
-    const cubistConfig = await getCubistConfig(teantid);
+    const cubistConfig = await getCubistConfig(tenantId);
     const client = await cs.CubeSignerClient.create(new ReadOnlyAwsSecretsSessionManager(secretName));
     const org = client.org();
     const orgId = cubistConfig?.orgid;
     return { client, org, orgId };
   } catch (err) {
-    console.error(err);
+    console.log(err);
     throw err;
   }
 }
@@ -188,7 +188,7 @@ export async function deleteMasterCubistUser( customerWallets:any[],tenantId: st
    for (const customer of customerWallets) {
     const user =  users.filter((user )=> user.id === customer);
     // const key = await cs.CubeSignerKey.get(cubistUserId);
-    const deletedUser = await org.deleteUser(user[0].id);
+    const deletedUser = await org.deleteUser(customer);
     deletedUsers.push({deletedUser});
     console.log("Deleted user", user);
    }

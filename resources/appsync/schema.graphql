@@ -1,325 +1,340 @@
 input CreateWalletInput {
-  tenantUserId: String!
-  chainType: String!
-}
-
-type GetKycAccessToken {
-  status: Int
-  data: GetKycAccessTokenData
-  error: AWSJSON
-}
-
-type GetKycAccessTokenData {
-  token: String
-  customerId: String
-}
-
-type GetKycApplicant {
-  status: Int
-  data: CustomerKycData
-  error: AWSJSON
-}
-
-input GetKycApplicantInput {
-  customerId: String!
-  levelName: String!
-}
-
-type GetListWalletTokens {
-  customerid: String!
-  walletaddress: String!
-  symbol: String
-  createdat: String
-  chaintype: String
-  contractaddress: String
-  tokenname: String
-}
-
-type GetWallet {
-  status: Int
-  data: GetWalletData
-  error: AWSJSON
-}
-
-type GetWalletBalance {
-  status: Int
-  data: [GetWalletBalanceData]
-  error: AWSJSON
-}
-
-type GetWalletBalanceData {
-  customerid: String!
-  walletaddress: String!
-  symbol: String
-  createdat: String
-  chaintype: String
-  contractaddress: String
-  balance: Float
-  tokenname: String
-}
-
-input GetWalletBalanceInput {
-  walletAddress: String!
-  symbol: String
-}
-
-type GetWalletData {
-  customerid: String
-  walletaddress: String
-  createdat: String
-  chaintype: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
-}
-
-input GetWalletInput {
-  tenantUserId: String!
-  chainType: String!
-}
-
-input KycAccessTokenInput {
-  customerId: String!
-  levelName: String!
-}
-
-type KycReview {
-  reviewStatus: String
-  createDate: String
-  attemptId: String
-  levelName: String
-  reviewId: String
-  priority: String
-}
-
-type ListCustomerWallets {
-  status: Int
-  data: [ListCustomerWalletsData]
-  error: AWSJSON
-}
-
-type ListCustomerWalletsData {
-  customerid: String
-  walletaddress: String
-  symbol: String
-  createdat: String
-  chaintype: String
-  wallettype: String
-}
-
-input ListCustomerWalletsInput {
-  customerId: String!
-}
-
-input ListStakeAccountInput {
-  walletAddress: String!
-}
-
-type ListStakeAccounts {
-  status: Int
-  data: [StakeAccountData]
-  error: AWSJSON
-}
-
-input ListStakeTransactionInput {
-  stakeAccountId: String!
-}
-
-type ListStakeTransactions {
-  status: Int
-  data: [StakeTransactionData]
-  error: AWSJSON
-}
-
-input ListWalletTokenInput {
-  walletAddress: String!
-}
-
-type ListWalletTokens {
-  status: Int
-  data: [GetWalletBalanceData]
-  error: AWSJSON
-}
-
-type ListWalletTransactions {
-  status: Int
-  data: [TransactionData]
-  error: AWSJSON
-}
-
-input MasterTransferInput {
-  senderWalletAddress: String!
-  amount: Float
-  symbol: String!
-  chainType: String!
-  tenantUserId: String!
-  tenantTransactionId: String!
-}
-
-type SignIn {
-  status: Int
-  data: SignInData
-  error: AWSJSON
-}
-
-type SignInData {
-  id: String
-  createdat: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
-}
-
-input SigninInput {
-  tenantUserId: String!
-}
-
-type StakeAccountData {
-  customerid: String
-  walletaddress: String
-  chaintype: String
-  validatornodeaddress: String
-  symbol: String
-  amount: Float
-  createdat: String
-  lockupexpirationtimestamp: String
-  tenantuserid: String
-  status: String
-  stakeaccountpubkey: String
-  network: String
-  tenanttransactionid: String
-  id: String
-}
-
-type StakeTransactionData {
-  customerid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  tenantuserid: String
-  status: String
-  type: String
-  transactionid: String
-  network: String
-  tenanttransactionid: String
-  stakeaccountid: String
-}
-
-type Staking {
-  status: Int
-  data: StakingData
-  error: AWSJSON
-}
-
-type StakingData {
-  customerid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  tenantuserid: String
-  status: String
-  transactionid: String
-  network: String
-  tenanttransactionid: String
-  stakeaccountid: String
-  type: String
-}
-
-input StakingInput {
-  senderWalletAddress: String!
-  amount: Float
-  symbol: String!
-  chainType: String!
-  tenantUserId: String!
-  tenantTransactionId: String!
-  lockupExpirationTimestamp: String
-}
-
-type TransactionData {
-  customerid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  tenantuserid: String
-  status: String
-  callbackstatus: String
-  id: String
-  network: String
-  tenanttransactionid: String
-}
-
-type Transfer {
-  status: Int
-  data: TransferData
-  error: AWSJSON
-}
-
-type CustomerKyc {
-  status: Int
-  data: CustomerKycData
-  error: AWSJSON
-}
-
-type CustomerAndWalletCounts {
-  status: Int
-  data: CustomerAndWalletCountData
-  error: AWSJSON
+	tenantUserId: String!
+	chainType: String!
 }
 
 type CustomerAndWalletCountData {
-  wallet: Int
+	wallet: Int
+}
+
+type CustomerAndWalletCounts {
+	status: Int
+	data: CustomerAndWalletCountData
+	error: AWSJSON
+}
+
+type CustomerKyc {
+	status: Int
+	data: CustomerKycData
+	error: AWSJSON
 }
 
 type CustomerKycData {
-  id: String
-  createdat: String
-  status: String
-  customerid: String
-  type: String
-  kycid: String
-  kyctype: String
+	id: String
+	createdat: String
+	status: String
+	customerid: String
+	type: String
+	kycid: String
+	kyctype: String
+}
+
+input CustomerKycInput {
+	customerId: String!
+}
+
+type GetCubistOrg {
+	wallets: Int
+	users: Int
+}
+
+type GetCubistOrgData {
+	status: Int
+	data: GetCubistOrg
+	error: AWSJSON
+}
+
+type GetKycAccessToken {
+	status: Int
+	data: GetKycAccessTokenData
+	error: AWSJSON
+}
+
+type GetKycAccessTokenData {
+	token: String
+	customerId: String
+}
+
+type GetKycApplicant {
+	status: Int
+	data: CustomerKycData
+	error: AWSJSON
+}
+
+input GetKycApplicantInput {
+	customerId: String!
+	levelName: String!
+}
+
+type GetListWalletTokens {
+	customerid: String!
+	walletaddress: String!
+	symbol: String
+	createdat: String
+	chaintype: String
+	contractaddress: String
+	tokenname: String
+}
+
+type GetWallet {
+	status: Int
+	data: GetWalletData
+	error: AWSJSON
+}
+
+type GetWalletBalance {
+	status: Int
+	data: [GetWalletBalanceData]
+	error: AWSJSON
+}
+
+type GetWalletBalanceData {
+	customerid: String!
+	walletaddress: String!
+	symbol: String
+	createdat: String
+	chaintype: String
+	contractaddress: String
+	balance: Float
+	tokenname: String
+}
+
+input GetWalletBalanceInput {
+	walletAddress: String!
+	symbol: String
+}
+
+type GetWalletData {
+	customerid: String
+	walletaddress: String
+	createdat: String
+	chaintype: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
+}
+
+input GetWalletInput {
+	tenantUserId: String!
+	chainType: String!
+}
+
+input KycAccessTokenInput {
+	customerId: String!
+	levelName: String!
+}
+
+type KycReview {
+	reviewStatus: String
+	createDate: String
+	attemptId: String
+	levelName: String
+	reviewId: String
+	priority: String
+}
+
+type ListCustomerWallets {
+	status: Int
+	data: [ListCustomerWalletsData]
+	error: AWSJSON
+}
+
+type ListCustomerWalletsData {
+	customerid: String
+	walletaddress: String
+	symbol: String
+	createdat: String
+	chaintype: String
+	wallettype: String
+}
+
+input ListCustomerWalletsInput {
+	customerId: String!
+}
+
+input ListStakeAccountInput {
+	walletAddress: String!
+}
+
+type ListStakeAccounts {
+	status: Int
+	data: [StakeAccountData]
+	error: AWSJSON
+}
+
+input ListStakeTransactionInput {
+	stakeAccountId: String!
+}
+
+type ListStakeTransactions {
+	status: Int
+	data: [StakeTransactionData]
+	error: AWSJSON
+}
+
+input ListWalletTokenInput {
+	walletAddress: String!
+}
+
+type ListWalletTokens {
+	status: Int
+	data: [GetWalletBalanceData]
+	error: AWSJSON
+}
+
+type ListWalletTransactions {
+	status: Int
+	data: [TransactionData]
+	error: AWSJSON
+}
+
+input MasterTransferInput {
+	senderWalletAddress: String!
+	amount: Float
+	symbol: String!
+	chainType: String!
+	tenantUserId: String!
+	tenantTransactionId: String!
+}
+
+type SignIn {
+	status: Int
+	data: SignInData
+	error: AWSJSON
+}
+
+type SignInData {
+	id: String
+	createdat: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
+}
+
+input SigninInput {
+	tenantUserId: String!
+}
+
+type StakeAccountData {
+	customerid: String
+	walletaddress: String
+	chaintype: String
+	validatornodeaddress: String
+	symbol: String
+	amount: Float
+	createdat: String
+	lockupexpirationtimestamp: String
+	tenantuserid: String
+	status: String
+	stakeaccountpubkey: String
+	network: String
+	tenanttransactionid: String
+	id: String
+}
+
+type StakeTransactionData {
+	customerid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	tenantuserid: String
+	status: String
+	type: String
+	transactionid: String
+	network: String
+	tenanttransactionid: String
+	stakeaccountid: String
+}
+
+type Staking {
+	status: Int
+	data: StakingData
+	error: AWSJSON
+}
+
+type StakingData {
+	customerid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	tenantuserid: String
+	status: String
+	transactionid: String
+	network: String
+	tenanttransactionid: String
+	stakeaccountid: String
+	type: String
+}
+
+input StakingInput {
+	senderWalletAddress: String!
+	amount: Float
+	symbol: String!
+	chainType: String!
+	tenantUserId: String!
+	tenantTransactionId: String!
+	lockupExpirationTimestamp: String
+}
+
+type TransactionData {
+	customerid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	tenantuserid: String
+	status: String
+	callbackstatus: String
+	id: String
+	network: String
+	tenanttransactionid: String
+}
+
+type Transfer {
+	status: Int
+	data: TransferData
+	error: AWSJSON
 }
 
 type TransferData {
-  customerid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  tenantuserid: String
-  status: String
-  transactionid: String
-  network: String
-  tenanttransactionid: String
+	customerid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	tenantuserid: String
+	status: String
+	transactionid: String
+	network: String
+	tenanttransactionid: String
 }
 
 input TransferInput {
-  senderWalletAddress: String!
-  receiverWalletAddress: String!
-  amount: Float
-  symbol: String!
-  chainType: String!
-  tenantUserId: String!
-  tenantTransactionId: String!
+	senderWalletAddress: String!
+	receiverWalletAddress: String!
+	amount: Float
+	symbol: String!
+	chainType: String!
+	tenantUserId: String!
+	tenantTransactionId: String!
 }
 
 input MergeStakeInput {
@@ -331,37 +346,34 @@ input WithdrawStakeInput {
 }
 
 input UnStakingInput {
-  stakeAccountId: String!
-  amount: Float!
-  chainType: String!
-}
-input CustomerKycInput {
-  customerId: String!
+	stakeAccountId: String!
+	amount: Float!
+	chainType: String!
 }
 
 type Query {
-  CreateWallet(input: CreateWalletInput): GetWallet
-  GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
-  GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
-  GetWallet(input: GetWalletInput): GetWallet
-  GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
-  CustomerKyc(input: CustomerKycInput): CustomerKyc
-  KycWebhook(input: AWSJSON): AWSJSON
-  ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
-  ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
-  ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
-  ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
-  ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
-  CustomerAndWalletCounts: CustomerAndWalletCounts
-  MasterTransfer(input: MasterTransferInput): Transfer
-  Signin(input: SigninInput): SignIn
-  Staking(input: StakingInput): Staking
-  Transfer(input: TransferInput): Transfer
-  Unstaking(input: UnStakingInput): Staking
-  MergeStake(input: MergeStakeInput): ListStakeAccounts
-  WithdrawStake(input: WithdrawStakeInput): ListStakeAccounts
+	CreateWallet(input: CreateWalletInput): GetWallet
+	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
+	GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
+	GetWallet(input: GetWalletInput): GetWallet
+	GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
+	CustomerKyc(input: CustomerKycInput): CustomerKyc
+	KycWebhook(input: AWSJSON): AWSJSON
+	ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
+	ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
+	ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
+	ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
+	ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
+	CustomerAndWalletCounts: CustomerAndWalletCounts
+	MasterTransfer(input: MasterTransferInput): Transfer
+	GetCubistOrgData: GetCubistOrgData
+	Signin(input: SigninInput): SignIn
+	Staking(input: StakingInput): Staking
+	Transfer(input: TransferInput): Transfer
+	Unstaking(input: UnStakingInput): Staking
+
 }
 
 schema {
-  query: Query
+	query: Query
 }
