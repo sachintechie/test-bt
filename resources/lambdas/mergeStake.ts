@@ -14,7 +14,7 @@ export const handler = async (event: any) => {
   const cubistConfig = await getCubistConfig(tenant.id);
   if (cubistConfig == null) {
     return {
-      transaction: null,
+      data: null,
       error: "Cubist Configuration not found for the given tenant"
     };
   }
@@ -31,6 +31,7 @@ export const handler = async (event: any) => {
       data: accounts
     };
   }catch (e) {
+    console.log(e)
     return {
       status: 400,
       data: null,
