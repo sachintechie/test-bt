@@ -1,6 +1,6 @@
 import {ISecurityGroup, SecurityGroup} from "aws-cdk-lib/aws-ec2";
 import {Construct} from "constructs";
-import { env, environment} from "./env";
+import {env, environment} from "./env";
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import {getVpcConfig} from "./vpc";
 

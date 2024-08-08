@@ -8,6 +8,7 @@ export const environment = app.node.tryGetContext("env");
 export const isDevOrProd = () => {
   return environment === "dev"|| environment === "prod";
 }
+
 export const isDev = () => {
   return environment === "dev";
 }
@@ -83,11 +84,6 @@ export function env(strings: TemplateStringsArray, ...values: any[]): string {
   // Append the environment name
   return result + "-" + environment;
 }
-
-export function isDevLike(){
-  return (environment as string).includes("dev");
-}
-
 
 
 export const envConfig: Environment = {
