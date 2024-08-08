@@ -34,7 +34,7 @@ export async function getCubistOrgData( tenantId: string,) {
 
    const users = (await org.users()).length;
    console.log("total org user",users,"total org keys",keys);
-    return {  data:{users,keys},error: null };
+    return {  data:{users,wallets:keys},error: null };
     }
     else{
       return {  data:null,error: "Error in getting org data" };
