@@ -12,8 +12,6 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'checkTransactionStatusAndUpdate',
   'createKycApplicant',
   'deleteKeyAndUserFromCubistAndDB',
-  'mergeStake',
-  'withdrawStake',
   'migrateDB',
   'createOrganizationUnitAndAwsAccount'
 ]
