@@ -162,12 +162,6 @@ type ListStakeAccounts {
 	error: AWSJSON
 }
 
-type WithdrawStake {
-  status: Int
-  error: AWSJSON
-}
-
-
 input ListStakeTransactionInput {
 	stakeAccountId: String!
 }
@@ -201,6 +195,25 @@ input MasterTransferInput {
 	chainType: String!
 	tenantUserId: String!
 	tenantTransactionId: String!
+}
+
+input MergeStakeInput {
+	senderWalletAddress: String!
+}
+
+input MintERC1155Input {
+	toAddress: String!
+	ids: [Int!]
+	amounts: [Int!]
+	chain: String!
+	contractAddress: String!
+}
+
+input MintNFTInput {
+	toAddress: String!
+	numberOfTokens: Int!
+	chain: String!
+	contractAddress: String!
 }
 
 type SignIn {
@@ -310,6 +323,12 @@ type TransactionData {
 	tenanttransactionid: String
 }
 
+type TransactionResponse {
+	status: Int
+	transactionHash: String
+	error: String
+}
+
 type Transfer {
 	status: Int
 	data: TransferData
@@ -333,10 +352,12 @@ type TransferData {
 	tenanttransactionid: String
 }
 
-type TransactionResponse {
-  status: Int
-  transactionHash: String
-  error: String
+input TransferERC1155Input {
+	toAddress: String!
+	tokenId: Int!
+	amount: Int!
+	chain: String!
+	contractAddress: String!
 }
 
 input TransferInput {
@@ -349,13 +370,11 @@ input TransferInput {
 	tenantTransactionId: String!
 }
 
-input MergeStakeInput {
-  senderWalletAddress: String!
-}
-
-input WithdrawStakeInput {
-  senderWalletAddress: String!
-  accountPublicKey: String!
+input TransferNFTInput {
+	toAddress: String!
+	tokenIds: [Int!]
+	chain: String!
+	contractAddress: String!
 }
 
 input UnStakingInput {
@@ -363,68 +382,43 @@ input UnStakingInput {
 	amount: Float!
 	chainType: String!
 }
-input CustomerKycInput {
-  customerId: String!
+
+type WithdrawStake {
+	status: Int
+	error: AWSJSON
 }
 
-input MintNFTInput {
-  toAddress: String!
-  numberOfTokens: Int!
-  chain: String!
-  contractAddress: String!
-}
-
-input MintERC1155Input {
-  toAddress: String!
-  ids: [Int!]
-  amounts: [Int!]
-  chain: String!
-  contractAddress: String!
-}
-
-input TransferNFTInput {
-  toAddress: String!
-  tokenIds: [Int!]
-  chain: String!
-  contractAddress: String!
-}
-
-input TransferERC1155Input {
-  toAddress: String!
-  tokenId: Int!
-  amount: Int!
-  chain: String!
-  contractAddress: String!
+input WithdrawStakeInput {
+	senderWalletAddress: String!
+	accountPublicKey: String!
 }
 
 type Query {
-
-
-  CreateWallet(input: CreateWalletInput): GetWallet
-  GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
-  GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
-  GetWallet(input: GetWalletInput): GetWallet
-  GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
-  CustomerKyc(input: CustomerKycInput): CustomerKyc
-  KycWebhook(input: AWSJSON): AWSJSON
-  ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
-  ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
-  ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
-  ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
-  ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
-  CustomerAndWalletCounts: CustomerAndWalletCounts
-  GetCubistOrgData: GetCubistOrgData
-  MasterTransfer(input: MasterTransferInput): Transfer
-  Signin(input: SigninInput): SignIn
-  Staking(input: StakingInput): Staking
-  Transfer(input: TransferInput): Transfer
-  Unstaking(input: UnStakingInput): Staking
-  MergeStake(input: MergeStakeInput): ListStakeAccounts
-  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
-  MintNFT(input: MintNFTInput): TransactionResponse
-  MintERC1155(input: MintERC1155Input): TransactionResponse
-  TransferNFT(input: TransferNFTInput): TransactionResponse
-  TransferERC1155(input: TransferERC1155Input): TransactionResponse
+	CreateWallet(input: CreateWalletInput): GetWallet
+	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
+	GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
+	GetWallet(input: GetWalletInput): GetWallet
+	GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
+	CustomerKyc(input: CustomerKycInput): CustomerKyc
+	KycWebhook(input: AWSJSON): AWSJSON
+	ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
+	ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
+	ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
+	ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
+	ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
+	CustomerAndWalletCounts: CustomerAndWalletCounts
+	GetCubistOrgData: GetCubistOrgData
+	MasterTransfer(input: MasterTransferInput): Transfer
+	Signin(input: SigninInput): SignIn
+	Staking(input: StakingInput): Staking
+	Transfer(input: TransferInput): Transfer
+	Unstaking(input: UnStakingInput): Staking
+	MergeStake(input: MergeStakeInput): ListStakeAccounts
+	WithdrawStake(input: WithdrawStakeInput): WithdrawStake
+	MintNFT(input: MintNFTInput): TransactionResponse
+	MintERC1155(input: MintERC1155Input): TransactionResponse
+	TransferNFT(input: TransferNFTInput): TransactionResponse
+	TransferERC1155(input: TransferERC1155Input): TransactionResponse
 }
 
 schema {
