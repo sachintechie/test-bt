@@ -398,6 +398,8 @@ input TransferERC1155Input {
 }
 
 type Query {
+
+
   CreateWallet(input: CreateWalletInput): GetWallet
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
