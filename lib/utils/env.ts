@@ -20,10 +20,16 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     SECRET_NAME: databaseInfo.secretName,
     DATABASE_URL: databaseInfo.databaseUrl
   }
+  const web3InfoEnv={
+    AVAX_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
+    ETH_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
+    PRIVATE_KEY:'0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e',
+  }
   switch (environment) {
     case "dev":
       return {
         ...databaseInfoEnv,
+        ...web3InfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev"
@@ -31,6 +37,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     case "staging":
       return {
         ...databaseInfoEnv,
+        ...web3InfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev"
@@ -38,6 +45,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     case "prod":
       return {
         ...databaseInfoEnv,
+        ...web3InfoEnv,
         SOLANA_NETWORK: "mainnet",
         SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
         CS_API_ROOT: "https://prod.signer.cubist.dev"
@@ -45,6 +53,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     case "schoolhack-prod":
         return {
           ...databaseInfoEnv,
+          ...web3InfoEnv,
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev"
@@ -52,6 +61,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     default:
       return {
         ...databaseInfoEnv,
+        ...web3InfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev"

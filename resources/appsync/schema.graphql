@@ -121,6 +121,12 @@ type ListStakeAccounts {
   error: AWSJSON
 }
 
+type WithdrawStake {
+  status: Int
+  error: AWSJSON
+}
+
+
 input ListStakeTransactionInput {
   stakeAccountId: String!
 }
@@ -312,6 +318,12 @@ type TransferData {
   tenanttransactionid: String
 }
 
+type TransactionResponse {
+  status: Int
+  transactionHash: String
+  error: String
+}
+
 input TransferInput {
   senderWalletAddress: String!
   receiverWalletAddress: String!
@@ -328,6 +340,7 @@ input MergeStakeInput {
 
 input WithdrawStakeInput {
   senderWalletAddress: String!
+  accountPublicKey: String!
 }
 
 input UnStakingInput {
@@ -337,6 +350,36 @@ input UnStakingInput {
 }
 input CustomerKycInput {
   customerId: String!
+}
+
+input MintNFTInput {
+  toAddress: String!
+  numberOfTokens: Int!
+  chain: String!
+  contractAddress: String!
+}
+
+input MintERC1155Input {
+  toAddress: String!
+  ids: [Int!]
+  amounts: [Int!]
+  chain: String!
+  contractAddress: String!
+}
+
+input TransferNFTInput {
+  toAddress: String!
+  tokenIds: [Int!]
+  chain: String!
+  contractAddress: String!
+}
+
+input TransferERC1155Input {
+  toAddress: String!
+  tokenId: Int!
+  amount: Int!
+  chain: String!
+  contractAddress: String!
 }
 
 type Query {
@@ -359,7 +402,11 @@ type Query {
   Transfer(input: TransferInput): Transfer
   Unstaking(input: UnStakingInput): Staking
   MergeStake(input: MergeStakeInput): ListStakeAccounts
-  WithdrawStake(input: WithdrawStakeInput): ListStakeAccounts
+  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
+  MintNFT(input: MintNFTInput): TransactionResponse
+  MintERC1155(input: MintERC1155Input): TransactionResponse
+  TransferNFT(input: TransferNFTInput): TransactionResponse
+  TransferERC1155(input: TransferERC1155Input): TransactionResponse
 }
 
 schema {
