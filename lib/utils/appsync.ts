@@ -30,6 +30,7 @@ export const newAppSyncApi = (scope: Construct, id: string, lambdaStack: BridgeT
       },
     },
   });
+  
 }
 
 export const configResolver =(api:GraphqlApi,lambda:IFunction,typeName:string,fieldName:string)=>{
