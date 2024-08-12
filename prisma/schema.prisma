@@ -55,6 +55,21 @@ model customer {
   stakeaccounts     stakeaccount[]
 }
 
+model adminuser {
+  id                String             @id @default(uuid())
+  tenantuserid      String?
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  emailid           String?
+  name              String?
+  cubistuserid      String?
+  isactive          Boolean?
+  createdat         String?
+  iss               String?
+  isbonuscredit     Boolean?
+  adminwallets      adminwallet[]
+}
+
 model customerkyc {
   id         String    @id @default(uuid())
   customerid String?
@@ -180,6 +195,7 @@ model tenant {
   cubistorgid      String?
   cubistconfig     cubistconfig[]
   customer         customer[]
+  adminuser        adminuser[]
   customerkyc      customerkyc[]
   gaspayerwallet   gaspayerwallet[]
   stakeaccount     stakeaccount[]
@@ -245,5 +261,19 @@ model wallet {
   wallettype    String?
   walletid      String?
   isactive      Boolean?
+  createdat     String?
+}
+
+
+model adminwallet {
+  id            String    @id @default(uuid())
+  adminuserid    String?
+  adminuser      adminuser? @relation(fields: [adminuserid], references: [id])
+  walletaddress String?
+  chaintype     String?
+  wallettype    String?
+  walletid      String?
+  isactive      Boolean?
+  tenantid      String?
   createdat     String?
 }
