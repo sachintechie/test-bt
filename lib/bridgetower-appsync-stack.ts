@@ -31,6 +31,8 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     // Create resolvers for each lambda function
     for (const [key, value] of lambdaStack.lambdaMap) {
       if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(key)) {
+        // Add a tag to ensure an update is triggered
+        value.addEnvironment('FORCE_UPDATE', new Date().toISOString());
         configResolver(api, value, 'Query', capitalize(key))
       }
     }
