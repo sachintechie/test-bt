@@ -416,7 +416,6 @@ type Query {
 	Transfer(input: TransferInput): Transfer
 	Unstaking(input: UnStakingInput): Staking
 	MergeStake(input: MergeStakeInput): ListStakeAccounts
-	WithdrawStake(input: WithdrawStakeInput): WithdrawStake
 	MintNFT(input: MintNFTInput): TransactionResponse
 	MintERC1155(input: MintERC1155Input): TransactionResponse
 	TransferNFT(input: TransferNFTInput): TransactionResponse
