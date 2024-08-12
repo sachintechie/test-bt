@@ -34,9 +34,8 @@ export const newAppSyncApi = (scope: Construct, id: string, lambdaStack: BridgeT
 }
 
 export const configResolver =(api:GraphqlApi,lambda:IFunction,typeName:string,fieldName:string)=>{
-  const timestamp = new Date().toISOString();
-  const dataSource=api.addLambdaDataSource(env`${fieldName}LambdaDataSource_${timestamp}`, lambda);
-  dataSource.createResolver(env`${fieldName}Resolver_${timestamp}`, {
+  const dataSource=api.addLambdaDataSource(env`${fieldName}LambdaDataSource`, lambda);
+  dataSource.createResolver(env`${fieldName}Resolver`, {
     typeName: typeName,
     fieldName: fieldName,
     requestMappingTemplate: appsync.MappingTemplate.fromString(`
