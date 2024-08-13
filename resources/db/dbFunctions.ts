@@ -332,6 +332,7 @@ export async function insertStakeAccount(
         isactive: true,
         createdat: new Date().toISOString(),
         updatedat: new Date().toISOString(),
+        error:'error'
       }
     });
     return { ...newStakeaccount, stakeaccountid: newStakeaccount.id };
