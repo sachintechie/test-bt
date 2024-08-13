@@ -328,8 +328,10 @@ export async function insertStakeAccount(
         status: 'OPEN',
         tenanttransactionid: 'WTNtte6st21100119123444',
         stakeaccountpubkey: 'HhxAueQn7TEA2LPokVDfwYHjXPgmsPJmzzmSFuqdr71T',
-        lockupexpirationtimestamp: undefined,
-        isactive: true
+        lockupexpirationtimestamp: 34,
+        isactive: true,
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString(),
       }
     });
     return { ...newStakeaccount, stakeaccountid: newStakeaccount.id };
