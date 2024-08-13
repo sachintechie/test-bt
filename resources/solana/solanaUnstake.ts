@@ -135,7 +135,7 @@ export async function unstakeSol(
     if (stakeAccountInfo.currentStakeAmount == null) {
       return { trxHash: null, error: "Failed to parse stake account data" };
     }
-    if (amount * LAMPORTS_PER_SOL > stakeAccountInfo.currentStakeAmount) {
+    if (amount  > stakeAccountInfo.currentStakeAmount) {
       return { trxHash: null, error: "Insufficient staked amount" };
     }
 
@@ -161,7 +161,7 @@ export async function unstakeSol(
         senderKey[0],
         stakeAccountPubkey,
         senderWalletAddress,
-        amount * LAMPORTS_PER_SOL,
+        amount ,
         isFullyUnStake
       );
     }
@@ -272,7 +272,7 @@ async function partiallyDeactivateStake(
         stakePubkey: stakeAccountPubkey,
         authorizedPubkey: fromPublicKey,
         splitStakePubkey: tempStakeAccount.publicKey,
-        lamports: amount
+        lamports: amount* LAMPORTS_PER_SOL
       },
       lamportsForRentExemption
     )
