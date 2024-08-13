@@ -12,15 +12,17 @@ export async function getPrismaClient() {
   }
   const databaseUrl = await getDatabaseUrl();
   prismaClient = new PrismaClient({
-    datasourceUrl: databaseUrl
+    datasourceUrl: databaseUrl,
+    log: ['query', 'info', 'warn', 'error'],
   });
 
-  prismaClient.$use(async (params, next) => {
-    if (params.args.data) {
-      sanitizeData(params.args.data);
-    }
-    return next(params);
+  // @ts-ignore
+  prismaClient.$on('query', (e:any) => {
+    console.log('Query: ', e.query);
+    console.log('Params: ', e.params);
+    console.log('Duration: ', e.duration, 'ms');
   });
+
   return prismaClient;
 }
 
