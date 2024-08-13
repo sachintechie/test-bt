@@ -14,7 +14,26 @@ export async function getPrismaClient() {
   prismaClient = new PrismaClient({
     datasourceUrl: databaseUrl
   });
+
+  prismaClient.$use(async (params, next) => {
+    if (params.args.data) {
+      sanitizeData(params.args.data);
+    }
+    return next(params);
+  });
   return prismaClient;
+}
+
+
+
+function sanitizeData(data: any) {
+  for (const key in data) {
+    if (typeof data[key] === 'string') {
+      data[key] = data[key].replace(/\x00/g, ''); // Remove null bytes
+    } else if (typeof data[key] === 'object' && data[key] !== null) {
+      sanitizeData(data[key]); // Recursively sanitize nested objects
+    }
+  }
 }
 
 export async function createCustomer(customer: customer) {
