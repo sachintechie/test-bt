@@ -330,8 +330,6 @@ export async function insertStakeAccount(
         stakeaccountpubkey: stakeaccountpubkey,
         lockupexpirationtimestamp: lockupExpirationTimestamp||0,
         isactive: true,
-        createdat: '',
-        updatedat: '',
         error: error ||''
       }
     });
