@@ -139,7 +139,7 @@ export async function unstakeSol(
       return { trxHash: null, error: "Insufficient staked amount" };
     }
 
-    if (amount * LAMPORTS_PER_SOL === stakeAccountInfo.currentStakeAmount) {
+    if (amount  === stakeAccountInfo.currentStakeAmount) {
       console.log("full stake", amount);
 
       isFullyUnStake = true;
