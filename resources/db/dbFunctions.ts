@@ -316,21 +316,20 @@ export async function insertStakeAccount(
     console.log("Creating stake account", senderWalletAddress, receiverWalletaddress, amount, chainType, symbol, tenantId, customerId, tenantUserId, network, status, tenantTransactionId, stakeaccountpubkey, lockupExpirationTimestamp, error)
     const newStakeaccount = await prisma.stakeaccount.create({
       data: {
-        customerid: customerId,
-        walletaddress: senderWalletAddress,
-        validatornodeaddress: receiverWalletaddress,
-        amount: amount,
-        chaintype: chainType,
-        symbol: symbol,
-        tenantid: tenantId,
-        tenantuserid: tenantUserId,
-        network: network,
-        status: status,
-        tenanttransactionid: tenantTransactionId,
-        stakeaccountpubkey: stakeaccountpubkey,
-        lockupexpirationtimestamp: lockupExpirationTimestamp||0,
-        isactive: true,
-        error: error ||''
+        customerid: 'c11882ef-4b60-4e9b-a8fe-84cd56d6dc27',
+        walletaddress: 'FkKFEmPZjYT9FP1KUES4jCNo8F7LPmfcryi7aZxMcMg2',
+        validatornodeaddress: 'HkEL3Z81qya6Z3tyicLA8efD5tZw6teV13VqyT856sY1',
+        amount: 0.15,
+        chaintype: 'Solana',
+        symbol: 'SOL',
+        tenantid: '615786c7-dd4a-4373-9a27-ea84a2f476b9',
+        tenantuserid: 'sachin03jain@gmail.com',
+        network: 'devnet',
+        status: 'OPEN',
+        tenanttransactionid: 'WTNtte6st21100119123444',
+        stakeaccountpubkey: 'HhxAueQn7TEA2LPokVDfwYHjXPgmsPJmzzmSFuqdr71T',
+        lockupexpirationtimestamp: undefined,
+        isactive: true
       }
     });
     return { ...newStakeaccount, stakeaccountid: newStakeaccount.id };
