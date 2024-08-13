@@ -328,11 +328,11 @@ export async function insertStakeAccount(
         status: status,
         tenanttransactionid: tenantTransactionId,
         stakeaccountpubkey: stakeaccountpubkey,
-        lockupexpirationtimestamp: lockupExpirationTimestamp,
+        lockupexpirationtimestamp: lockupExpirationTimestamp||0,
         isactive: true,
         createdat: new Date().toISOString(),
         updatedat: new Date().toISOString(),
-        error: error
+        error: error ||''
       }
     });
     return { ...newStakeaccount, stakeaccountid: newStakeaccount.id };
