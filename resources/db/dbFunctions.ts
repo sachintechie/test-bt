@@ -330,8 +330,8 @@ export async function insertStakeAccount(
         stakeaccountpubkey: stakeaccountpubkey,
         lockupexpirationtimestamp: lockupExpirationTimestamp||0,
         isactive: true,
-        createdat: new Date().toISOString(),
-        updatedat: new Date().toISOString(),
+        createdat: '',
+        updatedat: '',
         error: error ||''
       }
     });
