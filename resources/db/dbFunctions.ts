@@ -313,6 +313,7 @@ export async function insertStakeAccount(
 ) {
   try {
     const prisma = await getPrismaClient();
+    console.log("Creating stake account", senderWalletAddress, receiverWalletaddress, amount, chainType, symbol, tenantId, customerId, tenantUserId, network, status, tenantTransactionId, stakeaccountpubkey, lockupExpirationTimestamp, error)
     const newStakeaccount = await prisma.stakeaccount.create({
       data: {
         customerid: customerId,
