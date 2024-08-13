@@ -132,8 +132,8 @@ model stakeaccount {
   stakeaccountpubkey        String
   lockupexpirationtimestamp Int?
   isactive                  Boolean?
-  createdat                 DateTime?          @default(now())
-  updatedat                 DateTime?          @updatedAt
+  createdat                 String?
+  updatedat                 String?
   error                     String?
   customer                  customer?          @relation(fields: [customerid], references: [id])
   tenant                    tenant?            @relation(fields: [tenantid], references: [id])
