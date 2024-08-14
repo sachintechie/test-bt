@@ -404,7 +404,7 @@ export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, tar
       throw new Error("Target stake account not found");
     }
 
-    const newAmount = sourceAccount.amount || 0 + Number(targetAccount.amount || 0);
+    const newAmount = (sourceAccount.amount || 0) + (targetAccount.amount || 0);
 
     const updatedTargetAccount = await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: targetStakeAccountPubkey },
@@ -459,7 +459,7 @@ export async function insertMergeStakeAccountsTransaction(
       throw new Error("Target stake account not found");
     }
 
-    const newAmount = sourceAccount.amount || 0 + Number(targetAccount.amount || 0);
+    const newAmount = (sourceAccount.amount || 0) + (targetAccount.amount || 0);
 
     await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: sourceStakeAccountPubkey },
