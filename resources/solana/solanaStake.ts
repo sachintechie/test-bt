@@ -20,7 +20,13 @@ import {
   type Signer, sendAndConfirmTransaction
 } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
-import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
+import {
+  getSolBalance,
+  getSolConnection,
+  getSplTokenBalance,
+  getStakeAccountInfo,
+  verifySolanaTransaction
+} from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 
 const env: any = {
@@ -111,11 +117,15 @@ export async function solanaStaking(
   const transactionStatus = await verifySolanaTransaction(tx?.trxHash!);
   const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
   const stakeAccountStatus = StakeAccountStatus.OPEN;
+  const connection = await getSolConnection();
+  const stakeAccountInfo = await getStakeAccountInfo(tx?.stakeAccountPubKey?.toString()!, connection);
+
+  console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
 
   const newStakeAccount = await insertStakeAccount(
     senderWalletAddress,
     receiverWalletAddress,
-    amount,
+    stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL,
     chainType,
     symbol,
     tenant.id,
@@ -131,7 +141,7 @@ export async function solanaStaking(
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
     receiverWalletAddress,
-    amount,
+    stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL,
     chainType,
     symbol,
     tx?.trxHash || "",

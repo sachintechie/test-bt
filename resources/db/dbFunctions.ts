@@ -1175,21 +1175,7 @@ export async function getStakingTransactionByTenantTransactionId(tenantTransacti
     throw err;
   }
 }
-export async function updateStakeAccountStatus(stakeAccountId: string, status: string) {
-  try {
-    const prisma = await getPrismaClient();
-    const updatedStakeAccount = await prisma.stakeaccount.update({
-      where: { id: stakeAccountId },
-      data: {
-        status: status,
-        updatedat: new Date().toISOString()
-      }
-    });
-    return updatedStakeAccount;
-  } catch (err) {
-    throw err;
-  }
-}
+
 export async function decreaseStakeAmount(stakeAccountId: string, amount: number) {
   try {
     const prisma = await getPrismaClient();
@@ -1205,14 +1191,13 @@ export async function decreaseStakeAmount(stakeAccountId: string, amount: number
     throw err;
   }
 }
-export async function updateStakeAccount(stakeAccountId: string, status: string, amount: number) {
+export async function updateStakeAccountStatus(stakeAccountPublicKey: string, status: string) {
   try {
     const prisma = await getPrismaClient();
-    const updatedStakeAccount = await prisma.stakeaccount.update({
-      where: { id: stakeAccountId },
+    const updatedStakeAccount = await prisma.stakeaccount.updateMany({
+      where: { stakeaccountpubkey: stakeAccountPublicKey },
       data: {
         status: status,
-        amount: { decrement: amount },
         updatedat: new Date().toISOString()
       }
     });
