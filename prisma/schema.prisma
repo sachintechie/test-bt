@@ -45,7 +45,7 @@ model customer {
   cubistuserid      String?
   isactive          Boolean?
   createdat         String?
-  iss               String?
+  iss               String?             
   isbonuscredit     Boolean?
   usertype          String?
   iv                String?
@@ -258,7 +258,7 @@ model wallet {
   id            String    @id @default(uuid())
   customerid    String?
   customer      customer? @relation(fields: [customerid], references: [id])
-  walletaddress String?
+  walletaddress String?   @@unique
   chaintype     String?
   wallettype    String?
   walletid      String?
