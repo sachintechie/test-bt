@@ -479,7 +479,7 @@ export async function insertMergeStakeAccountsTransaction(
       data: {
         customerid: targetAccount.customerid,
         type: "MERGE",
-        tokenid: sourceStakeTransaction!.tokenid,
+        tokenid: sourceStakeTransaction?.tokenid!,
         tenanttransactionid: targetAccount.tenanttransactionid,
         stakeaccountpubkey: targetStakeAccountPubkey,
         network: targetAccount.network,
@@ -1330,7 +1330,8 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   const stakeAccounts = await prisma.stakeaccount.findMany({
     where: {
       walletaddress: walletAddress,
-      tenantid: tenantId
+      tenantid: tenantId,
+      status:'OPEN'
     },
     select: {
       stakeaccountpubkey: true

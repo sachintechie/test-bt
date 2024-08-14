@@ -121,11 +121,11 @@ export async function solanaStaking(
   const stakeAccountInfo = await getStakeAccountInfo(tx?.stakeAccountPubKey?.toString()!, connection);
 
   console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
-
+  const newAmount=stakeAccountInfo.currentStakeAmount?stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL:amount
   const newStakeAccount = await insertStakeAccount(
     senderWalletAddress,
     receiverWalletAddress,
-    stakeAccountInfo.currentStakeAmount?stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL:amount,
+    newAmount,
     chainType,
     symbol,
     tenant.id,
@@ -141,7 +141,7 @@ export async function solanaStaking(
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
     receiverWalletAddress,
-    stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL,
+    newAmount,
     chainType,
     symbol,
     tx?.trxHash || "",
