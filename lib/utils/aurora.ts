@@ -54,6 +54,6 @@ export const getDevOrProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
     host:'schoolhack-instance-1.cr0swqk86miu.us-east-1.rds.amazonaws.com',
     port:"5432",
     dbName: isDev()?"dev":"prod",
-    secretName:SECRET_NAME
+    secretName:'rds!cluster-e0c060a9-d50c-4c22-8ff5-4596c2b90deb'
   };
 }
