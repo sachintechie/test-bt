@@ -125,7 +125,7 @@ export async function solanaStaking(
   const newStakeAccount = await insertStakeAccount(
     senderWalletAddress,
     receiverWalletAddress,
-    stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL,
+    stakeAccountInfo.currentStakeAmount?stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL:amount,
     chainType,
     symbol,
     tenant.id,

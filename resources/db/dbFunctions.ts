@@ -1223,7 +1223,7 @@ export async function updateStakeAccountAmount(stakeAccountId: string, amount: n
   }
 }
 
-export async function duplicateStakeAccount(stakeAccountPubKey: string, newStakeAccountPubKey: string, newAmount: number) {
+export async function duplicateStakeAccountWithStatus(stakeAccountPubKey: string, newStakeAccountPubKey: string, newAmount: number,newStatus: string) {
   try {
     const prisma = await getPrismaClient();
     const existingStakeAccount = await prisma.stakeaccount.findFirst({
@@ -1241,7 +1241,7 @@ export async function duplicateStakeAccount(stakeAccountPubKey: string, newStake
         tenanttransactionid: existingStakeAccount.tenanttransactionid,
         stakeaccountpubkey: newStakeAccountPubKey,
         network: existingStakeAccount.network,
-        status: existingStakeAccount.status,
+        status: newStatus,
         error: existingStakeAccount.error,
         tenantuserid: existingStakeAccount.tenantuserid,
         walletaddress: existingStakeAccount.walletaddress,

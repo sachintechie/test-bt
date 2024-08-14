@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
-  decreaseStakeAmount, duplicateStakeAccount,
+  decreaseStakeAmount, duplicateStakeAccountWithStatus,
   getCubistConfig, getToken, getWallet,
   insertStakingTransaction, reduceStakeAccountAmount, updateStakeAccountStatus
 } from "../db/dbFunctions";
@@ -280,7 +280,7 @@ async function partiallyDeactivateStake(
   await connection.confirmTransaction(tx);
   console.log("Stake account split with signature:", tx);
 
-  await duplicateStakeAccount(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount);
+  await duplicateStakeAccountWithStatus(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount,'CLOSED');
   await reduceStakeAccountAmount(stakeAccountPubkey.toString(),amount);
 
   // Deactivate the split stake account
