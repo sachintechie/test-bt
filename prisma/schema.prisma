@@ -5,9 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["nApi"]
-  binaryTargets   = ["rhel-openssl-1.0.x"]
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -48,6 +47,9 @@ model customer {
   createdat         String?
   iss               String?
   isbonuscredit     Boolean?
+  usertype          String?
+  iv                String?
+  key               String?
   customerkycs      customerkyc[]
   wallets           wallet[]
   transactions      transaction[]
@@ -56,18 +58,18 @@ model customer {
 }
 
 model adminuser {
-  id                String             @id @default(uuid())
-  tenantuserid      String?
-  tenantid          String?
-  tenant            tenant?            @relation(fields: [tenantid], references: [id])
-  emailid           String?
-  name              String?
-  cubistuserid      String?
-  isactive          Boolean?
-  createdat         String?
-  iss               String?
-  isbonuscredit     Boolean?
-  adminwallets      adminwallet[]
+  id            String        @id @default(uuid())
+  tenantuserid  String?
+  tenantid      String?
+  tenant        tenant?       @relation(fields: [tenantid], references: [id])
+  emailid       String?
+  name          String?
+  cubistuserid  String?
+  isactive      Boolean?
+  createdat     String?
+  iss           String?
+  isbonuscredit Boolean?
+  adminwallets  adminwallet[]
 }
 
 model customerkyc {
@@ -133,8 +135,8 @@ model stakeaccount {
   stakeaccountpubkey        String
   lockupexpirationtimestamp Int?
   isactive                  Boolean?
-  createdat                 DateTime?          @default(now())
-  updatedat                 DateTime?          @updatedAt
+  createdat                 String?
+  updatedat                 String?
   error                     String?
   customer                  customer?          @relation(fields: [customerid], references: [id])
   tenant                    tenant?            @relation(fields: [tenantid], references: [id])
@@ -171,15 +173,15 @@ model staketransaction {
 }
 
 model sumsubconfig {
-  id              String   @id @default(uuid())
-  tenantid        String?
-  baseurl         String?
+  id                String   @id @default(uuid())
+  tenantid          String?
+  baseurl           String?
   sumsub_app_token  String
   sumsub_secret_key String
-  ismaster        Boolean
-  isactive        Boolean?
-  createdat       String?
-  updatedat       String?
+  ismaster          Boolean
+  isactive          Boolean?
+  createdat         String?
+  updatedat         String?
 }
 
 model tenant {
@@ -264,11 +266,10 @@ model wallet {
   createdat     String?
 }
 
-
 model adminwallet {
-  id            String    @id @default(uuid())
-  adminuserid    String?
-  adminuser      adminuser? @relation(fields: [adminuserid], references: [id])
+  id            String     @id @default(uuid())
+  adminuserid   String?
+  adminuser     adminuser? @relation(fields: [adminuserid], references: [id])
   walletaddress String?
   chaintype     String?
   wallettype    String?

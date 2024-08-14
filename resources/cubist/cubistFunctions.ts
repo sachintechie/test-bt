@@ -1,6 +1,8 @@
 import { deleteCustomer, deleteWallet, getCubistConfig } from "../db/dbFunctions";
 import { deleteCubistUserKey, getCsClient, getCsClientBySecretName } from "./CubeSignerClient";
 
+const cubsitApiEndpoint = process.env["CS_API_ENDPOINT"] ?? "https://gamma.signer.cubist.dev/";
+
 export async function deleteKeyAndUser(customerWallets: any[], tenant: any) {
   try {
     const cubist = await deleteCubistUserKey(customerWallets, tenant.id);
@@ -43,5 +45,38 @@ export async function getCubistOrgData( tenantId: string,) {
     console.error(err);
     return { key: null, error: "Erorr in creating cubist client for gas payer" };
   }
+}
+
+
+export async function sendOidcEmailOtp( emailId: string, tenantId: string) {
+  const secretName = "";
+  const cubistConfig = await getCubistConfig(tenantId);
+  const cubistTokenString: any = await getSecretValue(secretName);
+  const cubistToken = JSON.parse(cubistTokenString);
+  if(cubistConfig == null){
+    return { data: null, error: "Cubist config not found for this tenant" };
+  }else{
+const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-otp`;
+  try {
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization":  cubistToken
+      },
+      body: JSON.stringify({
+        email: emailId
+      })
+    });
+    const data= await response.json();
+    return { data, error: null };
+  } catch (err) {
+    console.error(err);
+    return { data: null, error: "Error in sending email otp" };
+  }
+}
+}
+function getSecretValue(secretName: any): any {
+  throw new Error("Function not implemented.");
 }
 

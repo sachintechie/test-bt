@@ -30,12 +30,13 @@ export const handler = async (event: any) => {
       status: 200,
       data: accounts
     };
-  }catch (e) {
+  }catch (e:any) {
     console.log(e)
     return {
       status: 400,
       data: null,
-      error: e
+      error: e.message
     };
   }
 };
+

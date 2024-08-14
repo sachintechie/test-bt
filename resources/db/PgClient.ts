@@ -26,7 +26,7 @@ export async function executeQuery(query: string) {
   dbConfig.user = dbSecret.username;
   dbConfig.password = dbSecret.password;
   const client = new Client(dbConfig);
-
+  console.log('dbConfig', JSON.stringify(dbConfig));
   try {
     await client.connect();
     const result = await client.query(query);
