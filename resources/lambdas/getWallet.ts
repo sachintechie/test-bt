@@ -59,6 +59,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           console.log("Verifying identity", proof);
 
           await org.verifyIdentity(proof);
+          
 
           console.log("Verified");
 
