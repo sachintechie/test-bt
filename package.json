@@ -19,7 +19,7 @@
     "@aws-sdk/client-iam": "^3.614.0",
     "@aws-sdk/client-organizations": "^3.614.0",
     "@aws-sdk/client-secrets-manager": "^3.583.0",
-    "@cubist-labs/cubesigner-sdk": "^0.4.24-0",
+    "@cubist-labs/cubesigner-sdk": "^0.4.54-0",
     "@prisma/client": "^5.18.0",
     "@solana/spl-token": "^0.4.6",
     "@solana/web3.js": "^1.91.8",
