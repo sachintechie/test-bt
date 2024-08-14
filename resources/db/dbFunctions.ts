@@ -461,10 +461,6 @@ export async function insertMergeStakeAccountsTransaction(
 
     const newAmount = (sourceAccount.amount || 0) + (targetAccount.amount || 0);
 
-    await prisma.stakeaccount.updateMany({
-      where: { stakeaccountpubkey: sourceStakeAccountPubkey },
-      data: { amount: newAmount, updatedat: new Date().toISOString() }
-    });
 
     await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: targetStakeAccountPubkey },
