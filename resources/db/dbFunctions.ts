@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { CallbackStatus, customer, StakeAccountStatus, tenant } from "./models";
+import { CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -51,6 +51,9 @@ export async function createCustomer(customer: customer) {
         cubistuserid: customer.cubistuserid.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
+        iv: customer.iv,
+        key: customer.key,
+        usertype: customer.usertype,
         createdat: new Date().toISOString(),
       }
     });
@@ -59,6 +62,51 @@ export async function createCustomer(customer: customer) {
     throw err;
   }
 }
+
+export async function updateCustomer(customer: updatecustomer) {
+  try {
+
+  
+    const prisma = await getPrismaClient();
+    const newCustomer = await prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+      
+        iv: customer.iv,
+        key: customer.key,
+
+        
+      }
+    });
+    return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateCustomerCubistData(customer: updatecustomer) {
+  try {
+
+  
+    const prisma = await getPrismaClient();
+    const newCustomer = await prisma.customer.update({
+      where: { id: customer.id },
+      data: {
+      
+        cubistuserid: customer.cubistuserid,
+        emailid: customer.emailid,
+        iss: customer.iss,
+
+        
+      }
+    });
+    return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -1298,6 +1346,22 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
       where: {
         tenantuserid: tenantUserId,
         tenantid: tenantId
+      }
+    });
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function getEmailOtpCustomer(tenantUserId: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.customer.findFirst({
+      where: {
+        tenantuserid: tenantUserId,
+        tenantid: tenantId,
+        usertype: "EMAIL-OTP"
       }
     });
     return customer ? customer : null;

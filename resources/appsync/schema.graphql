@@ -234,6 +234,13 @@ input SigninInput {
 	tenantUserId: String!
 }
 
+input EmailSigninInput {
+	tenantUserId: String!
+	emailid: String!
+}
+
+
+
 type StakeAccountData {
 	customerid: String
 	walletaddress: String
@@ -421,6 +428,8 @@ type Query {
 	MintERC1155(input: MintERC1155Input): TransactionResponse
 	TransferNFT(input: TransferNFTInput): TransactionResponse
 	TransferERC1155(input: TransferERC1155Input): TransactionResponse
+	SendEmailOtpSignin(input: EmailSigninInput): SignIn
+	EmailOtpSignin(input: GetWalletInput):GetWallet
 }
 
 schema {
