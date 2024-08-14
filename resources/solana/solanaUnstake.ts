@@ -1,11 +1,9 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
-  decreaseStakeAmount, duplicateStakeAccount,
+  decreaseStakeAmount, duplicateStakeAccountWithStatus,
   getCubistConfig, getToken, getWallet,
-  getWalletAndTokenByWalletAddress,
-  insertStakingTransaction, reduceStakeAccountAmount,
-  updateStakeAccount
+  insertStakingTransaction, reduceStakeAccountAmount, updateStakeAccountStatus
 } from "../db/dbFunctions";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Transaction } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
@@ -74,11 +72,6 @@ export async function solanaUnStaking(
               stakeAccountId,
               StakeType.UNSTAKE
             );
-            if (trx.isFullyUnStake) {
-              const stakeAccount = await updateStakeAccount(stakeAccountId, StakeAccountStatus.CLOSED, amount);
-            } else {
-              const stakeAccount = await decreaseStakeAmount(stakeAccountId, amount);
-            }
             return { transaction: transaction, error: trx.error };
           } else {
             return { transaction: null, error: trx.error };
@@ -132,14 +125,13 @@ export async function unstakeSol(
     const stakeAccountInfo = await getStakeAccountInfo(stakeAccountPubKey, connection);
 
     console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
+    const currentStakeAmount = stakeAccountInfo.currentStakeAmount/ LAMPORTS_PER_SOL;
     if (stakeAccountInfo.currentStakeAmount == null) {
       return { trxHash: null, error: "Failed to parse stake account data" };
     }
-    if (amount * LAMPORTS_PER_SOL > stakeAccountInfo.currentStakeAmount) {
-      return { trxHash: null, error: "Insufficient staked amount" };
-    }
 
-    if (amount * LAMPORTS_PER_SOL === stakeAccountInfo.currentStakeAmount) {
+    if (amount >= currentStakeAmount) {
+      amount=currentStakeAmount;
       console.log("full stake", amount);
 
       isFullyUnStake = true;
@@ -161,7 +153,7 @@ export async function unstakeSol(
         senderKey[0],
         stakeAccountPubkey,
         senderWalletAddress,
-        amount * LAMPORTS_PER_SOL,
+        amount ,
         isFullyUnStake
       );
     }
@@ -197,7 +189,7 @@ async function deactivateStake(
   let tx = await connection.sendRawTransaction(transaction.serialize());
   await connection.confirmTransaction(tx);
   console.log("Stake deactivated with signature:", tx);
-
+  await updateStakeAccountStatus(stakeAccountPubkey.toString(), StakeAccountStatus.CLOSED)
   return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey, isFullyUnStake, error: null };
 }
 
@@ -272,7 +264,7 @@ async function partiallyDeactivateStake(
         stakePubkey: stakeAccountPubkey,
         authorizedPubkey: fromPublicKey,
         splitStakePubkey: tempStakeAccount.publicKey,
-        lamports: amount
+        lamports: amount* LAMPORTS_PER_SOL
       },
       lamportsForRentExemption
     )
@@ -288,7 +280,7 @@ async function partiallyDeactivateStake(
   await connection.confirmTransaction(tx);
   console.log("Stake account split with signature:", tx);
 
-  await duplicateStakeAccount(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount);
+  await duplicateStakeAccountWithStatus(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount,'CLOSED');
   await reduceStakeAccountAmount(stakeAccountPubkey.toString(),amount);
 
   // Deactivate the split stake account

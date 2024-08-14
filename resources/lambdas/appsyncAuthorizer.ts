@@ -38,7 +38,6 @@ export const handler = async (event: any) => {
     }
   } catch (err) {
     console.log("Disconnected from database.", err);
-
     return {
       isAuthorized: false
     };

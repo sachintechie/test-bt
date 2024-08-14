@@ -12,9 +12,30 @@ export async function getPrismaClient() {
   }
   const databaseUrl = await getDatabaseUrl();
   prismaClient = new PrismaClient({
-    datasourceUrl: databaseUrl
+    datasourceUrl: databaseUrl,
+    log: ['query', 'info', 'warn', 'error'],
   });
+
+  // @ts-ignore
+  prismaClient.$on('query', (e:any) => {
+    console.log('Query: ', e.query);
+    console.log('Params: ', e.params);
+    console.log('Duration: ', e.duration, 'ms');
+  });
+
   return prismaClient;
+}
+
+
+
+function sanitizeData(data: any) {
+  for (const key in data) {
+    if (typeof data[key] === 'string') {
+      data[key] = data[key].replace(/\x00/g, ''); // Remove null bytes
+    } else if (typeof data[key] === 'object' && data[key] !== null) {
+      sanitizeData(data[key]); // Recursively sanitize nested objects
+    }
+  }
 }
 
 export async function createCustomer(customer: customer) {
@@ -313,6 +334,7 @@ export async function insertStakeAccount(
 ) {
   try {
     const prisma = await getPrismaClient();
+    console.log("Creating stake account", senderWalletAddress, receiverWalletaddress, amount, chainType, symbol, tenantId, customerId, tenantUserId, network, status, tenantTransactionId, stakeaccountpubkey, lockupExpirationTimestamp, error)
     const newStakeaccount = await prisma.stakeaccount.create({
       data: {
         customerid: customerId,
@@ -329,9 +351,9 @@ export async function insertStakeAccount(
         stakeaccountpubkey: stakeaccountpubkey,
         lockupexpirationtimestamp: lockupExpirationTimestamp,
         isactive: true,
+        error: error,
         createdat: new Date().toISOString(),
         updatedat: new Date().toISOString(),
-        error: error
       }
     });
     return { ...newStakeaccount, stakeaccountid: newStakeaccount.id };
@@ -382,7 +404,7 @@ export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, tar
       throw new Error("Target stake account not found");
     }
 
-    const newAmount = sourceAccount.amount || 0 + Number(targetAccount.amount || 0);
+    const newAmount = (sourceAccount.amount || 0) + (targetAccount.amount || 0);
 
     const updatedTargetAccount = await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: targetStakeAccountPubkey },
@@ -437,12 +459,8 @@ export async function insertMergeStakeAccountsTransaction(
       throw new Error("Target stake account not found");
     }
 
-    const newAmount = sourceAccount.amount || 0 + Number(targetAccount.amount || 0);
+    const newAmount = (sourceAccount.amount || 0) + (targetAccount.amount || 0);
 
-    await prisma.stakeaccount.updateMany({
-      where: { stakeaccountpubkey: sourceStakeAccountPubkey },
-      data: { amount: newAmount, updatedat: new Date().toISOString() }
-    });
 
     await prisma.stakeaccount.updateMany({
       where: { stakeaccountpubkey: targetStakeAccountPubkey },
@@ -457,7 +475,7 @@ export async function insertMergeStakeAccountsTransaction(
       data: {
         customerid: targetAccount.customerid,
         type: "MERGE",
-        tokenid: sourceStakeTransaction!.tokenid,
+        tokenid: sourceStakeTransaction?.tokenid!,
         tenanttransactionid: targetAccount.tenanttransactionid,
         stakeaccountpubkey: targetStakeAccountPubkey,
         network: targetAccount.network,
@@ -1153,21 +1171,7 @@ export async function getStakingTransactionByTenantTransactionId(tenantTransacti
     throw err;
   }
 }
-export async function updateStakeAccountStatus(stakeAccountId: string, status: string) {
-  try {
-    const prisma = await getPrismaClient();
-    const updatedStakeAccount = await prisma.stakeaccount.update({
-      where: { id: stakeAccountId },
-      data: {
-        status: status,
-        updatedat: new Date().toISOString()
-      }
-    });
-    return updatedStakeAccount;
-  } catch (err) {
-    throw err;
-  }
-}
+
 export async function decreaseStakeAmount(stakeAccountId: string, amount: number) {
   try {
     const prisma = await getPrismaClient();
@@ -1183,14 +1187,13 @@ export async function decreaseStakeAmount(stakeAccountId: string, amount: number
     throw err;
   }
 }
-export async function updateStakeAccount(stakeAccountId: string, status: string, amount: number) {
+export async function updateStakeAccountStatus(stakeAccountPublicKey: string, status: string) {
   try {
     const prisma = await getPrismaClient();
-    const updatedStakeAccount = await prisma.stakeaccount.update({
-      where: { id: stakeAccountId },
+    const updatedStakeAccount = await prisma.stakeaccount.updateMany({
+      where: { stakeaccountpubkey: stakeAccountPublicKey },
       data: {
         status: status,
-        amount: { decrement: amount },
         updatedat: new Date().toISOString()
       }
     });
@@ -1216,7 +1219,7 @@ export async function updateStakeAccountAmount(stakeAccountId: string, amount: n
   }
 }
 
-export async function duplicateStakeAccount(stakeAccountPubKey: string, newStakeAccountPubKey: string, newAmount: number) {
+export async function duplicateStakeAccountWithStatus(stakeAccountPubKey: string, newStakeAccountPubKey: string, newAmount: number,newStatus: string) {
   try {
     const prisma = await getPrismaClient();
     const existingStakeAccount = await prisma.stakeaccount.findFirst({
@@ -1234,7 +1237,7 @@ export async function duplicateStakeAccount(stakeAccountPubKey: string, newStake
         tenanttransactionid: existingStakeAccount.tenanttransactionid,
         stakeaccountpubkey: newStakeAccountPubKey,
         network: existingStakeAccount.network,
-        status: existingStakeAccount.status,
+        status: newStatus,
         error: existingStakeAccount.error,
         tenantuserid: existingStakeAccount.tenantuserid,
         walletaddress: existingStakeAccount.walletaddress,
@@ -1323,7 +1326,11 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   const stakeAccounts = await prisma.stakeaccount.findMany({
     where: {
       walletaddress: walletAddress,
-      tenantid: tenantId
+      tenantid: tenantId,
+      OR: [
+        { status: 'OPEN' },
+        { status: 'MERGED' }
+      ]
     },
     select: {
       stakeaccountpubkey: true
