@@ -1,18 +1,22 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
-import { createCustomer, createWallet, createWalletAndKey, getCustomerAndWallet } from "../db/dbFunctions";
+import {  createWalletAndKey, getEmailOtpCustomer, updateCustomerCubistData } from "../db/dbFunctions";
+
+
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
 
 export const handler = async (event: any, context: any) => {
   try {
-    const data = await createUser(
+    console.log(event, context);
+
+    const data = await createCubistUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
       event.headers?.identity,
-      event.arguments?.input?.chainType
+      event.arguments?.input?.emailid
     );
 
     const response = {
@@ -20,7 +24,7 @@ export const handler = async (event: any, context: any) => {
       data: data.wallet,
       error: data.error
     };
-    console.log("Wallet", response);
+    console.log("customer", response);
 
     return response;
   } catch (err) {
@@ -33,19 +37,24 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createUser(tenant: tenant, tenantuserid: string, oidcToken: string, chainType: string) {
+
+
+
+async function createCubistUser(tenant: tenant, tenantuserid: string, token: BufferSource, chainType: string) {
   try {
-    const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, oidcToken);
-    if (isExist != null) {
-      return isExist;
-    } else {
-      if (!oidcToken) {
+    const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
+if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+return {  wallet: null, error: "Please do the registration first" };
+}
+  
+      if (!token) {
         return {
           wallet: null,
           error: "Please provide an identity token for verification"
         };
       } else {
         try {
+          const oidcToken = await decryptToken(customer?.iv, customer?.key, token);
           const { client, org, orgId } = await getCsClient(tenant.id);
           if (client == null || org == null) {
             return {
@@ -87,6 +96,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             oidcToken,
             iss,
             chainType,
+            customer.id,
             tenant
           );
           return wallet;
@@ -98,12 +108,13 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           };
         }
       }
-    }
+    
   } catch (e) {
     console.log(e);
     throw e;
   }
 }
+
 
 async function createCustomerAndWallet(
   cubistUserId: string,
@@ -113,21 +124,18 @@ async function createCustomerAndWallet(
   oidcToken: string,
   iss: string,
   chainType: string,
+  customerId: string,
   tenant: tenant
 ) {
   try{
   console.log(`Creating key for user ${cubistUserId}...`);
 
-  const customer = await createCustomer({
+  const customer = await updateCustomerCubistData({
     emailid: email ? email : "",
-    name: name ? name : "----",
-    tenantuserid,
-    tenantid: tenant.id,
     cubistuserid: cubistUserId,
-    isactive: true,
-    isBonusCredit: false,
     iss: iss,
-    createdat: new Date().toISOString()
+    id:customerId
+
   });
   console.log("Created customer", customer.id);
 
@@ -176,39 +184,26 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
 }
 }
 
-async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chainType: string, oidcToken: string) {
-  // check if customer exists
-  // check if wallet exists
-  // if wallet exists return wallet
-  // if wallet does not exist create wallet
-  // return wallet
-try{
-  const customerAndWallet = await getCustomerAndWallet(tenantuserid, chainType, tenant);
-  if (customerAndWallet != null) {
-    if (
-      customerAndWallet.wallets.length > 0 &&
-      customerAndWallet?.wallets[0].walletaddress != null &&
-      customerAndWallet.wallets[0].chaintype == chainType
-    ) {
-      const newWallet = {
-        walletaddress: customerAndWallet.wallets[0].walletaddress,
-        createdat: customerAndWallet.wallets[0].createdat,
-        chaintype: customerAndWallet.wallets[0].chaintype,
-        tenantuserid: tenantuserid,
-        tenantid: tenant.id,
-        emailid: customerAndWallet.emailid,
-        customerid: customerAndWallet.id
-      };
-      return { wallet: newWallet, error: null };
-    } else {
-      const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
-      return wallet;
-    }
-  } else {
-    return null;
+async function decryptToken(reqiv:string,reqkey:string,tokenData:BufferSource){
+  try {
+    console.log("Generating OIDC Token", reqiv, reqkey, tokenData);
+
+    const iv = Buffer.from(reqiv, "base64url");
+    const keyData = Buffer.from(reqkey, "base64url");
+    const key = await crypto.subtle.importKey("raw", keyData, "AES-GCM", false, ["decrypt"]);
+
+    console.log("Decrypting iv", iv);
+    console.log("Decrypting key", key);
+
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", length: 256, iv }, key, tokenData);
+
+    console.log("Decrypted", decrypted);
+
+    const decryptedToken = new TextDecoder("utf-8").decode(decrypted);
+    return decryptedToken;
+  } catch (e) {
+    console.log("Error", e);
+    throw e;
   }
-}
-catch (e) {
-  return null;
-}
+
 }

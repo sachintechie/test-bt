@@ -8,7 +8,19 @@ export interface customer {
   isactive: boolean;
   isBonusCredit: boolean;
   createdat: string;
+  usertype?: string;
+  iv?: string;
+  key?: string;
   iss?: string;
+}
+
+export interface updatecustomer {
+  id?: string;
+  iv?: string;
+  key?: string;
+  cubistuserid?: string;
+  iss?: string;
+  emailid?: string;
 }
 
 export interface tenant {

@@ -33,7 +33,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         ...web3InfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
-        CS_API_ROOT: "https://gamma.signer.cubist.dev"
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
       };
     case "staging":
       return {
@@ -41,7 +41,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         ...web3InfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
-        CS_API_ROOT: "https://gamma.signer.cubist.dev"
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+
       };
     case "prod":
       return {
@@ -49,7 +50,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         ...web3InfoEnv,
         SOLANA_NETWORK: "mainnet",
         SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
-        CS_API_ROOT: "https://prod.signer.cubist.dev"
+        CS_API_ROOT: "https://prod.signer.cubist.dev",
+
       };
     case "schoolhack-prod":
         return {
@@ -57,7 +59,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
           ...web3InfoEnv,
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
-          CS_API_ROOT: "https://prod.signer.cubist.dev"
+          CS_API_ROOT: "https://prod.signer.cubist.dev",
+
         };
     default:
       return {
@@ -65,7 +68,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         ...web3InfoEnv,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
-        CS_API_ROOT: "https://gamma.signer.cubist.dev"
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+
       };
   }
 };

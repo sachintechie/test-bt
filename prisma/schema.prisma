@@ -47,6 +47,9 @@ model customer {
   createdat         String?
   iss               String?
   isbonuscredit     Boolean?
+  usertype          String?
+  iv                String?
+  key               String?
   customerkycs      customerkyc[]
   wallets           wallet[]
   transactions      transaction[]
