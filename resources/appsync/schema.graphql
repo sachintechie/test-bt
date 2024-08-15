@@ -345,13 +345,6 @@ type TransferData {
 	tenanttransactionid: String
 }
 
-input TransferERC1155Input {
-	toAddress: String!
-	tokenId: Int!
-	amount: Int!
-	chain: String!
-	contractAddress: String!
-}
 
 input TransferInput {
 	senderWalletAddress: String!
@@ -403,12 +396,23 @@ input TransferNFTInput {
 	contractAddress: String!
 }
 
+input TransferERC1155Input {
+	toAddress: String!
+	tokenId: Int!
+	amount: Int!
+	chain: String!
+	contractAddress: String!
+}
+
 
 input UpdateMetadataInput {
 	contractAddress: String!
 	tokenId: Int!
 	updates: AWSJSON!
 }
+
+
+
 
 type Web3TransactionResponse {
 	status: Int
