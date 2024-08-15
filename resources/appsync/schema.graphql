@@ -201,20 +201,6 @@ input MergeStakeInput {
 	senderWalletAddress: String!
 }
 
-input MintERC1155Input {
-	toAddress: String!
-	ids: [Int!]
-	amounts: [Int!]
-	chain: String!
-	contractAddress: String!
-}
-
-input MintNFTInput {
-	toAddress: String!
-	numberOfTokens: Int!
-	chain: String!
-	contractAddress: String!
-}
 
 type SignIn {
 	status: Int
@@ -377,13 +363,6 @@ input TransferInput {
 	tenantTransactionId: String!
 }
 
-input TransferNFTInput {
-	toAddress: String!
-	tokenIds: [Int!]
-	chain: String!
-	contractAddress: String!
-}
-
 input UnStakingInput {
 	stakeAccountId: String!
 	amount: Float!
@@ -424,13 +403,7 @@ input TransferNFTInput {
 	contractAddress: String!
 }
 
-input TransferERC1155Input {
-	toAddress: String!
-	tokenId: Int!
-	amount: Int!
-	chain: String!
-	contractAddress: String!
-}
+
 input UpdateMetadataInput {
 	contractAddress: String!
 	tokenId: Int!
@@ -484,10 +457,6 @@ type Query {
 	Unstaking(input: UnStakingInput): Staking
 	MergeStake(input: MergeStakeInput): ListStakeAccounts
 	WithdrawStake(input: WithdrawStakeInput): WithdrawStake
-	MintNFT(input: MintNFTInput): TransactionResponse
-	MintERC1155(input: MintERC1155Input): TransactionResponse
-	TransferNFT(input: TransferNFTInput): TransactionResponse
-	TransferERC1155(input: TransferERC1155Input): TransactionResponse
 	SendEmailOtpSignin(input: EmailSigninInput): SignIn
 	EmailOtpSignin(input: GetWalletInput):GetWallet
 	MintNFT(input: MintNFTInput): Web3TransactionResponse
