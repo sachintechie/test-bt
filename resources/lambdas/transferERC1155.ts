@@ -22,7 +22,7 @@ export const handler = async (event: any, context: any) => {
   const tx = {
     from: account.address,
     to: contractAddress,
-    gas: 2000000,
+    gas: 300000,
     data:  contract.methods.safeTransferFrom(account.address, toAddress, tokenId, amount, undefined).encodeABI()
   };
 

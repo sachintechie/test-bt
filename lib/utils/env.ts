@@ -25,6 +25,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     AVAX_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
     ETH_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
     PRIVATE_KEY:'0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e',
+    METADATA_TABLE:'METADATA_TABLE'
   }
   switch (environment) {
     case "dev":
@@ -60,7 +61,6 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
-
         };
     default:
       return {
