@@ -258,7 +258,7 @@ model wallet {
   id            String    @id @default(uuid())
   customerid    String?
   customer      customer? @relation(fields: [customerid], references: [id])
-  walletaddress String?   @@unique
+  walletaddress String?
   chaintype     String?
   wallettype    String?
   walletid      String?
