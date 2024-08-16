@@ -42,6 +42,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
     console.log("createUser", tenant.id, tenantuserid);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
+      console.log("Customer exists", customer);
       return { customer, error: null };
     } else {
       if (!oidcToken) {
