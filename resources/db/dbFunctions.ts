@@ -1341,6 +1341,8 @@ export async function updateStakingTransaction(transactionId: string, status: st
 }
 export async function getCustomer(tenantUserId: string, tenantId: string) {
   try {
+
+    console.log("tenantUserId", tenantUserId, tenantId);
     const prisma = await getPrismaClient();
     const customer = await prisma.customer.findFirst({
       where: {
@@ -1348,6 +1350,7 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
         tenantid: tenantId
       }
     });
+    console.log("customer", customer);
     return customer ? customer : null;
   } catch (err) {
     return null;

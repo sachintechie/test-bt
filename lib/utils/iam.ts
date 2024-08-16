@@ -18,6 +18,7 @@ export const getLambdaRole = (scope:Construct) => {
           'rds-data:*',
           'secretsmanager:GetSecretValue',
           'secretsmanager:DescribeSecret',
+          'dynamodb:*',
         ],
         resources: ['*'], // Allow access to all RDS instances and Secrets Manager secrets
       }));
