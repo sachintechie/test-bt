@@ -7,6 +7,7 @@ import {
   insertMergeStakeAccountsTransaction,
   insertStakeAccount,
   insertStakingTransaction, mergeDbStakeAccounts, removeStakeAccount,
+  updateStakeAccount,
 } from "../db/dbFunctions";
 import {
   Connection,
@@ -368,7 +369,7 @@ export async function withdrawFromStakeAccounts(connection: Connection,stakeAcco
       try {
         const tx = await connection.sendRawTransaction(transaction.serialize());
         await createWithdrawTransaction(accountPubkey, tx);
-        await removeStakeAccount(accountPubkey);
+        await updateStakeAccount(accountPubkey,StakeAccountStatus.CLOSED);
         console.log(`Withdrawn ${lamports} lamports from ${accountPubkey}, transaction signature: ${tx}`);
       } catch (error) {
         console.error(`Failed to withdraw from ${accountPubkey}:`, error);
