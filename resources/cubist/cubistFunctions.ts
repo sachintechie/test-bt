@@ -1,4 +1,5 @@
 import { deleteCustomer, deleteWallet, getCubistConfig } from "../db/dbFunctions";
+import { getSecretValue } from "../db/PgClient";
 import { deleteCubistUserKey, getCsClient, getCsClientBySecretName } from "./CubeSignerClient";
 
 const cubsitApiEndpoint = process.env["CS_API_ENDPOINT"] ?? "https://gamma.signer.cubist.dev/";
@@ -53,7 +54,7 @@ export async function sendOidcEmailOtp( emailId: string, tenantId: string) {
   const cubistConfig = await getCubistConfig(tenantId);
 
 
-  if(cubistConfig == null){
+  if(cubistConfig == null || cubistConfig?.sendtokensecretname == null){  
     return { data: null, error: "Cubist config not found for this tenant" };
   }else{
     const cubistTokenString: any = await getSecretValue(cubistConfig?.sendtokensecretname);
@@ -80,9 +81,7 @@ const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-
   }
 }
 }
-function getSecretValue(secretName: any): any {
-  throw new Error("Function not implemented.");
-}
+
 
 export async function decryptToken(reqiv:string,reqkey:string,token:string){
   try {
