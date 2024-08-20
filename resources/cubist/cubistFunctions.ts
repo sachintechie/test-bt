@@ -59,7 +59,10 @@ console.log("cubistConfig",cubistConfig);
     const cubistToken: any = await getSecretValue(cubistConfig?.sendtokensecretname);
     console.log("cubistToken",cubistToken);
  
-const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-otp`;
+let endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-otp`;
+console.log("endpoint", endpoint);
+
+endpoint = encodeURIComponent(endpoint);
   try {
     console.log("endpoint", endpoint);
     const response = await fetch(endpoint, {
