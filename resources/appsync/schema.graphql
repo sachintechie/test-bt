@@ -442,7 +442,7 @@ type Query {
 	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
 	GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
 	GetWallet(input: GetWalletInput): GetWallet
-	getWalletByAuthType(input: GetWalletInput): GetWallet
+	GetWalletByAuthType(input: GetWalletInput): GetWallet
 	GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
 	CustomerKyc(input: CustomerKycInput): CustomerKyc
 	KycWebhook(input: AWSJSON): AWSJSON
