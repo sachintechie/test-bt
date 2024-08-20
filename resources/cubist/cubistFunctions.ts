@@ -84,3 +84,26 @@ function getSecretValue(secretName: any): any {
   throw new Error("Function not implemented.");
 }
 
+export async function decryptToken(reqiv:string,reqkey:string,token:string){
+  try {
+    console.log("Generating OIDC Token", reqiv, reqkey, token);
+    const tokenData = Buffer.from(token, 'base64url');
+    const iv = Buffer.from(reqiv, "base64url");
+    const keyData = Buffer.from(reqkey, "base64url");
+    const key = await crypto.subtle.importKey("raw", keyData, "AES-GCM", false, ["decrypt"]);
+
+    console.log("Decrypting iv", iv);
+    console.log("Decrypting key", key);
+
+    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", length: 256, iv }, key, tokenData);
+
+    console.log("Decrypted", decrypted);
+
+    const decryptedToken = new TextDecoder("utf-8").decode(decrypted);
+    return decryptedToken;
+  } catch (e) {
+    console.log("Error", e);
+    throw e;
+  }
+
+}
