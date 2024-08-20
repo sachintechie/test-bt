@@ -54,6 +54,7 @@ export async function solanaUnStaking(
             const transactionStatus = await verifySolanaTransaction(trx.trxHash);
             const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
 
+
             const transaction = await insertStakingTransaction(
               senderWalletAddress,
               senderWalletAddress,
@@ -189,7 +190,7 @@ async function deactivateStake(
   let tx = await connection.sendRawTransaction(transaction.serialize());
   await connection.confirmTransaction(tx);
   console.log("Stake deactivated with signature:", tx);
-  await updateStakeAccountStatus(stakeAccountPubkey.toString(), StakeAccountStatus.CLOSED)
+  await updateStakeAccountStatus(stakeAccountPubkey.toString(), StakeAccountStatus.DEACTIVATED)
   return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey, isFullyUnStake, error: null };
 }
 
@@ -280,7 +281,7 @@ async function partiallyDeactivateStake(
   await connection.confirmTransaction(tx);
   console.log("Stake account split with signature:", tx);
 
-  await duplicateStakeAccountWithStatus(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount,'CLOSED');
+  await duplicateStakeAccountWithStatus(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount,'DEACTIVATED');
   await reduceStakeAccountAmount(stakeAccountPubkey.toString(),amount);
 
   // Deactivate the split stake account
