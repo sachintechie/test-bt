@@ -118,6 +118,12 @@ input GetWalletInput {
 	tenantUserId: String!
 	chainType: String!
 }
+input GetWalletAuthTypeInput {
+	tenantUserId: String!
+	chainType: String!
+	authType: String
+}
+
 
 input KycAccessTokenInput {
 	customerId: String!
@@ -442,7 +448,7 @@ type Query {
 	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
 	GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
 	GetWallet(input: GetWalletInput): GetWallet
-	GetWalletByAuthType(input: GetWalletInput): GetWallet
+	GetWalletByAuthType(input: GetWalletAuthTypeInput): GetWallet
 	GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
 	CustomerKyc(input: CustomerKycInput): CustomerKyc
 	KycWebhook(input: AWSJSON): AWSJSON

@@ -1,46 +1,43 @@
 import { getCubistConfig } from "../db/dbFunctions";
 import { getSecretValue } from "../db/PgClient";
 import { deleteCubistUserKey, getCsClient } from "./CubeSignerClient";
+import crypto from "crypto";
 
 const cubsitApiEndpoint = process.env["CS_API_ENDPOINT"] ?? "https://gamma.signer.cubist.dev";
 
 export async function deleteKeyAndUser(customerWallets: any[], tenant: any) {
   try {
     const cubist = await deleteCubistUserKey(customerWallets, tenant.id);
-    if ( cubist.user != null) {
-     
-return cubist;
+    if (cubist.user != null) {
+      return cubist;
     }
 
     return null;
- 
   } catch (err) {
     console.log(err);
     throw err;
   }
 }
 
-
 /**
  * Use a CubeSigner token from AWS Secrets Manager to retrieve information
  * about the current user
  */
-export async function getCubistOrgData( tenantId: string,) {
+export async function getCubistOrgData(tenantId: string) {
   try {
     const cubistConfig = await getCubistConfig(tenantId);
     if (cubistConfig == null) {
       return { key: null, error: "Cubist config not found for this tenant" };
     }
-    const {org} = await getCsClient(tenantId);
-    if(org != null ){
-    const keys = (await org.keys()).length;
+    const { org } = await getCsClient(tenantId);
+    if (org != null) {
+      const keys = (await org.keys()).length;
 
-   const users = (await org.users()).length;
-   console.log("total org user",users,"total org keys",keys);
-    return {  data:{users,wallets:keys},error: null };
-    }
-    else{
-      return {  data:null,error: "Error in getting org data" };
+      const users = (await org.users()).length;
+      console.log("total org user", users, "total org keys", keys);
+      return { data: { users, wallets: keys }, error: null };
+    } else {
+      return { data: null, error: "Error in getting org data" };
     }
   } catch (err) {
     console.error(err);
@@ -48,51 +45,48 @@ export async function getCubistOrgData( tenantId: string,) {
   }
 }
 
-
-export async function sendOidcEmailOtp( emailId: string, tenantId: string) {
+export async function sendOidcEmailOtp(emailId: string, tenantId: string) {
   const cubistConfig = await getCubistConfig(tenantId);
 
-console.log("cubistConfig",cubistConfig);
-  if(cubistConfig == null || cubistConfig?.sendtokensecretname == null){  
+  console.log("cubistConfig", cubistConfig);
+  if (cubistConfig == null || cubistConfig?.sendtokensecretname == null) {
     return { data: null, error: "Cubist config not found for this tenant" };
-  }else{
+  } else {
     const cubistToken: any = await getSecretValue(cubistConfig?.sendtokensecretname);
-    console.log("cubistToken",cubistToken);
- const cubistOrgId = encodeURIComponent(cubistConfig?.orgid);
-const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistOrgId}/oidc/email-otp`;
-console.log("endpoint", endpoint);
+    console.log("cubistToken", cubistToken);
+    const cubistOrgId = encodeURIComponent(cubistConfig?.orgid);
+    const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistOrgId}/oidc/email-otp`;
+    console.log("endpoint", endpoint);
 
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization":  cubistToken
-      },
-      body: JSON.stringify({
-        email: emailId
-      })
-    });
-    const data= await response.json();
-    console.log("data",data);
-    if(data.iv && data.key){
-    return { data, error: null };
-    }
-    else{
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: cubistToken
+        },
+        body: JSON.stringify({
+          email: emailId
+        })
+      });
+      const data = await response.json();
+      console.log("data", data);
+      if (data.iv && data.key) {
+        return { data, error: null };
+      } else {
+        return { data: null, error: "Error in sending email otp" };
+      }
+    } catch (err) {
+      console.error(err);
       return { data: null, error: "Error in sending email otp" };
     }
-  } catch (err) {
-    console.error(err);
-    return { data: null, error: "Error in sending email otp" };
   }
 }
-}
 
-
-export async function decryptToken(reqiv:string,reqkey:string,token:string){
+export async function decryptToken(reqiv: string, reqkey: string, token: string) {
   try {
     console.log("Generating OIDC Token", reqiv, reqkey, token);
-    const tokenData = Buffer.from(token, 'base64url');
+    const tokenData = Buffer.from(token, "base64url");
     const iv = Buffer.from(reqiv, "base64url");
     const keyData = Buffer.from(reqkey, "base64url");
     const key = await crypto.subtle.importKey("raw", keyData, "AES-GCM", false, ["decrypt"]);
@@ -110,5 +104,4 @@ export async function decryptToken(reqiv:string,reqkey:string,token:string){
     console.log("Error", e);
     throw e;
   }
-
 }
