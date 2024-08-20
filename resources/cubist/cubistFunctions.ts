@@ -104,6 +104,6 @@ export async function decryptToken(reqiv: string, reqkey: string, token: string)
     return decryptedToken;
   } catch (e) {
     console.log("Error", e);
-    return null;
+    return "";
   }
 }

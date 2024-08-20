@@ -160,15 +160,15 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     const oidcClient = await oidcLogin(env, orgId || "", oidcToken, ["sign:*"]);
     const cubistUser = await oidcClient?.user();
     console.log("Created cubesigner user", oidcClient, cubistUser);
-    if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid)) {
+    if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid) || cubistUser == null) {
       return {
         wallet: null,
         error: "Please send a valid identity token for given tenantuserid"
       };
     }
-    const key = await getKey(oidcClient, chainType, customer.cubistuserid);
-    console.log("getKey cubesigner user", key, customer.cubistuserid);
-    const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType, customer.id, key);
+    const key = await getKey(oidcClient, chainType, cubistUser?.user_id);
+    console.log("getKey cubesigner user", key, cubistUser?.user_id);
+    const wallet = await createWalletAndKey(org, cubistUser?.user_id, chainType, customer.id, key);
     const newWallet = {
       walletaddress: wallet.data.walletaddress,
       createdat: wallet.data.createdat,

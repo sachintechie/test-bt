@@ -64,7 +64,7 @@ return {  wallet: null, error: "Please do the registration first" };
             };
           }
           console.log("Created cubesigner client", client);
-          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId || "", oidcToken);
+          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId || "", oidcToken || "");
 
           console.log("Verifying identity", proof);
 
@@ -94,7 +94,7 @@ return {  wallet: null, error: "Please do the registration first" };
             email || "",
             name || "",
             tenantuserid,
-            oidcToken,
+            oidcToken|| "",
             iss,
             chainType,
             customer.id,
