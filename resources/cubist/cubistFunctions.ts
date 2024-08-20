@@ -61,6 +61,7 @@ console.log("cubistConfig",cubistConfig);
  
 const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-otp`;
   try {
+    console.log("endpoint", endpoint);
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
@@ -73,7 +74,12 @@ const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-
     });
     const data= await response.json();
     console.log("data",data);
+    if(data.iv && data.key){
     return { data, error: null };
+    }
+    else{
+      return { data: null, error: "Error in sending email otp" };
+    }
   } catch (err) {
     console.error(err);
     return { data: null, error: "Error in sending email otp" };
