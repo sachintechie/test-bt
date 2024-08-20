@@ -2,6 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
 import {  createWalletAndKey, getEmailOtpCustomer, updateCustomerCubistData } from "../db/dbFunctions";
+import { decryptToken } from "../cubist/cubistFunctions";
 
 
 const env: any = {
@@ -40,7 +41,7 @@ export const handler = async (event: any, context: any) => {
 
 
 
-async function createCubistUser(tenant: tenant, tenantuserid: string, token: BufferSource, chainType: string) {
+async function createCubistUser(tenant: tenant, tenantuserid: string, token: string, chainType: string) {
   try {
     const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
 if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
@@ -184,26 +185,3 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
 }
 }
 
-async function decryptToken(reqiv:string,reqkey:string,tokenData:BufferSource){
-  try {
-    console.log("Generating OIDC Token", reqiv, reqkey, tokenData);
-
-    const iv = Buffer.from(reqiv, "base64url");
-    const keyData = Buffer.from(reqkey, "base64url");
-    const key = await crypto.subtle.importKey("raw", keyData, "AES-GCM", false, ["decrypt"]);
-
-    console.log("Decrypting iv", iv);
-    console.log("Decrypting key", key);
-
-    const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", length: 256, iv }, key, tokenData);
-
-    console.log("Decrypted", decrypted);
-
-    const decryptedToken = new TextDecoder("utf-8").decode(decrypted);
-    return decryptedToken;
-  } catch (e) {
-    console.log("Error", e);
-    throw e;
-  }
-
-}

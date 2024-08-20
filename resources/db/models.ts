@@ -81,3 +81,8 @@ export enum StakeType {
   STAKE = "STAKE",
   UNSTAKE = "UNSTAKE"
 }
+
+export enum AuthType {
+  OTP = "OTP",
+  OIDC = "OIDC"
+}
