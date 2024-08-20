@@ -37,20 +37,21 @@ export const handler = async (event: any, context: any) => {
 
 async function createUser(tenant: tenant, tenantuserid: string, token: string, chainType: string, authType: string) {
   try {
-    let oidcToken = "";
-    if (authType == AuthType.OTP) {
-      const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
-      if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
-        return { wallet: null, error: "Please do the registration first" };
-      }
-      oidcToken = await decryptToken(customer?.iv, customer?.key, token);
-    } else {
-      oidcToken = token;
-    }
-    const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, oidcToken);
+ 
+    const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, token,authType);
     if (isExist != null) {
       return isExist;
     } else {
+      let oidcToken = "";
+      if (authType == AuthType.OTP) {
+        const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
+        if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+          return { wallet: null, error: "Please do the registration first" };
+        }
+        oidcToken = await decryptToken(customer?.iv, customer?.key, token);
+      } else {
+        oidcToken = token;
+      }
       if (!oidcToken) {
         return {
           wallet: null,
@@ -186,7 +187,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
   }
 }
 
-async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chainType: string, oidcToken: string) {
+async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chainType: string, oidcToken: string,authType : string) {
   // check if customer exists
   // check if wallet exists
   // if wallet exists return wallet
@@ -211,6 +212,13 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
         };
         return { wallet: newWallet, error: null };
       } else {
+        if (authType == AuthType.OTP) {
+          const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
+          if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+            return { wallet: null, error: "Please do the registration first" };
+          }
+          oidcToken = await decryptToken(customer?.iv, customer?.key, oidcToken);
+        } 
         const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
         return wallet;
       }
