@@ -51,11 +51,15 @@ export async function getCubistOrgData( tenantId: string,) {
 export async function sendOidcEmailOtp( emailId: string, tenantId: string) {
   const secretName = "";
   const cubistConfig = await getCubistConfig(tenantId);
-  const cubistTokenString: any = await getSecretValue(secretName);
-  const cubistToken = JSON.parse(cubistTokenString);
+
+
   if(cubistConfig == null){
     return { data: null, error: "Cubist config not found for this tenant" };
   }else{
+    const cubistTokenString: any = await getSecretValue(cubistConfig?.sendtokensecretname);
+    console.log("cubistTokenString",cubistTokenString);
+    const cubistToken = JSON.parse(cubistTokenString);
+    console.log("cubistToken",cubistToken);
 const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-otp`;
   try {
     const response = await fetch(endpoint, {
