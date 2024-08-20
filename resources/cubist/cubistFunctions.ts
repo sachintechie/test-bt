@@ -96,9 +96,11 @@ export async function decryptToken(reqiv: string, reqkey: string, token: string)
 
     const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", length: 256, iv }, key, tokenData);
 
-    console.log("Decrypted", decrypted);
+    // console.log("Decrypted", decrypted);
 
     const decryptedToken = new TextDecoder("utf-8").decode(decrypted);
+    console.log("decryptedToken", decryptedToken);
+
     return decryptedToken;
   } catch (e) {
     console.log("Error", e);
