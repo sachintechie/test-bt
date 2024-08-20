@@ -33,6 +33,7 @@ model cubistconfig {
   updatedat          String?
   signersecretname   String
   gaspayersecretname String
+  sendtokensecretname String?
 }
 
 model customer {
