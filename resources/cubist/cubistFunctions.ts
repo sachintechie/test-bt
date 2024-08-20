@@ -1,8 +1,8 @@
-import { deleteCustomer, deleteWallet, getCubistConfig } from "../db/dbFunctions";
+import { getCubistConfig } from "../db/dbFunctions";
 import { getSecretValue } from "../db/PgClient";
-import { deleteCubistUserKey, getCsClient, getCsClientBySecretName } from "./CubeSignerClient";
+import { deleteCubistUserKey, getCsClient } from "./CubeSignerClient";
 
-const cubsitApiEndpoint = process.env["CS_API_ENDPOINT"] ?? "https://gamma.signer.cubist.dev/";
+const cubsitApiEndpoint = process.env["CS_API_ENDPOINT"] ?? "https://gamma.signer.cubist.dev";
 
 export async function deleteKeyAndUser(customerWallets: any[], tenant: any) {
   try {
@@ -58,13 +58,11 @@ console.log("cubistConfig",cubistConfig);
   }else{
     const cubistToken: any = await getSecretValue(cubistConfig?.sendtokensecretname);
     console.log("cubistToken",cubistToken);
- 
-let endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-otp`;
+ const cubistOrgId = encodeURIComponent(cubistConfig?.orgid);
+const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistOrgId}/oidc/email-otp`;
 console.log("endpoint", endpoint);
 
-endpoint = encodeURIComponent(endpoint);
   try {
-    console.log("endpoint", endpoint);
     const response = await fetch(endpoint, {
       method: "POST",
       headers: {
