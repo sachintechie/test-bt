@@ -72,6 +72,7 @@ const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistConfig?.orgid}/oidc/email-
       })
     });
     const data= await response.json();
+    console.log("data",data);
     return { data, error: null };
   } catch (err) {
     console.error(err);
