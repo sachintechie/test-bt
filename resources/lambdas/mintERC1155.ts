@@ -14,7 +14,7 @@ const web3Eth = new Web3(ETH_RPC_URL);
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 export const handler = async (event: any, context: any) => {
-  const { toAddress, ids, amounts, chain, contractAddress,metadata } = event;
+  const { toAddress, ids, amounts, chain, contractAddress,metadata } = event.arguments?.input;
   try {
     const web3=chain==='AVAX'?web3Avax:web3Eth;
 
