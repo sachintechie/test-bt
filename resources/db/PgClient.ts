@@ -38,7 +38,7 @@ export async function executeQuery(query: string) {
   }
 }
 
-async function getSecretValue(secretName: string) {
+export async function getSecretValue(secretName: string) {
   try {
     const data = await client.getSecretValue({ SecretId: secretName }).promise();
     if ("SecretString" in data) {

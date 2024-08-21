@@ -33,6 +33,7 @@ model cubistconfig {
   updatedat          String?
   signersecretname   String
   gaspayersecretname String
+  sendtokensecretname String?
 }
 
 model customer {
@@ -45,7 +46,7 @@ model customer {
   cubistuserid      String?
   isactive          Boolean?
   createdat         String?
-  iss               String?
+  iss               String?             
   isbonuscredit     Boolean?
   usertype          String?
   iv                String?

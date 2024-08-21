@@ -118,6 +118,12 @@ input GetWalletInput {
 	tenantUserId: String!
 	chainType: String!
 }
+input GetWalletAuthTypeInput {
+	tenantUserId: String!
+	chainType: String!
+	authType: String
+}
+
 
 input KycAccessTokenInput {
 	customerId: String!
@@ -201,20 +207,6 @@ input MergeStakeInput {
 	senderWalletAddress: String!
 }
 
-input MintERC1155Input {
-	toAddress: String!
-	ids: [Int!]
-	amounts: [Int!]
-	chain: String!
-	contractAddress: String!
-}
-
-input MintNFTInput {
-	toAddress: String!
-	numberOfTokens: Int!
-	chain: String!
-	contractAddress: String!
-}
 
 type SignIn {
 	status: Int
@@ -359,13 +351,6 @@ type TransferData {
 	tenanttransactionid: String
 }
 
-input TransferERC1155Input {
-	toAddress: String!
-	tokenId: Int!
-	amount: Int!
-	chain: String!
-	contractAddress: String!
-}
 
 input TransferInput {
 	senderWalletAddress: String!
@@ -375,13 +360,6 @@ input TransferInput {
 	chainType: String!
 	tenantUserId: String!
 	tenantTransactionId: String!
-}
-
-input TransferNFTInput {
-	toAddress: String!
-	tokenIds: [Int!]
-	chain: String!
-	contractAddress: String!
 }
 
 input UnStakingInput {
@@ -400,11 +378,77 @@ input WithdrawStakeInput {
 	accountPublicKey: String!
 }
 
+input MintNFTInput {
+	toAddress: String!
+	numberOfTokens: Int!
+	chain: String!
+	contractAddress: String!
+	metaData: AWSJSON
+}
+
+input MintERC1155Input {
+	toAddress: String!
+	ids: [Int!]
+	amounts: [Int!]
+	chain: String!
+	contractAddress: String!
+	metaData: AWSJSON
+}
+
+input TransferNFTInput {
+	toAddress: String!
+	tokenIds: [Int!]
+	chain: String!
+	contractAddress: String!
+}
+
+input TransferERC1155Input {
+	toAddress: String!
+	tokenId: Int!
+	amount: Int!
+	chain: String!
+	contractAddress: String!
+}
+
+
+input UpdateMetadataInput {
+	contractAddress: String!
+	tokenId: Int!
+	updates: AWSJSON!
+}
+
+
+
+
+type Web3TransactionResponse {
+	status: Int
+	transactionHash: String
+	error: String
+}
+
+type UpdateMetadataResponse {
+	status: Int
+	message: String
+	modifiedMetadata: AWSJSON!
+}
+
+input GetMetadataInput {
+	contractAddress: String!
+	tokenId: Int!
+}
+
+type GetMetadataResponse {
+	status: Int
+	message: String
+	metadata: AWSJSON
+}
+
 type Query {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
 	GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
 	GetWallet(input: GetWalletInput): GetWallet
+	GetWalletByAuthType(input: GetWalletAuthTypeInput): GetWallet
 	GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
 	CustomerKyc(input: CustomerKycInput): CustomerKyc
 	KycWebhook(input: AWSJSON): AWSJSON
@@ -424,12 +468,14 @@ type Query {
 	Unstaking(input: UnStakingInput): Staking
 	MergeStake(input: MergeStakeInput): ListStakeAccounts
 	WithdrawStake(input: WithdrawStakeInput): WithdrawStake
-	MintNFT(input: MintNFTInput): TransactionResponse
-	MintERC1155(input: MintERC1155Input): TransactionResponse
-	TransferNFT(input: TransferNFTInput): TransactionResponse
-	TransferERC1155(input: TransferERC1155Input): TransactionResponse
 	SendEmailOtpSignin(input: EmailSigninInput): SignIn
 	EmailOtpSignin(input: GetWalletInput):GetWallet
+	MintNFT(input: MintNFTInput): Web3TransactionResponse
+	MintERC1155(input: MintERC1155Input): Web3TransactionResponse
+	TransferNFT(input: TransferNFTInput): Web3TransactionResponse
+	TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
+	UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
+	GetMetadata(input: GetMetadataInput): GetMetadataResponse
 }
 
 schema {

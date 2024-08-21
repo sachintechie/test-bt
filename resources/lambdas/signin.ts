@@ -42,6 +42,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
     console.log("createUser", tenant.id, tenantuserid);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
+      console.log("Customer exists", customer);
       return { customer, error: null };
     } else {
       if (!oidcToken) {
@@ -72,13 +73,17 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           const sub = proof.identity!.sub;
           const email = proof.email;
           const name = proof.preferred_username;
-
+          let cubistUserId;
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
-            const cubistUserId = await org.createOidcUser({ iss, sub }, email, {
+             cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name
             });
+          }
+          else{
+            cubistUserId = proof.user_info?.user_id;
+          }
             const customer = await createCustomer({
               emailid: email ? email : "",
               name: name ? name : "----",
@@ -100,18 +105,6 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             };
 
             return { customer: customerData, error: null };
-          } else {
-            const customer = await getCustomer(tenantuserid, tenant.id);
-
-            if (customer != null && customer != undefined) {
-              return { customer, error: null };
-            } else {
-              return {
-                customer: null,
-                error: "customer not found for the given tenantuserid and tenantid"
-              };
-            }
-          }
         } catch (e) {
           console.log(`Not verified: ${e}`);
           return {

@@ -74,10 +74,16 @@ export enum StakeAccountStatus {
   OPEN = "OPEN",
   CLOSED = "CLOSED",
   FAILED = "FAILED",
-  MERGED = "MERGED"
+  MERGED = "MERGED",
+  DEACTIVATED = "DEACTIVATED"
 }
 
 export enum StakeType {
   STAKE = "STAKE",
   UNSTAKE = "UNSTAKE"
+}
+
+export enum AuthType {
+  OTP = "OTP",
+  OIDC = "OIDC"
 }
