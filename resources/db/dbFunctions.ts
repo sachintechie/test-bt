@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -768,6 +768,30 @@ export async function getCustomerAndWallet(tenantUserId: string, chaintype: stri
     });
     if (wallet == null) return null;
     return wallet ? wallet : null;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getCustomerAndWalletByAuthType(tenantUserId: string, chaintype: string, tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.customer.findFirst({
+      where: {
+        tenantuserid: tenantUserId,
+        tenantid: tenant.id,
+        usertype: AuthType.OTP
+      },
+      include: {
+        wallets: {
+          where: {
+            chaintype: chaintype
+          }
+        }
+      }
+    });
+    if (customer == null || customer.cubistuserid == null || customer.cubistuserid == "") return null;
+    return customer ? customer : null;
   } catch (err) {
     throw err;
   }

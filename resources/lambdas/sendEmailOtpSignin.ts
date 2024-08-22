@@ -1,4 +1,4 @@
-import { tenant } from "../db/models";
+import { AuthType, tenant } from "../db/models";
 import { createCustomer, getEmailOtpCustomer, updateCustomer } from "../db/dbFunctions";
 import { sendOidcEmailOtp } from "../cubist/cubistFunctions";
 
@@ -77,7 +77,7 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
               cubistuserid: "",
               isactive: true,
               isBonusCredit: false,
-              usertype:"EMAIL-OTP",
+              usertype:AuthType.OTP,
               iv: sendMailResponse.data?.iv,
               key: sendMailResponse.data?.key,
               createdat: new Date().toISOString()
