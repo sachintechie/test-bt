@@ -459,8 +459,9 @@ export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, tar
       data: { amount: newAmount }
     });
 
-    const removedSourceAccount = await prisma.stakeaccount.deleteMany({
-      where: { stakeaccountpubkey: sourceStakeAccountPubkey }
+    const removedSourceAccount = await prisma.stakeaccount.updateMany({
+      where: { stakeaccountpubkey: sourceStakeAccountPubkey },
+      data: { status: StakeAccountStatus.MERGED }
     });
 
     return { updatedTargetAccount, removedSourceAccount };
@@ -469,7 +470,20 @@ export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, tar
     throw err;
   }
 }
+export async function updateStakeAccount(stakeaccountpubkey: string,status: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const deletedStakeAccount = await prisma.stakeaccount.updateMany({
+      where: { stakeaccountpubkey: stakeaccountpubkey },
+      data: { status:status }
+    });
 
+    return deletedStakeAccount;
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+}
 export async function removeStakeAccount(stakeaccountpubkey: string) {
   try {
     const prisma = await getPrismaClient();
