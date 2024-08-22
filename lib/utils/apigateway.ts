@@ -16,6 +16,7 @@ export const newApiGateway = (scope: Construct,  lambda: lambda.Function) => {
 
   // Create an integration between the API Gateway and Lambda
   const lambdaIntegration = new apigateway.LambdaIntegration(lambda, {
+    proxy: false,
     requestTemplates: {
       'application/json': `{
           "contractAddress": "$input.params('contractAddress')",
