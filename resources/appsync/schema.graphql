@@ -449,6 +449,11 @@ type CreateCategoryResponse {
   error: AWSJSON
 }
 
+input CategoryInput{
+  name: String!
+  tenantId: String!
+}
+
 type CreateCategoryInput {
   name: String
   tenantId: String
@@ -471,6 +476,13 @@ type GetCategoryByIdInput {
 
 type GetCategoryByTenantIdInput {
   tenantId: String
+}
+
+input OwnershipInput {
+  customerId: String!
+  productId: String!
+  fractional: Boolean!
+  fraction: Float
 }
 
 type CreateProduct {
