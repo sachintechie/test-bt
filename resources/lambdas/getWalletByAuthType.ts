@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { AuthType, tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
-import { createCustomer, createWallet, createWalletAndKey, getCustomerAndWallet, getEmailOtpCustomer } from "../db/dbFunctions";
+import { createCustomer, createWallet, createWalletAndKey, getCustomerAndWallet, getCustomerAndWalletByAuthType, getEmailOtpCustomer } from "../db/dbFunctions";
 import { decryptToken } from "../cubist/cubistFunctions";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -194,7 +194,7 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
   // if wallet does not exist create wallet
   // return wallet
   try {
-    const customerAndWallet = await getCustomerAndWallet(tenantuserid, chainType, tenant);
+    const customerAndWallet = await getCustomerAndWalletByAuthType(tenantuserid, chainType, tenant);
     if (customerAndWallet != null) {
       if (
         customerAndWallet.wallets.length > 0 &&
