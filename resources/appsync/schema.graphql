@@ -454,6 +454,16 @@ input CategoryInput{
   tenantId: String!
 }
 
+input ProductInput {
+  id: String
+  name: String!
+  categoryId: String!
+  rarity: String = "Normal"
+  price: Float!
+  productAttributes: [ProductAttributeInput!]!
+  ownerships: [OwnershipInput!]!
+}
+
 type CreateCategoryInput {
   name: String
   tenantId: String
@@ -526,13 +536,16 @@ type GetProductByCategoryIdInput {
   categoryId: String
 }
 
+type ProductInput {
+}
+
 type ProductAttribute {
   id: String!
   key: String!
   value: String!
   type: String!
   productId: String!
-  product: Product
+  product: ProductInput
 }
 
 type ProductAttributeInput {
