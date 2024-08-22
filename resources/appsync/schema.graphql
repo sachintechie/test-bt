@@ -484,7 +484,7 @@ type GetCategoryByIdInput {
   categoryId: String
 }
 
-type GetCategoryByTenantIdInput {
+type GetCategoriesByTenantIdInput {
   tenantId: String
 }
 
@@ -608,7 +608,7 @@ type Query {
 	CreateCategory(input: CreateCategoryInput): CreateCategoryResponse
 	GetCategoriesResponse: GetCategoriesResponse
 	GetCategoryById(input: GetCategoryByIdInput): CreateCategoryResponse
-	GetCategoryByTenantIdIn(input: GetCategoryByTenantIdInput): CreateCategoryResponse
+	GetCategoriesByTenantIdInput(input: GetCategoriesByTenantIdInput): CreateCategoryResponse
 	CreateProduct(input: CreateProductInput): CreateProductResponse
 	GetProductById(input: GetProductByIdInput): CreateProductResponse
 	GetProductsResponse: GetProductsResponse
