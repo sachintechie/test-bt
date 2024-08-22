@@ -22,11 +22,50 @@ export const newApiGateway = (scope: Construct,  lambda: lambda.Function) => {
           "contractAddress": "$input.params('contractAddress')",
           "tokenId": "$input.params('tokenId')"
         }`
-    }
+    },
+    integrationResponses: [
+      {
+        statusCode: "200",
+        responseTemplates: {
+          'application/json': `#set($inputRoot = $input.path('$.metadata'))
+            {
+              "TokenId": "$inputRoot.TokenId",
+              "ContractAddressTokenId": "$inputRoot.ContractAddressTokenId",
+              "ContractAddress": "$inputRoot.ContractAddress"
+            }`
+        }
+      },
+      {
+        // This handles any errors that might occur and returns a 500 status code
+        statusCode: "500",
+        responseTemplates: {
+          'application/json': `{
+              "error": "An error occurred while processing your request."
+            }`
+        }
+      }
+    ]
   });
 
   // Add the GET method to the /{contractAddress}/{tokenId} resource
-  tokenId.addMethod('GET', lambdaIntegration);
+  tokenId.addMethod('GET', lambdaIntegration,{
+    methodResponses: [
+      {
+        // Define the response status code and its corresponding models (can be empty)
+        statusCode: "200",
+        responseModels: {
+          'application/json': apigateway.Model.EMPTY_MODEL
+        }
+      },
+      {
+        // Error response status code
+        statusCode: "500",
+        responseModels: {
+          'application/json': apigateway.Model.EMPTY_MODEL
+        }
+      }
+    ]
+  });
 
   return api;
 }
