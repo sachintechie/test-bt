@@ -4,7 +4,7 @@ import AWS from "aws-sdk";
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 export const handler = async (event: any, context: any) => {
-  const { contractAddress, tokenId, updates } = event;
+  const { contractAddress, tokenId, updates } = event.arguments?.input;
 
   // Retrieve the current metadata
   const currentMetadata = await getMetadataFromDynamoDB(dynamoDB,contractAddress, tokenId);

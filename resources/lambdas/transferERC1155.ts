@@ -11,7 +11,7 @@ const web3Avax = new Web3(AVAX_RPC_URL);
 const web3Eth = new Web3(ETH_RPC_URL);
 
 export const handler = async (event: any, context: any) => {
-  const {  toAddress, tokenId, amount, chain, contractAddress } = event;
+  const {  toAddress, tokenId, amount, chain, contractAddress } = event.arguments?.input;
   const web3=chain==='AVAX'?web3Avax:web3Eth;
 
   const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);

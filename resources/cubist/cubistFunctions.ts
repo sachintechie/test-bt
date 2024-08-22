@@ -49,11 +49,11 @@ export async function sendOidcEmailOtp(emailId: string, tenantId: string) {
   const cubistConfig = await getCubistConfig(tenantId);
 
   console.log("cubistConfig", cubistConfig);
-  if (cubistConfig == null || cubistConfig?.sendtokensecretname == null) {
+  if (cubistConfig == null ) {
     return { data: null, error: "Cubist config not found for this tenant" };
   } else {
-    const cubistToken: any = await getSecretValue(cubistConfig?.sendtokensecretname);
-    console.log("cubistToken", cubistToken);
+    // const cubistToken: any = await getSecretValue(cubistConfig?.sendtokensecretname);
+    // console.log("cubistToken", cubistToken);
     const cubistOrgId = encodeURIComponent(cubistConfig?.orgid);
     const endpoint = `${cubsitApiEndpoint}/v0/org/${cubistOrgId}/oidc/email-otp`;
     console.log("endpoint", endpoint);
@@ -62,8 +62,8 @@ export async function sendOidcEmailOtp(emailId: string, tenantId: string) {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          Authorization: cubistToken
+          "Content-Type": "application/json"
+          // Authorization: cubistToken
         },
         body: JSON.stringify({
           email: emailId
