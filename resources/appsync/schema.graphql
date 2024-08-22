@@ -536,9 +536,6 @@ type GetProductByCategoryIdInput {
   categoryId: String
 }
 
-type ProductInput {
-}
-
 type ProductAttribute {
   id: String!
   key: String!
