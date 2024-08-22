@@ -54,89 +54,8 @@ const walletConfig = {
   //  Wallet_7: [11,177,239,239,147,194,69,40,51,225,106,229,223,203,203,197,3,89,73,77,130,186,217,195,6,147,183,194,113,98,85,113,230,32,30,165,197,189,3,166,177,174,182,245,48,65,29,93,155,57,166,25,125,20,160,112,90,26,18,225,213,178,226,27]
     }
 
-/*
-async function main() {
-  const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-  const wallet = await getOrCreateKeypair("Wallet_1");
-  await airdropSolIfNeeded(wallet.publicKey);
 
-  const maxDepthSizePair: ValidDepthSizePair = {
-    maxDepth: 20, // Sufficient to handle 1 million NFTs (2^20 = 1,048,576)
-    maxBufferSize: 256,
-  };
 
-  const canopyDepth = 0;
-
-  const treeAddress = await createAndInitializeTree(
-    connection,
-    wallet,
-    maxDepthSizePair,
-    canopyDepth
-  );
-
-  const collectionNft = await getOrCreateCollectionNFT(connection, wallet);
-
-  const batchSize = 5000;
-
-  await mintCompressedNftToCollection(
-    connection,
-    wallet,
-    treeAddress,
-    collectionNft,
-    1000000, // Total number of NFTs to mint
-    
-  );
-
-  // Fetch recipient wallets in batches and transfer NFTs
-  await batchTransferNfts(
-    connection,
-    wallet,
-    treeAddress,
-    1000000, // Total number of NFTs to transfer
-    batchSize
-  );
-}
-*/
-export async function batchTransferNfts(
-  connection: Connection,
-  sender: Keypair,
-  treeAddress: PublicKey,
-  totalAmount: number,
-  batchSize: number
-) {
-  for (let i = 0; i < totalAmount; i += batchSize) {
-    const batchEnd = Math.min(i + batchSize, totalAmount);
-    const currentBatchSize = batchEnd - i;
-
-    // Retrieve recipient wallets from the database for the current batch
-    const recipientWallets = await getRecipientWalletsFromDatabase(i, currentBatchSize);
-
-    console.log(`Transferring NFTs ${i + 1} to ${batchEnd}...`);
-
-    await transferNftBatch(
-      connection,
-      sender,
-      treeAddress,
-      i,
-      recipientWallets
-    );
-  }
-}
-
-async function transferNftBatch(
-  connection: Connection,
-  sender: Keypair,
-  treeAddress: PublicKey,
-  startIndex: number,
-  recipientWallets: PublicKey[]
-) {
-  for (let i = 0; i < recipientWallets.length; i++) {
-    const assetId = await getLeafAssetId(treeAddress, new BN(startIndex + i));
-    const receiver = recipientWallets[i];
-
-    await transferNft(connection, assetId, sender, receiver);
-  }
-}
 
 
 // Dummy function to represent fetching recipient wallets from a database
@@ -155,7 +74,7 @@ export async function getRecipientWalletsFromDatabase(startIndex: number, limit:
 
 
 
-// main()
+
 
 export async function createAndInitializeTree(
   connection: Connection,
@@ -221,39 +140,36 @@ export async function mintCompressedNftToCollection(
   payer: Keypair,
   treeAddress: PublicKey,
   collectionDetails: CollectionDetails,
+  recipients: PublicKey[], // New parameter for recipients' wallet addresses
   amount: number
 ) {
-  // Derive the tree authority PDA ('TreeConfig' account for the tree account)
   const [treeAuthority] = PublicKey.findProgramAddressSync(
     [treeAddress.toBuffer()],
     BUBBLEGUM_PROGRAM_ID
-  )
+  );
 
-  // Derive the bubblegum signer, used by the Bubblegum program to handle "collection verification"
-  // Only used for `createMintToCollectionV1` instruction
   const [bubblegumSigner] = PublicKey.findProgramAddressSync(
     [Buffer.from("collection_cpi", "utf8")],
     BUBBLEGUM_PROGRAM_ID
-  )
+  );
 
   for (let i = 0; i < amount; i++) {
-    // Compressed NFT Metadata
-    const compressedNFTMetadata = createNftMetadata(payer.publicKey, i)
+    const recipient = recipients[i % recipients.length]; // Rotate through recipients
+    const compressedNFTMetadata = createNftMetadata(recipient, i); // Use recipient as leafOwner
 
-    // Create the instruction to "mint" the compressed NFT to the tree
     const mintIx = createMintToCollectionV1Instruction(
       {
-        payer: payer.publicKey, // The account that will pay for the transaction
-        merkleTree: treeAddress, // The address of the tree account
-        treeAuthority, // The authority of the tree account, should be a PDA derived from the tree account address
-        treeDelegate: payer.publicKey, // The delegate of the tree account, should be the same as the tree creator by default
-        leafOwner: payer.publicKey, // The owner of the compressed NFT being minted to the tree
-        leafDelegate: payer.publicKey, // The delegate of the compressed NFT being minted to the tree
-        collectionAuthority: payer.publicKey, // The authority of the "collection" NFT
-        collectionAuthorityRecordPda: BUBBLEGUM_PROGRAM_ID, // Must be the Bubblegum program id
-        collectionMint: collectionDetails.mint, // The mint of the "collection" NFT
-        collectionMetadata: collectionDetails.metadata, // The metadata of the "collection" NFT
-        editionAccount: collectionDetails.masterEditionAccount, // The master edition of the "collection" NFT
+        payer: payer.publicKey,
+        merkleTree: treeAddress,
+        treeAuthority,
+        treeDelegate: payer.publicKey,
+        leafOwner: recipient, // Set the recipient as the owner of the NFT
+        leafDelegate: recipient, // Set the recipient as the delegate (or use a different address if needed)
+        collectionAuthority: payer.publicKey,
+        collectionAuthorityRecordPda: BUBBLEGUM_PROGRAM_ID,
+        collectionMint: collectionDetails.mint,
+        collectionMetadata: collectionDetails.metadata,
+        editionAccount: collectionDetails.masterEditionAccount,
         compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
         logWrapper: SPL_NOOP_PROGRAM_ID,
         bubblegumSigner,
@@ -264,32 +180,29 @@ export async function mintCompressedNftToCollection(
           collection: { key: collectionDetails.mint, verified: false },
         }),
       }
-    )
+    );
 
     try {
-      // Create new transaction and add the instruction
-      const tx = new Transaction().add(mintIx)
+      const tx = new Transaction().add(mintIx);
+      tx.feePayer = payer.publicKey;
 
-      // Set the fee payer for the transaction
-      tx.feePayer = payer.publicKey
-
-      // Send the transaction
       const txSignature = await sendAndConfirmTransaction(
         connection,
         tx,
         [payer],
         { commitment: "finalized", skipPreflight: true }
-      )
+      );
 
       console.log(
-        `https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
-      )
+        `Minted to ${recipient.toBase58()}: https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
+      );
     } catch (err) {
-      console.error("\nFailed to mint compressed NFT:", err)
-      throw err
+      console.error("\nFailed to mint compressed NFT:", err);
+      throw err;
     }
   }
 }
+
 
 /*
 async function logNftDetails(treeAddress: PublicKey, nftsMinted: number) {
@@ -314,105 +227,7 @@ async function logNftDetails(treeAddress: PublicKey, nftsMinted: number) {
 }
 */
 
-async function transferNft(
-  connection: Connection,
-  assetId: PublicKey,
-  sender: Keypair,
-  receiver: PublicKey
-) {
-  try {
-    const assetDataResponse = await fetch(process.env.RPC_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: "my-id",
-        method: "getAsset",
-        params: {
-          id: assetId,
-        },
-      }),
-    })
-    const assetData = (await assetDataResponse.json()).result
 
-    const assetProofResponse = await fetch(process.env.RPC_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: "my-id",
-        method: "getAssetProof",
-        params: {
-          id: assetId,
-        },
-      }),
-    })
-    const assetProof = (await assetProofResponse.json()).result
-
-    const treePublicKey = new PublicKey(assetData.compression.tree)
-
-    const treeAccount = await ConcurrentMerkleTreeAccount.fromAccountAddress(
-      connection,
-      treePublicKey
-    )
-
-    const canopyDepth = treeAccount.getCanopyDepth() || 0
-
-    const proofPath: AccountMeta[] = assetProof.proof
-      .map((node: string) => ({
-        pubkey: new PublicKey(node),
-        isSigner: false,
-        isWritable: false,
-      }))
-      .slice(0, assetProof.proof.length - canopyDepth)
-
-    const treeAuthority = treeAccount.getAuthority()
-    const leafOwner = new PublicKey(assetData.ownership.owner)
-    const leafDelegate = assetData.ownership.delegate
-      ? new PublicKey(assetData.ownership.delegate)
-      : leafOwner
-
-    const transferIx = createTransferInstruction(
-      {
-        merkleTree: treePublicKey,
-        treeAuthority,
-        leafOwner,
-        leafDelegate,
-        newLeafOwner: receiver,
-        logWrapper: SPL_NOOP_PROGRAM_ID,
-        compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
-        anchorRemainingAccounts: proofPath,
-      },
-      {
-        root: [...new PublicKey(assetProof.root.trim()).toBytes()],
-        dataHash: [
-          ...new PublicKey(assetData.compression.data_hash.trim()).toBytes(),
-        ],
-        creatorHash: [
-          ...new PublicKey(assetData.compression.creator_hash.trim()).toBytes(),
-        ],
-        nonce: assetData.compression.leaf_id,
-        index: assetData.compression.leaf_id,
-      }
-    )
-
-    const tx = new Transaction().add(transferIx)
-    tx.feePayer = sender.publicKey
-    const txSignature = await sendAndConfirmTransaction(
-      connection,
-      tx,
-      [sender],
-      {
-        commitment: "confirmed",
-        skipPreflight: true,
-      }
-    )
-    console.log(`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`)
-  } catch (err: any) {
-    console.error("\nFailed to transfer nft:", err)
-    throw err
-  }
-}
 
 
 // This function will return an existing keypair if it's present in the environment variables, or generate a new one if not

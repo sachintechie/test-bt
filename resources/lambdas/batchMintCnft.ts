@@ -18,7 +18,7 @@ import {
     ConcurrentMerkleTreeAccount,
   } from "@solana/spl-account-compression";
 
-  import {createAndInitializeTree, batchTransferNfts, mintCompressedNftToCollection, getOrCreateKeypair, airdropSolIfNeeded, getOrCreateCollectionNFT } from "../solana/cNft/commonFunctions"
+  import {createAndInitializeTree, getRecipientWalletsFromDatabase, mintCompressedNftToCollection, getOrCreateKeypair, airdropSolIfNeeded, getOrCreateCollectionNFT } from "../solana/cNft/commonFunctions"
 
   import {
     PROGRAM_ID as BUBBLEGUM_PROGRAM_ID,
@@ -34,59 +34,44 @@ import {
   import { Metaplex, Nft, keypairIdentity } from "@metaplex-foundation/js";
   import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
   import { BN } from "@project-serum/anchor";
-import { Lambda } from "aws-sdk";
+  import { Lambda } from "aws-sdk";
   
   
-  export const handler = async (event: any) => {
-    try {
-      const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-      const wallet = await getOrCreateKeypair("Wallet_1");
-      await airdropSolIfNeeded(wallet.publicKey);
+exports.handler = async (event: any) => {
+    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+    const wallet = await getOrCreateKeypair("Wallet_1");
+    await airdropSolIfNeeded(wallet.publicKey);
   
-      const maxDepthSizePair: ValidDepthSizePair = {
-        maxDepth: 20,
-        maxBufferSize: 256,
-      };
+    const maxDepthSizePair: ValidDepthSizePair = {
+      maxDepth: 20, // Adjusted for larger capacity
+      maxBufferSize: 64, // Adjusted for larger capacity = 1 Millpion
+    };
   
-      const canopyDepth = 0;
+    const canopyDepth = 0;
   
-      const treeAddress = await createAndInitializeTree(
-        connection,
-        wallet,
-        maxDepthSizePair,
-        canopyDepth
-      );
+    const treeAddress = await createAndInitializeTree(
+      connection,
+      wallet,
+      maxDepthSizePair,
+      canopyDepth
+    );
   
-      const collectionNft = await getOrCreateCollectionNFT(connection, wallet);
+    const collectionNft = await getOrCreateCollectionNFT(connection, wallet);
   
-      const batchSize = 5000;
+    // Assuming you've retrieved recipient addresses from  event input
+    const recipients = event.recipients.map(addr => new PublicKey(addr));
   
-      await mintCompressedNftToCollection(
-        connection,
-        wallet,
-        treeAddress,
-        collectionNft,
-        1000000 
-      );
+    await mintCompressedNftToCollection(
+      connection,
+      wallet,
+      treeAddress,
+      collectionNft,
+      recipients, // Pass the array of recipient addresses
+      recipients.length // Pass the number of NFTs to mint, equal to the number of recipients
+    );
   
-      await batchTransferNfts(
-        connection,
-        wallet,
-        treeAddress,
-        1000000,
-        batchSize
-      );
-  
-      return {
-        statusCode: 200,
-        body: JSON.stringify("NFT minting and transfer complete"),
-      };
-    } catch (error) {
-      console.error("Error during Lambda execution", error);
-      return {
-        statusCode: 500,
-        body: JSON.stringify("An error occurred"),
-      };
-    }
+    return {
+      statusCode: 200,
+      body: JSON.stringify('NFTs Minted Successfully!'),
+    };
   };
-  
