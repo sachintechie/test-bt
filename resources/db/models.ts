@@ -59,22 +59,16 @@ export interface token {
 }
 
 export interface product {
-  //   id: string;
   name: string;
   categoryId: string;
-  category: category;
   rarity: string;
   price: number;
-  productAttributes: ProductAttributes[];
-  ownerships: ownership[];
+  ownershipId: string;
 }
 
 export interface category {
-  //   id: string;
   name: string;
   tenantId: string;
-  //   tenant: tenant;
-  //   products: product[];
 }
 
 export interface ProductAttributes {
@@ -83,15 +77,12 @@ export interface ProductAttributes {
   value: string;
   type: string;
   productId: string;
-  //   product: product;
 }
 
 export interface ownership {
   id: string;
   customerId: string;
-  customer: customer;
   productId: string;
-  product: product;
   fractional: boolean;
   fraction?: number;
 }
