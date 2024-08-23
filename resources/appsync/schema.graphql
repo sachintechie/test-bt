@@ -459,6 +459,16 @@ type CategoryData {
   tenantId: String!
 }
 
+input GetCategoriesByTenantIdInput {
+  tenantId: String
+}
+
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  error: AWSJSON
+}
+
 type Query {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
@@ -493,6 +503,7 @@ type Query {
 	UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
 	GetMetadata(input: GetMetadataInput): GetMetadataResponse
 	CreateCategory(input: CreateCategoryInput): CategoryResponse
+	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
 }
 
 schema {

@@ -1437,6 +1437,44 @@ export async function createCategory(category: category) {
   }
 }
 
+// export async function getCategories() {
+//   try {
+//     const prisma = await getPrismaClient();
+//     const categories = await prisma.category.findMany({
+//       include: {
+//         tenant: true
+//       }
+//     });
+//     return categories;
+//   } catch (err) {
+//     throw err;
+//   }
+// }
+
+// export async function getCategoryById(categoryId: string) {
+//   try {
+//     const prisma = await getPrismaClient();
+//     const category = await prisma.category.findUnique({
+//       where: { id: categoryId }
+//     });
+//     return category;
+//   } catch (err) {
+//     throw err;
+//   }
+// }
+
+export async function getCategoriesByTenantId(tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const category = await prisma.category.findMany({
+      where: { tenantId: tenant.id }
+    });
+    return category;
+  } catch (err) {
+    throw err;
+  }
+}
+
 // export async function createProduct(product: product) {
 //   try {
 //     const prisma = await getPrismaClient();
@@ -1507,43 +1545,9 @@ export async function createCategory(category: category) {
 //   }
 // }
 
-// export async function getCategories() {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const categories = await prisma.category.findMany({
-//       include: {
-//         tenant: true
-//       }
-//     });
-//     return categories;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
 
-// export async function getCategoryById(categoryId: string) {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const category = await prisma.category.findUnique({
-//       where: { id: categoryId }
-//     });
-//     return category;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
 
-// export async function getCategoriesByTenantId(tenant: tenant) {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const category = await prisma.category.findMany({
-//       where: { tenantId: tenant.id }
-//     });
-//     return category;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
+
 
 // export async function createAttribute(productattributes: ProductAttributes) {
 //   try {
