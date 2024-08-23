@@ -1547,47 +1547,31 @@ export async function getProductsByCategoryId(categoryId: string) {
   }
 }
 
+export async function createAttribute(productattributes: ProductAttributes) {
+  try {
+    const prisma = await getPrismaClient();
+    const newAttribute = await prisma.productattributes.create({
+      data: {
+        key: productattributes.key,
+        value: productattributes.value,
+        type: productattributes.type,
+        productId: productattributes.productId
+      }
+    });
+    return newAttribute;
+  } catch (err) {
+    throw err;
+  }
+}
 
-
-
-
-// export async function createAttribute(productattributes: ProductAttributes) {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const newAttribute = await prisma.productattributes.create({
-//       data: {
-//         key: productattributes.key,
-//         value: productattributes.value,
-//         type: productattributes.type,
-//         productId: productattributes.productId
-//       }
-//     });
-//     return newAttribute;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
-
-// export async function getAttributeById(attributeId: string) {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const attribute = await prisma.productattributes.findUnique({
-//       where: { id: attributeId }
-//     });
-//     return attribute;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
-
-// export async function getAttributesByProductId(productId: string) {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const attributes = await prisma.productattributes.findMany({
-//       where: { productId: productId }
-//     });
-//     return attributes;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
+export async function getAttributesByProductId(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const attributes = await prisma.productattributes.findMany({
+      where: { productId: productId }
+    });
+    return attributes;
+  } catch (err) {
+    throw err;
+  }
+}
