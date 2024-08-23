@@ -473,6 +473,46 @@ type GetCategoriesResponse {
   error: AWSJSON
 }
 
+input CreateProductInput {
+  name: String!
+  categoryId: String!
+  rarity: String!
+  price: Float!
+  ownershipId: String!
+}
+
+type ProductResponse {
+  status: Int
+  data: ProductData
+  error: AWSJSON
+}
+
+type ProductData {
+  id: String!
+  name: String!
+  categoryId: String!
+  rarity: String!
+  price: Float!
+  category: CategoryData!
+  productAttributes: [ProductAttributeData!]!
+  ownership: OwnershipData!
+}
+
+type ProductAttributeData {
+  id: String!
+  key: String!
+  value: String!
+  type: String!
+  productId: String!
+}
+
+type OwnershipData {
+  customerId: String!
+  productId: String!
+  fractional: Boolean!
+  fraction: Float
+}
+
 type Query {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
@@ -510,6 +550,7 @@ type Query {
 	GetCategories: GetCategoriesResponse
 	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
 	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
+	CreateProduct(input: CreateProductInput): ProductResponse
 }
 
 schema {

@@ -1475,25 +1475,25 @@ export async function getCategoriesByTenantId(tenant: tenant) {
   }
 }
 
-// export async function createProduct(product: product) {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const newProduct = await prisma.product.create({
-//       data: {
-//         name: product.name,
-//         categoryId: product.categoryId,
-//         rarity: product.rarity,
-//         price: product.price,
-//         ownerships: {
-//           connect: {id: product.ownershipId} // NEED TO DISCUSS THAT HOW MEADOWLAND WILL HANDLE THIS
-//         }
-//       }
-//     });
-//     return newProduct;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
+export async function createProduct(product: product) {
+  try {
+    const prisma = await getPrismaClient();
+    const newProduct = await prisma.product.create({
+      data: {
+        name: product.name,
+        categoryId: product.categoryId,
+        rarity: product.rarity,
+        price: product.price,
+        ownerships: {
+          connect: {id: product.ownershipId} // NEED TO DISCUSS THAT HOW MEADOWLAND WILL HANDLE THIS
+        }
+      }
+    });
+    return newProduct;
+  } catch (err) {
+    throw err;
+  }
+}
 
 // export async function getProducts() {
 //   try {
