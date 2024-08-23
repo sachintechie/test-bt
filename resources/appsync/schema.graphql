@@ -459,6 +459,10 @@ type CategoryData {
   tenantId: String!
 }
 
+input GetCategoryByIdInput {
+  categoryId: String
+}
+
 input GetCategoriesByTenantIdInput {
   tenantId: String
 }
@@ -503,6 +507,8 @@ type Query {
 	UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
 	GetMetadata(input: GetMetadataInput): GetMetadataResponse
 	CreateCategory(input: CreateCategoryInput): CategoryResponse
+	GetCategories: GetCategoriesResponse
+	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
 	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
 }
 

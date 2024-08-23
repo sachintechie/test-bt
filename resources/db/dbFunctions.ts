@@ -1437,31 +1437,31 @@ export async function createCategory(category: category) {
   }
 }
 
-// export async function getCategories() {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const categories = await prisma.category.findMany({
-//       include: {
-//         tenant: true
-//       }
-//     });
-//     return categories;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
+export async function getCategories() {
+  try {
+    const prisma = await getPrismaClient();
+    const categories = await prisma.category.findMany({
+      include: {
+        tenant: true
+      }
+    });
+    return categories;
+  } catch (err) {
+    throw err;
+  }
+}
 
-// export async function getCategoryById(categoryId: string) {
-//   try {
-//     const prisma = await getPrismaClient();
-//     const category = await prisma.category.findUnique({
-//       where: { id: categoryId }
-//     });
-//     return category;
-//   } catch (err) {
-//     throw err;
-//   }
-// }
+export async function getCategoryById(categoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId }
+    });
+    return category;
+  } catch (err) {
+    throw err;
+  }
+}
 
 export async function getCategoriesByTenantId(tenant: tenant) {
   try {
