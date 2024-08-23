@@ -62,6 +62,14 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
         };
+    case "ondemand-prod":
+        return {
+          ...databaseInfoEnv,
+          ...web3InfoEnv,
+          SOLANA_NETWORK: "mainnet",
+          SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
+          CS_API_ROOT: "https://prod.signer.cubist.dev",
+        };  
     default:
       return {
         ...databaseInfoEnv,

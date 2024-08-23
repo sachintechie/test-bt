@@ -4,6 +4,7 @@ import {BridgeTowerLambdaStack} from "./bridgetower-lambda-stack";
 import {env, envConfig} from "./utils/env";
 import {configResolver, newAppSyncApi} from "./utils/appsync";
 import {capitalize} from "./utils/utils";
+import {newApiGateway} from "./utils/apigateway";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'apigatewayAuthorizer',
@@ -17,6 +18,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'batchMintCnft'
 ]
 
+const GET_METADATA="getMetadata";
+
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -28,6 +31,8 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     // Create a new AppSync GraphQL API
     const api = newAppSyncApi(this, env`Api`, lambdaStack)
+
+    const gateway = newApiGateway(this,  lambdaStack.lambdaMap.get(GET_METADATA)!);
 
     // Create resolvers for each lambda function
     for (const [key, value] of lambdaStack.lambdaMap) {
