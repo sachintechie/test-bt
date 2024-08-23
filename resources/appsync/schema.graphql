@@ -591,10 +591,16 @@ type Query {
 	GetProducts: GetProductsResponse
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
-	CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+}
+
+type Mutation {
+  CreateCategory(input: CreateCategoryInput): CategoryResponse
+  CreateProduct(input: CreateProductInput): ProductResponse
+  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
 }
 
 schema {
 	query: Query
+	mutation: Mutation
 }
