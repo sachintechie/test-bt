@@ -1,5 +1,5 @@
 import { getCustomerKyc, getCustomerKycByTenantId, insertCustomerKyc } from "../db/dbFunctions";
-import { createApplicant } from "../kyc/sumsubFunctions";
+import { createApplicant, getApplicantDataByExternalId } from "../kyc/sumsubFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -13,6 +13,23 @@ export const handler = async (event: any, context: any) => {
       if(sumsubResponse.errorCode == null){
       const userKyc = await insertCustomerKyc(sumsubResponse,"SUMSUB", event.identity.resolverContext.id
       );
+     
+      const response = {
+        status: 200,
+        data: userKyc,
+        error: null
+      };
+      console.log("getApplicantDataByExternalId", response);
+  
+      return response;
+    }
+    else if(sumsubResponse.code == 409)
+        
+    {
+      const sumsubResponse = await getApplicantDataByExternalId(event.arguments?.input?.customerId)
+      const userKyc = await insertCustomerKyc(sumsubResponse,"SUMSUB", event.identity.resolverContext.id
+      );
+     
       const response = {
         status: 200,
         data: userKyc,
