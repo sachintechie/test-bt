@@ -1564,7 +1564,7 @@ export async function createProductAttribute(productattributes: ProductAttribute
   }
 }
 
-export async function getAttributesByProductId(productId: string) {
+export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
     const attributes = await prisma.productattributes.findMany({

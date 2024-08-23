@@ -1,4 +1,4 @@
-import { getAttributesByProductId } from "../db/dbFunctions";
+import { GetProductAttributesByProductId } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -14,7 +14,7 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const attributes = await getAttributesByProductId(productId);
+    const attributes = await GetProductAttributesByProductId(productId);
 
     if (!attributes || attributes.length === 0) {
       return {
