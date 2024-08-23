@@ -495,7 +495,7 @@ type ProductData {
   price: Float!
   category: CategoryData!
   productAttributes: [ProductAttributeData!]!
-  ownership: OwnershipData!
+  ownerships: [OwnershipData!]! 
 }
 
 type ProductAttributeData {
@@ -511,6 +511,20 @@ type OwnershipData {
   productId: String!
   fractional: Boolean!
   fraction: Float
+}
+
+type GetProductsResponse {
+  status: Int
+  data: [ProductData]
+  error: AWSJSON
+}
+
+input GetProductByIdInput {
+  productId: String
+}
+
+input GetProductsByCategoryIdInput {
+  categoryId: String
 }
 
 type Query {
@@ -551,6 +565,9 @@ type Query {
 	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
 	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
 	CreateProduct(input: CreateProductInput): ProductResponse
+	GetProducts: GetProductsResponse
+	GetProductById(input: GetProductByIdInput): ProductResponse
+	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 }
 
 schema {
