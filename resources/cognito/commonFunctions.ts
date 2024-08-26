@@ -8,7 +8,7 @@ const verifier = CognitoJwtVerifier.create({
 });
 
 export async function verifyToken(token: string) {
-
+console.log("Verifying token", token);
 try {
   const payload = await verifier.verify(
     token // the JWT as string
