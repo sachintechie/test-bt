@@ -199,12 +199,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Bootstrap to ondemand-prod
+      - name: Bootstrap to playground-dev
         env:
           CDK_ENV: "playground-dev"
         run: npx cdk bootstrap
 
-      - name: Deploy to ondemand-prod
+      - name: Deploy to playground-dev
         env:
           CDK_ENV: "playground-dev"
         run: npx cdk deploy --context env=playground-dev --all --require-approval never

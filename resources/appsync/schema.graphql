@@ -592,6 +592,8 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+	  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+
 }
 
 type Mutation {
