@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, category, product, ProductAttributes } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, category, product, ProductAttributes } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -773,6 +773,30 @@ export async function getCustomerAndWallet(tenantUserId: string, chaintype: stri
   }
 }
 
+export async function getCustomerAndWalletByAuthType(tenantUserId: string, chaintype: string, tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.customer.findFirst({
+      where: {
+        tenantuserid: tenantUserId,
+        tenantid: tenant.id,
+        usertype: AuthType.OTP
+      },
+      include: {
+        wallets: {
+          where: {
+            chaintype: chaintype
+          }
+        }
+      }
+    });
+    if (customer == null || customer.cubistuserid == null || customer.cubistuserid == "") return null;
+    return customer ? customer : null;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getPayerWallet(chaintype: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
@@ -1501,8 +1525,8 @@ export async function getProducts() {
     const products = await prisma.product.findMany({
       include: {
         category: true,
-        productAttributes: true,
-        ownership: true,    
+        productattributes: true,
+        ownerships: true,    
       }
     });
     return products;

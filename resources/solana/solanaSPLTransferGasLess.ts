@@ -105,7 +105,7 @@ export async function transferSPLToken(
     transaction.feePayer = payerPublicKey;
 
     // 7.Specify the recent blockhash
-    const { blockhash } = await connection.getRecentBlockhash();
+    const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
 
     // 8.Sign the transaction with payer
@@ -169,7 +169,7 @@ const createAssociatedTokenAccount = async (
   );
 
   transaction.feePayer = new PublicKey(payerKey.materialId);
-  const { blockhash } = await connection.getRecentBlockhash();
+  const { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
   const base64 = transaction.serializeMessage().toString("base64");
   const resp = await payerKey.signSolana({ message_base64: base64 });

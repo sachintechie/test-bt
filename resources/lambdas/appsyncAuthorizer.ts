@@ -1,3 +1,4 @@
+import { UserPool } from "aws-cdk-lib/aws-cognito";
 import { executeQuery } from "../db/PgClient";
 
 export const handler = async (event: any) => {
@@ -23,7 +24,9 @@ export const handler = async (event: any) => {
             apikey: tenant.apikey,
             logo: tenant.logo,
             isactive: tenant.isactive,
-            createdat: tenant.createdat
+            createdat: tenant.createdat,
+            userpoolid: tenant.userpoolid,
+            cognitoclientid: tenant.cognitoclientid
           }
         };
       }

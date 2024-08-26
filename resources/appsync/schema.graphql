@@ -567,7 +567,7 @@ type Query {
 	CustomerAndWalletCounts: CustomerAndWalletCounts
 	GetCubistOrgData: GetCubistOrgData
 	MasterTransfer(input: MasterTransferInput): Transfer
-	Signin(input: SigninInput): SignIn
+	Signin: SignIn
 	AdminSignin(input: SigninInput): SignIn
 	CreateAdminWallet(input: CreateWalletInput): GetWallet
 	Staking(input: StakingInput): Staking
@@ -592,6 +592,8 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+	  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+
 }
 
 type Mutation {

@@ -2,6 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
 import { createCustomer, getCustomer } from "../db/dbFunctions";
+import { verifyToken } from "../cognito/commonFunctions";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -13,7 +14,6 @@ export const handler = async (event: any, context: any) => {
 
     const data = await createUser(
       event.identity.resolverContext as tenant,
-      event.arguments?.input?.tenantUserId,
       event.headers?.identity
     );
 
@@ -35,12 +35,19 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createUser(tenant: tenant, tenantuserid: string, oidcToken: string) {
+async function createUser(tenant: tenant, oidcToken: string) {
   console.log("Creating user");
 
   try {
-    console.log("createUser", tenant.id, tenantuserid);
-    const customer = await getCustomer(tenantuserid, tenant.id);
+    const userData = await verifyToken(tenant,oidcToken);
+    if(userData == null || userData.email == null){
+      return {
+        customer: null,
+        error: "Please provide a valid access token for verification"
+      };
+    }
+    console.log("createUser", tenant.id,userData.email);
+    const customer = await getCustomer(userData?.email, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       console.log("Customer exists", customer);
       return { customer, error: null };
@@ -87,7 +94,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             const customer = await createCustomer({
               emailid: email ? email : "",
               name: name ? name : "----",
-              tenantuserid,
+              tenantuserid: userData.email,
               tenantid: tenant.id,
               cubistuserid: cubistUserId,
               isactive: true,
@@ -97,7 +104,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             console.log("Created customer", customer.id);
             const customerData = {
               cubistuserid: cubistUserId,
-              tenantuserid: tenantuserid,
+              tenantuserid:  userData.email,
               tenantid: tenant.id,
               emailid: email,
               id: customer.id,

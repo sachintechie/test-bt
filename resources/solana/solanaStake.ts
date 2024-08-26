@@ -241,7 +241,7 @@ async function createStakeAccountWithStakeProgram(
       })
     );
 
-    const { blockhash } = await connection.getRecentBlockhash();
+    const { blockhash } = await connection.getLatestBlockhash();
     transaction.recentBlockhash = blockhash;
     transaction.feePayer = fromPublicKey;
 
@@ -309,7 +309,7 @@ async function addStakeToExistingAccount(
     })
   );
 
-  let { blockhash } = await connection.getRecentBlockhash();
+  let { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -329,7 +329,7 @@ async function addStakeToExistingAccount(
     })
   );
 
-  blockhash = (await connection.getRecentBlockhash()).blockhash;
+  blockhash = (await connection.getLatestBlockhash()).blockhash;
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -362,7 +362,7 @@ export async function withdrawFromStakeAccounts(connection: Connection,stakeAcco
       );
 
       transaction.feePayer = payerPublicKey;
-      const blockhash = (await connection.getRecentBlockhash()).blockhash;
+      const blockhash = (await connection.getLatestBlockhash()).blockhash;
       transaction.recentBlockhash = blockhash;
 
       await signTransaction(transaction, payerKey);
@@ -418,7 +418,7 @@ export async function mergeStakeAccounts(connection: Connection,stakeAccounts:st
         );
 
         transaction.feePayer = payerPublicKey;
-        const blockhash = (await connection.getRecentBlockhash()).blockhash;
+        const blockhash = (await connection.getLatestBlockhash()).blockhash;
         transaction.recentBlockhash = blockhash;
 
         await signTransaction(transaction, payerKey);
