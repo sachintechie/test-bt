@@ -30,7 +30,7 @@ try {
 async function getVerifier(userPoolId: string, clientId: string) {
     const verifier = CognitoJwtVerifier.create({
         userPoolId: userPoolId,
-        tokenUse: "access",
+        tokenUse: "id",
         clientId: clientId,
       });  
       return verifier;
