@@ -10,6 +10,7 @@ on:
       - schoolhack-dev
       - schoolhack-prod
       - ondemand-prod
+      - playground-dev
 
 jobs:
   cdk-deploy-dev:
@@ -176,3 +177,34 @@ jobs:
         env:
           CDK_ENV: "ondemand-prod"
         run: npx cdk deploy --context env=ondemand-prod --all --require-approval never
+  cdk-deploy-playground-dev:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/playground-dev'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Set up AWS credentials for playground-dev
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_PLAYGROUND }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_PLAYGROUND }}
+          aws-region: ${{ secrets.AWS_REGION_PLAYGROUND }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Bootstrap to ondemand-prod
+        env:
+          CDK_ENV: "playground-dev"
+        run: npx cdk bootstrap
+
+      - name: Deploy to ondemand-prod
+        env:
+          CDK_ENV: "playground-dev"
+        run: npx cdk deploy --context env=playground-dev --all --require-approval never

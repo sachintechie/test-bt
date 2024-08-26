@@ -58,6 +58,35 @@ export interface token {
   decimalprecision: number;
 }
 
+export interface product {
+  name: string;
+  categoryId: string;
+  rarity: string;
+  price: number;
+  ownershipId: string;
+}
+
+export interface category {
+  name: string;
+  tenantId: string;
+}
+
+export interface ProductAttributes {
+  id: string;
+  key: string;
+  value: string;
+  type: string;
+  productId: string;
+}
+
+export interface ownership {
+  id: string;
+  customerId: string;
+  productId: string;
+  fractional: boolean;
+  fraction?: number;
+}
+
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",
