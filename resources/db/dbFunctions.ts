@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer } from "./models";
+
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, category, product, ProductAttributes } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1443,4 +1444,159 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   });
 
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
+}
+
+export async function createCategory(category: category) {
+  try {
+    const prisma = await getPrismaClient();
+    const newCategory = await prisma.category.create({
+      data: {
+        name: category.name,
+        tenantId: category.tenantId
+      }
+    });
+
+    return newCategory;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getCategories() {
+  try {
+    const prisma = await getPrismaClient();
+    const categories = await prisma.category.findMany({
+      include: {
+        tenant: true
+      }
+    });
+    return categories;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getCategoryById(categoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const category = await prisma.category.findUnique({
+      where: { id: categoryId }
+    });
+    return category;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getCategoriesByTenantId(tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const category = await prisma.category.findMany({
+      where: { tenantId: tenant.id }
+    });
+    return category;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProduct(product: product) {
+  try {
+    const prisma = await getPrismaClient();
+    const newProduct = await prisma.product.create({
+      data: {
+        name: product.name,
+        categoryId: product.categoryId,
+        rarity: product.rarity,
+        price: product.price,
+        ownerships: {
+          connect: [{ id: product.ownershipId }] // NEED TO DISCUSS THAT HOW MEADOWLAND WILL HANDLE THIS
+        }
+      }
+    });
+    return newProduct;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProducts() {
+  try {
+    const prisma = await getPrismaClient();
+    const products = await prisma.product.findMany({
+      include: {
+        category: true,
+        productAttributes: true,
+        ownership: true,    
+      }
+    });
+    return products;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProductById(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const product = await prisma.product.findUnique({
+      where: {
+        id: productId
+      },
+      include: {
+        category: true,
+        productattributes: true,
+        ownerships: true
+      }
+    });
+    return product;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProductsByCategoryId(categoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const products = await prisma.product.findMany({
+      where: { categoryId: categoryId },
+      include: {
+        category: true,
+        productattributes: true,
+        ownerships: true
+      }
+    });
+    return products;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProductAttribute(productattributes: ProductAttributes) {
+  try {
+    const prisma = await getPrismaClient();
+    const newAttribute = await prisma.productattributes.create({
+      data: {
+        key: productattributes.key,
+        value: productattributes.value,
+        type: productattributes.type,
+        productId: productattributes.productId
+      }
+    });
+    return newAttribute;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function GetProductAttributesByProductId(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const attributes = await prisma.productattributes.findMany({
+      where: { productId: productId }
+    });
+    return attributes;
+  } catch (err) {
+    throw err;
+  }
 }
