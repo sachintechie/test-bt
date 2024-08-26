@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-
 import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, category, product, ProductAttributes } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1526,8 +1525,8 @@ export async function getProducts() {
     const products = await prisma.product.findMany({
       include: {
         category: true,
-        productAttributes: true,
-        ownership: true,    
+        productattributes: true,
+        ownerships: true,    
       }
     });
     return products;
