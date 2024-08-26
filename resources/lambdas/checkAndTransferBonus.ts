@@ -37,14 +37,13 @@ async function transferBonus() {
     const token = await getTokenBySymbol("SHC");
     console.log("Customer Wallets", customerWallets, "tenant", tenant, token, "token");
     if (customerWallets.length > 0) {
-      const transaction = await airdropSPLToken(customerWallets, 1, token.decimalprecision, "Solana", token.contractaddress, tenant);
+      const transaction = await airdropSPLToken(customerWallets, 1, token?.decimalprecision ?? 0, "Solana", token.contractaddress, tenant);
       if (transaction.trxHash != null) {
         const transactionStatus = await verifySolanaTransaction(transaction.trxHash);
         const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-        for (const customer of customerWallets) {
+        for (const customer of customerWallets){
           const updatedCustomer = await updateCustomerBonusStatus(customer.customerid, "true", tenant.id);
         }
-
         return transaction;
       } else {
         return {

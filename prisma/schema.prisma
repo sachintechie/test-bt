@@ -56,6 +56,7 @@ model customer {
   transactions      transaction[]
   staketransactions staketransaction[]
   stakeaccounts     stakeaccount[]
+  ownerships    ownership[]
 }
 
 model adminuser {
@@ -185,6 +186,17 @@ model sumsubconfig {
   updatedat         String?
 }
 
+
+model ownership {
+  id         String    @id @default(uuid()) @db.Uuid
+  customerId     String    @db.Uuid
+  customer       customer      @relation(fields: [customerId], references: [id])
+  productId  String    @db.Uuid
+  product    product   @relation(fields: [productId], references: [id])
+  fractional Boolean
+  fraction   Float?  
+}
+
 model tenant {
   id               String             @id @default(uuid())
   name             String?
@@ -203,6 +215,38 @@ model tenant {
   gaspayerwallet   gaspayerwallet[]
   stakeaccount     stakeaccount[]
   staketransaction staketransaction[]
+categories category[]
+}
+
+model category {
+  id        String     @id @default(uuid()) @db.Uuid
+  name      String
+  tenantId  String     @db.Uuid
+  tenant    tenant     @relation(fields: [tenantId], references: [id])
+  products  product[]
+
+  @@unique([tenantId, name])
+}
+
+model product {
+  id         String     @id @default(uuid()) @db.Uuid
+  name       String
+  categoryId String     @db.Uuid
+  category   category   @relation(fields: [categoryId], references: [id])
+  rarity     String     @default("Normal")
+  price      Float
+  productattributes productattributes[]
+  ownerships ownership[]
+  @@unique([categoryId, name])
+}
+
+model productattributes {
+  id        String     @id @default(uuid()) @db.Uuid
+  key       String
+  value     String
+  type      String
+  productId String   @db.Uuid
+  product   product  @relation(fields: [productId], references: [id])
 }
 
 model token {
