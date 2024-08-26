@@ -30,6 +30,8 @@ export interface tenant {
   logo: string;
   isactive: boolean;
   createdat: string;
+  userpoolid: string;
+  cognitoclientid: string;
 }
 
 export interface wallet {
