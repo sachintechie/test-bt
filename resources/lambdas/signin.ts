@@ -41,7 +41,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
   console.log("Creating user");
 
   try {
-    const userData = await verifyToken(access_token);
+    const userData = await verifyToken(tenant,access_token);
     if(userData == null){
       return {
         customer: null,

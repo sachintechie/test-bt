@@ -208,6 +208,8 @@ model tenant {
   tenantheaderkey  String?
   callbackurl      String?
   cubistorgid      String?
+  userpoolid       String?
+  cognitoclientid  String?
   cubistconfig     cubistconfig[]
   customer         customer[]
   adminuser        adminuser[]
