@@ -2,6 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
 import { createCustomer, getCustomer } from "../db/dbFunctions";
+import { verifyToken } from "../cognito/commonFunctions";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -14,7 +15,8 @@ export const handler = async (event: any, context: any) => {
     const data = await createUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
-      event.headers?.identity
+      event.headers?.identity,
+      event.headers?.access_token
     );
 
     const response = {
@@ -35,10 +37,17 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createUser(tenant: tenant, tenantuserid: string, oidcToken: string) {
+async function createUser(tenant: tenant, tenantuserid: string, oidcToken: string,access_token :string) {
   console.log("Creating user");
 
   try {
+    const userData = await verifyToken(access_token);
+    if(userData == null){
+      return {
+        customer: null,
+        error: "Please provide a valid access token for verification"
+      };
+    }
     console.log("createUser", tenant.id, tenantuserid);
     const customer = await getCustomer(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
