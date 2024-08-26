@@ -567,7 +567,7 @@ type Query {
 	CustomerAndWalletCounts: CustomerAndWalletCounts
 	GetCubistOrgData: GetCubistOrgData
 	MasterTransfer(input: MasterTransferInput): Transfer
-	Signin(input: SigninInput): SignIn
+	Signin: SignIn
 	AdminSignin(input: SigninInput): SignIn
 	CreateAdminWallet(input: CreateWalletInput): GetWallet
 	Staking(input: StakingInput): Staking
