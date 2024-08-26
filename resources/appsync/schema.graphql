@@ -443,6 +443,113 @@ type GetMetadataResponse {
 	metadata: AWSJSON
 }
 
+input CreateCategoryInput {
+  name: String!
+  tenantId: String!
+}
+
+type CategoryResponse {
+  status: Int
+  data: CategoryData
+  error: AWSJSON
+}
+
+type CategoryData {
+  name: String!
+  tenantId: String!
+}
+
+input GetCategoryByIdInput {
+  categoryId: String
+}
+
+input GetCategoriesByTenantIdInput {
+  tenantId: String
+}
+
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  error: AWSJSON
+}
+
+input CreateProductInput {
+  name: String!
+  categoryId: String!
+  rarity: String!
+  price: Float!
+  ownershipId: String!
+}
+
+type ProductResponse {
+  status: Int
+  data: ProductData
+  error: AWSJSON
+}
+
+type ProductData {
+  id: String!
+  name: String!
+  categoryId: String!
+  rarity: String!
+  price: Float!
+  category: CategoryData!
+  productAttributes: [ProductAttributeData!]!
+  ownerships: [OwnershipData!]! 
+}
+
+type ProductAttributeData {
+  id: String!
+  key: String!
+  value: String!
+  type: String!
+  productId: String!
+}
+
+type OwnershipData {
+  customerId: String!
+  productId: String!
+  fractional: Boolean!
+  fraction: Float
+}
+
+type GetProductsResponse {
+  status: Int
+  data: [ProductData]
+  error: AWSJSON
+}
+
+input GetProductByIdInput {
+  productId: String
+}
+
+input GetProductsByCategoryIdInput {
+  categoryId: String
+}
+
+input ProductAttributeInput {
+  key: String!
+  value: String!
+  type: String!
+  productId: String!
+}
+
+type ProductAttributeResponse {
+  status: Int
+  data: ProductAttributeData
+  error: AWSJSON
+}
+
+input GetProductAttributesByProductIdInput {
+  productId: String!
+}
+
+type GetProductAttributesResponse {
+  status: Int
+  data: [ProductAttributeData]
+  error: AWSJSON
+}
+
 type Query {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
@@ -476,8 +583,24 @@ type Query {
 	TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
 	UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
 	GetMetadata(input: GetMetadataInput): GetMetadataResponse
+	CreateCategory(input: CreateCategoryInput): CategoryResponse
+	GetCategories: GetCategoriesResponse
+	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
+	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
+	CreateProduct(input: CreateProductInput): ProductResponse
+	GetProducts: GetProductsResponse
+	GetProductById(input: GetProductByIdInput): ProductResponse
+	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
+	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+}
+
+type Mutation {
+  CreateCategory(input: CreateCategoryInput): CategoryResponse
+  CreateProduct(input: CreateProductInput): ProductResponse
+  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
 }
 
 schema {
 	query: Query
+	mutation: Mutation
 }
