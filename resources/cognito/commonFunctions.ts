@@ -2,7 +2,6 @@ import { tenant } from "../db/models";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 
 export async function verifyToken(tenant : tenant,token: string) {
-console.log("Verifying token", token);
 try {
   if(tenant.userpoolid == null || tenant.cognitoclientid == null){
     console.log("Tenant does not have userpoolid or cognitoclientid");
