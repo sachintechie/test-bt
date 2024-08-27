@@ -1,6 +1,7 @@
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
 import { createWallet, getCustomer, getWalletByCustomer } from "../db/dbFunctions";
+import { verifyToken } from "../cognito/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -8,8 +9,8 @@ export const handler = async (event: any, context: any) => {
 
     const data = await createCustomerWallet(
       event.identity.resolverContext as tenant,
-      event.arguments?.input?.tenantUserId,
-      event.arguments?.input?.chainType
+      event.arguments?.input?.chainType,
+      event.headers?.identity
     );
 
     const response = {
@@ -30,14 +31,22 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createCustomerWallet(tenant: tenant, tenantuserid: string, chainType: string) {
+async function createCustomerWallet(tenant: tenant, chainType: string,oidcToken: string) {
   console.log("Creating user");
 
   try {
-    console.log("createUser", tenant.id, tenantuserid);
-    const customer = await getCustomer(tenantuserid, tenant.id);
+    console.log("createUser", tenant.id);
+    const userData = await verifyToken(tenant,oidcToken);
+    if(userData == null || userData.email == null){
+      return {
+        customer: null,
+        error: "Please provide a valid access token for verification"
+      };
+    }
+    console.log("createUser", tenant.id,userData.email);
+    const customer = await getCustomer(userData.email, tenant.id);
     if (customer != null && customer?.cubistuserid) {
-      const wallet = await getWalletByCustomer(tenantuserid, chainType, tenant);
+      const wallet = await getWalletByCustomer(userData.email, chainType, tenant);
       if (wallet != null && wallet != undefined) {
         return { wallet, error: null };
       } else {
@@ -57,7 +66,7 @@ async function createCustomerWallet(tenant: tenant, tenantuserid: string, chainT
               walletaddress: wallet.data.walletaddress,
               createdat: wallet.data.createdat,
               chaintype: wallet.data.chaintype,
-              tenantuserid: tenantuserid,
+              tenantuserid: userData.email,
               tenantid: tenant.id,
               emailid: customer.emailid,
               customerid: customer.id
