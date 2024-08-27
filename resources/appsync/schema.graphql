@@ -381,14 +381,14 @@ input TransferInput {
 
 input AdminTransferInput {
   senderWalletAddress: String!
-  recipient: AdminRecipient!
+  recipient: [AdminRecipient]!
   symbol: String!
   chainType: String!
   adminUserId: String!
   tenantTransactionId: String!
 }
 
-type AdminRecipient {
+input AdminRecipient {
   walletAddress: String
   amount: Float
 }
