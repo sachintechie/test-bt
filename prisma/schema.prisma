@@ -72,6 +72,7 @@ model adminuser {
   iss           String?
   isbonuscredit Boolean?
   adminwallets  adminwallet[]
+  admintransactions admintransaction[]
 }
 
 model customerkyc {
@@ -261,6 +262,7 @@ model token {
   isactive         Boolean?
   createdat        String?
   transactions     transaction[]
+  admintransactions admintransaction[]
   staketransaction staketransaction[]
 }
 
@@ -279,6 +281,30 @@ model transaction {
   txhash                String
   status                String?
   tenantuserid          String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  error                 String?
+  network               String?
+  tenanttransactionid   String?
+  callbackstatus        String?
+}
+
+
+model admintransaction {
+  id                    String    @id @default(uuid())
+  tenantid              String
+  adminuserid            String?
+  adminuser              adminuser? @relation(fields: [adminuserid], references: [id])
+  tokenid               String?
+  token                 token?    @relation(fields: [tokenid], references: [id])
+  walletaddress         String?
+  symbol                String?
+  receiverwalletaddress String?
+  chaintype             String?
+  amount                Float?
+  txhash                String
+  status                String?
   isactive              Boolean?
   createdat             String?
   updatedat             String?

@@ -315,6 +315,50 @@ export async function insertTransaction(
   }
 }
 
+export async function insertAdminTransaction(
+  senderWalletAddress: string,
+  receiverWalletaddress: string,
+  amount: number,
+  chainType: string,
+  symbol: string,
+  txhash: string,
+  tenantId: string,
+  adminUserId: string,
+  tokenId: string,
+  network: string,
+  status: string,
+  tenantTransactionId: string,
+  error?: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const newTransaction = await prisma.admintransaction.create({
+      data: {
+        adminuserid: adminUserId,
+        callbackstatus: CallbackStatus.PENDING,
+        tokenid: tokenId,
+        tenanttransactionid: tenantTransactionId,
+        network: network,
+        status: status,
+        error: error as string,
+        walletaddress: senderWalletAddress,
+        receiverwalletaddress: receiverWalletaddress,
+        chaintype: chainType,
+        amount: amount,
+        symbol: symbol,
+        txhash: txhash,
+        tenantid: tenantId,
+        isactive: true,
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
+      }
+    });
+    return { ...newTransaction, transactionid: newTransaction.id };
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function insertStakingTransaction(
   senderWalletAddress: string,
   receiverWalletaddress: string,
