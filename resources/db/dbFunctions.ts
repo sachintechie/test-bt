@@ -477,7 +477,7 @@ export async function insertCustomerKyc(customerKyc: any, kycType: string, tenan
   }
 }
 
-export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, targetStakeAccountPubkey: string) {
+export async function mergeDbStakeAccounts( targetStakeAccountPubkey: string,sourceStakeAccountPubkey: string,) {
   try {
     const prisma = await getPrismaClient();
     const sourceAccount = await prisma.stakeaccount.findFirst({
@@ -499,16 +499,16 @@ export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, tar
     const newAmount = (sourceAccount.amount || 0) + (targetAccount.amount || 0);
 
     const updatedTargetAccount = await prisma.stakeaccount.updateMany({
-      where: { stakeaccountpubkey: targetStakeAccountPubkey },
+      where: { stakeaccountpubkey: sourceStakeAccountPubkey },
       data: { amount: newAmount }
     });
 
-    const removedSourceAccount = await prisma.stakeaccount.updateMany({
-      where: { stakeaccountpubkey: sourceStakeAccountPubkey },
-      data: { status: StakeAccountStatus.MERGED }
+    const updatetargetStakeAccountPubkey = await prisma.stakeaccount.updateMany({
+      where: { stakeaccountpubkey: targetStakeAccountPubkey },
+      data: { status: StakeAccountStatus.MERGED,amount:0 }
     });
 
-    return { updatedTargetAccount, removedSourceAccount };
+    return { updatedTargetAccount, updatetargetStakeAccountPubkey };
   } catch (err) {
     console.error(err);
     throw err;
@@ -543,8 +543,8 @@ export async function removeStakeAccount(stakeaccountpubkey: string) {
 }
 
 export async function insertMergeStakeAccountsTransaction(
-  sourceStakeAccountPubkey: string,
   targetStakeAccountPubkey: string,
+  sourceStakeAccountPubkey: string,
   txhash: string
 ) {
   try {
