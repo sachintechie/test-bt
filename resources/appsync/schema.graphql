@@ -330,6 +330,12 @@ type Transfer {
   error: AWSJSON
 }
 
+type BatchMintCnft {
+  status: Int
+  data: BatchMintCnftData
+  error: AWSJSON
+}
+
 type AdminTransfer {
   status: Int
   data: AdminTransferData
@@ -369,6 +375,10 @@ type TransferData {
   tenanttransactionid: String
 }
 
+type BatchMintCnftData {
+  transactionHash: String
+}
+
 input TransferInput {
   senderWalletAddress: String!
   receiverWalletAddress: String!
@@ -377,6 +387,14 @@ input TransferInput {
   chainType: String!
   tenantUserId: String!
   tenantTransactionId: String!
+}
+
+input MintCnftInput {
+  senderWalletAddress: String!
+  receiverWalletAddress: String!
+  amount: Float
+  symbol: String!
+  chainType: String!
 }
 
 input AdminTransferInput {
@@ -621,6 +639,7 @@ type Query {
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+  BatchMintCnft(input: MintCnftInput): BatchMintCnft
 }
 
 type Mutation {
@@ -633,3 +652,5 @@ schema {
   query: Query
   mutation: Mutation
 }
+
+

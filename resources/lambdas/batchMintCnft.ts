@@ -1,55 +1,69 @@
-import {
-    Connection,
-    PublicKey,
-    PublicKeyInitData,
-    clusterApiUrl
-  } from "@solana/web3.js";
-  import {
+import { APIGatewayProxyHandler } from 'aws-lambda';
+import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
+import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
+import { tenant } from "../db/models";
+
+// Define your handler function
+export const handler = async (event: any) => {
+  try {
+    // Parse the JSON body from the event
+    const body = JSON.parse(event.body || '{}');
     
-    ValidDepthSizePair
-  } from "@solana/spl-account-compression";
+    // Extract parameters from the parsed body
+    const senderWalletAddress = body.input?.senderWalletAddress  as string | undefined;;
+    const receiverWalletAddress = body.input?.receiverWalletAddress  as string | undefined;;
+    const amount = body.input?.amount || 1; // Default to 1 if amount is not provided
+    const oidcToken = event.headers?.identity;
+    const tenantId = event.identity.resolverContext as tenant
 
-  import {createAndInitializeTree, mintCompressedNftToCollection, getOrCreateKeypair, airdropSolIfNeeded, getOrCreateCollectionNFT } from "../solana/cNft/commonFunctions"
+    // Validate required fields
+    if (!senderWalletAddress || !receiverWalletAddress) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ message: "Missing required fields" }),
+      };
+    }
 
+    // Create a Solana connection
+    const connection = new Connection(clusterApiUrl("mainnet-beta"));
 
+    // Fetch the payer's keypair (or create one if it doesn't exist)
+    const payer = await getOrCreateKeypair("payerWallet");
 
-  
-  
-exports.handler = async (event: any) => {
-    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-    const wallet = await getOrCreateKeypair("Wallet_1");
-    await airdropSolIfNeeded(wallet.publicKey);
-  
-    const maxDepthSizePair: ValidDepthSizePair = {
-      maxDepth: 20, // Adjusted for larger capacity
-      maxBufferSize: 64, // Adjusted for larger capacity = 1 Millpion
-    };
-  
-    const canopyDepth = 0;
-  
-    const treeAddress = await createAndInitializeTree(
+    // Get or create the NFT collection details
+    const collectionDetails = await getOrCreateCollectionNFT(connection, payer);
+
+    // Convert the receiver wallet address to a PublicKey
+    const recipientPublicKey = new PublicKey(receiverWalletAddress);
+
+    // Mint the compressed NFT(s) to the collection
+    const data: MintResult = await mintCompressedNftToCollection(
       connection,
-      wallet,
-      maxDepthSizePair,
-      canopyDepth
+      payer,
+      collectionDetails.mint,
+      collectionDetails,
+      [recipientPublicKey], // Single recipient; can be expanded to a list
+      amount,
+      oidcToken,
+      tenantId
     );
-  
-    const collectionNft = await getOrCreateCollectionNFT(connection, wallet);
-  
-    // Assuming you've retrieved recipient addresses from  event input
-    const recipients = event.recipients.map((addr: PublicKeyInitData) => new PublicKey(addr));
-  
-    await mintCompressedNftToCollection(
-      connection,
-      wallet,
-      treeAddress,
-      collectionNft,
-      recipients, // Pass the array of recipient addresses
-      recipients.length // Pass the number of NFTs to mint, equal to the number of recipients
-    );
-  
+
+    // Build the response
     return {
       statusCode: 200,
-      body: JSON.stringify('NFTs Minted Successfully!'),
+      body: JSON.stringify({
+        transaction: data.transaction,
+        error: data.error,
+      }),
     };
-  };
+  } catch (error: any) {
+    console.error("Error executing mintCompressedNftToCollection:", error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: "Internal Server Error",
+        error: error.message,
+      }),
+    };
+  }
+};
