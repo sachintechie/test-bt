@@ -24,6 +24,7 @@ const MUTATIONS=[
   'createCategory',
   'createProduct',
   'createProductAttribute',
+  'adminTransfer'
 ]
 
 
