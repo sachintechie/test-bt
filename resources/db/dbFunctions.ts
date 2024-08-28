@@ -1502,10 +1502,11 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
     where: {
       walletaddress: walletAddress,
       tenantid: tenantId,
-      OR: [
-        { status: 'OPEN' },
-        { status: 'MERGED' }
-      ]
+      status: 'OPEN'
+      // OR: [
+      //   { status: 'OPEN' },
+      //   { status: 'MERGED' }
+      // ]
     },
     select: {
       stakeaccountpubkey: true
