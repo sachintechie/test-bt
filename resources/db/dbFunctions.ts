@@ -1446,7 +1446,7 @@ export async function getEmailOtpCustomer(tenantUserId: string, tenantId: string
       where: {
         tenantuserid: tenantUserId,
         tenantid: tenantId,
-        usertype: "EMAIL-OTP"
+        usertype: AuthType.OTP
       }
     });
     return customer ? customer : null;
