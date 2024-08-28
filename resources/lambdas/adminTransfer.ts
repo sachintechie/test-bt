@@ -1,4 +1,4 @@
-import { getTokenBySymbol, getTransactionByTenantTransactionId, insertAdminTransaction } from "../db/dbFunctions";
+import { getAdminTransactionByTenantTransactionId, getTokenBySymbol, insertAdminTransaction } from "../db/dbFunctions";
 import { tenant, TransactionStatus } from "../db/models";
 import { batchTransferSPLToken } from "../solana/airdropSplToken";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
@@ -6,7 +6,7 @@ import { verifySolanaTransaction } from "../solana/solanaFunctions";
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    const isTransactionAlreadyExist = await getTransactionByTenantTransactionId(
+    const isTransactionAlreadyExist = await getAdminTransactionByTenantTransactionId(
       event.arguments?.input?.tenantTransactionId,
       event.identity.resolverContext.id
     );
