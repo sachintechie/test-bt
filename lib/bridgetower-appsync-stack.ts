@@ -20,6 +20,14 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
 
 const GET_METADATA="getMetadata";
 
+const MUTATIONS=[
+  'createCategory',
+  'createProduct',
+  'createProductAttribute',
+  'adminTransfer'
+]
+
+
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -37,7 +45,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     // Create resolvers for each lambda function
     for (const [key, value] of lambdaStack.lambdaMap) {
       if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(key)) {
-        configResolver(api, value, 'Query', capitalize(key))
+        configResolver(api, value, MUTATIONS.includes(key)?'Mutation':'Query', capitalize(key))
       }
     }
 
