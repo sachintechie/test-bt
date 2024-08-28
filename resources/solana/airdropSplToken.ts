@@ -282,6 +282,14 @@ export async function batchTransferSPLToken(
      };
    }
    const keys = await oidcClient.sessionKeys();
+   console.log("Keys", keys);
+   if(keys.length === 0){
+
+    return {
+      trxHash: null,
+      error: "Given identity token is not the owner of given wallet address"
+    };
+   }
    const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
 
    const senderPublicKey = new PublicKey(senderKey.materialId);
@@ -304,7 +312,7 @@ export async function batchTransferSPLToken(
     const instructions = [];
     for (const recipient of receipients) {
       // const toWallet = new PublicKey(receiverWalletAddress[0].walletaddress);
-      const toWallet = new PublicKey(recipient.walletaddress);
+      const toWallet = new PublicKey(recipient.walletAddress);
       const toTokenAccount = await getOrCreateAssociatedTokenAccountForKey(connection, senderKey, mint, toWallet);
 
       //  const toTokenAccount = await getOrCreateAssociatedAccountInfo(recipient.walletaddress);

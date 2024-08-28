@@ -337,7 +337,7 @@ type AdminTransfer {
 }
 
 type AdminTransferData {
-  adminUserId: String
+  adminuserid: String
   walletaddress: String
   receiverwalletaddress: String
   chaintype: String
@@ -381,7 +381,7 @@ input TransferInput {
 
 input AdminTransferInput {
   senderWalletAddress: String!
-  recipient: [AdminRecipient]!
+  recipients: [AdminRecipient]!
   symbol: String!
   chainType: String!
   adminUserId: String!
@@ -619,6 +619,7 @@ type Query {
   GetProductById(input: GetProductByIdInput): ProductResponse
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+
 }
 
 type Mutation {
