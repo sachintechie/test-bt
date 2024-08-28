@@ -26,7 +26,33 @@ export async function getPrismaClient() {
   return prismaClient;
 }
 
+export async function getWalletByChainType( chainType: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallets = await prisma.wallet.findMany({
+      where: {
+        chaintype: chainType
+      }
+    });
+    return wallets? wallets:null;
+  } catch (err) {
+    throw err;
+  }
+}
 
+export async function getWalletByWalletType(chainType: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallets = await prisma.wallet.findMany({
+      where: {
+        chaintype: chainType
+      }
+    });
+    return wallets ? wallets : null;
+  } catch (err) {
+    throw err;
+  }
+}
 
 function sanitizeData(data: any) {
   for (const key in data) {
