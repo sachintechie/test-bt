@@ -8,7 +8,7 @@ import {BridgeTowerLambdaStack} from "../bridgetower-lambda-stack";
 import {GraphqlApi} from "aws-cdk-lib/aws-appsync";
 import {IFunction} from "aws-cdk-lib/aws-lambda";
 
-export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaStack: BridgeTowerLambdaStack,schemaFile:string) => {
+export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaStack: BridgeTowerLambdaStack,schemaFile:string,authorizerLambda:string) => {
   return  new appsync.GraphqlApi(scope, env`${id}`, {
     name: env`${name}`,
     schema: appsync.SchemaFile.fromAsset(path.join(__dirname, `../../resources/appsync/${schemaFile}`)),
@@ -24,7 +24,7 @@ export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaSt
       defaultAuthorization: {
         authorizationType: appsync.AuthorizationType.LAMBDA,
         lambdaAuthorizerConfig: {
-          handler: lambdaStack.appsyncAuthorizerLambda,
+          handler: lambdaStack.lambdaMap.get(authorizerLambda),
           resultsCacheTtl: cdk.Duration.minutes(5), // Optional cache TTL
         },
       },

@@ -11,12 +11,14 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   env: envConfig,
   lambdaFolder: '../../resources/lambdas',
   schemaFile: 'schema.graphql',
-  name:'GraphQLAPI'
+  name:'GraphQLAPI',
+  authorizerLambda:'appsyncAuthorizer'
 });
 
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   env: envConfig,
   lambdaFolder: '../../resources/admin_lambdas',
   schemaFile: 'admin_schema.graphql',
-  name:'AdminGraphQLAPI'
+  name:'AdminGraphQLAPI',
+  authorizerLambda:'adminAppsyncAuthorizer'
 });
