@@ -9,15 +9,13 @@ export interface customer {
   isBonusCredit: boolean;
   createdat: string;
   usertype?: string;
-  iv?: string;
-  key?: string;
+  partialtoken?: string;
   iss?: string;
 }
 
 export interface updatecustomer {
   id?: string;
-  iv?: string;
-  key?: string;
+  partialtoken?: string;
   cubistuserid?: string;
   iss?: string;
   emailid?: string;

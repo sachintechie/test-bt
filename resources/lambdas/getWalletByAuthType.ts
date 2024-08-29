@@ -45,10 +45,13 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
       let oidcToken = "";
       if (authType == AuthType.OTP) {
         const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
-        if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+        if (customer == null || customer?.id == null || customer?.partialtoken == null ) {
           return { wallet: null, error: "Please do the registration first" };
         }
-        oidcToken = await decryptToken(customer?.iv, customer?.key, token);
+       
+        oidcToken = customer?.partialtoken + token;
+
+        
       } else {
         oidcToken = token;
       }
@@ -214,10 +217,11 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
       } else {
         if (authType == AuthType.OTP) {
           const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
-          if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+          if (customer == null || customer?.id == null || customer?.partialtoken == null ) {
             return { wallet: null, error: "Please do the registration first" };
           }
-          oidcToken = await decryptToken(customer?.iv, customer?.key, oidcToken);
+           oidcToken = customer?.partialtoken + oidcToken;
+
         } 
         const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
         return wallet;

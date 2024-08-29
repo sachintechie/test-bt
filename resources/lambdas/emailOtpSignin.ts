@@ -17,7 +17,8 @@ export const handler = async (event: any, context: any) => {
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
       event.headers?.identity,
-      event.arguments?.input?.emailid
+      event.arguments?.input?.emailid,
+      event.arguments?.input?.chainType
     );
 
     const response = {
@@ -41,10 +42,10 @@ export const handler = async (event: any, context: any) => {
 
 
 
-async function createCubistUser(tenant: tenant, tenantuserid: string, token: string, chainType: string) {
+async function createCubistUser(tenant: tenant, tenantuserid: string, token: string,emailId :string, chainType: string) {
   try {
     const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
-if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+if (customer == null || customer?.id == null || customer?.partialtoken == null ) {
 return {  wallet: null, error: "Please do the registration first" };
 }
   
@@ -55,7 +56,7 @@ return {  wallet: null, error: "Please do the registration first" };
         };
       } else {
         try {
-          const oidcToken = await decryptToken(customer?.iv, customer?.key, token);
+          const oidcToken = customer?.partialtoken + token;
           const { client, org, orgId } = await getCsClient(tenant.id);
           if (client == null || org == null) {
             return {
