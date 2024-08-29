@@ -61,11 +61,11 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       }
     }
 
-    new cdk.CfnOutput(this, env`GraphQLAPIURL`, {
+    new cdk.CfnOutput(this, env`${props.name}URL`, {
       value: api.graphqlUrl,
     });
 
-    new cdk.CfnOutput(this, env`GraphQLAPIKey`, {
+    new cdk.CfnOutput(this, env`${props.name}Key`, {
       value: api.apiKey || '',
     });
   }
