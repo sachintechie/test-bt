@@ -13,7 +13,9 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   schemaFile: 'schema.graphql',
   name:'GraphQLAPI',
   authorizerLambda:'appsyncAuthorizer',
-  hasApiGateway:true
+  hasApiGateway:true,
+  lambdaStackName:'BTLambdaStack',
+  apiName:'Api'
 });
 
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
@@ -21,5 +23,8 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   lambdaFolder: '../../resources/admin_lambdas',
   schemaFile: 'admin_schema.graphql',
   name:'AdminGraphQLAPI',
-  authorizerLambda:'adminAppsyncAuthorizer'
+  authorizerLambda:'adminAppsyncAuthorizer',
+  hasApiGateway:false,
+  lambdaStackName:'BTAdminLambdaStack',
+  apiName:'AdminApi'
 });

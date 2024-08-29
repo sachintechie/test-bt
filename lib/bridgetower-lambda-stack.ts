@@ -53,7 +53,6 @@ export class BridgeTowerLambdaStack extends Stack {
     }
 
 
-
     if(!isDevOrProd()){
       // Create a custom resource to trigger the migration Lambda function
       const provider = new cr.Provider(this, env`MigrateProvider`, {
