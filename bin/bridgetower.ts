@@ -14,7 +14,6 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   name:'GraphQLAPI',
   authorizerLambda:'appsyncAuthorizer',
   hasApiGateway:true,
-  lambdaStackName:'BTLambdaStack',
   apiName:'Api'
 });
 
@@ -25,6 +24,5 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   name:'AdminGraphQLAPI',
   authorizerLambda:'adminAppsyncAuthorizer',
   hasApiGateway:false,
-  lambdaStackName:'BTAdminLambdaStack',
   apiName:'AdminApi'
 });

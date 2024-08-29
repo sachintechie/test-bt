@@ -1,10 +1,14 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import {BridgeTowerLambdaStack} from "./bridgetower-lambda-stack";
-import {env, envConfig} from "./utils/env";
+import {env, envConfig, isDevOrProd} from "./utils/env";
 import {configResolver, newAppSyncApi} from "./utils/appsync";
-import {capitalize} from "./utils/utils";
+import {capitalize, readFilesFromFolder} from "./utils/utils";
 import {newApiGateway} from "./utils/apigateway";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import {DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo} from "./utils/aurora";
+import {AuroraStack} from "./bridgetower-aurora-stack";
+import {newNodeJsFunction} from "./utils/lambda";
+import * as cr from "aws-cdk-lib/custom-resources";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'apigatewayAuthorizer',
@@ -19,6 +23,7 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
 ]
 
 const GET_METADATA="getMetadata";
+const MIGRATION_LAMBDA_NAME="migrateDB";
 
 const MUTATIONS=[
   'createCategory',
@@ -33,7 +38,6 @@ interface AppSyncStackProps extends cdk.StackProps {
   name: string;
   authorizerLambda: string;
   hasApiGateway?: boolean;
-  lambdaStackName: string;
   apiName: string;
 }
 
@@ -42,26 +46,48 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AppSyncStackProps) {
     super(scope, id, props);
 
-    // Import the existing LambdaStack
-    const lambdaStack = new BridgeTowerLambdaStack(this,  env`${props.lambdaStackName}`, {
-      env: envConfig,
-      lambdaFolder: props?.lambdaFolder
-    });
+    const lambdaMap=new Map<string, lambda.Function>();
 
+    let databaseInfo:DatabaseInfo;
+    if(!isDevOrProd()){
+      // Import the Aurora stack
+      const auroraStack = new AuroraStack(this, env`BTAuroraStack`, {
+        env:envConfig
+      });
+      // Fetch the database credentials from Secrets Manager
+      databaseInfo = getDatabaseInfo(this, auroraStack);
+    }else{
+      databaseInfo = getDevOrProdDatabaseInfo(this);
+    }
+    console.log(databaseInfo);
 
-    // Create a new AppSync GraphQL API
-    const api = newAppSyncApi(this, env`${props.apiName}`, props.name,lambdaStack,props.schemaFile, props.authorizerLambda)
-
-    if(props.hasApiGateway){
-      const gateway = newApiGateway(this,  lambdaStack.lambdaMap.get(GET_METADATA)!);
+    const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
+    for(const lambdaResourceName of lambdaResourceNames){
+      lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo));
     }
 
-    // // Create resolvers for each lambda function
-    // for (const [key, value] of lambdaStack.lambdaMap) {
-    //   if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(key)) {
-    //     configResolver(api, value, MUTATIONS.includes(key)?'Mutation':'Query', capitalize(key))
-    //   }
-    // }
+    if(!isDevOrProd()){
+      // Create a custom resource to trigger the migration Lambda function
+      const provider = new cr.Provider(this, env`MigrateProvider`, {
+        onEventHandler: lambdaMap.get(MIGRATION_LAMBDA_NAME)!,
+      });
+
+      new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken,properties:{version:'0.0.5'} });
+    }
+
+    if(props.hasApiGateway){
+      const gateway = newApiGateway(this,  lambdaMap.get(GET_METADATA)!);
+    }
+
+    // Create a new AppSync GraphQL API
+    const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap ,props.schemaFile, props.authorizerLambda)
+
+    // Create resolvers for each lambda function
+    for (const [key, value] of lambdaMap) {
+      if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(key)) {
+        configResolver(api, value, MUTATIONS.includes(key)?'Mutation':'Query', capitalize(key))
+      }
+    }
 
     new cdk.CfnOutput(this, env`${props.name}URL`, {
       value: api.graphqlUrl,
