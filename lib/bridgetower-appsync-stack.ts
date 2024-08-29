@@ -35,7 +35,7 @@ interface AppSyncStackProps extends cdk.StackProps {
 
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: AppSyncStackProps) {
+  constructor(scope: Construct, id: string, props: AppSyncStackProps) {
     super(scope, id, props);
 
     // Import the existing LambdaStack
@@ -45,7 +45,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     });
 
     // Create a new AppSync GraphQL API
-    const api = newAppSyncApi(this, env`Api`, props.name,lambdaStack,props?.schemaFile)
+    const api = newAppSyncApi(this, env`Api`, props.name,lambdaStack,props.schemaFile)
 
     const gateway = newApiGateway(this,  lambdaStack.lambdaMap.get(GET_METADATA)!);
 
