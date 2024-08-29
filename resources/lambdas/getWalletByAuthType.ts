@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { AuthType, tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
-import { createCustomer, createWallet, createWalletAndKey, getCustomerAndWallet, getCustomerAndWalletByAuthType, getEmailOtpCustomer } from "../db/dbFunctions";
+import { createCustomer, createWallet, createWalletAndKey, getCustomerAndWallet, getCustomerAndWalletByAuthType, getEmailOtpCustomer, updateCustomer, updateCustomerCubistData } from "../db/dbFunctions";
 import { decryptToken } from "../cubist/cubistFunctions";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -171,6 +171,11 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     }
     const key = await getKey(oidcClient, chainType, cubistUser?.user_id);
     console.log("getKey cubesigner user", key, cubistUser?.user_id);
+    const updateCustomer = await updateCustomerCubistData({
+      emailid: customer.emailid,
+      cubistuserid: cubistUser?.user_id,
+      id: customer.id
+    });
     const wallet = await createWalletAndKey(org, cubistUser?.user_id, chainType, customer.id, key);
     const newWallet = {
       walletaddress: wallet.data.walletaddress,

@@ -844,8 +844,7 @@ export async function getCustomerAndWalletByAuthType(tenantUserId: string, chain
     const customer = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
-        tenantid: tenant.id,
-        usertype: AuthType.OTP
+        tenantid: tenant.id
       },
       include: {
         wallets: {
