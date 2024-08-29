@@ -30,6 +30,8 @@ export const newAppSyncApi = (scope: Construct, id: string, lambdaStack: BridgeT
       },
     },
   });
+
+  
   
 }
 

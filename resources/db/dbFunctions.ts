@@ -77,8 +77,7 @@ export async function createCustomer(customer: customer) {
         cubistuserid: customer.cubistuserid.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
-        iv: customer.iv,
-        key: customer.key,
+        partialtoken: customer.partialtoken,
         usertype: customer.usertype,
         createdat: new Date().toISOString(),
       }
@@ -97,11 +96,7 @@ export async function updateCustomer(customer: updatecustomer) {
     const newCustomer = await prisma.customer.update({
       where: { id: customer.id },
       data: {
-      
-        iv: customer.iv,
-        key: customer.key,
-
-        
+        partialtoken: customer.partialtoken,
       }
     });
     return newCustomer;
@@ -1487,8 +1482,7 @@ export async function getEmailOtpCustomer(tenantUserId: string, tenantId: string
     const customer = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
-        tenantid: tenantId,
-        usertype: AuthType.OTP
+        tenantid: tenantId
       }
     });
     return customer ? customer : null;
