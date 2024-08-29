@@ -49,8 +49,7 @@ model customer {
   iss               String?             
   isbonuscredit     Boolean?
   usertype          String?
-  iv                String?
-  key               String?
+  partialtoken      String?
   customerkycs      customerkyc[]
   wallets           wallet[]
   transactions      transaction[]

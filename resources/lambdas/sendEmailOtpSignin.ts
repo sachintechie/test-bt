@@ -46,8 +46,7 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
 
         const updatedCustomer = await updateCustomer({
           id:customer.id,
-          iv: sendMailResponse.data?.iv,
-          key: sendMailResponse.data?.key,
+          partialtoken: sendMailResponse.data?.partial_token,
         });
         return { customer, error: null };
 
@@ -78,8 +77,7 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
               isactive: true,
               isBonusCredit: false,
               usertype:AuthType.OTP,
-              iv: sendMailResponse.data?.iv,
-              key: sendMailResponse.data?.key,
+              partialtoken: sendMailResponse.data?.partial_token,
               createdat: new Date().toISOString()
             });
             console.log("Created customer", customer.id);
