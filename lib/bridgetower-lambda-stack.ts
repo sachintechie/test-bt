@@ -24,10 +24,6 @@ interface BridgeTowerLambdaStackProps extends StackProps {
 export class BridgeTowerLambdaStack extends Stack {
   public readonly lambdaMap: Map<string, lambda.Function>;
 
-  get appsyncAuthorizerLambda(): lambda.Function {
-    return this.lambdaMap.get(APPSYNC_AUTHORIZER_LAMBDA_NAME)!;
-  }
-
   constructor(scope: Construct, id: string, props: BridgeTowerLambdaStackProps) {
 
     super(scope, id, props);
@@ -51,7 +47,6 @@ export class BridgeTowerLambdaStack extends Stack {
     for(const lambdaResourceName of lambdaResourceNames){
       this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo));
     }
-
 
     if(!isDevOrProd()){
       // Create a custom resource to trigger the migration Lambda function

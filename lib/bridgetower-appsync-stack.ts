@@ -56,12 +56,12 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       const gateway = newApiGateway(this,  lambdaStack.lambdaMap.get(GET_METADATA)!);
     }
 
-    // Create resolvers for each lambda function
-    for (const [key, value] of lambdaStack.lambdaMap) {
-      if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(key)) {
-        configResolver(api, value, MUTATIONS.includes(key)?'Mutation':'Query', capitalize(key))
-      }
-    }
+    // // Create resolvers for each lambda function
+    // for (const [key, value] of lambdaStack.lambdaMap) {
+    //   if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(key)) {
+    //     configResolver(api, value, MUTATIONS.includes(key)?'Mutation':'Query', capitalize(key))
+    //   }
+    // }
 
     new cdk.CfnOutput(this, env`${props.name}URL`, {
       value: api.graphqlUrl,
