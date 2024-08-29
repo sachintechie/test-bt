@@ -17,6 +17,10 @@ import {
 const APPSYNC_AUTHORIZER_LAMBDA_NAME="appsyncAuthorizer";
 const MIGRATION_LAMBDA_NAME="migrateDB";
 
+interface BridgeTowerLambdaStackProps extends StackProps {
+  lambdaFolder: string;
+}
+
 export class BridgeTowerLambdaStack extends Stack {
   public readonly lambdaMap: Map<string, lambda.Function>;
 
@@ -24,7 +28,7 @@ export class BridgeTowerLambdaStack extends Stack {
     return this.lambdaMap.get(APPSYNC_AUTHORIZER_LAMBDA_NAME)!;
   }
 
-  constructor(scope: Construct, id: string, props: StackProps) {
+  constructor(scope: Construct, id: string, props: BridgeTowerLambdaStackProps) {
 
     super(scope, id, props);
 
@@ -43,9 +47,9 @@ export class BridgeTowerLambdaStack extends Stack {
     }
     console.log(databaseInfo);
 
-    const lambdaResourceNames = readFilesFromFolder("../../resources/lambdas");
+    const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for(const lambdaResourceName of lambdaResourceNames){
-      this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `../../resources/lambdas/${lambdaResourceName}.ts`, databaseInfo));
+      this.lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo));
     }
 
 

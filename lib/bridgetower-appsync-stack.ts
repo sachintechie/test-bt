@@ -27,18 +27,25 @@ const MUTATIONS=[
   'adminTransfer'
 ]
 
+interface AppSyncStackProps extends cdk.StackProps {
+  lambdaFolder: string;
+  schemaFile: string;
+  name: string;
+}
+
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: AppSyncStackProps) {
     super(scope, id, props);
 
     // Import the existing LambdaStack
     const lambdaStack = new BridgeTowerLambdaStack(this,  env`BTLambdaStack`, {
       env: envConfig,
+      lambdaFolder: props.lambdaFolder
     });
 
     // Create a new AppSync GraphQL API
-    const api = newAppSyncApi(this, env`Api`, lambdaStack)
+    const api = newAppSyncApi(this, env`Api`, props.name,lambdaStack,props.schemaFile)
 
     const gateway = newApiGateway(this,  lambdaStack.lambdaMap.get(GET_METADATA)!);
 

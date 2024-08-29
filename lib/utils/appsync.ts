@@ -8,10 +8,10 @@ import {BridgeTowerLambdaStack} from "../bridgetower-lambda-stack";
 import {GraphqlApi} from "aws-cdk-lib/aws-appsync";
 import {IFunction} from "aws-cdk-lib/aws-lambda";
 
-export const newAppSyncApi = (scope: Construct, id: string, lambdaStack: BridgeTowerLambdaStack) => {
+export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaStack: BridgeTowerLambdaStack,schemaFile:string) => {
   return  new appsync.GraphqlApi(scope, env`${id}`, {
-    name: env`GraphQLAPI`,
-    schema: appsync.SchemaFile.fromAsset(path.join(__dirname, "../../resources/appsync/schema.graphql")),
+    name: env`${name}`,
+    schema: appsync.SchemaFile.fromAsset(path.join(__dirname, `../../resources/appsync/${schemaFile}`)),
     logConfig: {
       fieldLogLevel: appsync.FieldLogLevel.ALL,
       excludeVerboseContent: false,
