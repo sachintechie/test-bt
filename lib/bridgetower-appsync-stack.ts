@@ -41,11 +41,11 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     // Import the existing LambdaStack
     const lambdaStack = new BridgeTowerLambdaStack(this,  env`BTLambdaStack`, {
       env: envConfig,
-      lambdaFolder: props.lambdaFolder
+      lambdaFolder: props?.lambdaFolder
     });
 
     // Create a new AppSync GraphQL API
-    const api = newAppSyncApi(this, env`Api`, props.name,lambdaStack,props.schemaFile)
+    const api = newAppSyncApi(this, env`Api`, props.name,lambdaStack,props?.schemaFile)
 
     const gateway = newApiGateway(this,  lambdaStack.lambdaMap.get(GET_METADATA)!);
 
