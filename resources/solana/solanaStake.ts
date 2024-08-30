@@ -352,7 +352,7 @@ const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.DEACTIVATED || diffDays > 1) {
     const requiredTime = 1000 * 60 * 60 * 24;
     let remainingTimeInHours = (requiredTime - diffTime)/ (1000 * 60 * 60);
-    remainingTimeInHours = Number(remainingTimeInHours.toFixed(0));
+    remainingTimeInHours = Math.ceil(remainingTimeInHours);
     console.log(`No stake account found for pubkey: ${accountPubkey}`);
     return { data: null ,error:"Withdrawal is not allowed at this time. Please try again after "  +remainingTimeInHours+" hours."};
   }
