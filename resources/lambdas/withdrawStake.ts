@@ -27,10 +27,11 @@ export const handler = async (event: any) => {
   const connection = await getSolConnection();
   try{
     const key=await getCubistKey(env,cubistOrgId, oidcToken, ["sign:*"], walletAddress);
-    await withdrawFromStakeAccounts(connection, [accountPublicKey], key);
+   const transaction =  await withdrawFromStakeAccounts(connection, accountPublicKey, key,tenantId);
     return {
-      status: 200,
-      data: null
+      status: transaction?.data != null ? 200 : 400,
+      data: transaction?.data,
+      error: transaction?.error
     };
   }catch (e) {
     return {
