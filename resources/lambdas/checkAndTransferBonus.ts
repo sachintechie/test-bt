@@ -1,13 +1,10 @@
-import { getAccount } from "@solana/spl-token";
 import {
   getAllCustomerWalletForBonus,
-  getAllTransactions,
   getTenantCallBackUrl,
   getTokenBySymbol,
   updateCustomerBonusStatus,
-  updateTransaction
 } from "../db/dbFunctions";
-import { CallbackStatus, TransactionStatus } from "../db/models";
+import {  TransactionStatus } from "../db/models";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
 import { airdropSPLToken } from "../solana/airdropSplToken";
 

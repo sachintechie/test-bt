@@ -1,4 +1,3 @@
-import * as cs from "@cubist-labs/cubesigner-sdk";
 import { createProduct } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {

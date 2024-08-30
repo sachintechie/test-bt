@@ -1,4 +1,4 @@
-import {getMetadataFromDynamoDB, storeMetadataInDynamoDB} from "../utils/dynamodb";
+import {getMetadataFromDynamoDB} from "../utils/dynamodb";
 import AWS from "aws-sdk";
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();

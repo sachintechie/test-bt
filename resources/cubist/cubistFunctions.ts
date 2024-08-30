@@ -1,5 +1,4 @@
 import { getCubistConfig } from "../db/dbFunctions";
-import { getSecretValue } from "../db/PgClient";
 import { deleteCubistUserKey, getCsClient } from "./CubeSignerClient";
 import crypto from "crypto";
 

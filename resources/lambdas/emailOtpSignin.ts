@@ -2,7 +2,6 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
 import {  createWalletAndKey, getEmailOtpCustomer, updateCustomerCubistData } from "../db/dbFunctions";
-import { decryptToken } from "../cubist/cubistFunctions";
 
 
 const env: any = {
