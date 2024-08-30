@@ -55,7 +55,6 @@ model customer {
   transactions      transaction[]
   staketransactions staketransaction[]
   stakeaccounts     stakeaccount[]
-  ownerships    ownership[]
 }
 
 model adminuser {
@@ -186,17 +185,6 @@ model sumsubconfig {
   updatedat         String?
 }
 
-
-model ownership {
-  id         String    @id @default(uuid()) 
-  customerId     String    
-  customer       customer      @relation(fields: [customerId], references: [id])
-  productId  String    
-  product    product   @relation(fields: [productId], references: [id])
-  fractional Boolean
-  fraction   Float?  
-}
-
 model tenant {
   id               String             @id @default(uuid())
   name             String?
@@ -217,7 +205,16 @@ model tenant {
   gaspayerwallet   gaspayerwallet[]
   stakeaccount     stakeaccount[]
   staketransaction staketransaction[]
-categories productcategory[]
+  categories productcategory[]
+  products         product[]
+}
+
+enum productrarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
 }
 
 model productcategory {
@@ -235,22 +232,30 @@ model productcategory {
 model product {
   id         String     @id @default(uuid())
   name       String
-  categoryId String 
-  category   productcategory   @relation(fields: [categoryId], references: [id])
-  rarity     String     @default("Normal")
-  price      Float
-  productattributes productattributes[]
-  ownerships ownership[]
-  @@unique([categoryId, name])
+  categoryid String 
+  category   productcategory   @relation(fields: [categoryid], references: [id])
+  rarity            productrarity?        @default(NORMAL)
+  price             Float?
+  purchasedpercentage         Float?
+  availablepercentage         Float?
+  tenantid          String?
+  tenant            tenant?              @relation(fields: [tenantid], references: [id])
+  createdat         DateTime?            @default(now())
+  updatedat         DateTime?            @updatedAt
+  transactions      transaction[]
+  productattributes productattribute[]
+  @@unique([categoryid, name])
 }
 
-model productattributes {
+model productattribute {
   id        String     @id @default(uuid())
   key       String
   value     String
   type      String
-  productId String
-  product   product  @relation(fields: [productId], references: [id])
+  productid String
+  product   product  @relation(fields: [productid], references: [id])
+  createdat         DateTime?            @default(now())
+  updatedat         DateTime?            @updatedAt
 }
 
 model token {
@@ -274,6 +279,8 @@ model transaction {
   customer              customer? @relation(fields: [customerid], references: [id])
   tokenid               String?
   token                 token?    @relation(fields: [tokenid], references: [id])
+  productid             String?   
+  product               product?  @relation(fields: [productid], references: [id])
   walletaddress         String?
   symbol                String?
   receiverwalletaddress String?

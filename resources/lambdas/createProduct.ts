@@ -1,13 +1,23 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { createProduct } from "../db/dbFunctions";
+import { productRarity } from "../db/models";
+
+interface CreateProductInput {
+  name: string;
+  categoryId: string;
+  rarity: productRarity;
+  price: number;
+  purchasedPercentage: number;
+}
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const { name, categoryId, rarity, price, ownershipId } = event.arguments?.input;
+    const input: CreateProductInput = event.arguments?.input;
 
-    if (!name || !categoryId || !rarity || !price || !ownershipId) {
+
+    if (!input || !input.name || !input.categoryId || !input.rarity || input.price === undefined || input.purchasedPercentage === undefined) {
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -16,7 +26,13 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const product = await createProductInDb(name, categoryId, rarity, price, ownershipId);
+    const product = await createProductInDb({
+      name: input.name,
+      categoryid: input.categoryId,
+      rarity: input.rarity,
+      price: input.price,
+      purchasedpercentage: input.purchasedPercentage
+    });
 
     return {
       statusCode: 200,
@@ -38,15 +54,15 @@ export const handler = async (event: any, context: any) => {
 };
 
 async function createProductInDb(
-  name: string,
-  categoryId: string,
-  rarity: string,
-  price: number,
-  ownershipId: string
+  input: {
+    name: string; 
+    categoryid: string; 
+    rarity: productRarity; 
+    price: number; 
+    purchasedpercentage: number; 
+  }
 ) {
-  // Logic to create the product in the database
-  const product = { name, categoryId, rarity, price, ownershipId };
-  const newProduct = await createProduct(product);
+  const newProduct = await createProduct(input);
 
   // Save to DB
   return newProduct;

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productcategory, product, ProductAttributes } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productcategory, product, productattribute } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1582,16 +1582,18 @@ export async function getCategoriesByTenantId(tenant: tenant) {
 
 export async function createProduct(product: product) {
   try {
+    if (product.purchasedpercentage > 100) {
+      throw new Error("purchasedpercentage cannot exceed 100.");
+    }
     const prisma = await getPrismaClient();
     const newProduct = await prisma.product.create({
       data: {
         name: product.name,
-        categoryId: product.categoryId,
+        categoryid: product.categoryid,
         rarity: product.rarity,
         price: product.price,
-        ownerships: {
-          connect: [{ id: product.ownershipId }] // NEED TO DISCUSS THAT HOW MEADOWLAND WILL HANDLE THIS
-        }
+        purchasedpercentage:product.purchasedpercentage,
+        availablepercentage:100-product.purchasedpercentage
       }
     });
     return newProduct;
@@ -1606,8 +1608,7 @@ export async function getProducts() {
     const products = await prisma.product.findMany({
       include: {
         category: true,
-        productattributes: true,
-        ownerships: true,    
+        productattributes: true
       }
     });
     return products;
@@ -1625,8 +1626,7 @@ export async function getProductById(productId: string) {
       },
       include: {
         category: true,
-        productattributes: true,
-        ownerships: true
+        productattributes: true
       }
     });
     return product;
@@ -1639,11 +1639,10 @@ export async function getProductsByCategoryId(categoryId: string) {
   try {
     const prisma = await getPrismaClient();
     const products = await prisma.product.findMany({
-      where: { categoryId: categoryId },
+      where: { categoryid: categoryId },
       include: {
         category: true,
-        productattributes: true,
-        ownerships: true
+        productattributes: true
       }
     });
     return products;
@@ -1652,7 +1651,7 @@ export async function getProductsByCategoryId(categoryId: string) {
   }
 }
 
-export async function createProductAttribute(productattributes: ProductAttributes) {
+export async function createProductAttribute(productattributes: productattribute) {
   try {
     const prisma = await getPrismaClient();
     const newAttribute = await prisma.productattributes.create({
@@ -1660,7 +1659,7 @@ export async function createProductAttribute(productattributes: ProductAttribute
         key: productattributes.key,
         value: productattributes.value,
         type: productattributes.type,
-        productId: productattributes.productId
+        productid: productattributes.productid
       }
     });
     return newAttribute;
@@ -1673,7 +1672,7 @@ export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
     const attributes = await prisma.productattributes.findMany({
-      where: { productId: productId }
+      where: { productid: productId }
     });
     return attributes;
   } catch (err) {
