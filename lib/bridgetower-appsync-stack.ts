@@ -12,6 +12,7 @@ import * as cr from "aws-cdk-lib/custom-resources";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'apigatewayAuthorizer',
+  'adminAppsyncAuthorizer',
   'appsyncAuthorizer',
   'checkAndTransferBonus',
   'checkTransactionStatusAndUpdate',
