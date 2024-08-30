@@ -237,6 +237,7 @@ type StakeAccountData {
   symbol: String
   amount: Float
   createdat: String
+  updatedat: String
   lockupexpirationtimestamp: String
   tenantuserid: String
   status: String
