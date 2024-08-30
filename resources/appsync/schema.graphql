@@ -502,8 +502,8 @@ type CategoryResponse {
 type CategoryData {
   name: String!
   tenantid: String!
-  createdat: DateTime!
-  updatedat: DateTime!
+  createdat: DateTime
+  updatedat: DateTime
 }
 
 input GetCategoryByIdInput {
