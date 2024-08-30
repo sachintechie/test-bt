@@ -188,10 +188,10 @@ model sumsubconfig {
 
 
 model ownership {
-  id         String    @id @default(uuid()) @db.Uuid
-  customerId     String    @db.Uuid
+  id         String    @id @default(uuid()) 
+  customerId     String    
   customer       customer      @relation(fields: [customerId], references: [id])
-  productId  String    @db.Uuid
+  productId  String    
   product    product   @relation(fields: [productId], references: [id])
   fractional Boolean
   fraction   Float?  
@@ -221,9 +221,9 @@ categories category[]
 }
 
 model category {
-  id        String     @id @default(uuid()) @db.Uuid
+  id        String     @id @default(uuid()) 
   name      String
-  tenantId  String     @db.Uuid
+  tenantId  String     
   tenant    tenant     @relation(fields: [tenantId], references: [id])
   products  product[]
 
@@ -231,9 +231,9 @@ model category {
 }
 
 model product {
-  id         String     @id @default(uuid()) @db.Uuid
+  id         String     @id @default(uuid())
   name       String
-  categoryId String     @db.Uuid
+  categoryId String 
   category   category   @relation(fields: [categoryId], references: [id])
   rarity     String     @default("Normal")
   price      Float
@@ -243,11 +243,11 @@ model product {
 }
 
 model productattributes {
-  id        String     @id @default(uuid()) @db.Uuid
+  id        String     @id @default(uuid())
   key       String
   value     String
   type      String
-  productId String   @db.Uuid
+  productId String
   product   product  @relation(fields: [productId], references: [id])
 }
 
