@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, category, product, ProductAttributes } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productcategory, product, ProductAttributes } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1526,7 +1526,7 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
 }
 
-export async function createCategory(category: category) {
+export async function createCategory(category: productcategory) {
   try {
     const prisma = await getPrismaClient();
     const newCategory = await prisma.category.create({
