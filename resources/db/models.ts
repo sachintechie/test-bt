@@ -66,9 +66,9 @@ export interface product {
   ownershipId: string;
 }
 
-export interface category {
+export interface productcategory {
   name: string;
-  tenantId: string;
+  tenantid: string;
 }
 
 export interface ProductAttributes {

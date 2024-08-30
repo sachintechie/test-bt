@@ -223,11 +223,13 @@ categories productcategory[]
 model productcategory {
   id        String     @id @default(uuid()) 
   name      String
-  tenantId  String     
-  tenant    tenant     @relation(fields: [tenantId], references: [id])
+  tenantid  String     
+  tenant    tenant     @relation(fields: [tenantid], references: [id])
+  createdat    DateTime?  @default(now())
+  updatedat    DateTime?  @updatedAt
   products  product[]
 
-  @@unique([tenantId, name])
+  @@unique([tenantid, name])
 }
 
 model product {

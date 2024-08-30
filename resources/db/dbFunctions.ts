@@ -1532,7 +1532,7 @@ export async function createCategory(category: category) {
     const newCategory = await prisma.category.create({
       data: {
         name: category.name,
-        tenantId: category.tenantId
+        tenantid: category.tenantid
       }
     });
 
@@ -1572,7 +1572,7 @@ export async function getCategoriesByTenantId(tenant: tenant) {
   try {
     const prisma = await getPrismaClient();
     const category = await prisma.category.findMany({
-      where: { tenantId: tenant.id }
+      where: { tenantid: tenant.id }
     });
     return category;
   } catch (err) {
