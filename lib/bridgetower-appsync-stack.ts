@@ -39,6 +39,7 @@ interface AppSyncStackProps extends cdk.StackProps {
   authorizerLambda: string;
   hasApiGateway?: boolean;
   apiName: string;
+  needMigrate?: boolean;
 }
 
 
@@ -66,7 +67,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       lambdaMap.set(lambdaResourceName, newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo));
     }
 
-    if(!isDevOrProd()){
+    if(!isDevOrProd() && props.needMigrate){
       // Create a custom resource to trigger the migration Lambda function
       const provider = new cr.Provider(this, env`MigrateProvider`, {
         onEventHandler: lambdaMap.get(MIGRATION_LAMBDA_NAME)!,
