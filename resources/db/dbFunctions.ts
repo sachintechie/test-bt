@@ -854,7 +854,7 @@ export async function getCustomerAndWalletByAuthType(tenantUserId: string, chain
         }
       }
     });
-    if (customer == null || customer.cubistuserid == null || customer.cubistuserid == "") return null;
+    if (customer == null ) return null;
     return customer ? customer : null;
   } catch (err) {
     throw err;

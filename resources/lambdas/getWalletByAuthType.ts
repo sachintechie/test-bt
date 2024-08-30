@@ -141,6 +141,7 @@ async function createCustomerAndWallet(
       cubistuserid: cubistUserId,
       isactive: true,
       isBonusCredit: false,
+      usertype: AuthType.OTP,
       iss: iss,
       createdat: new Date().toISOString()
     });
