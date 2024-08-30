@@ -216,7 +216,7 @@ export async function createAndInitializeTree(
 
 
 export type MintResult = {
-  transaction: string | null; // Assuming it returns a transaction signature or null
+  transaction: string[] ; // Assuming it returns a transaction signature or null
   error: string | null;       // Assuming it returns an error message or null
 };
 
@@ -241,6 +241,8 @@ export async function mintCompressedNftToCollection(
     [Buffer.from("collection_cpi", "utf8")],
     BUBBLEGUM_PROGRAM_ID
   );
+
+  const txSignitureArray = [];
 
   try {
     for (let i = 0; i < amount; i++) {
@@ -274,6 +276,8 @@ export async function mintCompressedNftToCollection(
 
       const tx = new Transaction().add(mintIx);
       tx.feePayer = payer.publicKey;
+      console.log(mintIx);
+      
 
       const txSignature = await sendAndConfirmTransaction(
         connection,
@@ -282,15 +286,18 @@ export async function mintCompressedNftToCollection(
         { commitment: "finalized", skipPreflight: true }
       );
 
+      txSignitureArray.push(txSignature)
+
       console.log(
         `Minted to ${recipient.toBase58()}: https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
       );
+      
     }
-
-    return { transaction: null, error: null };
+    return { transaction: txSignitureArray, error: null };
+    
   } catch (err: any) {
     console.error("Failed to mint compressed NFT:", err);
-    return { transaction: null, error: err.message };
+    return { transaction: [], error: err.message };
   }
 }
 
