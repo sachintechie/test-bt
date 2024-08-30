@@ -643,7 +643,7 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
       where: { stakeaccountid: stakeAccount.id }
     });
 
-    await prisma.staketransaction.create({
+  const stakeTransaction =  await prisma.staketransaction.create({
       data: {
         customerid: stakeAccount.customerid,
         type: "withdraw",
@@ -665,8 +665,26 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
         createdat: new Date().toISOString()
       }
     });
+    return stakeTransaction;
+
   } catch (err) {
     console.error(err);
+    throw err;
+  }
+}
+
+export async function getStakeAccounData(stakeAccountPubKey: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const stakeAccounts = await prisma.stakeaccount.findFirst({
+      where: {
+        stakeaccountpubkey: stakeAccountPubKey,
+        tenantid: tenantId
+      }
+    });
+
+    return stakeAccounts ? stakeAccounts : null;
+  } catch (err) {
     throw err;
   }
 }
