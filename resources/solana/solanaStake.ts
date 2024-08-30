@@ -354,7 +354,7 @@ const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     let remainingTimeInHours = (requiredTime - diffTime)/ (1000 * 60 * 60);
     remainingTimeInHours = Number(remainingTimeInHours.toFixed(0));
     console.log(`No stake account found for pubkey: ${accountPubkey}`);
-    return { data: null ,error:"Withdrawal not allowed this time please try after "  +remainingTimeInHours+" hours"};
+    return { data: null ,error:"Withdrawal is not allowed at this time. Please try again after "  +remainingTimeInHours+" hours."};
   }
 
   const payerPublicKey = new PublicKey(payerKey.materialId);
