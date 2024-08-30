@@ -217,10 +217,10 @@ model tenant {
   gaspayerwallet   gaspayerwallet[]
   stakeaccount     stakeaccount[]
   staketransaction staketransaction[]
-categories category[]
+categories productcategory[]
 }
 
-model category {
+model productcategory {
   id        String     @id @default(uuid()) 
   name      String
   tenantId  String     
@@ -234,7 +234,7 @@ model product {
   id         String     @id @default(uuid())
   name       String
   categoryId String 
-  category   category   @relation(fields: [categoryId], references: [id])
+  category   productcategory   @relation(fields: [categoryId], references: [id])
   rarity     String     @default("Normal")
   price      Float
   productattributes productattributes[]
