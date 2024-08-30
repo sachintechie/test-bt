@@ -3,10 +3,10 @@ import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/
 import {
   createWithdrawTransaction,
   getCubistConfig,
-  getFirstWallet, getToken, getWallet,
+   getToken, getWallet,
   insertMergeStakeAccountsTransaction,
   insertStakeAccount,
-  insertStakingTransaction, mergeDbStakeAccounts, removeStakeAccount,
+  insertStakingTransaction, mergeDbStakeAccounts,
   updateStakeAccount,
 } from "../db/dbFunctions";
 import {
@@ -17,14 +17,12 @@ import {
   Keypair,
   Authorized,
   Transaction,
-  Lockup,
-  type Signer, sendAndConfirmTransaction
+  Lockup
 } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import {
   getSolBalance,
   getSolConnection,
-  getSplTokenBalance,
   getStakeAccountInfo,
   verifySolanaTransaction
 } from "./solanaFunctions";
