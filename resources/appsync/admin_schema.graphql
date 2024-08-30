@@ -5,6 +5,14 @@ type SignIn {
   error: AWSJSON
 }
 
+type SignInData {
+  id: String
+  createdat: String
+  tenantuserid: String
+  tenantid: String
+  emailid: String
+}
+
 
 input SigninInput {
   tenantUserId: String!
