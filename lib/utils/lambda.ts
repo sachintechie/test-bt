@@ -11,7 +11,7 @@ import {DatabaseInfo} from "./aurora";
 
 export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dataInfo:DatabaseInfo, memorySize: number = 512) => {
   return new NodejsFunction(scope, env`${id}`, {
-    functionName: env`${id}-lambda`,
+    functionName: env`${id}-function`,
     description:getDescription(),
     runtime: lambda.Runtime.NODEJS_18_X,
     entry: path.join(__dirname, resourcePath),
