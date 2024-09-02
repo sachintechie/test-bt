@@ -1,6 +1,5 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../../cubist/CubeSignerClient";
-// import fetch from "node-fetch";
 import * as fs from "fs"
 import { getSolConnection, getSolBalance } from "../solanaFunctions";
 import { getCubistConfig, getWalletByChainType, getWalletByWalletType  } from "../../db/dbFunctions";
@@ -52,32 +51,20 @@ const env: any = {
 // Assuming there is a method to fetch ownerWallet's address from Cubist
 const getCubistWalletAddress = async (): Promise<PublicKey> => {
   // Replace the following line with the actual logic to get the wallet address from Cubist
-  const cubistWalletAddressString = 'replace_with_cubist_sourced_address';
+  
+  const cubistWalletAddressString = "F4P5xm8YzrhDbqLSkXA4DQM2mFtJ7cgqgGYTVUAr4wAN";
+  // const cubistWalletAddressString = 'replace_with_cubist_sourced_address';
+  console.log(cubistWalletAddressString);
   return new PublicKey(cubistWalletAddressString);
+  
 };
-
-export const getSolanaConnection = (): Connection => {
-  const connection = new Connection('https://api.mainnet-beta.solana.com');
-  return connection;
-};
-
-export const getSolanaBalance = async (address: PublicKey, connection: Connection): Promise<number> => {
-  try {
-    const balance = await connection.getBalance(address);
-    return balance / 1e9; // Convert lamports to SOL
-  } catch (error) {
-    console.error('Failed to get balance:', error);
-    throw error;
-  }
-};
-
 
 
 export const getWallet = async (): Promise<any> => {
-  const connection = getSolanaConnection();
+  const connection = getSolConnection();
   
   const walletAddress = await getCubistWalletAddress(); // Fetch ownerWallet's address from Cubist
-  const balance = await getSolanaBalance(walletAddress, connection);
+  const balance = await getSolBalance(walletAddress.toString());
   
   return {
     name: 'ownerWallet', // Its owner's wallet. It cn be named anything
@@ -97,19 +84,15 @@ const walletConfig = {
 
 
 
-// Dummy function to represent fetching recipient wallets from a database
-/*export async function getRecipientWalletsFromDatabase(startIndex: number, limit: number): Promise<PublicKey[]> {
-  // Replace this with actual database fetching logic
-  const recipientWallets: PublicKey[] = [];
-
-  for (let i = 0; i < limit; i++) {
-    // Simulate recipient wallet addresses (replace with actual wallet fetching logic)
-    recipientWallets.push(Keypair.generate().publicKey);
+// Generate an array of dummy recipient Solana wallet addresses
+export function generateDummyWallets(count: number): PublicKey[] {
+  const wallets: PublicKey[] = [];
+  for (let i = 0; i < count; i++) {
+    const newWallet = Keypair.generate();
+    wallets.push(newWallet.publicKey);
   }
-
-  return recipientWallets;
+  return wallets;
 }
-*/
 
 
 
@@ -299,6 +282,8 @@ export async function mintCompressedNftToCollection(
     console.error("Failed to mint compressed NFT:", err);
     return { transaction: [], error: err.message };
   }
+
+  
 }
 
 
@@ -333,7 +318,8 @@ async function logNftDetails(treeAddress: PublicKey, nftsMinted: number) {
 // This function will return an existing keypair if it's present in the environment variables, or generate a new one if not
 export async function getOrCreateKeypair(walletName: string): Promise<Keypair> {
   // Check if secretKey for `walletName` exist in .env file
-  const envWalletKey = getWallet.name
+ // const envWalletKey = getWallet.name
+   const envWalletKey = walletName
 
   let keypair: Keypair
 
@@ -425,6 +411,7 @@ function createNftMetadata(creator: PublicKey, index: number) {
   }
 
   return compressedNFTMetadata
+
 }
 
 
@@ -444,9 +431,12 @@ export async function getOrCreateCollectionNFT(
   
   // Create Metaplex instance using payer as identity
   const metaplex = new Metaplex(connection).use(keypairIdentity(payer))
+  console.log(`Input NFT Collection ${envCollectionNft}`);
+  
 
   if (envCollectionNft) {
     const collectionNftAddress = new PublicKey(envCollectionNft)
+    
     const collectionNft = await metaplex
       .nfts()
       .findByMint({ mintAddress: collectionNftAddress })

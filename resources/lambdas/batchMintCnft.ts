@@ -1,7 +1,8 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
+import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult, createAndInitializeTree, generateDummyWallets } from "../solana/cNft/commonFunctions";
 import { tenant } from "../db/models";
+import { ValidDepthSizePair } from '@solana/spl-account-compression';
 
 // Define your handler function
 export const handler = async (event: any) => {
@@ -24,29 +25,42 @@ export const handler = async (event: any) => {
       };
     }
 
-    // Create a Solana connection
-    const connection = new Connection(clusterApiUrl("mainnet-beta"));
+    const connection = new Connection(clusterApiUrl("devnet"), "confirmed")
+    const wallet = await getOrCreateKeypair(senderWalletAddress)
+    // airdropSolIfNeeded(wallet.publicKey)
 
-    // Fetch the payer's keypair (or create one if it doesn't exist)
-    const payer = await getOrCreateKeypair("payerWallet");
+  const maxDepthSizePair: ValidDepthSizePair = {
+    maxDepth: 3,
+    maxBufferSize: 8,
+  };
+ 
+  const canopyDepth = 0;
+ 
+  const treeAddress = await createAndInitializeTree(
+    connection,
+    wallet,
+    maxDepthSizePair,
+    canopyDepth,
+  );
 
-    // Get or create the NFT collection details
-    const collectionDetails = await getOrCreateCollectionNFT(connection, payer);
 
-    // Convert the receiver wallet address to a PublicKey
-    const recipientPublicKey = new PublicKey(receiverWalletAddress);
+  const collectionNft = await getOrCreateCollectionNFT(connection, wallet);
 
-    // Mint the compressed NFT(s) to the collection
-    const data: MintResult = await mintCompressedNftToCollection(
-      connection,
-      payer,
-      collectionDetails.mint,
-      collectionDetails,
-      [recipientPublicKey], // Single recipient; can be expanded to a list
-      amount,
-      oidcToken,
-      tenantId
-    );
+  // Generate dummy recipient wallets
+  const recipientWallets = generateDummyWallets(10); // Generate 10 dummy wallets
+  
+  console.log(wallet);
+  
+  const data = await mintCompressedNftToCollection(
+    connection,
+    wallet,
+    treeAddress,
+    collectionNft,
+    recipientWallets,
+    amount,
+    oidcToken,
+    tenantId
+  );
 
     // Build the response
     return {
