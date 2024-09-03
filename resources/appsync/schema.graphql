@@ -597,7 +597,6 @@ type GetProductAttributesResponse {
 }
 
 type Query {
-  CreateWallet(input: CreateWalletInput): GetWallet
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
   GetWallet(input: GetWalletInput): GetWallet
@@ -646,6 +645,8 @@ type Mutation {
   CreateProduct(input: CreateProductInput): ProductResponse
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
   AdminTransfer(input: AdminTransferInput): AdminTransfer
+  CreateWallet(input: CreateWalletInput): GetWallet
+
 
 }
 
