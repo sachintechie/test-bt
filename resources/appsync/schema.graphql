@@ -633,17 +633,18 @@ type Query {
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   BatchMintCnft(input: MintCnftInput): BatchMintCnft
+    AdminTransfer(input: AdminTransferInput): AdminTransfer
+  CreateWallet(input: CreateWalletInput): GetWallet
+  Unstaking(input: UnStakingInput): Staking
+  MergeStake(input: MergeStakeInput): ListStakeAccounts
+  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
 }
 
 type Mutation {
   CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
-  AdminTransfer(input: AdminTransferInput): AdminTransfer
-  CreateWallet(input: CreateWalletInput): GetWallet
-  Unstaking(input: UnStakingInput): Staking
-  MergeStake(input: MergeStakeInput): ListStakeAccounts
-  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
+
 }
 
 schema {
