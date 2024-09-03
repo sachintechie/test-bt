@@ -12,7 +12,7 @@ let auroraStack:AuroraStack|undefined;
 
 if(!isDevOrProd()){
   // Import the Aurora stack
-  auroraStack = new AuroraStack(this, env`BTAuroraStack`, {
+  auroraStack = new AuroraStack(app, env`BTAuroraStack`, {
     env:envConfig
   });
 }
