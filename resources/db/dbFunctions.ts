@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, category, product, ProductAttributes } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1543,13 +1543,13 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
 }
 
-export async function createCategory(category: category) {
+export async function createCategory(category: productcategory) {
   try {
     const prisma = await getPrismaClient();
-    const newCategory = await prisma.category.create({
+    const newCategory = await prisma.productcategory.create({
       data: {
         name: category.name,
-        tenantId: category.tenantId
+        tenantid: category.tenantid
       }
     });
 
@@ -1562,7 +1562,7 @@ export async function createCategory(category: category) {
 export async function getCategories() {
   try {
     const prisma = await getPrismaClient();
-    const categories = await prisma.category.findMany({
+    const categories = await prisma.productcategory.findMany({
       include: {
         tenant: true
       }
@@ -1576,7 +1576,7 @@ export async function getCategories() {
 export async function getCategoryById(categoryId: string) {
   try {
     const prisma = await getPrismaClient();
-    const category = await prisma.category.findUnique({
+    const category = await prisma.productcategory.findUnique({
       where: { id: categoryId }
     });
     return category;
@@ -1588,8 +1588,8 @@ export async function getCategoryById(categoryId: string) {
 export async function getCategoriesByTenantId(tenant: tenant) {
   try {
     const prisma = await getPrismaClient();
-    const category = await prisma.category.findMany({
-      where: { tenantId: tenant.id }
+    const category = await prisma.productcategory.findMany({
+      where: { tenantid: tenant.id }
     });
     return category;
   } catch (err) {
@@ -1599,16 +1599,18 @@ export async function getCategoriesByTenantId(tenant: tenant) {
 
 export async function createProduct(product: product) {
   try {
+    if (product.purchasedpercentage > 100) {
+      throw new Error("purchasedpercentage cannot exceed 100.");
+    }
     const prisma = await getPrismaClient();
     const newProduct = await prisma.product.create({
       data: {
         name: product.name,
-        categoryId: product.categoryId,
+        categoryid: product.categoryid,
         rarity: product.rarity,
         price: product.price,
-        ownerships: {
-          connect: [{ id: product.ownershipId }] // NEED TO DISCUSS THAT HOW MEADOWLAND WILL HANDLE THIS
-        }
+        purchasedpercentage:product.purchasedpercentage,
+        availablepercentage:100-product.purchasedpercentage
       }
     });
     return newProduct;
@@ -1623,8 +1625,7 @@ export async function getProducts() {
     const products = await prisma.product.findMany({
       include: {
         category: true,
-        productattributes: true,
-        ownerships: true,    
+        productattributes: true
       }
     });
     return products;
@@ -1642,8 +1643,7 @@ export async function getProductById(productId: string) {
       },
       include: {
         category: true,
-        productattributes: true,
-        ownerships: true
+        productattributes: true
       }
     });
     return product;
@@ -1656,11 +1656,10 @@ export async function getProductsByCategoryId(categoryId: string) {
   try {
     const prisma = await getPrismaClient();
     const products = await prisma.product.findMany({
-      where: { categoryId: categoryId },
+      where: { categoryid: categoryId },
       include: {
         category: true,
-        productattributes: true,
-        ownerships: true
+        productattributes: true
       }
     });
     return products;
@@ -1669,15 +1668,15 @@ export async function getProductsByCategoryId(categoryId: string) {
   }
 }
 
-export async function createProductAttribute(productattributes: ProductAttributes) {
+export async function createProductAttribute(productattributes: productattribute) {
   try {
     const prisma = await getPrismaClient();
-    const newAttribute = await prisma.productattributes.create({
+    const newAttribute = await prisma.productattribute.create({
       data: {
         key: productattributes.key,
         value: productattributes.value,
         type: productattributes.type,
-        productId: productattributes.productId
+        productid: productattributes.productid
       }
     });
     return newAttribute;
@@ -1689,8 +1688,8 @@ export async function createProductAttribute(productattributes: ProductAttribute
 export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
-    const attributes = await prisma.productattributes.findMany({
-      where: { productId: productId }
+    const attributes = await prisma.productattribute.findMany({
+      where: { productid: productId }
     });
     return attributes;
   } catch (err) {

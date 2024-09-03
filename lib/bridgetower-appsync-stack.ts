@@ -34,7 +34,7 @@ const MUTATIONS=[
   'mergeStake',
   'withdrawStake',
   'batchMintCnft',
-
+  'adminTransfer',
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
