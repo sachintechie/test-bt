@@ -75,5 +75,15 @@ export class AuroraStack extends cdk.Stack {
       value: secret.secretArn,
       description: 'The ARN of the secret storing the DB credentials',
     });
+
+    this.dbEndpoint = new cdk.CfnOutput(this, env`DBEndpoint`, {
+      value: cluster.clusterEndpoint.hostname,
+      description: 'The endpoint of the Aurora cluster',
+    });
+
+    this.dbName = new cdk.CfnOutput(this, env`DBName`, {
+      value:  DB_NAME,
+      description: 'The name of the database',
+    });
   }
 }
