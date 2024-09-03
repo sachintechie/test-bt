@@ -501,7 +501,9 @@ type CategoryResponse {
 
 type CategoryData {
   name: String!
-  tenantId: String!
+  tenantid: String!
+  createdat: String
+  updatedat: String
 }
 
 input GetCategoryByIdInput {
@@ -518,12 +520,20 @@ type GetCategoriesResponse {
   error: AWSJSON
 }
 
+enum ProductRarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
+}
+
 input CreateProductInput {
   name: String!
   categoryId: String!
-  rarity: String!
-  price: Float!
-  ownershipId: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedPercentage: Float
 }
 
 type ProductResponse {
@@ -535,12 +545,15 @@ type ProductResponse {
 type ProductData {
   id: String!
   name: String!
-  categoryId: String!
-  rarity: String!
-  price: Float!
+  categoryid: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedpercentage: Float
+  availablepercentage: Float
   category: CategoryData!
-  productAttributes: [ProductAttributeData!]!
-  ownerships: [OwnershipData!]!
+  createdat: String
+  updatedat: String
+  productattributes: [ProductAttributeData!]!
 }
 
 type ProductAttributeData {
@@ -548,14 +561,9 @@ type ProductAttributeData {
   key: String!
   value: String!
   type: String!
-  productId: String!
-}
-
-type OwnershipData {
-  customerId: String!
-  productId: String!
-  fractional: Boolean!
-  fraction: Float
+  productid: String!
+  createdat: String
+  updatedat: String
 }
 
 type GetProductsResponse {
@@ -628,16 +636,14 @@ type Query {
   TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
   UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
   GetMetadata(input: GetMetadataInput): GetMetadataResponse
-  CreateCategory(input: CreateCategoryInput): CategoryResponse
   GetCategories: GetCategoriesResponse
   GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
   GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-  CreateProduct(input: CreateProductInput): ProductResponse
   GetProducts: GetProductsResponse
   GetProductById(input: GetProductByIdInput): ProductResponse
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-  BatchMintCnft(input: MintCnftInput): BatchMintCnft
+    BatchMintCnft(input: MintCnftInput): BatchMintCnft
 }
 
 type Mutation {

@@ -36,7 +36,7 @@ export const handler = async (event: any, context: any) => {
 
 async function createCategoryInDb(tenant: tenant, tenantUserId: string, categoryName: string) {
   // Logic to create the category in the database
-  const newCategory = await createCategory({ tenantId: tenant.id, name: categoryName });
+  const newCategory = await createCategory({ tenantid: tenant.id, name: categoryName });
 
   // Save to DB
   return newCategory;
