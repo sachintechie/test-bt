@@ -69,5 +69,11 @@ export class AuroraStack extends cdk.Stack {
         removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production use
       });
     }
+
+
+    this.dbSecretArn = new cdk.CfnOutput(this, env`DBSecretArn`, {
+      value: secret.secretArn,
+      description: 'The ARN of the secret storing the DB credentials',
+    });
   }
 }
