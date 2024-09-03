@@ -79,7 +79,6 @@ export interface productattribute {
 }
 
 export interface productfilter {
-  //commenting for push
   key: string;
   operator: "gt" | "lt" | "gte" | "lte" | "eq";
   value: number | string;
