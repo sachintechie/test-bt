@@ -19,7 +19,7 @@ export interface DatabaseInfo {
 }
 
 export const getDatabaseInfo = (scope: Construct,auroraStack:AuroraStack):DatabaseInfo => {
-  const secret = secretsmanager.Secret.fromSecretCompleteArn(scope, env`${AURORA_CREDENTIALS_SECRET_NAME}`, auroraStack.dbSecretArn.value);
+  const secret = secretsmanager.Secret.fromSecretPartialArn(scope, env`${AURORA_CREDENTIALS_SECRET_NAME}`, auroraStack.dbSecretArn.value);
   // Construct the DATABASE_URL environment variable for Prisma
   return {databaseUrl:cdk.Fn.join('', [
     'postgresql://',
