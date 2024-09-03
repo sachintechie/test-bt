@@ -376,7 +376,7 @@ type TransferData {
 }
 
 type BatchMintCnftData {
-  transactionHash: String
+  transactionHash: [String]
 }
 
 input TransferInput {
