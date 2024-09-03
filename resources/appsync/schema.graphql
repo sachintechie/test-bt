@@ -603,6 +603,29 @@ type GetProductAttributesResponse {
   error: AWSJSON
 }
 
+input GetProductAttributesByProductIdInput {
+  productId: String!
+}
+
+input FilterProductInput {
+  filters: [ProductFilter!]!
+}
+
+input ProductFilter {
+  key: String!
+  operator: FilterOperator!
+  value: String!
+}
+
+enum FilterOperator {
+  gt
+  lt
+  gte
+  lte
+  eq
+}
+
+
 type Query {
   CreateWallet(input: CreateWalletInput): GetWallet
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
@@ -643,7 +666,8 @@ type Query {
   GetProductById(input: GetProductByIdInput): ProductResponse
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-    BatchMintCnft(input: MintCnftInput): BatchMintCnft
+  BatchMintCnft(input: MintCnftInput): BatchMintCnft
+  FilterProducts(input: FilterProductInput): ProductResponse
 }
 
 type Mutation {
