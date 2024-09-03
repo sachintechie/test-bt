@@ -3,10 +3,11 @@ import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/
 import {
   createWithdrawTransaction,
   getCubistConfig,
-  getFirstWallet, getToken, getWallet,
+   getStakeAccounData,
+   getToken, getWallet,
   insertMergeStakeAccountsTransaction,
   insertStakeAccount,
-  insertStakingTransaction, mergeDbStakeAccounts, removeStakeAccount,
+  insertStakingTransaction, mergeDbStakeAccounts,
   updateStakeAccount,
 } from "../db/dbFunctions";
 import {
@@ -17,14 +18,12 @@ import {
   Keypair,
   Authorized,
   Transaction,
-  Lockup,
-  type Signer, sendAndConfirmTransaction
+  Lockup
 } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import {
   getSolBalance,
   getSolConnection,
-  getSplTokenBalance,
   getStakeAccountInfo,
   verifySolanaTransaction
 } from "./solanaFunctions";
@@ -342,16 +341,32 @@ async function addStakeToExistingAccount(
 }
 
 
-export async function withdrawFromStakeAccounts(connection: Connection,stakeAccounts: any, payerKey: Key) {
+export async function withdrawFromStakeAccounts(connection: Connection,accountPubkey: any, payerKey: Key,tenantId:string) {
+  const stakeAccountData  = await getStakeAccounData(accountPubkey,tenantId);
+stakeAccountData?.updatedat
+const unStakeDate = new Date(stakeAccountData?.updatedat || "");
+const withdrawDate = new Date();
+const diffTime = Math.abs(withdrawDate.getTime() - unStakeDate.getTime());
+const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.CLOSED){
+    return { data: null ,error:"No stake account found for this user "};
+  }
+    
+   if(diffDays < 1) {
+    const requiredTime = 1000 * 60 * 60 * 24;
+    let remainingTimeInHours = (requiredTime - diffTime)/ (1000 * 60 * 60);
+    remainingTimeInHours = Math.ceil(remainingTimeInHours);
+    console.log(`No stake account found for pubkey: ${accountPubkey}`);
+    return { data: null ,error:"Withdrawal is not allowed at this time. Please try again after "  +remainingTimeInHours+" hours."};
+  }
+
   const payerPublicKey = new PublicKey(payerKey.materialId);
-  for (const accountPubkey of stakeAccounts) {
     const stakePubkey = new PublicKey(accountPubkey);
     const accountInfo = await connection.getParsedAccountInfo(stakePubkey);
 
     if (accountInfo.value !== null && (accountInfo.value.data as any).program === 'stake') {
       const lamports = (accountInfo.value.data as any).parsed.info.stake?.delegation?.stake;
-
-
       const transaction = new Transaction().add(
         StakeProgram.withdraw({
           stakePubkey: stakePubkey,
@@ -368,16 +383,22 @@ export async function withdrawFromStakeAccounts(connection: Connection,stakeAcco
       await signTransaction(transaction, payerKey);
       try {
         const tx = await connection.sendRawTransaction(transaction.serialize());
-        await createWithdrawTransaction(accountPubkey, tx);
+       const stakeTrx = await createWithdrawTransaction(accountPubkey, tx);
         await updateStakeAccount(accountPubkey,StakeAccountStatus.CLOSED);
         console.log(`Withdrawn ${lamports} lamports from ${accountPubkey}, transaction signature: ${tx}`);
+
+        return { data: stakeTrx ,error:null};
       } catch (error) {
         console.error(`Failed to withdraw from ${accountPubkey}:`, error);
+        return { data: null ,error:`Failed to withdraw from ${accountPubkey}:`+ error};
+
       }
     } else {
       console.log(`No stake account found or invalid account for pubkey: ${accountPubkey}`);
+      return { data: null ,error:`No stake account found or invalid account for pubkey: ${accountPubkey}`};
+
     }
-  }
+  
 }
 
 export async function mergeStakeAccounts(connection: Connection,stakeAccounts:string[], payerKey:Key) {

@@ -1,4 +1,3 @@
-import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { createCategory } from "../db/dbFunctions"; // Assuming you have a function to create a category in your DB
 

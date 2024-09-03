@@ -4,14 +4,14 @@ import * as path from "path";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cdk from "aws-cdk-lib";
 import {Construct} from "constructs";
-import {BridgeTowerLambdaStack} from "../bridgetower-lambda-stack";
 import {GraphqlApi} from "aws-cdk-lib/aws-appsync";
 import {IFunction} from "aws-cdk-lib/aws-lambda";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 
-export const newAppSyncApi = (scope: Construct, id: string, lambdaStack: BridgeTowerLambdaStack) => {
+export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaMap: Map<string, lambda.Function>,schemaFile:string,authorizerLambda:string) => {
   return  new appsync.GraphqlApi(scope, env`${id}`, {
-    name: env`GraphQLAPI`,
-    schema: appsync.SchemaFile.fromAsset(path.join(__dirname, "../../resources/appsync/schema.graphql")),
+    name: env`${name}`,
+    schema: appsync.SchemaFile.fromAsset(path.join(__dirname, `../../resources/appsync/${schemaFile}`)),
     logConfig: {
       fieldLogLevel: appsync.FieldLogLevel.ALL,
       excludeVerboseContent: false,
@@ -24,15 +24,12 @@ export const newAppSyncApi = (scope: Construct, id: string, lambdaStack: BridgeT
       defaultAuthorization: {
         authorizationType: appsync.AuthorizationType.LAMBDA,
         lambdaAuthorizerConfig: {
-          handler: lambdaStack.appsyncAuthorizerLambda,
+          handler: lambdaMap.get(authorizerLambda)!,
           resultsCacheTtl: cdk.Duration.minutes(5), // Optional cache TTL
         },
       },
     },
   });
-
-  
-  
 }
 
 export const configResolver =(api:GraphqlApi,lambda:IFunction,typeName:string,fieldName:string)=>{
