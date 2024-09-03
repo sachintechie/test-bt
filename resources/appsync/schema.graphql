@@ -622,7 +622,7 @@ input FilterProductInput {
 input ProductFilter {
   key: String
   operator: FilterOperator
-  value: AWSJSON
+  value: String
 }
 
 type Query {
@@ -666,7 +666,7 @@ type Query {
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   BatchMintCnft(input: MintCnftInput): BatchMintCnft
-  FilterProducts(input: FilterProductInput): ProductResponse
+  FilterProducts(input: FilterProductInput): GetProductsResponse
 }
 
 type Mutation {
