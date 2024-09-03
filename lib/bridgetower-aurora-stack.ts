@@ -69,22 +69,5 @@ export class AuroraStack extends cdk.Stack {
         removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production use
       });
     }
-
-
-    // Output the necessary environment variables
-    this.dbEndpoint = new cdk.CfnOutput(this, env`DBEndpoint`, {
-      value: cluster.clusterEndpoint.hostname,
-      description: 'The endpoint of the Aurora cluster',
-    });
-
-    this.dbSecretArn = new cdk.CfnOutput(this, env`DBSecretArn`, {
-      value: secret.secretArn,
-      description: 'The ARN of the secret storing the DB credentials',
-    });
-
-    this.dbName = new cdk.CfnOutput(this, env`DBName`, {
-      value:  DB_NAME,
-      description: 'The name of the database',
-    });
   }
 }
