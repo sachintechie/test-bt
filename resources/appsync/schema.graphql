@@ -615,9 +615,6 @@ type Query {
   Signin: SignIn
   Staking(input: StakingInput): Staking
   Transfer(input: TransferInput): Transfer
-  Unstaking(input: UnStakingInput): Staking
-  MergeStake(input: MergeStakeInput): ListStakeAccounts
-  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
   SendEmailOtpSignin(input: EmailSigninInput): SignIn
   EmailOtpSignin(input: GetWalletInput): GetWallet
   MintNFT(input: MintNFTInput): Web3TransactionResponse
@@ -644,7 +641,9 @@ type Mutation {
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateWallet(input: CreateWalletInput): GetWallet
-
+  Unstaking(input: UnStakingInput): Staking
+  MergeStake(input: MergeStakeInput): ListStakeAccounts
+  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
 }
 
 schema {
