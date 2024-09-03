@@ -1,4 +1,4 @@
-import { ProductAttributes } from "../db/models";
+import { productattribute } from "../db/models";
 import { createProductAttribute } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
@@ -34,7 +34,7 @@ export const handler = async (event: any, context: any) => {
 
 async function createAttributeInDb(key: string, value: string, type: string, productId: string) {
   // Logic to create the product attribute in the database
-  const attributeData: ProductAttributes = { id: "", key, value, type, productId };
+  const attributeData: productattribute = { key, value, type, productid:productId };
   const newAttribute = await createProductAttribute(attributeData);
 
   // Save to DB

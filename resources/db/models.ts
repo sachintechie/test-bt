@@ -60,31 +60,22 @@ export interface token {
 
 export interface product {
   name: string;
-  categoryId: string;
-  rarity: string;
+  categoryid: string;
+  rarity: productRarity;
   price: number;
-  ownershipId: string;
+  purchasedpercentage: number;
 }
 
-export interface category {
+export interface productcategory {
   name: string;
-  tenantId: string;
+  tenantid: string;
 }
 
-export interface ProductAttributes {
-  id: string;
+export interface productattribute {
   key: string;
   value: string;
   type: string;
-  productId: string;
-}
-
-export interface ownership {
-  id: string;
-  customerId: string;
-  productId: string;
-  fractional: boolean;
-  fraction?: number;
+  productid: string;
 }
 
 export enum TransactionStatus {
@@ -115,4 +106,12 @@ export enum StakeType {
 export enum AuthType {
   OTP = "OTP",
   OIDC = "OIDC"
+}
+
+export enum productRarity {
+  NORMAL = "NORMAL",
+  RARE = "RARE",
+  EPIC = "EPIC",
+  LEGENDARY = "LEGENDARY",
+  MYTHICAL = "MYTHICAL"
 }
