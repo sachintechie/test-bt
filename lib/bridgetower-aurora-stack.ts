@@ -27,24 +27,19 @@ export class AuroraStack extends cdk.Stack {
       // Try to retrieve the existing secret by name
       secret = secretsmanager.Secret.fromSecretNameV2(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, SECRET_NAME);
     } catch (error) {
-      if (error.message.includes('does not exist')) {
-        // If the secret does not exist, create a new one
-        const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
-          secretName: SECRET_NAME,
-          generateSecretString: {
-            secretStringTemplate: JSON.stringify({
-              username: USERNAME,
-            }),
-            excludePunctuation: true,
-            includeSpace: false,
-            generateStringKey: 'password',
-            excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
-          },
-        });
-      } else {
-        // Re-throw the error if it's something unexpected
-        throw error;
-      }
+      // If the secret does not exist, create a new one
+      secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+        secretName: SECRET_NAME,
+        generateSecretString: {
+          secretStringTemplate: JSON.stringify({
+            username: USERNAME,
+          }),
+          excludePunctuation: true,
+          includeSpace: false,
+          generateStringKey: 'password',
+          excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
+        },
+      });
     }
     
 
