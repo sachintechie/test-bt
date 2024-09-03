@@ -1,4 +1,3 @@
-import * as cs from "@cubist-labs/cubesigner-sdk";
 import { createProduct } from "../db/dbFunctions";
 import { productRarity } from "../db/models";
 

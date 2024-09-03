@@ -2,18 +2,13 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../../cubist/CubeSignerClient";
 // import fetch from "node-fetch";
 import * as fs from "fs"
-import { getSolConnection, getSolBalance } from "../solanaFunctions";
-import { getCubistConfig, getWalletByChainType, getWalletByWalletType  } from "../../db/dbFunctions";
+import { getCubistConfig  } from "../../db/dbFunctions";
 import {
-  AccountMeta,
   Connection,
   Keypair,
-  LAMPORTS_PER_SOL,
   PublicKey,
   Transaction,
-  clusterApiUrl,
   sendAndConfirmTransaction,
-  SystemProgram
 } from "@solana/web3.js"
 
 
@@ -23,15 +18,12 @@ import {
   ValidDepthSizePair,
   createAllocTreeIx,
   SPL_NOOP_PROGRAM_ID,
-  ConcurrentMerkleTreeAccount,
 } from "@solana/spl-account-compression"
 
 import {
   PROGRAM_ID as BUBBLEGUM_PROGRAM_ID,
   createCreateTreeInstruction,
   createMintToCollectionV1Instruction,
-  createTransferInstruction,
-  getLeafAssetId,
   MetadataArgs,
   TokenProgramVersion,
   TokenStandard
@@ -40,7 +32,6 @@ import {
 import { uris } from "./uri"
 import { Metaplex, Nft, keypairIdentity } from "@metaplex-foundation/js"
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata"
-import { BN } from "@project-serum/anchor"
 import { tenant } from "../../db/models";
 
 
@@ -223,7 +214,7 @@ export type MintResult = {
 
 export async function mintCompressedNftToCollection(
   connection: Connection,
-  payer: Keypair,
+  payer: cs.Key,
   treeAddress: PublicKey,
   collectionDetails: CollectionDetails,
   recipients: PublicKey[],
@@ -241,6 +232,7 @@ export async function mintCompressedNftToCollection(
     [Buffer.from("collection_cpi", "utf8")],
     BUBBLEGUM_PROGRAM_ID
   );
+  const payerPublicKey = new PublicKey(payer.materialId);
 
   const txSignitureArray = [];
 
@@ -251,13 +243,13 @@ export async function mintCompressedNftToCollection(
 
       const mintIx = createMintToCollectionV1Instruction(
         {
-          payer: payer.publicKey,
+          payer: payerPublicKey,
           merkleTree: treeAddress,
           treeAuthority,
-          treeDelegate: payer.publicKey,
+          treeDelegate:payerPublicKey,
           leafOwner: recipient,
           leafDelegate: recipient,
-          collectionAuthority: payer.publicKey,
+          collectionAuthority: payerPublicKey,
           collectionAuthorityRecordPda: BUBBLEGUM_PROGRAM_ID,
           collectionMint: collectionDetails.mint,
           collectionMetadata: collectionDetails.metadata,
@@ -275,16 +267,27 @@ export async function mintCompressedNftToCollection(
       );
 
       const tx = new Transaction().add(mintIx);
-      tx.feePayer = payer.publicKey;
+      tx.feePayer = payerPublicKey;
       console.log(mintIx);
+
+         // 9.Sign the transaction with sender
+    const base64Sender = tx.serializeMessage().toString("base64");
+    // sign using the well-typed solana end point (which requires a base64 serialized Message)
+    const respSender = await payer.signSolana({ message_base64: base64Sender });
+    const sigSender = respSender.data().signature;
+    const sigBytesSender = Buffer.from(sigSender.slice(2), "hex");
+    tx.addSignature(payerPublicKey, sigBytesSender);
+    console.log("Transaction", tx);
+
+    // 10.Send the transaction
+
+    const txSignature = await connection.sendRawTransaction(tx.serialize());
+    await connection.confirmTransaction(txSignature);
+
+    console.log(`txHash: ${txSignature}`);
       
 
-      const txSignature = await sendAndConfirmTransaction(
-        connection,
-        tx,
-        [payer],
-        { commitment: "finalized", skipPreflight: true }
-      );
+   
 
       txSignitureArray.push(txSignature)
 
@@ -438,7 +441,7 @@ export type CollectionDetails = {
 
 export async function getOrCreateCollectionNFT(
   connection: Connection,
-  payer: Keypair
+  payer: any
 ): Promise<CollectionDetails> {
   const envCollectionNft = walletConfig.COLLECTION_NFT
   

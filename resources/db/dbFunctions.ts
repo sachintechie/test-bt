@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productcategory, product, productattribute } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -643,7 +643,7 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
       where: { stakeaccountid: stakeAccount.id }
     });
 
-    await prisma.staketransaction.create({
+  const stakeTransaction =  await prisma.staketransaction.create({
       data: {
         customerid: stakeAccount.customerid,
         type: "withdraw",
@@ -665,8 +665,26 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
         createdat: new Date().toISOString()
       }
     });
+    return stakeTransaction;
+
   } catch (err) {
     console.error(err);
+    throw err;
+  }
+}
+
+export async function getStakeAccounData(stakeAccountPubKey: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const stakeAccounts = await prisma.stakeaccount.findFirst({
+      where: {
+        stakeaccountpubkey: stakeAccountPubKey,
+        tenantid: tenantId
+      }
+    });
+
+    return stakeAccounts ? stakeAccounts : null;
+  } catch (err) {
     throw err;
   }
 }
@@ -844,8 +862,7 @@ export async function getCustomerAndWalletByAuthType(tenantUserId: string, chain
     const customer = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
-        tenantid: tenant.id,
-        usertype: AuthType.OTP
+        tenantid: tenant.id
       },
       include: {
         wallets: {
@@ -855,7 +872,7 @@ export async function getCustomerAndWalletByAuthType(tenantUserId: string, chain
         }
       }
     });
-    if (customer == null || customer.cubistuserid == null || customer.cubistuserid == "") return null;
+    if (customer == null ) return null;
     return customer ? customer : null;
   } catch (err) {
     throw err;
@@ -1529,7 +1546,7 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
 export async function createCategory(category: productcategory) {
   try {
     const prisma = await getPrismaClient();
-    const newCategory = await prisma.category.create({
+    const newCategory = await prisma.productcategory.create({
       data: {
         name: category.name,
         tenantid: category.tenantid
@@ -1545,7 +1562,7 @@ export async function createCategory(category: productcategory) {
 export async function getCategories() {
   try {
     const prisma = await getPrismaClient();
-    const categories = await prisma.category.findMany({
+    const categories = await prisma.productcategory.findMany({
       include: {
         tenant: true
       }
@@ -1559,7 +1576,7 @@ export async function getCategories() {
 export async function getCategoryById(categoryId: string) {
   try {
     const prisma = await getPrismaClient();
-    const category = await prisma.category.findUnique({
+    const category = await prisma.productcategory.findUnique({
       where: { id: categoryId }
     });
     return category;
@@ -1571,7 +1588,7 @@ export async function getCategoryById(categoryId: string) {
 export async function getCategoriesByTenantId(tenant: tenant) {
   try {
     const prisma = await getPrismaClient();
-    const category = await prisma.category.findMany({
+    const category = await prisma.productcategory.findMany({
       where: { tenantid: tenant.id }
     });
     return category;
@@ -1654,7 +1671,7 @@ export async function getProductsByCategoryId(categoryId: string) {
 export async function createProductAttribute(productattributes: productattribute) {
   try {
     const prisma = await getPrismaClient();
-    const newAttribute = await prisma.productattributes.create({
+    const newAttribute = await prisma.productattribute.create({
       data: {
         key: productattributes.key,
         value: productattributes.value,
@@ -1671,7 +1688,7 @@ export async function createProductAttribute(productattributes: productattribute
 export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
-    const attributes = await prisma.productattributes.findMany({
+    const attributes = await prisma.productattribute.findMany({
       where: { productid: productId }
     });
     return attributes;

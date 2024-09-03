@@ -1,5 +1,5 @@
 import {getSolConnection} from "../solana/solanaFunctions";
-import {getCubistConfig, getStakeAccountPubkeys, getStakeAccounts} from "../db/dbFunctions";
+import {getCubistConfig } from "../db/dbFunctions";
 import {withdrawFromStakeAccounts} from "../solana/solanaStake";
 import { getCubistKey} from "../cubist/CubeSignerClient";
 import {tenant} from "../db/models";
@@ -27,10 +27,11 @@ export const handler = async (event: any) => {
   const connection = await getSolConnection();
   try{
     const key=await getCubistKey(env,cubistOrgId, oidcToken, ["sign:*"], walletAddress);
-    await withdrawFromStakeAccounts(connection, [accountPublicKey], key);
+   const transaction =  await withdrawFromStakeAccounts(connection, accountPublicKey, key,tenantId);
     return {
-      status: 200,
-      data: null
+      status: transaction?.data != null ? 200 : 400,
+      data: transaction?.data,
+      error: transaction?.error
     };
   }catch (e) {
     return {

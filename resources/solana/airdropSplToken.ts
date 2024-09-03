@@ -10,8 +10,8 @@ import {
   TokenInvalidMintError,
   TokenInvalidOwnerError,
   Account,
-  getAccount,
-  getOrCreateAssociatedTokenAccount
+  getAccount
+  
 } from "@solana/spl-token";
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
