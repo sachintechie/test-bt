@@ -607,16 +607,6 @@ input GetProductAttributesByProductIdInput {
   productId: String!
 }
 
-input FilterProductInput {
-  filters: [ProductFilter!]!
-}
-
-input ProductFilter {
-  key: String!
-  operator: FilterOperator!
-  value: String!
-}
-
 enum FilterOperator {
   gt
   lt
@@ -625,6 +615,15 @@ enum FilterOperator {
   eq
 }
 
+input FilterProductInput {
+  filters: [ProductFilter!]!
+}
+
+input ProductFilter {
+  key: String
+  operator: FilterOperator
+  value: AWSJSON
+}
 
 type Query {
   CreateWallet(input: CreateWalletInput): GetWallet
