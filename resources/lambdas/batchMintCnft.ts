@@ -1,6 +1,8 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
 import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
 import { tenant } from "../db/models";
+import { getSolConnection } from "../solana/solanaFunctions";
+import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 
 // Define your handler function
 export const handler = async (event: any) => {
@@ -9,14 +11,13 @@ export const handler = async (event: any) => {
     const body = JSON.parse(event.body || '{}');
     
     // Extract parameters from the parsed body
-    const senderWalletAddress = body.input?.senderWalletAddress  as string | undefined;;
     const receiverWalletAddress = body.input?.receiverWalletAddress  as string | undefined;;
     const amount = body.input?.amount || 1; // Default to 1 if amount is not provided
     const oidcToken = event.headers?.identity;
-    const tenantId = event.identity.resolverContext as tenant
+    const tenant = event.identity?.resolverContext as tenant
 
     // Validate required fields
-    if (!senderWalletAddress || !receiverWalletAddress) {
+    if (!receiverWalletAddress) {
       return {
         statusCode: 400,
         body: JSON.stringify({ message: "Missing required fields" }),
@@ -24,10 +25,17 @@ export const handler = async (event: any) => {
     }
 
     // Create a Solana connection
-    const connection = new Connection(clusterApiUrl("mainnet-beta"));
+    const connection = await getSolConnection();
 
     // Fetch the payer's keypair (or create one if it doesn't exist)
-    const payer = await getOrCreateKeypair("payerWallet");
+    const payer = await getPayerCsSignerKey("Solana", tenant.id);
+    if ( payer?.key == null) {
+      return {
+        transaction: null,
+        error: "Payer Key not found for the given tenant"
+      };
+    }
+
 
     // Get or create the NFT collection details
     const collectionDetails = await getOrCreateCollectionNFT(connection, payer);
@@ -38,13 +46,13 @@ export const handler = async (event: any) => {
     // Mint the compressed NFT(s) to the collection
     const data: MintResult = await mintCompressedNftToCollection(
       connection,
-      payer,
+      payer.key,
       collectionDetails.mint,
       collectionDetails,
       [recipientPublicKey], // Single recipient; can be expanded to a list
       amount,
       oidcToken,
-      tenantId
+      tenant
     );
 
     // Build the response
