@@ -371,7 +371,7 @@ input TransferInput {
 }
 
 input MintCnftInput {
-  receiverWalletAddress: String!
+  receiverWalletAddress: [String]!
   amount: Float
   symbol: String!
   chainType: String!
