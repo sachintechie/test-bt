@@ -337,27 +337,7 @@ type BatchMintCnft {
   error: AWSJSON
 }
 
-type AdminTransfer {
-  status: Int
-  data: AdminTransferData
-  error: AWSJSON
-}
 
-type AdminTransferData {
-  adminuserid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  status: String
-  transactionid: String
-  network: String
-  tenanttransactionid: String
-}
 
 type TransferData {
   customerid: String
@@ -395,20 +375,6 @@ input MintCnftInput {
   amount: Float
   symbol: String!
   chainType: String!
-}
-
-input AdminTransferInput {
-  senderWalletAddress: String!
-  recipients: [AdminRecipient]!
-  symbol: String!
-  chainType: String!
-  adminUserId: String!
-  tenantTransactionId: String!
-}
-
-input AdminRecipient {
-  walletAddress: String
-  amount: Float
 }
 
 input UnStakingInput {
@@ -642,7 +608,6 @@ type Mutation {
   Unstaking(input: UnStakingInput): Staking
   MergeStake(input: MergeStakeInput): ListStakeAccounts
   WithdrawStake(input: WithdrawStakeInput): WithdrawStake
-  AdminTransfer(input: AdminTransferInput): AdminTransfer
   BatchMintCnft(input: MintCnftInput): BatchMintCnft
 }
 

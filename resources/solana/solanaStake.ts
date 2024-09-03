@@ -349,7 +349,11 @@ const withdrawDate = new Date();
 const diffTime = Math.abs(withdrawDate.getTime() - unStakeDate.getTime());
 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.CLOSED || diffDays > 1) {
+  if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.CLOSED){
+    return { data: null ,error:"No stake account found for this user "};
+  }
+    
+   if(diffDays < 1) {
     const requiredTime = 1000 * 60 * 60 * 24;
     let remainingTimeInHours = (requiredTime - diffTime)/ (1000 * 60 * 60);
     remainingTimeInHours = Math.ceil(remainingTimeInHours);
