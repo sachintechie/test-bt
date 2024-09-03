@@ -613,8 +613,6 @@ type Query {
   GetCubistOrgData: GetCubistOrgData
   MasterTransfer(input: MasterTransferInput): Transfer
   Signin: SignIn
-  AdminSignin(input: SigninInput): SignIn
-  CreateAdminWallet(input: CreateWalletInput): GetWallet
   Staking(input: StakingInput): Staking
   Transfer(input: TransferInput): Transfer
   Unstaking(input: UnStakingInput): Staking
@@ -646,7 +644,6 @@ type Mutation {
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateWallet(input: CreateWalletInput): GetWallet
-
 
 }
 
