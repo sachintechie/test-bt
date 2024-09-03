@@ -631,19 +631,19 @@ type Query {
   GetProductById(input: GetProductByIdInput): ProductResponse
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-  BatchMintCnft(input: MintCnftInput): BatchMintCnft
-    AdminTransfer(input: AdminTransferInput): AdminTransfer
-  CreateWallet(input: CreateWalletInput): GetWallet
-  Unstaking(input: UnStakingInput): Staking
-  MergeStake(input: MergeStakeInput): ListStakeAccounts
-  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
+  
 }
 
 type Mutation {
   CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
-
+  CreateWallet(input: CreateWalletInput): GetWallet
+  Unstaking(input: UnStakingInput): Staking
+  MergeStake(input: MergeStakeInput): ListStakeAccounts
+  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
+  AdminTransfer(input: AdminTransferInput): AdminTransfer
+  BatchMintCnft(input: MintCnftInput): BatchMintCnft
 }
 
 schema {

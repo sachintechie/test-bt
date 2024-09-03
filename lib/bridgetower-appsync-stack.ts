@@ -19,8 +19,7 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'createKycApplicant',
   'deleteKeyAndUserFromCubistAndDB',
   'migrateDB',
-  'createOrganizationUnitAndAwsAccount',
-  'batchMintCnft'
+  'createOrganizationUnitAndAwsAccount'
 ]
 
 const GET_METADATA="getMetadata";
@@ -30,7 +29,13 @@ const MUTATIONS=[
   'createCategory',
   'createProduct',
   'createProductAttribute',
-  'adminTransfer'
+  'adminTransfer',
+  'createWallet',
+  'unstaking',
+  'mergeStake',
+  'withdrawStake',
+  'batchMintCnft',
+  
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
