@@ -70,9 +70,9 @@ export class AuroraStack extends cdk.Stack {
       });
     }
 
-    console.log(secret.secretArn)
+    console.log(secret.secretFullArn)
     this.dbSecretArn = new cdk.CfnOutput(this, env`DBSecretArn`, {
-      value: secret.secretArn,
+      value: secret.secretFullArn,
       description: 'The ARN of the secret storing the DB credentials',
     });
   }
