@@ -45,6 +45,7 @@ interface AppSyncStackProps extends cdk.StackProps {
   hasApiGateway?: boolean;
   apiName: string;
   needMigrate?: boolean;
+  auroraStack?: AuroraStack;
 }
 
 
@@ -56,12 +57,8 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     let databaseInfo:DatabaseInfo;
     if(!isDevOrProd()){
-      // Import the Aurora stack
-      const auroraStack = new AuroraStack(this, env`BTAuroraStack`, {
-        env:envConfig
-      });
       // Fetch the database credentials from Secrets Manager
-      databaseInfo = getDatabaseInfo(this, auroraStack);
+      databaseInfo = getDatabaseInfo(this, props.auroraStack!);
     }else{
       databaseInfo = getDevOrProdDatabaseInfo(this);
     }

@@ -22,63 +22,49 @@ export class AuroraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    let secret: ISecret;
-    try {
-      // Try to retrieve the existing secret by name
-      secret = secretsmanager.Secret.fromSecretNameV2(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, SECRET_NAME);
-    } catch (error) {
-      // If the secret does not exist, create a new one
-      secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
-        secretName: SECRET_NAME,
-        generateSecretString: {
-          secretStringTemplate: JSON.stringify({
-            username: USERNAME,
-          }),
-          excludePunctuation: true,
-          includeSpace: false,
-          generateStringKey: 'password',
-          excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
-        },
-      });
-    }
-    
 
-    let cluster: IDatabaseCluster;
-    try {
-      // Attempt to retrieve the existing RDS cluster by its identifier
-      cluster = rds.DatabaseCluster.fromDatabaseClusterAttributes(this, env`AuroraCluster`, {
-        clusterIdentifier: env`AuroraCluster`
-      });
-    } catch (error) {
-      // Create the Aurora cluster
-      cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
-        clusterIdentifier: env`AuroraCluster`,
-        engine: rds.DatabaseClusterEngine.auroraPostgres({
-          version: rds.AuroraPostgresEngineVersion.VER_15_4,
+    // If the secret does not exist, create a new one
+    let secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+      secretName: SECRET_NAME,
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({
+          username: USERNAME,
         }),
-        credentials: rds.Credentials.fromSecret(secret),
-        defaultDatabaseName: DB_NAME,
-        instances: 2,
-        instanceProps: {
-          vpc:getVpcConfig(this),
-          instanceType: ec2.InstanceType.of(ec2.InstanceClass.R6I, ec2.InstanceSize.LARGE),
-          securityGroups: getSecurityGroups(this),
-          publiclyAccessible: true, // Make the database publicly accessible
-        },
-        storageEncrypted: true,
-        removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production use
-      });
-    }
-
-    console.log(secret.secretArn)
-    this.dbSecretArn = new cdk.CfnOutput(this, env`DBSecretArn`, {
-      value: secret.secretArn,
-      description: 'The ARN of the secret storing the DB credentials',
+        excludePunctuation: true,
+        includeSpace: false,
+        generateStringKey: 'password',
+        excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
+      },
     });
 
+
+   let cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
+      clusterIdentifier: env`AuroraCluster`,
+      engine: rds.DatabaseClusterEngine.auroraPostgres({
+        version: rds.AuroraPostgresEngineVersion.VER_15_4,
+      }),
+      credentials: rds.Credentials.fromSecret(secret),
+      defaultDatabaseName: DB_NAME,
+      instances: 2,
+      instanceProps: {
+        vpc:getVpcConfig(this),
+        instanceType: ec2.InstanceType.of(ec2.InstanceClass.R6I, ec2.InstanceSize.LARGE),
+        securityGroups: getSecurityGroups(this),
+        publiclyAccessible: true, // Make the database publicly accessible
+      },
+      storageEncrypted: true,
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production use
+    });
+
+    // Output the necessary environment variables
     this.dbEndpoint = new cdk.CfnOutput(this, env`DBEndpoint`, {
       value: cluster.clusterEndpoint.hostname,
       description: 'The endpoint of the Aurora cluster',
+    });
+
+    this.dbSecretArn = new cdk.CfnOutput(this, env`DBSecretArn`, {
+      value: secret.secretArn,
+      description: 'The ARN of the secret storing the DB credentials',
     });
 
     this.dbName = new cdk.CfnOutput(this, env`DBName`, {
