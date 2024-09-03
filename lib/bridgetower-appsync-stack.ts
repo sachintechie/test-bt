@@ -29,13 +29,12 @@ const MUTATIONS=[
   'createCategory',
   'createProduct',
   'createProductAttribute',
-  'adminTransfer',
   'createWallet',
   'unstaking',
   'mergeStake',
   'withdrawStake',
   'batchMintCnft',
-  
+
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
