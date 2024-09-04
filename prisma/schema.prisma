@@ -49,14 +49,12 @@ model customer {
   iss               String?             
   isbonuscredit     Boolean?
   usertype          String?
-  iv                String?
-  key               String?
+  partialtoken      String?
   customerkycs      customerkyc[]
   wallets           wallet[]
   transactions      transaction[]
   staketransactions staketransaction[]
   stakeaccounts     stakeaccount[]
-  ownerships    ownership[]
 }
 
 model adminuser {
@@ -187,17 +185,6 @@ model sumsubconfig {
   updatedat         String?
 }
 
-
-model ownership {
-  id         String    @id @default(uuid()) @db.Uuid
-  customerId     String    @db.Uuid
-  customer       customer      @relation(fields: [customerId], references: [id])
-  productId  String    @db.Uuid
-  product    product   @relation(fields: [productId], references: [id])
-  fractional Boolean
-  fraction   Float?  
-}
-
 model tenant {
   id               String             @id @default(uuid())
   name             String?
@@ -218,38 +205,57 @@ model tenant {
   gaspayerwallet   gaspayerwallet[]
   stakeaccount     stakeaccount[]
   staketransaction staketransaction[]
-categories category[]
+  categories productcategory[]
+  products         product[]
 }
 
-model category {
-  id        String     @id @default(uuid()) @db.Uuid
+enum productrarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
+}
+
+model productcategory {
+  id        String     @id @default(uuid()) 
   name      String
-  tenantId  String     @db.Uuid
-  tenant    tenant     @relation(fields: [tenantId], references: [id])
+  tenantid  String     
+  tenant    tenant     @relation(fields: [tenantid], references: [id])
+  createdat    DateTime?  @default(now())
+  updatedat    DateTime?  @updatedAt
   products  product[]
 
-  @@unique([tenantId, name])
+  @@unique([tenantid, name])
 }
 
 model product {
-  id         String     @id @default(uuid()) @db.Uuid
+  id         String     @id @default(uuid())
   name       String
-  categoryId String     @db.Uuid
-  category   category   @relation(fields: [categoryId], references: [id])
-  rarity     String     @default("Normal")
-  price      Float
-  productattributes productattributes[]
-  ownerships ownership[]
-  @@unique([categoryId, name])
+  categoryid String 
+  category   productcategory   @relation(fields: [categoryid], references: [id])
+  rarity            productrarity?        @default(NORMAL)
+  price             Float?
+  purchasedpercentage         Float?
+  availablepercentage         Float?
+  tenantid          String?
+  tenant            tenant?              @relation(fields: [tenantid], references: [id])
+  createdat         DateTime?            @default(now())
+  updatedat         DateTime?            @updatedAt
+  transactions      transaction[]
+  productattributes productattribute[]
+  @@unique([categoryid, name])
 }
 
-model productattributes {
-  id        String     @id @default(uuid()) @db.Uuid
+model productattribute {
+  id        String     @id @default(uuid())
   key       String
   value     String
   type      String
-  productId String   @db.Uuid
-  product   product  @relation(fields: [productId], references: [id])
+  productid String
+  product   product  @relation(fields: [productid], references: [id])
+  createdat         DateTime?            @default(now())
+  updatedat         DateTime?            @updatedAt
 }
 
 model token {
@@ -273,6 +279,8 @@ model transaction {
   customer              customer? @relation(fields: [customerid], references: [id])
   tokenid               String?
   token                 token?    @relation(fields: [tokenid], references: [id])
+  productid             String?   
+  product               product?  @relation(fields: [productid], references: [id])
   walletaddress         String?
   symbol                String?
   receiverwalletaddress String?

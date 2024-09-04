@@ -1,8 +1,13 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { AuthType, tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
-import { createCustomer, createWallet, createWalletAndKey, getCustomerAndWallet, getCustomerAndWalletByAuthType, getEmailOtpCustomer } from "../db/dbFunctions";
-import { decryptToken } from "../cubist/cubistFunctions";
+import {
+  createCustomer,
+  createWalletAndKey,
+  getCustomerAndWalletByAuthType,
+  getEmailOtpCustomer,
+  updateCustomerCubistData
+} from "../db/dbFunctions";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -37,18 +42,17 @@ export const handler = async (event: any, context: any) => {
 
 async function createUser(tenant: tenant, tenantuserid: string, token: string, chainType: string, authType: string) {
   try {
- 
-    const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, token,authType);
+    const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, token, authType);
     if (isExist != null) {
       return isExist;
     } else {
       let oidcToken = "";
       if (authType == AuthType.OTP) {
         const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
-        if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+        if (customer == null || customer?.id == null || customer?.partialtoken == null) {
           return { wallet: null, error: "Please do the registration first" };
         }
-        oidcToken = await decryptToken(customer?.iv, customer?.key, token);
+        oidcToken = customer?.partialtoken + token;
       } else {
         oidcToken = token;
       }
@@ -66,7 +70,7 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
               error: "Error creating cubesigner client"
             };
           }
-          console.log("Created cubesigner client", client);
+          console.log("Created cubesigner client", client, orgId, oidcToken);
           const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId || "", oidcToken);
 
           console.log("Verifying identity", proof);
@@ -138,6 +142,7 @@ async function createCustomerAndWallet(
       cubistuserid: cubistUserId,
       isactive: true,
       isBonusCredit: false,
+      usertype: AuthType.OTP,
       iss: iss,
       createdat: new Date().toISOString()
     });
@@ -168,6 +173,11 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     }
     const key = await getKey(oidcClient, chainType, cubistUser?.user_id);
     console.log("getKey cubesigner user", key, cubistUser?.user_id);
+    const updateCustomer = await updateCustomerCubistData({
+      emailid: customer.emailid,
+      cubistuserid: cubistUser?.user_id,
+      id: customer.id
+    });
     const wallet = await createWalletAndKey(org, cubistUser?.user_id, chainType, customer.id, key);
     const newWallet = {
       walletaddress: wallet.data.walletaddress,
@@ -187,7 +197,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
   }
 }
 
-async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chainType: string, oidcToken: string,authType : string) {
+async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chainType: string, oidcToken: string, authType: string) {
   // check if customer exists
   // check if wallet exists
   // if wallet exists return wallet
@@ -214,11 +224,11 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
       } else {
         if (authType == AuthType.OTP) {
           const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
-          if (customer == null || customer?.id == null || customer?.iv == null || customer?.key == null) {
+          if (customer == null || customer?.id == null || customer?.partialtoken == null) {
             return { wallet: null, error: "Please do the registration first" };
           }
-          oidcToken = await decryptToken(customer?.iv, customer?.key, oidcToken);
-        } 
+          oidcToken = customer?.partialtoken + oidcToken;
+        }
         const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
         return wallet;
       }

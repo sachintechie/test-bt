@@ -237,6 +237,7 @@ type StakeAccountData {
   symbol: String
   amount: Float
   createdat: String
+  updatedat: String
   lockupexpirationtimestamp: String
   tenantuserid: String
   status: String
@@ -336,27 +337,7 @@ type BatchMintCnft {
   error: AWSJSON
 }
 
-type AdminTransfer {
-  status: Int
-  data: AdminTransferData
-  error: AWSJSON
-}
 
-type AdminTransferData {
-  adminUserId: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  status: String
-  transactionid: String
-  network: String
-  tenanttransactionid: String
-}
 
 type TransferData {
   customerid: String
@@ -390,25 +371,10 @@ input TransferInput {
 }
 
 input MintCnftInput {
-  senderWalletAddress: String!
-  receiverWalletAddress: String!
+  receiverWalletAddress: [String]!
   amount: Float
   symbol: String!
   chainType: String!
-}
-
-input AdminTransferInput {
-  senderWalletAddress: String!
-  recipient: [AdminRecipient]!
-  symbol: String!
-  chainType: String!
-  adminUserId: String!
-  tenantTransactionId: String!
-}
-
-input AdminRecipient {
-  walletAddress: String
-  amount: Float
 }
 
 input UnStakingInput {
@@ -501,7 +467,9 @@ type CategoryResponse {
 
 type CategoryData {
   name: String!
-  tenantId: String!
+  tenantid: String!
+  createdat: String
+  updatedat: String
 }
 
 input GetCategoryByIdInput {
@@ -518,12 +486,20 @@ type GetCategoriesResponse {
   error: AWSJSON
 }
 
+enum ProductRarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
+}
+
 input CreateProductInput {
   name: String!
   categoryId: String!
-  rarity: String!
-  price: Float!
-  ownershipId: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedPercentage: Float
 }
 
 type ProductResponse {
@@ -535,12 +511,15 @@ type ProductResponse {
 type ProductData {
   id: String!
   name: String!
-  categoryId: String!
-  rarity: String!
-  price: Float!
+  categoryid: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedpercentage: Float
+  availablepercentage: Float
   category: CategoryData!
-  productAttributes: [ProductAttributeData!]!
-  ownerships: [OwnershipData!]!
+  createdat: String
+  updatedat: String
+  productattributes: [ProductAttributeData!]!
 }
 
 type ProductAttributeData {
@@ -548,14 +527,9 @@ type ProductAttributeData {
   key: String!
   value: String!
   type: String!
-  productId: String!
-}
-
-type OwnershipData {
-  customerId: String!
-  productId: String!
-  fractional: Boolean!
-  fraction: Float
+  productid: String!
+  createdat: String
+  updatedat: String
 }
 
 type GetProductsResponse {
@@ -595,8 +569,25 @@ type GetProductAttributesResponse {
   error: AWSJSON
 }
 
+enum FilterOperator {
+  gt
+  lt
+  gte
+  lte
+  eq
+}
+
+input FilterProductInput {
+  filters: [ProductFilter]
+}
+
+input ProductFilter {
+  key: String
+  operator: FilterOperator
+  value: String
+}
+
 type Query {
-  CreateWallet(input: CreateWalletInput): GetWallet
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
   GetWallet(input: GetWalletInput): GetWallet
@@ -613,14 +604,8 @@ type Query {
   GetCubistOrgData: GetCubistOrgData
   MasterTransfer(input: MasterTransferInput): Transfer
   Signin: SignIn
-  AdminSignin(input: SigninInput): SignIn
-  CreateAdminWallet(input: CreateWalletInput): GetWallet
   Staking(input: StakingInput): Staking
   Transfer(input: TransferInput): Transfer
-  AdminTransfer(input: AdminTransferInput): AdminTransfer
-  Unstaking(input: UnStakingInput): Staking
-  MergeStake(input: MergeStakeInput): ListStakeAccounts
-  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
   SendEmailOtpSignin(input: EmailSigninInput): SignIn
   EmailOtpSignin(input: GetWalletInput): GetWallet
   MintNFT(input: MintNFTInput): Web3TransactionResponse
@@ -629,23 +614,25 @@ type Query {
   TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
   UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
   GetMetadata(input: GetMetadataInput): GetMetadataResponse
-  CreateCategory(input: CreateCategoryInput): CategoryResponse
   GetCategories: GetCategoriesResponse
   GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
   GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-  CreateProduct(input: CreateProductInput): ProductResponse
   GetProducts: GetProductsResponse
   GetProductById(input: GetProductByIdInput): ProductResponse
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
-  BatchMintCnft(input: MintCnftInput): BatchMintCnft
-}
+  FilterProducts(input: FilterProductInput): GetProductsResponse
+  }
 
 type Mutation {
   CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+  CreateWallet(input: CreateWalletInput): GetWallet
+  Unstaking(input: UnStakingInput): Staking
+  MergeStake(input: MergeStakeInput): ListStakeAccounts
+  WithdrawStake(input: WithdrawStakeInput): WithdrawStake
+  BatchMintCnft(input: MintCnftInput): BatchMintCnft
 }
 
 schema {

@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
-  decreaseStakeAmount, duplicateStakeAccountWithStatus,
+   duplicateStakeAccountWithStatus,
   getCubistConfig, getToken, getWallet,
   insertStakingTransaction, reduceStakeAccountAmount, updateStakeAccountStatus
 } from "../db/dbFunctions";

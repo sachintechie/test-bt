@@ -1,6 +1,6 @@
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
-import { createAdminWallet, createWallet, getAdminUser, getAdminWalletByAdmin, getCustomer, getWalletByCustomer } from "../db/dbFunctions";
+import { createAdminWallet, getAdminUser, getAdminWalletByAdmin } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {

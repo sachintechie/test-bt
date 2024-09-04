@@ -1,5 +1,4 @@
 import { getCubistConfig } from "../db/dbFunctions";
-import { getSecretValue } from "../db/PgClient";
 import { deleteCubistUserKey, getCsClient } from "./CubeSignerClient";
 import crypto from "crypto";
 
@@ -71,7 +70,7 @@ export async function sendOidcEmailOtp(emailId: string, tenantId: string) {
       });
       const data = await response.json();
       console.log("data", data);
-      if (data.iv && data.key) {
+      if (data.partial_token) {
         return { data, error: null };
       } else {
         return { data: null, error: "Error in sending email otp" };

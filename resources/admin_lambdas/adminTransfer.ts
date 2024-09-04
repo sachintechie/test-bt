@@ -1,4 +1,4 @@
-import { getTokenBySymbol, getTransactionByTenantTransactionId, insertAdminTransaction } from "../db/dbFunctions";
+import { getAdminTransactionByTenantTransactionId, getTokenBySymbol, insertAdminTransaction } from "../db/dbFunctions";
 import { tenant, TransactionStatus } from "../db/models";
 import { batchTransferSPLToken } from "../solana/airdropSplToken";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
@@ -6,7 +6,7 @@ import { verifySolanaTransaction } from "../solana/solanaFunctions";
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    const isTransactionAlreadyExist = await getTransactionByTenantTransactionId(
+    const isTransactionAlreadyExist = await getAdminTransactionByTenantTransactionId(
       event.arguments?.input?.tenantTransactionId,
       event.identity.resolverContext.id
     );
@@ -63,18 +63,18 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
     const amount = recipients.map((item : any) => Number(item.amount)).reduce((prev : any, curr : any) => prev + curr, 0);
 
     if (recipients.length > 0 && tenant != null && token != null) {
-      const transaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);
-      if (transaction.trxHash != null) {
-        const transactionStatus = await verifySolanaTransaction(transaction.trxHash);
+      const blockchainTransaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);
+      if (blockchainTransaction.trxHash != null) {
+        const transactionStatus = await verifySolanaTransaction(blockchainTransaction.trxHash);
         const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
 
-        const newtransaction = await insertAdminTransaction(
+        const transaction = await insertAdminTransaction(
           senderWalletAddress,
           "",
           amount,
           chainType,
           symbol,
-          transaction.trxHash,
+          blockchainTransaction.trxHash,
           tenant.id,
           adminUserId,
           token.id,

@@ -9,15 +9,13 @@ export interface customer {
   isBonusCredit: boolean;
   createdat: string;
   usertype?: string;
-  iv?: string;
-  key?: string;
+  partialtoken?: string;
   iss?: string;
 }
 
 export interface updatecustomer {
   id?: string;
-  iv?: string;
-  key?: string;
+  partialtoken?: string;
   cubistuserid?: string;
   iss?: string;
   emailid?: string;
@@ -62,31 +60,28 @@ export interface token {
 
 export interface product {
   name: string;
-  categoryId: string;
-  rarity: string;
+  categoryid: string;
+  rarity: productRarity;
   price: number;
-  ownershipId: string;
+  purchasedpercentage: number;
 }
 
-export interface category {
+export interface productcategory {
   name: string;
-  tenantId: string;
+  tenantid: string;
 }
 
-export interface ProductAttributes {
-  id: string;
+export interface productattribute {
   key: string;
   value: string;
   type: string;
-  productId: string;
+  productid: string;
 }
 
-export interface ownership {
-  id: string;
-  customerId: string;
-  productId: string;
-  fractional: boolean;
-  fraction?: number;
+export interface productfilter {
+  key: string;
+  operator: "gt" | "lt" | "gte" | "lte" | "eq";
+  value: number | string;
 }
 
 export enum TransactionStatus {
@@ -117,4 +112,12 @@ export enum StakeType {
 export enum AuthType {
   OTP = "OTP",
   OIDC = "OIDC"
+}
+
+export enum productRarity {
+  NORMAL = "NORMAL",
+  RARE = "RARE",
+  EPIC = "EPIC",
+  LEGENDARY = "LEGENDARY",
+  MYTHICAL = "MYTHICAL"
 }
