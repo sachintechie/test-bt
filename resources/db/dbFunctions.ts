@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1692,6 +1692,40 @@ export async function GetProductAttributesByProductId(productId: string) {
       where: { productid: productId }
     });
     return attributes;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function filterProducts(filters: productfilter[]) {
+  const prisma = await getPrismaClient();
+  try {
+    const whereClause: any = {
+      AND: []
+    };
+
+    filters.forEach((filter) => {
+      const condition: any = {};
+      condition[filter.operator] = filter.value;
+
+      whereClause.AND.push({
+        productattributes: {
+          some: {
+            key: filter.key,
+            value: condition
+          }
+        }
+      });
+    });
+
+    const products = await prisma.product.findMany({
+      where: whereClause,
+      include: {
+        productattributes: true
+      }
+    });
+
+    return products;
   } catch (err) {
     throw err;
   }
