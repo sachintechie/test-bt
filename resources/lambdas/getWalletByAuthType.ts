@@ -45,7 +45,9 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
     const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, token, authType);
     if (isExist != null) {
       return isExist;
-    } else {
+    } 
+    
+    else {
       let oidcToken = "";
       if (authType == AuthType.OTP) {
         const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
@@ -103,7 +105,8 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
             oidcToken,
             iss,
             chainType,
-            tenant
+            tenant,
+            customer
           );
           return wallet;
         } catch (e) {
@@ -129,24 +132,25 @@ async function createCustomerAndWallet(
   oidcToken: string,
   iss: string,
   chainType: string,
-  tenant: tenant
+  tenant: tenant,
+  customer: any
 ) {
   try {
     console.log(`Creating key for user ${cubistUserId}...`);
 
-    const customer = await createCustomer({
-      emailid: email ? email : "",
-      name: name ? name : "----",
-      tenantuserid,
-      tenantid: tenant.id,
-      cubistuserid: cubistUserId,
-      isactive: true,
-      isBonusCredit: false,
-      usertype: AuthType.OTP,
-      iss: iss,
-      createdat: new Date().toISOString()
-    });
-    console.log("Created customer", customer.id);
+    // const customer = await createCustomer({
+    //   emailid: email ? email : "",
+    //   name: name ? name : "----",
+    //   tenantuserid,
+    //   tenantid: tenant.id,
+    //   cubistuserid: cubistUserId,
+    //   isactive: true,
+    //   isBonusCredit: false,
+    //   usertype: AuthType.OTP,
+    //   iss: iss,
+    //   createdat: new Date().toISOString()
+    // });
+    // console.log("Created customer", customer.id);
 
     const wallet = await createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customer);
     console.log("Created wallet", wallet);
@@ -232,7 +236,11 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
         const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
         return wallet;
       }
-    } else {
+    } else if( customerAndWallet?.cubistuserid == null) {
+     
+      return customerAndWallet;
+    }
+    else{
       return null;
     }
   } catch (e) {
