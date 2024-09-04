@@ -205,7 +205,7 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
   // return wallet
   try {
     const customerAndWallet = await getCustomerAndWalletByAuthType(tenantuserid, chainType, tenant);
-    if (customerAndWallet != null) {
+    if (customerAndWallet != null && customerAndWallet?.cubistuserid != null) {
       if (
         customerAndWallet.wallets.length > 0 &&
         customerAndWallet?.wallets[0].walletaddress != null &&
