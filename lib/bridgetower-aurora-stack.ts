@@ -6,7 +6,7 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { env} from "./utils/env";
 import {getVpcConfig} from "./utils/vpc";
 import {getSecurityGroups} from "./utils/security_group";
-
+import {ISecret} from "aws-cdk-lib/aws-secretsmanager";
 export const AURORA_CREDENTIALS_SECRET_NAME = 'AuroraCredentials';
 export const DB_NAME = 'auroradb';
 const USERNAME = 'auroraadmin'
@@ -22,18 +22,28 @@ export class AuroraStack extends cdk.Stack {
 
     
     // Create a secret for the Aurora DB credentials
-    const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
-      secretName: SECRET_NAME,
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({
-          username: USERNAME,
-        }),
-        excludePunctuation: true,
-        includeSpace: false,
-        generateStringKey: 'password',
-        excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
-      },
-    });
+
+
+
+    let secret: ISecret;
+    try {
+      // Try to retrieve the existing secret by name
+      secret = secretsmanager.Secret.fromSecretNameV2(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, SECRET_NAME);
+    } catch (error) {
+      // If the secret does not exist, create a new one
+      secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+        secretName: SECRET_NAME,
+        generateSecretString: {
+          secretStringTemplate: JSON.stringify({
+            username: USERNAME,
+          }),
+          excludePunctuation: true,
+          includeSpace: false,
+          generateStringKey: 'password',
+          excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
+        },
+      });
+    }
 
     // Create the Aurora cluster
     const cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
