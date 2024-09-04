@@ -1,24 +1,16 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../../cubist/CubeSignerClient";
 // import fetch from "node-fetch";
-import * as fs from "fs"
-import { getCubistConfig  } from "../../db/dbFunctions";
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  Transaction,
-  sendAndConfirmTransaction,
-} from "@solana/web3.js"
-
-
+import * as fs from "fs";
+import { getCubistConfig } from "../../db/dbFunctions";
+import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
 
 import {
   SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
   ValidDepthSizePair,
   createAllocTreeIx,
-  SPL_NOOP_PROGRAM_ID,
-} from "@solana/spl-account-compression"
+  SPL_NOOP_PROGRAM_ID
+} from "@solana/spl-account-compression";
 
 import {
   PROGRAM_ID as BUBBLEGUM_PROGRAM_ID,
@@ -27,13 +19,12 @@ import {
   MetadataArgs,
   TokenProgramVersion,
   TokenStandard
-} from "@metaplex-foundation/mpl-bubblegum"
+} from "@metaplex-foundation/mpl-bubblegum";
 
-import { uris } from "./uri"
-import { Metaplex, Nft, keypairIdentity } from "@metaplex-foundation/js"
-import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata"
+import { uris } from "./uri";
+import { Metaplex, Nft, keypairIdentity } from "@metaplex-foundation/js";
+import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
 import { tenant } from "../../db/models";
-
 
 // Define your Cubist environment configuration
 const env: any = {
@@ -43,12 +34,12 @@ const env: any = {
 // Assuming there is a method to fetch ownerWallet's address from Cubist
 const getCubistWalletAddress = async (): Promise<PublicKey> => {
   // Replace the following line with the actual logic to get the wallet address from Cubist
-  const cubistWalletAddressString = 'replace_with_cubist_sourced_address';
+  const cubistWalletAddressString = "replace_with_cubist_sourced_address";
   return new PublicKey(cubistWalletAddressString);
 };
 
 export const getSolanaConnection = (): Connection => {
-  const connection = new Connection('https://api.mainnet-beta.solana.com');
+  const connection = new Connection("https://api.mainnet-beta.solana.com");
   return connection;
 };
 
@@ -57,36 +48,29 @@ export const getSolanaBalance = async (address: PublicKey, connection: Connectio
     const balance = await connection.getBalance(address);
     return balance / 1e9; // Convert lamports to SOL
   } catch (error) {
-    console.error('Failed to get balance:', error);
+    console.error("Failed to get balance:", error);
     throw error;
   }
 };
 
-
-
 export const getWallet = async (): Promise<any> => {
   const connection = getSolanaConnection();
-  
+
   const walletAddress = await getCubistWalletAddress(); // Fetch ownerWallet's address from Cubist
   const balance = await getSolanaBalance(walletAddress, connection);
-  
+
   return {
-    name: 'ownerWallet', // Its owner's wallet. It cn be named anything
+    name: "ownerWallet", // Its owner's wallet. It cn be named anything
     address: walletAddress,
     balance
   };
 };
 
 const walletConfig = {
-
-    // ownerWallet:[92,150,214,83,212,16,146,141,85,38,86,217,110,155,71,36,215,112,132,193,248,87,170,150,162,185,11,98,227,218,211,213,86,43,113,134,142,43,237,164,176,158,83,236,162,216,5,213,250,171,141,80,147,202,70,18,73,3,121,106,31,55,177,32],
-    COLLECTION_NFT: "FU6Q3qHZADTQENudcgmp35uXDhN9ibh7EfX6n4sKAeiN",
-   // RPC_URL: "https://devnet.helius-rpc.com/?api-key=94ca9cc5-df4e-403a-9156-bbd631a6b13e",
-   }
-
-
-
-
+  // ownerWallet:[92,150,214,83,212,16,146,141,85,38,86,217,110,155,71,36,215,112,132,193,248,87,170,150,162,185,11,98,227,218,211,213,86,43,113,134,142,43,237,164,176,158,83,236,162,216,5,213,250,171,141,80,147,202,70,18,73,3,121,106,31,55,177,32],
+  COLLECTION_NFT: "FU6Q3qHZADTQENudcgmp35uXDhN9ibh7EfX6n4sKAeiN"
+  // RPC_URL: "https://devnet.helius-rpc.com/?api-key=94ca9cc5-df4e-403a-9156-bbd631a6b13e",
+};
 
 // Dummy function to represent fetching recipient wallets from a database
 /*export async function getRecipientWalletsFromDatabase(startIndex: number, limit: number): Promise<PublicKey[]> {
@@ -102,19 +86,16 @@ const walletConfig = {
 }
 */
 
-
-
 // Function to handle the login process with Cubist and get a session key
 
 async function getCubistSessionKey(oidcToken: string, tenant: tenant) {
   try {
-
     const cubistConfig = await getCubistConfig(tenant.id);
-      if (cubistConfig == null) {
-        throw new Error ("Cubist Configuration not found for the given tenant")
-      }
+    if (cubistConfig == null) {
+      throw new Error("Cubist Configuration not found for the given tenant");
+    }
 
-    const oidcClient = await oidcLogin(env, cubistConfig.orgid , oidcToken, ["sign:*"]);
+    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
     if (!oidcClient) {
       throw new Error("Please provide a valid identity token for verification");
     }
@@ -153,17 +134,8 @@ export async function createAndInitializeTree(
   canopyDepth: number
 ) {
   const treeKeypair = Keypair.generate();
-  const [treeAuthority, _bump] = PublicKey.findProgramAddressSync(
-    [treeKeypair.publicKey.toBuffer()],
-    BUBBLEGUM_PROGRAM_ID
-  );
-  const allocTreeIx = await createAllocTreeIx(
-    connection,
-    treeKeypair.publicKey,
-    payer.publicKey,
-    maxDepthSizePair,
-    canopyDepth
-  );
+  const [treeAuthority, _bump] = PublicKey.findProgramAddressSync([treeKeypair.publicKey.toBuffer()], BUBBLEGUM_PROGRAM_ID);
+  const allocTreeIx = await createAllocTreeIx(connection, treeKeypair.publicKey, payer.publicKey, maxDepthSizePair, canopyDepth);
   const createTreeIx = createCreateTreeInstruction(
     {
       treeAuthority,
@@ -171,12 +143,12 @@ export async function createAndInitializeTree(
       payer: payer.publicKey,
       treeCreator: payer.publicKey,
       logWrapper: SPL_NOOP_PROGRAM_ID,
-      compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
+      compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID
     },
     {
       maxBufferSize: maxDepthSizePair.maxBufferSize,
       maxDepth: maxDepthSizePair.maxDepth,
-      public: false,
+      public: false
     }
   );
 
@@ -184,15 +156,10 @@ export async function createAndInitializeTree(
   tx.feePayer = payer.publicKey;
 
   try {
-    const txSignature = await sendAndConfirmTransaction(
-      connection,
-      tx,
-      [treeKeypair, payer],
-      {
-        commitment: "finalized",
-        skipPreflight: true,
-      }
-    );
+    const txSignature = await sendAndConfirmTransaction(connection, tx, [treeKeypair, payer], {
+      commitment: "finalized",
+      skipPreflight: true
+    });
 
     console.log(`https://explorer.solana.com/tx/${txSignature}?cluster=devnet`);
     console.log("Tree Address:", treeKeypair.publicKey.toBase58());
@@ -204,13 +171,10 @@ export async function createAndInitializeTree(
   }
 }
 
-
-
 export type MintResult = {
-  transaction: string[] ; // Assuming it returns a transaction signature or null
-  error: string | null;       // Assuming it returns an error message or null
+  transaction: string[]; // Assuming it returns a transaction signature or null
+  error: string | null; // Assuming it returns an error message or null
 };
-
 
 export async function mintCompressedNftToCollection(
   connection: Connection,
@@ -221,15 +185,9 @@ export async function mintCompressedNftToCollection(
   amount: number,
   tenantId: tenant
 ): Promise<MintResult> {
-  const [treeAuthority] = PublicKey.findProgramAddressSync(
-    [treeAddress.toBuffer()],
-    BUBBLEGUM_PROGRAM_ID
-  );
+  const [treeAuthority] = PublicKey.findProgramAddressSync([treeAddress.toBuffer()], BUBBLEGUM_PROGRAM_ID);
 
-  const [bubblegumSigner] = PublicKey.findProgramAddressSync(
-    [Buffer.from("collection_cpi", "utf8")],
-    BUBBLEGUM_PROGRAM_ID
-  );
+  const [bubblegumSigner] = PublicKey.findProgramAddressSync([Buffer.from("collection_cpi", "utf8")], BUBBLEGUM_PROGRAM_ID);
   const payerPublicKey = new PublicKey(payer.materialId);
 
   const txSignitureArray = [];
@@ -244,7 +202,7 @@ export async function mintCompressedNftToCollection(
           payer: payerPublicKey,
           merkleTree: treeAddress,
           treeAuthority,
-          treeDelegate:payerPublicKey,
+          treeDelegate: payerPublicKey,
           leafOwner: recipient,
           leafDelegate: recipient,
           collectionAuthority: payerPublicKey,
@@ -255,55 +213,47 @@ export async function mintCompressedNftToCollection(
           compressionProgram: SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
           logWrapper: SPL_NOOP_PROGRAM_ID,
           bubblegumSigner,
-          tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID,
+          tokenMetadataProgram: TOKEN_METADATA_PROGRAM_ID
         },
         {
           metadataArgs: Object.assign(compressedNFTMetadata, {
-            collection: { key: collectionDetails.mint, verified: false },
-          }),
+            collection: { key: collectionDetails.mint, verified: false }
+          })
         }
       );
 
       const tx = new Transaction().add(mintIx);
       tx.feePayer = payerPublicKey;
       console.log(mintIx);
+      // 7.Specify the recent blockhash
+      const { blockhash } = await connection.getLatestBlockhash();
+      tx.recentBlockhash = blockhash;
+      // 9.Sign the transaction with sender
+      const base64Sender = tx.serializeMessage().toString("base64");
+      // sign using the well-typed solana end point (which requires a base64 serialized Message)
+      const respSender = await payer.signSolana({ message_base64: base64Sender });
+      const sigSender = respSender.data().signature;
+      const sigBytesSender = Buffer.from(sigSender.slice(2), "hex");
+      tx.addSignature(payerPublicKey, sigBytesSender);
+      console.log("Transaction", tx);
 
-         // 9.Sign the transaction with sender
-    const base64Sender = tx.serializeMessage().toString("base64");
-    // sign using the well-typed solana end point (which requires a base64 serialized Message)
-    const respSender = await payer.signSolana({ message_base64: base64Sender });
-    const sigSender = respSender.data().signature;
-    const sigBytesSender = Buffer.from(sigSender.slice(2), "hex");
-    tx.addSignature(payerPublicKey, sigBytesSender);
-    console.log("Transaction", tx);
+      // 10.Send the transaction
 
-    // 10.Send the transaction
+      const txSignature = await connection.sendRawTransaction(tx.serialize());
+      await connection.confirmTransaction(txSignature);
 
-    const txSignature = await connection.sendRawTransaction(tx.serialize());
-    await connection.confirmTransaction(txSignature);
+      console.log(`txHash: ${txSignature}`);
 
-    console.log(`txHash: ${txSignature}`);
-      
+      txSignitureArray.push(txSignature);
 
-   
-
-      txSignitureArray.push(txSignature)
-
-      console.log(
-        `Minted to ${recipient.toBase58()}: https://explorer.solana.com/tx/${txSignature}?cluster=devnet`
-      );
-      
+      console.log(`Minted to ${recipient.toBase58()}: https://explorer.solana.com/tx/${txSignature}?cluster=devnet`);
     }
     return { transaction: txSignitureArray, error: null };
-    
   } catch (err: any) {
     console.error("Failed to mint compressed NFT:", err);
     return { transaction: [], error: err.message };
   }
 }
-
-
-
 
 /*
 async function logNftDetails(treeAddress: PublicKey, nftsMinted: number) {
@@ -328,13 +278,12 @@ async function logNftDetails(treeAddress: PublicKey, nftsMinted: number) {
 }
 */
 
-
 function createNftMetadata(creator: PublicKey, index: number) {
   if (index > uris.length) {
-    throw new Error("Index is out of range")
+    throw new Error("Index is out of range");
   }
 
-  const uri = uris[index]
+  const uri = uris[index];
 
   // Compressed NFT Metadata
   const compressedNFTMetadata: MetadataArgs = {
@@ -349,36 +298,17 @@ function createNftMetadata(creator: PublicKey, index: number) {
     sellerFeeBasisPoints: 0,
     isMutable: false,
     tokenProgramVersion: TokenProgramVersion.Original,
-    tokenStandard: TokenStandard.NonFungible,
-  }
+    tokenStandard: TokenStandard.NonFungible
+  };
 
-  return compressedNFTMetadata
+  return compressedNFTMetadata;
 }
-
-
-
 
 export type CollectionDetails = {
-  mint: PublicKey
-  metadata: PublicKey
-  masterEditionAccount: PublicKey
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  mint: PublicKey;
+  metadata: PublicKey;
+  masterEditionAccount: PublicKey;
+};
 
 // async function getOrCreateCollectionNFT(
 //   connection: Connection,
