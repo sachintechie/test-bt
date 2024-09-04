@@ -1,6 +1,8 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult, createAndInitializeTree, generateDummyWallets } from "../solana/cNft/commonFunctions";
+import { mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
 import { tenant } from "../db/models";
+import { getSolConnection } from "../solana/solanaFunctions";
+import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 
 // Define your handler function
 export const handler = async (event: any) => {
@@ -21,31 +23,7 @@ export const handler = async (event: any) => {
         body: JSON.stringify({ message: "Missing required fields" })
       };
     }
-
-    // Create a Solana connection
-    const connection = new Connection(clusterApiUrl("mainnet-beta"));
-
-    // Fetch the payer's keypair (or create one if it doesn't exist)
-    const payer = await getOrCreateKeypair("payerWallet");
-
-    // Get or create the NFT collection details
-    const collectionDetails = await getOrCreateCollectionNFT(connection, payer);
-
-    // Convert the receiver wallet address to a PublicKey
-    const recipientPublicKey = new PublicKey(receiverWalletAddress);
-
-    // Mint the compressed NFT(s) to the collection
-    const data: MintResult = await mintCompressedNftToCollection(
-      connection,
-      payer,
-      collectionDetails.mint,
-      collectionDetails,
-      [recipientPublicKey], // Single recipient; can be expanded to a list
-      amount,
-      oidcToken,
-      tenantId
-    );
-
+   const data = await airdropCNFT(tenant, receiverWalletAddress, amount, oidcToken);
     // Build the response
     return {
       statusCode: 200,
@@ -81,11 +59,16 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       };
     }
 
+
+
     // Get or create the NFT collection details
+
+  
+
     const collectionDetails = {
-      mint: new PublicKey("collectionNft.mintAddress"),
-      metadata: new PublicKey("collectionNft.metadataAddress"),
-      masterEditionAccount: new PublicKey("collectionNft.masterEditionAddress"),
+      mint: new PublicKey("9ZaAdtajfjeStX1jxkQiPrbt9yYGseB9tAZ8fmC799xH"),
+      metadata: new PublicKey("HMj3e6Qa9i3JcyUUDpKTBRNTi5CQcAgtjx3KHowomcTn"),
+      masterEditionAccount: new PublicKey("4JYBkAnG3c3KdGhqNJngh7cxMPVC5oAdvwRHLdKZEgYW"),
     }
 
    let receiverList: PublicKey[] = [];
