@@ -151,7 +151,7 @@ export async function createAdminUser(customer: customer) {
   }
 }
 
-export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string, key?: any) {
+export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId: string, key?: any) {
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);

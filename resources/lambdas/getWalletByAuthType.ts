@@ -8,6 +8,7 @@ import {
   getEmailOtpCustomer,
   updateCustomerCubistData
 } from "../db/dbFunctions";
+import { customer } from "@prisma/client";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -47,7 +48,7 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
       return isExist;
     } else {
       let oidcToken = "";
-      let customer;
+      let customer  ;
       if (authType == AuthType.OTP) {
         customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
         if (customer == null || customer?.id == null || customer?.partialtoken == null) {
@@ -105,7 +106,7 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
             iss,
             chainType,
             tenant,
-            customer
+            customer as customer
           );
           return wallet;
         } catch (e) {
@@ -132,7 +133,7 @@ async function createCustomerAndWallet(
   iss: string,
   chainType: string,
   tenant: tenant,
-  customer: any
+  customer: customer
 ) {
   try {
     console.log(`Creating key for user ${cubistUserId}...`);
@@ -168,7 +169,7 @@ async function createCustomerAndWallet(
   }
 }
 
-async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken: string, chainType: string, customer: any) {
+async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken: string, chainType: string, customer: customer) {
   try {
     const { org, orgId } = await getCsClient(tenant.id);
     const oidcClient = await oidcLogin(env, orgId || "", oidcToken, ["sign:*"]);
