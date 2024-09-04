@@ -60,7 +60,12 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
     }
 
     // Get or create the NFT collection details
-    const collectionDetails = await getOrCreateCollectionNFT(connection, payer.key);
+    const collectionDetails = {
+      mint: new PublicKey("collectionNft.mintAddress"),
+      metadata: new PublicKey("collectionNft.metadataAddress"),
+      masterEditionAccount: new PublicKey("collectionNft.masterEditionAddress"),
+    }
+
    let receiverList: PublicKey[] = [];
     // Convert the receiver wallet address to a PublicKey
     receivers.map((receiver) => {
