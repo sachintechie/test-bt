@@ -1,5 +1,5 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
+import { mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
 import { tenant } from "../db/models";
 import { getSolConnection } from "../solana/solanaFunctions";
 import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
@@ -23,7 +23,7 @@ export const handler = async (event: any) => {
         body: JSON.stringify({ message: "Missing required fields" })
       };
     }
-   const data = await airdropCNFT(tenant, receiverWalletAddress, amount, oidcToken);
+   const data = await airdropCNFT(tenant, receiverWalletAddress, amount);
     // Build the response
     return {
       statusCode: 200,
@@ -44,7 +44,7 @@ export const handler = async (event: any) => {
   }
 };
 
-async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, oidcToken: string) {
+async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) {
   try {
     // Create a Solana connection
     const connection = await getSolConnection();
@@ -59,11 +59,16 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       };
     }
 
+
+
     // Get or create the NFT collection details
+
+  
+
     const collectionDetails = {
-      mint: new PublicKey("collectionNft.mintAddress"),
-      metadata: new PublicKey("collectionNft.metadataAddress"),
-      masterEditionAccount: new PublicKey("collectionNft.masterEditionAddress"),
+      mint: new PublicKey("9ZaAdtajfjeStX1jxkQiPrbt9yYGseB9tAZ8fmC799xH"),
+      metadata: new PublicKey("HMj3e6Qa9i3JcyUUDpKTBRNTi5CQcAgtjx3KHowomcTn"),
+      masterEditionAccount: new PublicKey("4JYBkAnG3c3KdGhqNJngh7cxMPVC5oAdvwRHLdKZEgYW"),
     }
 
    let receiverList: PublicKey[] = [];
@@ -81,7 +86,6 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       collectionDetails,
       receiverList,
       amount,
-      oidcToken,
       tenant
     );
 
