@@ -44,7 +44,7 @@ export const handler = async (event: any) => {
   }
 };
 
-async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, oidcToken: string) {
+async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) {
   try {
     // Create a Solana connection
     const connection = await getSolConnection();
@@ -81,7 +81,6 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       collectionDetails,
       receiverList,
       amount,
-      oidcToken,
       tenant
     );
 

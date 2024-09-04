@@ -219,10 +219,8 @@ export async function mintCompressedNftToCollection(
   collectionDetails: CollectionDetails,
   recipients: PublicKey[],
   amount: number,
-  oidcToken: string,
   tenantId: tenant
 ): Promise<MintResult> {
-  const sessionKey = await getCubistSessionKey(oidcToken, tenantId);
   const [treeAuthority] = PublicKey.findProgramAddressSync(
     [treeAddress.toBuffer()],
     BUBBLEGUM_PROGRAM_ID
