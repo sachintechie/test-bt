@@ -55,6 +55,7 @@ model customer {
   transactions      transaction[]
   staketransactions staketransaction[]
   stakeaccounts     stakeaccount[]
+  wishlists         productwishlist[]
 }
 
 model adminuser {
@@ -244,6 +245,7 @@ model product {
   updatedat         DateTime?            @updatedAt
   transactions      transaction[]
   productattributes productattribute[]
+  wishlists  productwishlist[]
   @@unique([categoryid, name])
 }
 
@@ -358,4 +360,13 @@ model adminwallet {
   isactive      Boolean?
   tenantid      String?
   createdat     String?
+}
+
+model productwishlist {
+  id           String     @id @default(uuid())
+  customerid   String     
+  customer     Customer   @relation(fields: [customerid], references: [id], onDelete: Cascade)
+  productid    String     
+  product      Product    @relation(fields: [productid], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
 }

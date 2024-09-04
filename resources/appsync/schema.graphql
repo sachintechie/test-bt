@@ -587,6 +587,22 @@ input ProductFilter {
   value: String
 }
 
+input AddToWishlistInput{
+customerId : String!
+productId  : String!
+}
+
+type AddToWishlistResponse {
+  status: Int
+  data: AddToWishlistData
+  error: AWSJSON
+}
+
+type AddToWishlistData {
+  customerid: String!
+  productid:  String!
+}
+
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
@@ -633,6 +649,7 @@ type Mutation {
   MergeStake(input: MergeStakeInput): ListStakeAccounts
   WithdrawStake(input: WithdrawStakeInput): WithdrawStake
   BatchMintCnft(input: MintCnftInput): BatchMintCnft
+  AddToWishlist(input: AddToWishlistInput): AddToWishlistResponse
 }
 
 schema {

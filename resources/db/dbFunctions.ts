@@ -1730,3 +1730,30 @@ export async function filterProducts(filters: productfilter[]) {
     throw err;
   }
 }
+
+export async function addToWishlist(customerId: string, productId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const existingWishlistItem = await prisma.productwishlist.findFirst({
+      where: {
+        customerid: customerId,
+        productid: productId
+      }
+    });
+
+    if (existingWishlistItem) {
+      throw new Error("Product is already in the wishlist");
+    }
+
+    const newWishlistItem = await prisma.wishlist.create({
+      data: {
+        customerid: customerId,
+        productid: productId
+      }
+    });
+
+    return newWishlistItem;
+  } catch (error) {
+    throw error;
+  }
+}
