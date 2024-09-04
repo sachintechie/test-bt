@@ -78,6 +78,12 @@ export interface productattribute {
   productid: string;
 }
 
+export interface productfilter {
+  key: string;
+  operator: "gt" | "lt" | "gte" | "lte" | "eq";
+  value: number | string;
+}
+
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",

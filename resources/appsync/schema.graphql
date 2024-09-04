@@ -569,6 +569,24 @@ type GetProductAttributesResponse {
   error: AWSJSON
 }
 
+enum FilterOperator {
+  gt
+  lt
+  gte
+  lte
+  eq
+}
+
+input FilterProductInput {
+  filters: [ProductFilter]
+}
+
+input ProductFilter {
+  key: String
+  operator: FilterOperator
+  value: String
+}
+
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
@@ -603,6 +621,7 @@ type Query {
   GetProductById(input: GetProductByIdInput): ProductResponse
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+  FilterProducts(input: FilterProductInput): GetProductsResponse
   }
 
 type Mutation {
