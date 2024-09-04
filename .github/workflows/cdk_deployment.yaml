@@ -194,11 +194,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Bootstrap to playground-dev
-        env:
-          CDK_ENV: "playground-dev"
-        run: npx cdk bootstrap
-
       - name: Deploy to playground-dev
         env:
           CDK_ENV: "playground-dev"
