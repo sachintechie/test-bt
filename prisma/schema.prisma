@@ -365,8 +365,8 @@ model adminwallet {
 model productwishlist {
   id           String     @id @default(uuid())
   customerid   String     
-  customer     Customer   @relation(fields: [customerid], references: [id], onDelete: Cascade)
+  customer     customer   @relation(fields: [customerid], references: [id], onDelete: Cascade)
   productid    String     
-  product      Product    @relation(fields: [productid], references: [id], onDelete: Cascade)
+  product      product    @relation(fields: [productid], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
 }
