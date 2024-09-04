@@ -350,7 +350,7 @@ const unStakeDate = new Date(stakeAccountData?.updatedat || "");
 const withdrawDate = new Date();
 const diffTime = Math.abs(withdrawDate.getTime() - unStakeDate.getTime());
 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+console.log("diffDays",diffDays,"difftime",diffTime,unStakeDate,withdrawDate);
   if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.CLOSED){
     return { data: null ,error:"No stake account found for this user "};
   }
