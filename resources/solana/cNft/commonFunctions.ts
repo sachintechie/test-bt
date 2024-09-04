@@ -365,66 +365,6 @@ export type CollectionDetails = {
 }
 
 
-/*
-export async function getOrCreateCollectionNFT(
-  connection: Connection,
-  payer:Keypair
-): Promise<CollectionDetails> {
-  const envCollectionNft = walletConfig.COLLECTION_NFT
-  
-  // Create Metaplex instance using payer as identity
-  const metaplex = new Metaplex(connection).use(keypairIdentity(payer )) 
-
-  if (envCollectionNft) {
-    const collectionNftAddress = new PublicKey(envCollectionNft)
-    const collectionNft = await metaplex
-      .nfts()
-      .findByMint({ mintAddress: collectionNftAddress })
-
-    if (collectionNft.model !== "nft") {
-      throw new Error("Invalid collection NFT")
-    }
-
-    return {
-      mint: collectionNft.mint.address,
-      metadata: collectionNft.metadataAddress,
-      masterEditionAccount: (collectionNft as Nft).edition.address,
-    }
-  }
-
-  // Select a random URI from uris
-  const randomUri = uris[Math.floor(Math.random() * uris.length)]
-
-  // Create a regular collection NFT using Metaplex
-  const collectionNft = await metaplex.nfts().create({
-    uri: randomUri,
-    name: "Collection NFT",
-    sellerFeeBasisPoints: 0,
-    updateAuthority: payer,
-    mintAuthority: payer,
-
-    tokenStandard: 0,
-    symbol: "Collection",
-    isMutable: true,
-    isCollection: true,
-  });
-
-
-
-  fs.appendFileSync(
-    ".env",
-    `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`
-  )
-
-  return {
-    mint: collectionNft.mintAddress,
-    metadata: collectionNft.metadataAddress,
-    masterEditionAccount: collectionNft.masterEditionAddress,
-  }
-}
-
-
-*/
 
 
 
@@ -440,3 +380,79 @@ export async function getOrCreateCollectionNFT(
 
 
 
+// async function getOrCreateCollectionNFT(
+//   connection: Connection,
+//   payer: Keypair,
+//   oidcToken: string,
+//   tenantId: tenant
+// ): Promise<CollectionDetails> {
+//   const envCollectionNft = walletConfig.COLLECTION_NFT;
+
+//   // Obtain a Cubist session key
+//   const sessionKey = await getCubistSessionKey(oidcToken, tenantId);
+
+//   // Define a custom signer using Cubist
+//   const cubistSigner: Signer = {
+//     publicKey: new PublicKey(sessionKey.materialId), // Set the public key from Cubist session
+//     signMessage: async (message: Uint8Array) => {
+//       const messageBase64 = Buffer.from(message).toString("base64");
+//       const response = await sessionKey.signSolana({ message_base64: messageBase64 });
+//       const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Convert signature to Buffer
+//       return signature;
+//     },
+//   };
+
+//   // Create Metaplex instance using Cubist signer as identity
+//   const metaplex = new Metaplex(connection).use({
+//     signTransaction: async (tx) => {
+//       tx.partialSign(payer); // Partial sign with payer if needed
+//       const serializedTx = tx.serializeMessage().toString("base64");
+//       const response = await sessionKey.signSolana({ message_base64: serializedTx });
+//       const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Hex to buffer
+//       tx.addSignature(cubistSigner.publicKey, signature); // Add signature to transaction
+//       return tx;
+//     },
+//     identity: cubistSigner, // Set custom Cubist signer
+//   });
+
+//   // Check for existing collection NFT
+//   if (envCollectionNft) {
+//     const collectionNftAddress = new PublicKey(envCollectionNft);
+//     const collectionNft = await metaplex.nfts().findByMint({ mintAddress: collectionNftAddress });
+
+//     if (collectionNft.model !== "nft") {
+//       throw new Error("Invalid collection NFT");
+//     }
+
+//     return {
+//       mint: collectionNft.mint.address,
+//       metadata: collectionNft.metadataAddress,
+//       masterEditionAccount: (collectionNft as Nft).edition.address,
+//     };
+//   }
+
+//   // Select a random URI from uris
+//   const randomUri = uris[Math.floor(Math.random() * uris.length)];
+
+//   // Create a regular collection NFT using Metaplex
+//   const collectionNft = await metaplex.nfts().create({
+//     uri: randomUri,
+//     name: "Collection NFT",
+//     sellerFeeBasisPoints: 0,
+//     updateAuthority: cubistSigner, // Use Cubist signer for the update authority
+//     mintAuthority: cubistSigner, // Use Cubist signer for mint authority
+//     tokenStandard: 0,
+//     symbol: "Collection",
+//     isMutable: true,
+//     isCollection: true,
+//   });
+
+//   // Store the collection NFT mint address in the environment
+//   fs.appendFileSync(".env", `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`);
+
+//   return {
+//     mint: collectionNft.mintAddress,
+//     metadata: collectionNft.metadataAddress,
+//     masterEditionAccount: collectionNft.masterEditionAddress,
+//   };
+// }
