@@ -441,12 +441,12 @@ export type CollectionDetails = {
 
 export async function getOrCreateCollectionNFT(
   connection: Connection,
-  payer: any
+  payer: cs.Key
 ): Promise<CollectionDetails> {
   const envCollectionNft = walletConfig.COLLECTION_NFT
   
   // Create Metaplex instance using payer as identity
-  const metaplex = new Metaplex(connection).use(keypairIdentity(payer))
+  const metaplex = new Metaplex(connection).use(keypairIdentity(payer.materialId )) 
 
   if (envCollectionNft) {
     const collectionNftAddress = new PublicKey(envCollectionNft)
@@ -475,6 +475,7 @@ export async function getOrCreateCollectionNFT(
     sellerFeeBasisPoints: 0,
     updateAuthority: payer,
     mintAuthority: payer,
+    
     tokenStandard: 0,
     symbol: "Collection",
     isMutable: true,

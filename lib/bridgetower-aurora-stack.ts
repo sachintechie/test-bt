@@ -6,6 +6,8 @@ import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { env} from "./utils/env";
 import {getVpcConfig} from "./utils/vpc";
 import {getSecurityGroups} from "./utils/security_group";
+import {ISecret} from "aws-cdk-lib/aws-secretsmanager";
+import {IDatabaseCluster} from "aws-cdk-lib/aws-rds";
 
 export const AURORA_CREDENTIALS_SECRET_NAME = 'AuroraCredentials';
 export const DB_NAME = 'auroradb';
@@ -19,24 +21,29 @@ export class AuroraStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    let secret: ISecret;
+    try {
+      // Try to retrieve the existing secret by name
+      secret = secretsmanager.Secret.fromSecretNameV2(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, SECRET_NAME);
+    } catch (error) {
+      // If the secret does not exist, create a new one
+      secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+        secretName: SECRET_NAME,
+        generateSecretString: {
+          secretStringTemplate: JSON.stringify({
+            username: USERNAME,
+          }),
+          excludePunctuation: true,
+          includeSpace: false,
+          generateStringKey: 'password',
+          excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
+        },
+      });
+    }
 
-    
-    // Create a secret for the Aurora DB credentials
-    const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
-      secretName: SECRET_NAME,
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({
-          username: USERNAME,
-        }),
-        excludePunctuation: true,
-        includeSpace: false,
-        generateStringKey: 'password',
-        excludeCharacters: '!@#$%^&*()-_+=[]{}|;:,.<>?/`~',
-      },
-    });
 
-    // Create the Aurora cluster
-    const cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
+   let cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
+      clusterIdentifier: env`AuroraCluster`,
       engine: rds.DatabaseClusterEngine.auroraPostgres({
         version: rds.AuroraPostgresEngineVersion.VER_15_4,
       }),
@@ -52,7 +59,6 @@ export class AuroraStack extends cdk.Stack {
       storageEncrypted: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // NOT recommended for production use
     });
-
 
     // Output the necessary environment variables
     this.dbEndpoint = new cdk.CfnOutput(this, env`DBEndpoint`, {

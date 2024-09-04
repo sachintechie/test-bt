@@ -1,10 +1,21 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import {env, envConfig} from "../lib/utils/env";
+import {env, envConfig, isDevOrProd} from "../lib/utils/env";
 import {BridgeTowerAppSyncStack} from "../lib/bridgetower-appsync-stack";
+import {AuroraStack} from "../lib/bridgetower-aurora-stack";
+import {getDatabaseInfo, getDevOrProdDatabaseInfo} from "../lib/utils/aurora";
 
 
 const app = new cdk.App();
+
+let auroraStack:AuroraStack|undefined;
+
+if(!isDevOrProd()){
+  // Import the Aurora stack
+  auroraStack = new AuroraStack(app, env`BTAuroraStack`, {
+    env:envConfig
+  });
+}
 
 // Create the stack with an environment-specific ID
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
@@ -15,7 +26,8 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   authorizerLambda:'appsyncAuthorizer',
   hasApiGateway:true,
   apiName:'Api',
-  needMigrate:true
+  needMigrate:true,
+  auroraStack:auroraStack
 });
 
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
@@ -26,5 +38,6 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   authorizerLambda:'adminAppsyncAuthorizer',
   hasApiGateway:false,
   apiName:'AdminApi',
-  needMigrate:false
+  needMigrate:false,
+  auroraStack:auroraStack
 });
