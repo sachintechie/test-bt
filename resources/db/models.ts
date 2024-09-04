@@ -9,15 +9,13 @@ export interface customer {
   isBonusCredit: boolean;
   createdat: string;
   usertype?: string;
-  iv?: string;
-  key?: string;
+  partialtoken?: string;
   iss?: string;
 }
 
 export interface updatecustomer {
   id?: string;
-  iv?: string;
-  key?: string;
+  partialtoken?: string;
   cubistuserid?: string;
   iss?: string;
   emailid?: string;
@@ -30,6 +28,8 @@ export interface tenant {
   logo: string;
   isactive: boolean;
   createdat: string;
+  userpoolid: string;
+  cognitoclientid: string;
 }
 
 export interface wallet {
@@ -56,6 +56,26 @@ export interface token {
   isactive: boolean;
   createdat: string;
   decimalprecision: number;
+}
+
+export interface product {
+  name: string;
+  categoryid: string;
+  rarity: productRarity;
+  price: number;
+  purchasedpercentage: number;
+}
+
+export interface productcategory {
+  name: string;
+  tenantid: string;
+}
+
+export interface productattribute {
+  key: string;
+  value: string;
+  type: string;
+  productid: string;
 }
 
 export enum TransactionStatus {
@@ -86,4 +106,12 @@ export enum StakeType {
 export enum AuthType {
   OTP = "OTP",
   OIDC = "OIDC"
+}
+
+export enum productRarity {
+  NORMAL = "NORMAL",
+  RARE = "RARE",
+  EPIC = "EPIC",
+  LEGENDARY = "LEGENDARY",
+  MYTHICAL = "MYTHICAL"
 }

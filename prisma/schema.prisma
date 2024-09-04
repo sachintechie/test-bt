@@ -49,8 +49,7 @@ model customer {
   iss               String?             
   isbonuscredit     Boolean?
   usertype          String?
-  iv                String?
-  key               String?
+  partialtoken      String?
   customerkycs      customerkyc[]
   wallets           wallet[]
   transactions      transaction[]
@@ -71,6 +70,7 @@ model adminuser {
   iss           String?
   isbonuscredit Boolean?
   adminwallets  adminwallet[]
+  admintransactions admintransaction[]
 }
 
 model customerkyc {
@@ -196,6 +196,8 @@ model tenant {
   tenantheaderkey  String?
   callbackurl      String?
   cubistorgid      String?
+  userpoolid       String?
+  cognitoclientid  String?
   cubistconfig     cubistconfig[]
   customer         customer[]
   adminuser        adminuser[]
@@ -203,6 +205,57 @@ model tenant {
   gaspayerwallet   gaspayerwallet[]
   stakeaccount     stakeaccount[]
   staketransaction staketransaction[]
+  categories productcategory[]
+  products         product[]
+}
+
+enum productrarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
+}
+
+model productcategory {
+  id        String     @id @default(uuid()) 
+  name      String
+  tenantid  String     
+  tenant    tenant     @relation(fields: [tenantid], references: [id])
+  createdat    DateTime?  @default(now())
+  updatedat    DateTime?  @updatedAt
+  products  product[]
+
+  @@unique([tenantid, name])
+}
+
+model product {
+  id         String     @id @default(uuid())
+  name       String
+  categoryid String 
+  category   productcategory   @relation(fields: [categoryid], references: [id])
+  rarity            productrarity?        @default(NORMAL)
+  price             Float?
+  purchasedpercentage         Float?
+  availablepercentage         Float?
+  tenantid          String?
+  tenant            tenant?              @relation(fields: [tenantid], references: [id])
+  createdat         DateTime?            @default(now())
+  updatedat         DateTime?            @updatedAt
+  transactions      transaction[]
+  productattributes productattribute[]
+  @@unique([categoryid, name])
+}
+
+model productattribute {
+  id        String     @id @default(uuid())
+  key       String
+  value     String
+  type      String
+  productid String
+  product   product  @relation(fields: [productid], references: [id])
+  createdat         DateTime?            @default(now())
+  updatedat         DateTime?            @updatedAt
 }
 
 model token {
@@ -215,6 +268,7 @@ model token {
   isactive         Boolean?
   createdat        String?
   transactions     transaction[]
+  admintransactions admintransaction[]
   staketransaction staketransaction[]
 }
 
@@ -225,6 +279,8 @@ model transaction {
   customer              customer? @relation(fields: [customerid], references: [id])
   tokenid               String?
   token                 token?    @relation(fields: [tokenid], references: [id])
+  productid             String?   
+  product               product?  @relation(fields: [productid], references: [id])
   walletaddress         String?
   symbol                String?
   receiverwalletaddress String?
@@ -233,6 +289,30 @@ model transaction {
   txhash                String
   status                String?
   tenantuserid          String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  error                 String?
+  network               String?
+  tenanttransactionid   String?
+  callbackstatus        String?
+}
+
+
+model admintransaction {
+  id                    String    @id @default(uuid())
+  tenantid              String
+  adminuserid            String?
+  adminuser              adminuser? @relation(fields: [adminuserid], references: [id])
+  tokenid               String?
+  token                 token?    @relation(fields: [tokenid], references: [id])
+  walletaddress         String?
+  symbol                String?
+  receiverwalletaddress String?
+  chaintype             String?
+  amount                Float?
+  txhash                String
+  status                String?
   isactive              Boolean?
   createdat             String?
   updatedat             String?

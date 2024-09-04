@@ -1,13 +1,10 @@
-import { getAccount } from "@solana/spl-token";
 import {
   getAllCustomerWalletForBonus,
-  getAllTransactions,
   getTenantCallBackUrl,
   getTokenBySymbol,
   updateCustomerBonusStatus,
-  updateTransaction
 } from "../db/dbFunctions";
-import { CallbackStatus, TransactionStatus } from "../db/models";
+import {  TransactionStatus } from "../db/models";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
 import { airdropSPLToken } from "../solana/airdropSplToken";
 
@@ -36,15 +33,14 @@ async function transferBonus() {
     const customerWallets = await getAllCustomerWalletForBonus(schoolhackTenantId);
     const token = await getTokenBySymbol("SHC");
     console.log("Customer Wallets", customerWallets, "tenant", tenant, token, "token");
-    if (customerWallets.length > 0) {
-      const transaction = await airdropSPLToken(customerWallets, 1, token.decimalprecision, "Solana", token.contractaddress, tenant);
+    if (customerWallets.length > 0 && tenant != null && token != null) {
+      const transaction = await airdropSPLToken(customerWallets, 1, token?.decimalprecision ?? 0, "Solana", token.contractaddress, tenant);
       if (transaction.trxHash != null) {
         const transactionStatus = await verifySolanaTransaction(transaction.trxHash);
         const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-        for (const customer of customerWallets) {
-          const updatedCustomer = await updateCustomerBonusStatus(customer.customerid, "true", tenant.id);
+        for (const customer of customerWallets){
+          const updatedCustomer = await updateCustomerBonusStatus(customer.id, "true", tenant.id);
         }
-
         return transaction;
       } else {
         return {

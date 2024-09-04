@@ -15,7 +15,7 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 
 export const handler = async (event: any, context: any) => {
-  const { toAddress, numberOfTokens, chain, contractAddress, metadata } = event;
+  const { toAddress, numberOfTokens, chain, contractAddress, metadata } = event.arguments?.input;
   try{
     const web3=chain==='AVAX'?web3Avax:web3Eth;
 
@@ -37,7 +37,7 @@ export const handler = async (event: any, context: any) => {
     const receipt = await web3.eth.sendTransaction(tx);
 
     for (let i = 0; i < numberOfTokens; i++) {
-      await storeMetadataInDynamoDB(dynamoDB,contractAddress, Number(nextTokenId), metadata);
+      await storeMetadataInDynamoDB(dynamoDB,contractAddress, Number(nextTokenId)+i, metadata);
     }
 
     return {

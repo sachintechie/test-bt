@@ -1,4 +1,4 @@
-import { tenant } from "../db/models";
+import { AuthType, tenant } from "../db/models";
 import { createCustomer, getEmailOtpCustomer, updateCustomer } from "../db/dbFunctions";
 import { sendOidcEmailOtp } from "../cubist/cubistFunctions";
 
@@ -46,8 +46,7 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
 
         const updatedCustomer = await updateCustomer({
           id:customer.id,
-          iv: sendMailResponse.data?.iv,
-          key: sendMailResponse.data?.key,
+          partialtoken: sendMailResponse.data?.partial_token,
         });
         return { customer, error: null };
 
@@ -77,9 +76,8 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
               cubistuserid: "",
               isactive: true,
               isBonusCredit: false,
-              usertype:"EMAIL-OTP",
-              iv: sendMailResponse.data?.iv,
-              key: sendMailResponse.data?.key,
+              usertype:AuthType.OTP,
+              partialtoken: sendMailResponse.data?.partial_token,
               createdat: new Date().toISOString()
             });
             console.log("Created customer", customer.id);

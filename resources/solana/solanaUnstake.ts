@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
-  decreaseStakeAmount, duplicateStakeAccountWithStatus,
+   duplicateStakeAccountWithStatus,
   getCubistConfig, getToken, getWallet,
   insertStakingTransaction, reduceStakeAccountAmount, updateStakeAccountStatus
 } from "../db/dbFunctions";
@@ -182,7 +182,7 @@ async function deactivateStake(
     })
   );
 
-  let { blockhash } = await connection.getRecentBlockhash();
+  let { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -212,7 +212,7 @@ async function deactivateAndWithdrawStake(
     })
   );
 
-  let { blockhash } = await connection.getRecentBlockhash();
+  let { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -233,7 +233,7 @@ async function deactivateAndWithdrawStake(
     })
   );
 
-  blockhash = (await connection.getRecentBlockhash()).blockhash;
+  blockhash = (await connection.getLatestBlockhash()).blockhash;
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -271,7 +271,7 @@ async function partiallyDeactivateStake(
     )
   );
 
-  let { blockhash } = await connection.getRecentBlockhash();
+  let { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -292,7 +292,7 @@ async function partiallyDeactivateStake(
     })
   );
 
-  blockhash = (await connection.getRecentBlockhash()).blockhash;
+  blockhash = (await connection.getLatestBlockhash()).blockhash;
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -332,7 +332,7 @@ async function partiallyWithdrawStake(
     )
   );
 
-  let { blockhash } = await connection.getRecentBlockhash();
+  let { blockhash } = await connection.getLatestBlockhash();
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -350,7 +350,7 @@ async function partiallyWithdrawStake(
     })
   );
 
-  blockhash = (await connection.getRecentBlockhash()).blockhash;
+  blockhash = (await connection.getLatestBlockhash()).blockhash;
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 
@@ -371,7 +371,7 @@ async function partiallyWithdrawStake(
     })
   );
 
-  blockhash = (await connection.getRecentBlockhash()).blockhash;
+  blockhash = (await connection.getLatestBlockhash()).blockhash;
   transaction.recentBlockhash = blockhash;
   transaction.feePayer = fromPublicKey;
 

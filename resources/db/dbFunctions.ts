@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -26,7 +26,33 @@ export async function getPrismaClient() {
   return prismaClient;
 }
 
+export async function getWalletByChainType( chainType: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallets = await prisma.wallet.findMany({
+      where: {
+        chaintype: chainType
+      }
+    });
+    return wallets? wallets:null;
+  } catch (err) {
+    throw err;
+  }
+}
 
+export async function getWalletByWalletType(chainType: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallets = await prisma.wallet.findMany({
+      where: {
+        chaintype: chainType
+      }
+    });
+    return wallets ? wallets : null;
+  } catch (err) {
+    throw err;
+  }
+}
 
 function sanitizeData(data: any) {
   for (const key in data) {
@@ -51,8 +77,7 @@ export async function createCustomer(customer: customer) {
         cubistuserid: customer.cubistuserid.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
-        iv: customer.iv,
-        key: customer.key,
+        partialtoken: customer.partialtoken,
         usertype: customer.usertype,
         createdat: new Date().toISOString(),
       }
@@ -71,11 +96,7 @@ export async function updateCustomer(customer: updatecustomer) {
     const newCustomer = await prisma.customer.update({
       where: { id: customer.id },
       data: {
-      
-        iv: customer.iv,
-        key: customer.key,
-
-        
+        partialtoken: customer.partialtoken,
       }
     });
     return newCustomer;
@@ -315,6 +336,50 @@ export async function insertTransaction(
   }
 }
 
+export async function insertAdminTransaction(
+  senderWalletAddress: string,
+  receiverWalletaddress: string,
+  amount: number,
+  chainType: string,
+  symbol: string,
+  txhash: string,
+  tenantId: string,
+  adminUserId: string,
+  tokenId: string,
+  network: string,
+  status: string,
+  tenantTransactionId: string,
+  error?: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const newTransaction = await prisma.admintransaction.create({
+      data: {
+        adminuserid: adminUserId,
+        callbackstatus: CallbackStatus.PENDING,
+        tokenid: tokenId,
+        tenanttransactionid: tenantTransactionId,
+        network: network,
+        status: status,
+        error: error as string,
+        walletaddress: senderWalletAddress,
+        receiverwalletaddress: receiverWalletaddress,
+        chaintype: chainType,
+        amount: amount,
+        symbol: symbol,
+        txhash: txhash,
+        tenantid: tenantId,
+        isactive: true,
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
+      }
+    });
+    return { ...newTransaction, transactionid: newTransaction.id };
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function insertStakingTransaction(
   senderWalletAddress: string,
   receiverWalletaddress: string,
@@ -433,7 +498,7 @@ export async function insertCustomerKyc(customerKyc: any, kycType: string, tenan
   }
 }
 
-export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, targetStakeAccountPubkey: string) {
+export async function mergeDbStakeAccounts( targetStakeAccountPubkey: string,sourceStakeAccountPubkey: string,) {
   try {
     const prisma = await getPrismaClient();
     const sourceAccount = await prisma.stakeaccount.findFirst({
@@ -455,16 +520,16 @@ export async function mergeDbStakeAccounts(sourceStakeAccountPubkey: string, tar
     const newAmount = (sourceAccount.amount || 0) + (targetAccount.amount || 0);
 
     const updatedTargetAccount = await prisma.stakeaccount.updateMany({
-      where: { stakeaccountpubkey: targetStakeAccountPubkey },
+      where: { stakeaccountpubkey: sourceStakeAccountPubkey },
       data: { amount: newAmount }
     });
 
-    const removedSourceAccount = await prisma.stakeaccount.updateMany({
-      where: { stakeaccountpubkey: sourceStakeAccountPubkey },
-      data: { status: StakeAccountStatus.MERGED }
+    const updatetargetStakeAccountPubkey = await prisma.stakeaccount.updateMany({
+      where: { stakeaccountpubkey: targetStakeAccountPubkey },
+      data: { status: StakeAccountStatus.MERGED,amount:0 }
     });
 
-    return { updatedTargetAccount, removedSourceAccount };
+    return { updatedTargetAccount, updatetargetStakeAccountPubkey };
   } catch (err) {
     console.error(err);
     throw err;
@@ -499,8 +564,8 @@ export async function removeStakeAccount(stakeaccountpubkey: string) {
 }
 
 export async function insertMergeStakeAccountsTransaction(
-  sourceStakeAccountPubkey: string,
   targetStakeAccountPubkey: string,
+  sourceStakeAccountPubkey: string,
   txhash: string
 ) {
   try {
@@ -578,7 +643,7 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
       where: { stakeaccountid: stakeAccount.id }
     });
 
-    await prisma.staketransaction.create({
+  const stakeTransaction =  await prisma.staketransaction.create({
       data: {
         customerid: stakeAccount.customerid,
         type: "withdraw",
@@ -600,8 +665,26 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
         createdat: new Date().toISOString()
       }
     });
+    return stakeTransaction;
+
   } catch (err) {
     console.error(err);
+    throw err;
+  }
+}
+
+export async function getStakeAccounData(stakeAccountPubKey: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const stakeAccounts = await prisma.stakeaccount.findFirst({
+      where: {
+        stakeaccountpubkey: stakeAccountPubKey,
+        tenantid: tenantId
+      }
+    });
+
+    return stakeAccounts ? stakeAccounts : null;
+  } catch (err) {
     throw err;
   }
 }
@@ -773,6 +856,29 @@ export async function getCustomerAndWallet(tenantUserId: string, chaintype: stri
   }
 }
 
+export async function getCustomerAndWalletByAuthType(tenantUserId: string, chaintype: string, tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.customer.findFirst({
+      where: {
+        tenantuserid: tenantUserId,
+        tenantid: tenant.id
+      },
+      include: {
+        wallets: {
+          where: {
+            chaintype: chaintype
+          }
+        }
+      }
+    });
+    if (customer == null ) return null;
+    return customer ? customer : null;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getPayerWallet(chaintype: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
@@ -800,6 +906,22 @@ export async function getMasterWalletAddress(chaintype: string, tenantId: string
     });
 
     return masterWallet ? masterWallet : null;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getAdminTransactionByTenantTransactionId(tenantTransactionId: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const transaction = await prisma.admintransaction.findFirst({
+      where: {
+        tenantid: tenantId,
+        tenanttransactionid: tenantTransactionId
+      }
+    });
+
+    return transaction ? transaction : null;
   } catch (err) {
     throw err;
   }
@@ -1377,8 +1499,7 @@ export async function getEmailOtpCustomer(tenantUserId: string, tenantId: string
     const customer = await prisma.customer.findFirst({
       where: {
         tenantuserid: tenantUserId,
-        tenantid: tenantId,
-        usertype: "EMAIL-OTP"
+        tenantid: tenantId
       }
     });
     return customer ? customer : null;
@@ -1408,10 +1529,11 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
     where: {
       walletaddress: walletAddress,
       tenantid: tenantId,
-      OR: [
-        { status: 'OPEN' },
-        { status: 'MERGED' }
-      ]
+      status: 'OPEN'
+      // OR: [
+      //   { status: 'OPEN' },
+      //   { status: 'MERGED' }
+      // ]
     },
     select: {
       stakeaccountpubkey: true
@@ -1419,4 +1541,158 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   });
 
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
+}
+
+export async function createCategory(category: productcategory) {
+  try {
+    const prisma = await getPrismaClient();
+    const newCategory = await prisma.productcategory.create({
+      data: {
+        name: category.name,
+        tenantid: category.tenantid
+      }
+    });
+
+    return newCategory;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getCategories() {
+  try {
+    const prisma = await getPrismaClient();
+    const categories = await prisma.productcategory.findMany({
+      include: {
+        tenant: true
+      }
+    });
+    return categories;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getCategoryById(categoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const category = await prisma.productcategory.findUnique({
+      where: { id: categoryId }
+    });
+    return category;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getCategoriesByTenantId(tenant: tenant) {
+  try {
+    const prisma = await getPrismaClient();
+    const category = await prisma.productcategory.findMany({
+      where: { tenantid: tenant.id }
+    });
+    return category;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProduct(product: product) {
+  try {
+    if (product.purchasedpercentage > 100) {
+      throw new Error("purchasedpercentage cannot exceed 100.");
+    }
+    const prisma = await getPrismaClient();
+    const newProduct = await prisma.product.create({
+      data: {
+        name: product.name,
+        categoryid: product.categoryid,
+        rarity: product.rarity,
+        price: product.price,
+        purchasedpercentage:product.purchasedpercentage,
+        availablepercentage:100-product.purchasedpercentage
+      }
+    });
+    return newProduct;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProducts() {
+  try {
+    const prisma = await getPrismaClient();
+    const products = await prisma.product.findMany({
+      include: {
+        category: true,
+        productattributes: true
+      }
+    });
+    return products;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProductById(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const product = await prisma.product.findUnique({
+      where: {
+        id: productId
+      },
+      include: {
+        category: true,
+        productattributes: true
+      }
+    });
+    return product;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProductsByCategoryId(categoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const products = await prisma.product.findMany({
+      where: { categoryid: categoryId },
+      include: {
+        category: true,
+        productattributes: true
+      }
+    });
+    return products;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProductAttribute(productattributes: productattribute) {
+  try {
+    const prisma = await getPrismaClient();
+    const newAttribute = await prisma.productattribute.create({
+      data: {
+        key: productattributes.key,
+        value: productattributes.value,
+        type: productattributes.type,
+        productid: productattributes.productid
+      }
+    });
+    return newAttribute;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function GetProductAttributesByProductId(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const attributes = await prisma.productattribute.findMany({
+      where: { productid: productId }
+    });
+    return attributes;
+  } catch (err) {
+    throw err;
+  }
 }

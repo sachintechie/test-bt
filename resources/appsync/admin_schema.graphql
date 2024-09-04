@@ -1,0 +1,96 @@
+
+type SignIn {
+  status: Int
+  data: SignInData
+  error: AWSJSON
+}
+
+type SignInData {
+  id: String
+  createdat: String
+  tenantuserid: String
+  tenantid: String
+  emailid: String
+}
+
+
+input SigninInput {
+  tenantUserId: String!
+}
+
+
+type AdminTransfer {
+  status: Int
+  data: AdminTransferData
+  error: AWSJSON
+}
+
+type AdminTransferData {
+  adminuserid: String
+  walletaddress: String
+  receiverwalletaddress: String
+  chaintype: String
+  txhash: String
+  symbol: String
+  amount: Float
+  createdat: String
+  tokenid: String
+  status: String
+  transactionid: String
+  network: String
+  tenanttransactionid: String
+}
+
+
+
+input AdminTransferInput {
+  senderWalletAddress: String!
+  recipients: [AdminRecipient]!
+  symbol: String!
+  chainType: String!
+  adminUserId: String!
+  tenantTransactionId: String!
+}
+
+input CreateWalletInput {
+  tenantUserId: String!
+  chainType: String!
+}
+
+type GetWallet {
+  status: Int
+  data: GetWalletData
+  error: AWSJSON
+}
+
+type GetWalletData {
+  customerid: String
+  walletaddress: String
+  createdat: String
+  chaintype: String
+  tenantuserid: String
+  tenantid: String
+  emailid: String
+}
+
+input AdminRecipient {
+  walletAddress: String
+  amount: Float
+}
+
+
+type Query {
+  AdminSignin(input: SigninInput): SignIn
+  CreateAdminWallet(input: CreateWalletInput): GetWallet
+}
+
+type Mutation {
+  AdminTransfer(input: AdminTransferInput): AdminTransfer
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+
