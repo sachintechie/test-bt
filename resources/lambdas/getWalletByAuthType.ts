@@ -151,6 +151,12 @@ async function createCustomerAndWallet(
     // });
     // console.log("Created customer", customer.id);
 
+    const updateCustomer = await updateCustomerCubistData({
+      cubistuserid: cubistUserId,
+      iss:iss,
+      id: customer.id
+    });
+
     const wallet = await createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customer);
     console.log("Created wallet", wallet);
     return wallet;
@@ -176,11 +182,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     }
     const key = await getKey(oidcClient, chainType, cubistUser?.user_id);
     console.log("getKey cubesigner user", key, cubistUser?.user_id);
-    const updateCustomer = await updateCustomerCubistData({
-      emailid: customer.emailid,
-      cubistuserid: cubistUser?.user_id,
-      id: customer.id
-    });
+   
     const wallet = await createWalletAndKey(org, cubistUser?.user_id, chainType, customer.id, key);
     const newWallet = {
       walletaddress: wallet.data.walletaddress,
