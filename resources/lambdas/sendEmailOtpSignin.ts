@@ -73,7 +73,6 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
               name:  "----",
               tenantuserid,
               tenantid: tenant.id,
-              cubistuserid: "",
               isactive: true,
               isBonusCredit: false,
               usertype:AuthType.OTP,

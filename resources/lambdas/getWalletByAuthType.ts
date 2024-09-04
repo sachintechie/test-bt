@@ -45,13 +45,11 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
     const isExist = await checkCustomerAndWallet(tenantuserid, tenant, chainType, token, authType);
     if (isExist != null) {
       return isExist;
-    } 
-    
-    else {
+    } else {
       let oidcToken = "";
       let customer;
       if (authType == AuthType.OTP) {
-         customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
+        customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
         if (customer == null || customer?.id == null || customer?.partialtoken == null) {
           return { wallet: null, error: "Please do the registration first" };
         }
@@ -73,7 +71,7 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
               error: "Error creating cubesigner client"
             };
           }
-          console.log("Created cubesigner client", client, orgId, oidcToken);
+          console.log("Created cubesigner client", client, orgId);
           const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId || "", oidcToken);
 
           console.log("Verifying identity", proof);
@@ -210,6 +208,7 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
   // return wallet
   try {
     const customerAndWallet = await getCustomerAndWalletByAuthType(tenantuserid, chainType, tenant);
+    console.log("customerAndWallet", customerAndWallet);
     if (customerAndWallet != null && customerAndWallet?.cubistuserid != null) {
       if (
         customerAndWallet.wallets.length > 0 &&
@@ -237,8 +236,7 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
         const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
         return wallet;
       }
-    } 
-    else{
+    } else {
       return null;
     }
   } catch (e) {
