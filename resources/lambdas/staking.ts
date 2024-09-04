@@ -40,8 +40,29 @@ export const handler = async (event: any) => {
         };
         console.log("Wallet", response);
         return response;
-      } 
+      }
+      if (event.arguments?.input?.chainType === "Avalanche") {
+        const data = await solanaStaking(
+          event.identity.resolverContext as tenant,
+          event.arguments?.input?.senderWalletAddress,
+          masterValidatorNode.validatornodeaddress || "",
+          event.arguments?.input?.amount,
+          event.arguments?.input?.symbol,
+          event.headers?.identity,
+          event.arguments?.input?.tenantUserId,
+          event.arguments?.input?.chainType,
+          event.arguments?.input?.tenantTransactionId,
+          event.arguments?.input?.lockupExpirationTimestamp
+        );
 
+        const response = {
+          status: data?.transaction != null ? 200 : 400,
+          data: data?.transaction,
+          error: data?.error
+        };
+        console.log("Wallet", response);
+        return response;
+      }
       
       else {
         return {

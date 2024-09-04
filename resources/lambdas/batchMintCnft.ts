@@ -51,6 +51,7 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
 
     // Fetch the payer's keypair (or create one if it doesn't exist)
     const payer = await getPayerCsSignerKey("Solana", tenant.id);
+    console.log("Payer", payer);
     if (payer?.key == null) {
       return {
         transaction: null,
@@ -59,8 +60,13 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
     }
 
     // Get or create the NFT collection details
-    const collectionDetails = await getOrCreateCollectionNFT(connection, payer);
-let receiverList: PublicKey[] = [];
+    const collectionDetails = {
+      mint: new PublicKey("collectionNft.mintAddress"),
+      metadata: new PublicKey("collectionNft.metadataAddress"),
+      masterEditionAccount: new PublicKey("collectionNft.masterEditionAddress"),
+    }
+
+   let receiverList: PublicKey[] = [];
     // Convert the receiver wallet address to a PublicKey
     receivers.map((receiver) => {
       const recipientPublicKey = new PublicKey(receiver);
