@@ -130,6 +130,7 @@ model stakeaccount {
   amount                    Float?
   status                    String?
   network                   String?
+  tokenid                   String
   tenantid                  String
   tenantuserid              String
   tenanttransactionid       String
