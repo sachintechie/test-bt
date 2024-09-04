@@ -1,5 +1,5 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
+import { mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
 import { tenant } from "../db/models";
 import { getSolConnection } from "../solana/solanaFunctions";
 import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
@@ -59,11 +59,16 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       };
     }
 
+
+
     // Get or create the NFT collection details
+
+  
+
     const collectionDetails = {
-      mint: new PublicKey("collectionNft.mintAddress"),
-      metadata: new PublicKey("collectionNft.metadataAddress"),
-      masterEditionAccount: new PublicKey("collectionNft.masterEditionAddress"),
+      mint: new PublicKey("9ZaAdtajfjeStX1jxkQiPrbt9yYGseB9tAZ8fmC799xH"),
+      metadata: new PublicKey("HMj3e6Qa9i3JcyUUDpKTBRNTi5CQcAgtjx3KHowomcTn"),
+      masterEditionAccount: new PublicKey("4JYBkAnG3c3KdGhqNJngh7cxMPVC5oAdvwRHLdKZEgYW"),
     }
 
    let receiverList: PublicKey[] = [];
