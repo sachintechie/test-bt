@@ -587,18 +587,18 @@ input ProductFilter {
   value: String
 }
 
-input AddToWishlistInput{
+input WishlistInput{
 customerId : String!
 productId  : String!
 }
 
-type AddToWishlistResponse {
+type WishlistResponse {
   status: Int
-  data: AddToWishlistData
+  data: WishlistData
   error: AWSJSON
 }
 
-type AddToWishlistData {
+type WishlistData {
   customerid: String!
   productid:  String!
 }
@@ -649,7 +649,8 @@ type Mutation {
   MergeStake(input: MergeStakeInput): ListStakeAccounts
   WithdrawStake(input: WithdrawStakeInput): WithdrawStake
   BatchMintCnft(input: MintCnftInput): BatchMintCnft
-  AddToWishlist(input: AddToWishlistInput): AddToWishlistResponse
+  AddToWishlist(input: WishlistInput): WishlistResponse
+  RemoveFromWishlist(input: WishlistInput): WishlistResponse
 }
 
 schema {

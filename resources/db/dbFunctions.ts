@@ -1757,3 +1757,47 @@ export async function addToWishlist(customerId: string, productId: string) {
     throw error;
   }
 }
+
+export async function removeFromWishlist(customerId: string, productId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const existingWishlistItem = await prisma.productwishlist.findFirst({
+      where: {
+        customerid: customerId,
+        productid: productId
+      }
+    });
+
+    if (!existingWishlistItem) {
+      throw new Error("Product is not in the wishlist");
+    }
+
+    await prisma.productwishlist.delete({
+      where: {
+        id: existingWishlistItem.id
+      }
+    });
+
+    return existingWishlistItem;
+  } catch (error) {
+    throw error;
+  }
+}
+
+// export async function getWishlistByCustomerId(customerId: string) {
+//   const prisma = new PrismaClient();
+//   try {
+//     const wishlistItems = await prisma.wishlist.findMany({
+//       where: {
+//         customerId: customerId
+//       },
+//       include: {
+//         product: true
+//       }
+//     });
+
+//     return wishlistItems;
+//   } catch (error) {
+//     throw error;
+//   }
+// }
