@@ -9,6 +9,10 @@ export const isDevOrProd = () => {
   return environment === "dev"|| environment === "prod";
 }
 
+export const isOnDemandProd = () => {
+  return environment === "ondemand-prod";
+}
+
 export const isDev = () => {
   return environment === "dev";
 }
