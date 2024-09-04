@@ -601,8 +601,26 @@ type WishlistResponse {
 type WishlistData {
   customerid: String!
   productid:  String!
+  createdat:  String
 }
 
+input WishlistByCustomerIdInput{
+customerId : String!
+}
+
+type GetWishlistByCusotmerIdResponse {
+  status: Int
+  data: [GetWishlistByCusotmerIdData]
+  error: AWSJSON
+}
+
+type GetWishlistByCusotmerIdData {
+  customerid: String!
+  product: [ProductData]
+  productid:  String
+  createdat:  String
+
+}
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
@@ -638,6 +656,7 @@ type Query {
   GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): GetProductsResponse
+  GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse 
   }
 
 type Mutation {

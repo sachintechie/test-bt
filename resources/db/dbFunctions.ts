@@ -1784,20 +1784,20 @@ export async function removeFromWishlist(customerId: string, productId: string) 
   }
 }
 
-// export async function getWishlistByCustomerId(customerId: string) {
-//   const prisma = new PrismaClient();
-//   try {
-//     const wishlistItems = await prisma.wishlist.findMany({
-//       where: {
-//         customerId: customerId
-//       },
-//       include: {
-//         product: true
-//       }
-//     });
+export async function getWishlistByCustomerId(customerId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const wishlistItems = await prisma.productwishlist.findMany({
+      where: {
+        customerId: customerId
+      },
+      include: {
+        product: true
+      }
+    });
 
-//     return wishlistItems;
-//   } catch (error) {
-//     throw error;
-//   }
-// }
+    return wishlistItems;
+  } catch (error) {
+    throw error;
+  }
+}
