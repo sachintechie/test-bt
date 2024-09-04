@@ -49,8 +49,9 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
     
     else {
       let oidcToken = "";
+      let customer;
       if (authType == AuthType.OTP) {
-        const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
+         customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
         if (customer == null || customer?.id == null || customer?.partialtoken == null) {
           return { wallet: null, error: "Please do the registration first" };
         }
@@ -236,10 +237,7 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
         const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
         return wallet;
       }
-    } else if( customerAndWallet?.cubistuserid == null) {
-     
-      return customerAndWallet;
-    }
+    } 
     else{
       return null;
     }
