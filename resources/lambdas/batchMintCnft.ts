@@ -23,7 +23,7 @@ export const handler = async (event: any) => {
         body: JSON.stringify({ message: "Missing required fields" })
       };
     }
-   const data = await airdropCNFT(tenant, receiverWalletAddress, amount, oidcToken);
+   const data = await airdropCNFT(tenant, receiverWalletAddress, amount);
     // Build the response
     return {
       statusCode: 200,
@@ -44,7 +44,7 @@ export const handler = async (event: any) => {
   }
 };
 
-async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, oidcToken: string) {
+async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) {
   try {
     // Create a Solana connection
     const connection = await getSolConnection();
@@ -86,7 +86,6 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       collectionDetails,
       receiverList,
       amount,
-      oidcToken,
       tenant
     );
 
