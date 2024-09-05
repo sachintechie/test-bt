@@ -696,6 +696,7 @@ type GetOrdersByBuyerIdData {
   updatedat: String
 }
 
+
 input GetOrderByIdInput {
 	orderId: String!
 }
@@ -717,6 +718,26 @@ type GetOrderByIdData {
   updatedat: String
 }
 
+input GetOrdersByTenantIdInput {
+	tenantId: String!
+}
+
+type GetOrdersByTenantIdResponse {
+  status: Int
+  data: [GetOrdersByTenantIdData]
+  error: AWSJSON
+}
+
+type GetOrdersByTenantIdData {
+  seller: CustomerData
+  buyer: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: String
+  createdat: String
+  updatedat: String
+}
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
@@ -756,6 +777,7 @@ type Query {
   GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
   GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
   GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
+  GetOrdersByTenantId(input: GetOrdersByTenantIdInput): GetOrdersByTenantIdResponse
   }
 
 type Mutation {
