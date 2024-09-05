@@ -1873,3 +1873,37 @@ export async function getOrdersByBuyer(buyerId: string) {
   }
 }
 
+export async function getOrderById(orderId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const order = await prisma.order.findUnique({
+      where: {
+        id: orderId
+      },
+      include: {
+        buyer: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        seller: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true
+      }
+    });
+    return order;
+  } catch (err) {
+    throw err;
+  }
+}
