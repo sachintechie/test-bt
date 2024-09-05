@@ -2,7 +2,7 @@ import { getCubistConfig } from "../db/dbFunctions";
 import { deleteCubistUserKey, getCsClient } from "./CubeSignerClient";
 import crypto from "crypto";
 
-const cubsitApiEndpoint = process.env["CS_API_ENDPOINT"] ?? "https://gamma.signer.cubist.dev";
+const cubsitApiEndpoint = process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev";
 
 export async function deleteKeyAndUser(customerWallets: any[], tenant: any) {
   try {

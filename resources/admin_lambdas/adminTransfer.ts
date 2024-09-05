@@ -85,9 +85,9 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
         return { transaction, error: null };
       } else {
         return {
-          status: 200,
-          data: "Transaction Failed",
-          error: null
+          status: 400,
+          data: null,
+          error: blockchainTransaction.error
         };
       }
     } else {

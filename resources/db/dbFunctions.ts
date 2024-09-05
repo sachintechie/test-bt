@@ -74,7 +74,7 @@ export async function createCustomer(customer: customer) {
         emailid: customer.emailid,
         name: customer.name,
         iss: customer.iss,
-        cubistuserid: customer.cubistuserid.toString(),
+        cubistuserid: customer.cubistuserid?.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
         partialtoken: customer.partialtoken,
@@ -139,7 +139,7 @@ export async function createAdminUser(customer: customer) {
         emailid: customer.emailid,
         name: customer.name,
         iss: customer.iss,
-        cubistuserid: customer.cubistuserid.toString(),
+        cubistuserid: customer.cubistuserid?.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
         createdat: new Date().toISOString(),
@@ -151,7 +151,7 @@ export async function createAdminUser(customer: customer) {
   }
 }
 
-export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string, key?: any) {
+export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId: string, key?: any) {
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);

@@ -4,7 +4,7 @@ export interface customer {
   tenantid?: string;
   emailid: string;
   name: string;
-  cubistuserid: string;
+  cubistuserid?: string;
   isactive: boolean;
   isBonusCredit: boolean;
   createdat: string;

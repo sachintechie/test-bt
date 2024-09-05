@@ -8,6 +8,7 @@ import {
   getEmailOtpCustomer,
   updateCustomerCubistData
 } from "../db/dbFunctions";
+import { customer } from "@prisma/client";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -47,8 +48,9 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
       return isExist;
     } else {
       let oidcToken = "";
+      let customer  ;
       if (authType == AuthType.OTP) {
-        const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
+        customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
         if (customer == null || customer?.id == null || customer?.partialtoken == null) {
           return { wallet: null, error: "Please do the registration first" };
         }
@@ -70,7 +72,7 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
               error: "Error creating cubesigner client"
             };
           }
-          console.log("Created cubesigner client", client, orgId, oidcToken);
+          console.log("Created cubesigner client", client, orgId);
           const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId || "", oidcToken);
 
           console.log("Verifying identity", proof);
@@ -103,7 +105,8 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
             oidcToken,
             iss,
             chainType,
-            tenant
+            tenant,
+            customer as customer
           );
           return wallet;
         } catch (e) {
@@ -129,24 +132,31 @@ async function createCustomerAndWallet(
   oidcToken: string,
   iss: string,
   chainType: string,
-  tenant: tenant
+  tenant: tenant,
+  customer: customer
 ) {
   try {
     console.log(`Creating key for user ${cubistUserId}...`);
 
-    const customer = await createCustomer({
-      emailid: email ? email : "",
-      name: name ? name : "----",
-      tenantuserid,
-      tenantid: tenant.id,
+    // const customer = await createCustomer({
+    //   emailid: email ? email : "",
+    //   name: name ? name : "----",
+    //   tenantuserid,
+    //   tenantid: tenant.id,
+    //   cubistuserid: cubistUserId,
+    //   isactive: true,
+    //   isBonusCredit: false,
+    //   usertype: AuthType.OTP,
+    //   iss: iss,
+    //   createdat: new Date().toISOString()
+    // });
+    // console.log("Created customer", customer.id);
+
+    const updateCustomer = await updateCustomerCubistData({
       cubistuserid: cubistUserId,
-      isactive: true,
-      isBonusCredit: false,
-      usertype: AuthType.OTP,
-      iss: iss,
-      createdat: new Date().toISOString()
+      iss:iss,
+      id: customer.id
     });
-    console.log("Created customer", customer.id);
 
     const wallet = await createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customer);
     console.log("Created wallet", wallet);
@@ -159,7 +169,7 @@ async function createCustomerAndWallet(
   }
 }
 
-async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken: string, chainType: string, customer: any) {
+async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken: string, chainType: string, customer: customer) {
   try {
     const { org, orgId } = await getCsClient(tenant.id);
     const oidcClient = await oidcLogin(env, orgId || "", oidcToken, ["sign:*"]);
@@ -173,11 +183,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     }
     const key = await getKey(oidcClient, chainType, cubistUser?.user_id);
     console.log("getKey cubesigner user", key, cubistUser?.user_id);
-    const updateCustomer = await updateCustomerCubistData({
-      emailid: customer.emailid,
-      cubistuserid: cubistUser?.user_id,
-      id: customer.id
-    });
+   
     const wallet = await createWalletAndKey(org, cubistUser?.user_id, chainType, customer.id, key);
     const newWallet = {
       walletaddress: wallet.data.walletaddress,
@@ -205,7 +211,8 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
   // return wallet
   try {
     const customerAndWallet = await getCustomerAndWalletByAuthType(tenantuserid, chainType, tenant);
-    if (customerAndWallet != null) {
+    console.log("customerAndWallet", customerAndWallet);
+    if (customerAndWallet != null && customerAndWallet?.cubistuserid != null) {
       if (
         customerAndWallet.wallets.length > 0 &&
         customerAndWallet?.wallets[0].walletaddress != null &&
