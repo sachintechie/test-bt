@@ -87,7 +87,7 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) 
      receiverList.push(recipientPublicKey);
     });
     
-    await airdropSolToWallets(connection, receiverList, 1); // Airdrops 1 SOL to each wallet
+    // await airdropSolToWallets(connection, receiverList, 1); // Airdrops 1 SOL to each wallet
 
     // const receiverArray = ['BfbSjfhaD2GQ6uM3yquoDgoKrEbVPUqTZuk1McJ2K5bv','Ge18sweHd9goH6AmgMBywbfAqyb3VCQCX4KabazEMkRU','BJMqUixndJvAFDdvYyYxexfzS7zPBwnzzTVHcF6cGK7S','7swbSFJaBfNeiC7V7HU6WuUKegwR5HELywjGqE7FdrME','Hy4acbgqaZgd1SNfA5THaGHUPQbAzJko6TPmpww9mkvK']
 
