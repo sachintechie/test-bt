@@ -703,7 +703,7 @@ input GetOrderByIdInput {
 
 type GetOrderByIdResponse {
   status: Int
-  data: [GetOrderByIdData]
+  data: GetOrderByIdData
   error: AWSJSON
 }
 
@@ -738,6 +738,31 @@ type GetOrdersByTenantIdData {
   createdat: String
   updatedat: String
 }
+
+input UpdateOrderStatusInput {
+	orderId: String!
+	status: String!
+}
+
+type UpdateOrderStatusResponse {
+  status: Int
+  data: UpdateOrderStatusResponseData
+  error: AWSJSON
+}
+
+type UpdateOrderStatusData {
+  sellerid: String
+  buyerid: String
+  productid: String
+  status: String
+  updatedat: String
+}
+
+type UpdateOrderStatusResponseData {
+	message: String
+	order: UpdateOrderStatusData
+}
+
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
@@ -792,6 +817,7 @@ type Mutation {
   AddToWishlist(input: WishlistInput): WishlistResponse
   RemoveFromWishlist(input: WishlistInput): WishlistResponse
   CreateOrder(input: CreateOrderInput): CreateOrderResponse
+  UpdateOrderStatus(input: UpdateOrderStatusInput): UpdateOrderStatusResponse
 }
 
 schema {

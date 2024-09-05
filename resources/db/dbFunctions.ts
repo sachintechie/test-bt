@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter, order } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter, order ,orderstatus} from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1940,6 +1940,42 @@ export async function getOrdersByTenant(tenantId: string) {
       }
     });
     return orders;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateOrderStatus(orderId: string, status: orderstatus) {
+	// TODO: add role check
+  const prisma = new PrismaClient();
+  try {
+    const updatedOrder = await prisma.order.update({
+      where: {
+        id: orderId
+      },
+      data: {
+        status: status,
+		updatedat : new Date().toISOString()
+      },
+      select: {
+        sellerid: true,
+        buyerid: true,
+        productid: true,
+        status: true,
+        updatedat: true
+      }
+    });
+
+    return {
+      message: 'Order status updated successfully',
+      order: {
+        sellerid: updatedOrder.sellerid,
+        buyerid: updatedOrder.buyerid,
+        productid: updatedOrder.productid,
+        status: updatedOrder.status,
+        updatedat: updatedOrder.updatedat
+      }
+    };
   } catch (err) {
     throw err;
   }
