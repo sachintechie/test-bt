@@ -1820,3 +1820,29 @@ export async function createOrder(order: order) {
     throw err;
   }
 }
+
+export async function getOrdersBySeller(sellerId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        sellerid: sellerId
+      },
+      include: {
+        buyer: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true
+      }
+    });
+    return orders;
+  } catch (err) {
+    throw err;
+  }
+}
