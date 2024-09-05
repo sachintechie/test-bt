@@ -178,7 +178,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid) || cubistUser == null) {
       return {
         wallet: null,
-        error: "Please send a valid identity token for given tenantuserid"
+        error: "Invalid identity token provided. Please check your token and try again."
       };
     }
     const key = await getKey(oidcClient, chainType, cubistUser?.user_id);

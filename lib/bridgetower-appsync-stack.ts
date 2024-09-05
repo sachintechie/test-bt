@@ -35,6 +35,7 @@ const MUTATIONS=[
   'withdrawStake',
   'batchMintCnft',
   'adminTransfer',
+  'createTokenAccount'
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
