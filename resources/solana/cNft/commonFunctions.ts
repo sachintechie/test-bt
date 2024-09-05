@@ -403,6 +403,8 @@ export async function airdropTokens(
   }
 }
 
+
+
 /*
 export async function getOrCreateCollectionNFT(
   connection: Connection,
@@ -415,64 +417,64 @@ export async function getOrCreateCollectionNFT(
   const metaplex = new Metaplex(connection).use(new PublicKey(payer.materialId))
 
 
-//   // Define a custom signer using Cubist
-//   const cubistSigner: Signer = {
-//     publicKey: new PublicKey(sessionKey.materialId), // Set the public key from Cubist session
-//     signMessage: async (message: Uint8Array) => {
-//       const messageBase64 = Buffer.from(message).toString("base64");
-//       const response = await sessionKey.signSolana({ message_base64: messageBase64 });
-//       const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Convert signature to Buffer
-//       return signature;
-//     },
-//   };
+  // Define a custom signer using Cubist
+   const cubistSigner: Signer = {
+     publicKey: new PublicKey(sessionKey.materialId), // Set the public key from Cubist session
+    signMessage: async (message: Uint8Array) => {
+      const messageBase64 = Buffer.from(message).toString("base64");
+       const response = await sessionKey.signSolana({ message_base64: messageBase64 });
+       const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Convert signature to Buffer
+      return signature;
+     },
+  };
 
-//   // Create Metaplex instance using Cubist signer as identity
-//   const metaplex = new Metaplex(connection).use({
-//     signTransaction: async (tx) => {
-//       tx.partialSign(payer); // Partial sign with payer if needed
-//       const serializedTx = tx.serializeMessage().toString("base64");
-//       const response = await sessionKey.signSolana({ message_base64: serializedTx });
-//       const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Hex to buffer
-//       tx.addSignature(cubistSigner.publicKey, signature); // Add signature to transaction
-//       return tx;
-//     },
-//     identity: cubistSigner, // Set custom Cubist signer
-//   });
+   // Create Metaplex instance using Cubist signer as identity
+   const metaplex = new Metaplex(connection).use({
+     signTransaction: async (tx) => {
+       tx.partialSign(payer); // Partial sign with payer if needed
+       const serializedTx = tx.serializeMessage().toString("base64");
+       const response = await sessionKey.signSolana({ message_base64: serializedTx });
+       const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Hex to buffer
+       tx.addSignature(cubistSigner.publicKey, signature); // Add signature to transaction
+       return tx;
+     },
+     identity: cubistSigner, // Set custom Cubist signer
+   });
 
-//   // Check for existing collection NFT
-//   if (envCollectionNft) {
-//     const collectionNftAddress = new PublicKey(envCollectionNft);
-//     const collectionNft = await metaplex.nfts().findByMint({ mintAddress: collectionNftAddress });
+  // Check for existing collection NFT
+  if (envCollectionNft) {
+    const collectionNftAddress = new PublicKey(envCollectionNft);
+    const collectionNft = await metaplex.nfts().findByMint({ mintAddress: collectionNftAddress });
 
-//     if (collectionNft.model !== "nft") {
-//       throw new Error("Invalid collection NFT");
-//     }
+    if (collectionNft.model !== "nft") {
+      throw new Error("Invalid collection NFT");
+    }
 
-//     return {
-//       mint: collectionNft.mint.address,
-//       metadata: collectionNft.metadataAddress,
-//       masterEditionAccount: (collectionNft as Nft).edition.address,
-//     };
-//   }
+    return {
+      mint: collectionNft.mint.address,
+      metadata: collectionNft.metadataAddress,
+      masterEditionAccount: (collectionNft as Nft).edition.address,
+    };
+  }
 
-//   // Select a random URI from uris
-//   const randomUri = uris[Math.floor(Math.random() * uris.length)];
+  // Select a random URI from uris
+  const randomUri = uris[Math.floor(Math.random() * uris.length)];
 
-//   // Create a regular collection NFT using Metaplex
-//   const collectionNft = await metaplex.nfts().create({
-//     uri: randomUri,
-//     name: "Collection NFT",
-//     sellerFeeBasisPoints: 0,
-//     updateAuthority: cubistSigner, // Use Cubist signer for the update authority
-//     mintAuthority: cubistSigner, // Use Cubist signer for mint authority
-//     tokenStandard: 0,
-//     symbol: "Collection",
-//     isMutable: true,
-//     isCollection: true,
-//   });
+  // Create a regular collection NFT using Metaplex
+  const collectionNft = await metaplex.nfts().create({
+    uri: randomUri,
+    name: "Collection NFT",
+    sellerFeeBasisPoints: 0,
+    updateAuthority: cubistSigner, // Use Cubist signer for the update authority
+    mintAuthority: cubistSigner, // Use Cubist signer for mint authority
+    tokenStandard: 0,
+    symbol: "Collection",
+    isMutable: true,
+    isCollection: true,
+  });
 
-//   // Store the collection NFT mint address in the environment
-//   fs.appendFileSync(".env", `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`);
+  // Store the collection NFT mint address in the environment
+  fs.appendFileSync(".env", `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`);
 
   fs.appendFileSync(
     ".env",
@@ -485,8 +487,8 @@ export async function getOrCreateCollectionNFT(
     masterEditionAccount: collectionNft.masterEditionAddress,
   }
 }
-
 */
+
 
 
 /*

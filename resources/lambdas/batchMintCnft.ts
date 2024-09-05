@@ -75,21 +75,21 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) 
 
 
    // const collectionDetails = await getOrCreateCollectionNFT(connection, payer.key)
+   const receivers = ['BfbSjfhaD2GQ6uM3yquoDgoKrEbVPUqTZuk1McJ2K5bv','Ge18sweHd9goH6AmgMBywbfAqyb3VCQCX4KabazEMkRU','BJMqUixndJvAFDdvYyYxexfzS7zPBwnzzTVHcF6cGK7S','7swbSFJaBfNeiC7V7HU6WuUKegwR5HELywjGqE7FdrME','Hy4acbgqaZgd1SNfA5THaGHUPQbAzJko6TPmpww9mkvK']
    let receiverList: PublicKey[] = [];
    
-   //await initializeTokenAccounts(connection, payer, receiverList, mintAddress);
-   //await airdropTokens(connection, payer, mintAddress, receiverList, 1000); // Airdrops 1000 tokens to each wallet
    
    // Convert the receiver wallet address to a PublicKey
-   
    receivers.map((receiver) => {
      const recipientPublicKey = new PublicKey(receiver);
      receiverList.push(recipientPublicKey);
     });
     
-    // await airdropSolToWallets(connection, receiverList, 1); // Airdrops 1 SOL to each wallet
-
-    // const receiverArray = ['BfbSjfhaD2GQ6uM3yquoDgoKrEbVPUqTZuk1McJ2K5bv','Ge18sweHd9goH6AmgMBywbfAqyb3VCQCX4KabazEMkRU','BJMqUixndJvAFDdvYyYxexfzS7zPBwnzzTVHcF6cGK7S','7swbSFJaBfNeiC7V7HU6WuUKegwR5HELywjGqE7FdrME','Hy4acbgqaZgd1SNfA5THaGHUPQbAzJko6TPmpww9mkvK']
+    await airdropSolToWallets(connection, receiverList, 1); // Airdrops 1 SOL to each wallet
+    //await initializeTokenAccounts(connection, payer, receiverList, mintAddress);
+    //await airdropTokens(connection, payer, mintAddress, receiverList, 1000); // Airdrops 1000 tokens to each wallet
+    
+    
 
     // Mint the compressed NFT(s) to the collection
     const data: MintResult = await mintCompressedNftToCollection(
