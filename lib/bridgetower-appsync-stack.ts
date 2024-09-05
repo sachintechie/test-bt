@@ -37,7 +37,8 @@ const MUTATIONS=[
   'adminTransfer',
   'addToWishlist',
   'removeFromWishlist',
-  'createOrder'
+  'createOrder',
+  'updateOrderStatus'
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
