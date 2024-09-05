@@ -74,12 +74,13 @@ export async function createCustomer(customer: customer) {
         emailid: customer.emailid,
         name: customer.name,
         iss: customer.iss,
-        cubistuserid: customer.cubistuserid.toString(),
+        cubistuserid: customer.cubistuserid?.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
         partialtoken: customer.partialtoken,
         usertype: customer.usertype,
         createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
       }
     });
     return newCustomer;
@@ -97,6 +98,7 @@ export async function updateCustomer(customer: updatecustomer) {
       where: { id: customer.id },
       data: {
         partialtoken: customer.partialtoken,
+        updatedat: customer.updatedat,
       }
     });
     return newCustomer;
@@ -139,7 +141,7 @@ export async function createAdminUser(customer: customer) {
         emailid: customer.emailid,
         name: customer.name,
         iss: customer.iss,
-        cubistuserid: customer.cubistuserid.toString(),
+        cubistuserid: customer.cubistuserid?.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
         createdat: new Date().toISOString(),
@@ -151,7 +153,7 @@ export async function createAdminUser(customer: customer) {
   }
 }
 
-export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId?: string, key?: any) {
+export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId: string, key?: any) {
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
@@ -442,6 +444,7 @@ export async function insertStakeAccount(
   status: string,
   tenantTransactionId: string,
   stakeaccountpubkey: string,
+  tokenid: string,
   lockupExpirationTimestamp: number,
   error?: string
 ) {
@@ -452,6 +455,7 @@ export async function insertStakeAccount(
       data: {
         customerid: customerId,
         walletaddress: senderWalletAddress,
+        tokenid: tokenid,
         validatornodeaddress: receiverWalletaddress,
         amount: amount,
         chaintype: chainType,
@@ -647,7 +651,7 @@ export async function createWithdrawTransaction(stakeaccountpubkey: string, txha
       data: {
         customerid: stakeAccount.customerid,
         type: "withdraw",
-        tokenid: sourceStakeTransaction!.tokenid,
+        tokenid: stakeAccount.tokenid,
         tenanttransactionid: stakeAccount.tenanttransactionid,
         stakeaccountpubkey: stakeaccountpubkey,
         stakeaccountid: stakeAccount.id,
@@ -1417,6 +1421,7 @@ export async function duplicateStakeAccountWithStatus(stakeAccountPubKey: string
     const duplicatedStakeAccount = await prisma.stakeaccount.create({
       data: {
         customerid: existingStakeAccount.customerid,
+        tokenid: existingStakeAccount.tokenid,
         lockupexpirationtimestamp: existingStakeAccount.lockupexpirationtimestamp,
         tenanttransactionid: existingStakeAccount.tenanttransactionid,
         stakeaccountpubkey: newStakeAccountPubKey,

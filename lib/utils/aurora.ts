@@ -19,7 +19,7 @@ export interface DatabaseInfo {
 }
 
 export const getDatabaseInfo = (scope: Construct,auroraStack:AuroraStack):DatabaseInfo => {
-  const secret = secretsmanager.Secret.fromSecretPartialArn(scope, env`${AURORA_CREDENTIALS_SECRET_NAME}`, auroraStack.dbSecretArn.value);
+  const secret = secretsmanager.Secret.fromSecretCompleteArn(scope, env`${AURORA_CREDENTIALS_SECRET_NAME}`, auroraStack.dbSecretArn.value);
   // Construct the DATABASE_URL environment variable for Prisma
   return {databaseUrl:cdk.Fn.join('', [
     'postgresql://',
@@ -55,5 +55,25 @@ export const getDevOrProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
     port:"5432",
     dbName: isDev()?"dev":"prod",
     secretName:"rds!cluster-e0c060a9-d50c-4c22-8ff5-4596c2b90deb"
+  };
+}
+
+export const getOnDemandProdDatabaseInfo = (scope: Construct):DatabaseInfo => {
+  const secret = secretsmanager.Secret.fromSecretCompleteArn(scope, env`${AURORA_CREDENTIALS_SECRET_NAME}`, 'arn:aws:secretsmanager:us-east-1:445567075701:secret:rds!cluster-13c2e436-ec01-4daa-ab51-0763d97fb0c9-LZtyqb');
+  // Construct the DATABASE_URL environment variable for Prisma
+  return {databaseUrl:cdk.Fn.join('', [
+      'postgresql://',
+      secret.secretValueFromJson('username').unsafeUnwrap(),
+      ':',
+      secret.secretValueFromJson('password').unsafeUnwrap(),
+      '@',
+      'btappsyncstackondemandpro-auroraclusterondemandpro-lba9zr7yb1lo.cluster-cxmwgyku4xtz.us-east-1.rds.amazonaws.com',
+      ':5432/',
+      DB_NAME,
+    ]),
+    host:'btappsyncstackondemandpro-auroraclusterondemandpro-lba9zr7yb1lo.cluster-cxmwgyku4xtz.us-east-1.rds.amazonaws.com',
+    port:"5432",
+    dbName: DB_NAME,
+    secretName:"rds!cluster-13c2e436-ec01-4daa-ab51-0763d97fb0c9"
   };
 }

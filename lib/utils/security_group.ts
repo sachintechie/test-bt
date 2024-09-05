@@ -17,6 +17,13 @@ export const getSecurityGroups = (scope:Construct) => {
         ]
       }
       return securityGroupsSingleton;
+    case "ondemand-prod":
+      if(!securityGroupsSingleton){
+        securityGroupsSingleton=[
+          SecurityGroup.fromSecurityGroupId(scope, env`lambda-rds-6`, "sg-0f661eeab7d58bee8")
+        ]
+      }
+      return securityGroupsSingleton;
     default:
       if(!securityGroupsSingleton){
         // Create a security group for the Aurora DB Cluster

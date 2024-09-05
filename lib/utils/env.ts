@@ -9,6 +9,10 @@ export const isDevOrProd = () => {
   return environment === "dev"|| environment === "prod";
 }
 
+export const isOnDemandProd = () => {
+  return environment === "ondemand-prod";
+}
+
 export const isDev = () => {
   return environment === "dev";
 }
@@ -27,19 +31,26 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     PRIVATE_KEY:'0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e',
     METADATA_TABLE:'METADATA_TABLE'
   }
+  const iamInfo={
+    ADMIN_GROUP:'Admin',
+    ADMIN_ROLE:'arn:aws:iam::339712796998:role/service-role/admin',
+  }
+  const commonEnvs={
+    ...databaseInfoEnv,
+    ...web3InfoEnv,
+    ...iamInfo,
+  }
   switch (environment) {
     case "dev":
       return {
-        ...databaseInfoEnv,
-        ...web3InfoEnv,
+        ...commonEnvs,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
       };
     case "staging":
       return {
-        ...databaseInfoEnv,
-        ...web3InfoEnv,
+        ...commonEnvs,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
@@ -47,8 +58,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
       };
     case "prod":
       return {
-        ...databaseInfoEnv,
-        ...web3InfoEnv,
+        ...commonEnvs,
         SOLANA_NETWORK: "mainnet",
         SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
         CS_API_ROOT: "https://prod.signer.cubist.dev",
@@ -56,28 +66,24 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
       };
     case "schoolhack-prod":
         return {
-          ...databaseInfoEnv,
-          ...web3InfoEnv,
+          ...commonEnvs,
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
         };
     case "ondemand-prod":
         return {
-          ...databaseInfoEnv,
-          ...web3InfoEnv,
+          ...commonEnvs,
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
         };  
     default:
       return {
-        ...databaseInfoEnv,
-        ...web3InfoEnv,
+        ...commonEnvs,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-
       };
   }
 };
