@@ -1,7 +1,6 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../../cubist/CubeSignerClient";
 // import fetch from "node-fetch";
-<<<<<<< HEAD
 import * as fs from "fs"
 import { getCubistConfig  } from "../../db/dbFunctions";
 import {
@@ -14,11 +13,6 @@ import {
 } from "@solana/web3.js"
 
 
-=======
-import * as fs from "fs";
-import { getCubistConfig } from "../../db/dbFunctions";
-import { Connection, Keypair, PublicKey, Transaction, sendAndConfirmTransaction } from "@solana/web3.js";
->>>>>>> 937a81cf4c66584c13655e727ab64e6e713545f7
 
 import {
   SPL_ACCOUNT_COMPRESSION_PROGRAM_ID,
@@ -36,15 +30,9 @@ import {
   TokenStandard
 } from "@metaplex-foundation/mpl-bubblegum";
 
-<<<<<<< HEAD
 import { uris } from "./uri"
 import { Metaplex, Nft, keypairIdentity, KeypairSigner, IdentityDriver, CreateNftInput } from "@metaplex-foundation/js"
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata"
-=======
-import { uris } from "./uri";
-import { Metaplex, Nft, keypairIdentity } from "@metaplex-foundation/js";
-import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata";
->>>>>>> 937a81cf4c66584c13655e727ab64e6e713545f7
 import { tenant } from "../../db/models";
 import { MetaplexPlugin } from '@metaplex-foundation/js';
 import { getOrCreateAssociatedTokenAccount, 
@@ -69,13 +57,7 @@ const getCubistWalletAddress = async (): Promise<PublicKey> => {
 
 
 export const getSolanaConnection = (): Connection => {
-<<<<<<< HEAD
-
-
-  const connection = new Connection('https://api.mainnet-beta.solana.com');
-=======
   const connection = new Connection("https://api.mainnet-beta.solana.com");
->>>>>>> 937a81cf4c66584c13655e727ab64e6e713545f7
   return connection;
 };
 
@@ -170,28 +152,8 @@ export async function createAndInitializeTree(
   canopyDepth: number
 ) {
   const treeKeypair = Keypair.generate();
-<<<<<<< HEAD
-  const [treeAuthority, _bump] = PublicKey.findProgramAddressSync(
-    [treeKeypair.publicKey.toBuffer()],
-    BUBBLEGUM_PROGRAM_ID
-  );
-
-  const treeAccountInfo = await connection.getAccountInfo(treeKeypair.publicKey);
-if (!treeAccountInfo) {
-  console.error("Tree account is not initialized");
-}
-
-  const allocTreeIx = await createAllocTreeIx(
-    connection,
-    treeKeypair.publicKey,
-    payer.publicKey,
-    maxDepthSizePair,
-    canopyDepth
-  );
-=======
   const [treeAuthority, _bump] = PublicKey.findProgramAddressSync([treeKeypair.publicKey.toBuffer()], BUBBLEGUM_PROGRAM_ID);
   const allocTreeIx = await createAllocTreeIx(connection, treeKeypair.publicKey, payer.publicKey, maxDepthSizePair, canopyDepth);
->>>>>>> 937a81cf4c66584c13655e727ab64e6e713545f7
   const createTreeIx = createCreateTreeInstruction(
     {
       treeAuthority,
@@ -241,14 +203,10 @@ export async function mintCompressedNftToCollection(
   amount: number,
   tenantId: tenant
 ): Promise<MintResult> {
-<<<<<<< HEAD
   const [treeAuthority] = PublicKey.findProgramAddressSync(
     [treeAddress.toBuffer()],
     BUBBLEGUM_PROGRAM_ID
   );
-=======
-  const [treeAuthority] = PublicKey.findProgramAddressSync([treeAddress.toBuffer()], BUBBLEGUM_PROGRAM_ID);
->>>>>>> 937a81cf4c66584c13655e727ab64e6e713545f7
 
   const [bubblegumSigner] = PublicKey.findProgramAddressSync([Buffer.from("collection_cpi", "utf8")], BUBBLEGUM_PROGRAM_ID);
   const payerPublicKey = new PublicKey(payer.materialId);
@@ -381,7 +339,6 @@ export type CollectionDetails = {
 // ): Promise<CollectionDetails> {
 //   const envCollectionNft = walletConfig.COLLECTION_NFT;
 
-<<<<<<< HEAD
 export async function airdropSolToWallets(connection: Connection, receiverList: PublicKey[], amountInSol: number) {
   for (const publicKey of receiverList) {
     console.log(`Airdropping ${amountInSol} SOL to ${publicKey.toString()}...`);
@@ -457,10 +414,6 @@ export async function getOrCreateCollectionNFT(
   // const metaplex = new Metaplex(connection).use(keypairIdentity(payer)) 
   const metaplex = new Metaplex(connection).use(new PublicKey(payer.materialId))
 
-=======
-//   // Obtain a Cubist session key
-//   const sessionKey = await getCubistSessionKey(oidcToken, tenantId);
->>>>>>> 937a81cf4c66584c13655e727ab64e6e713545f7
 
 //   // Define a custom signer using Cubist
 //   const cubistSigner: Signer = {
@@ -521,7 +474,6 @@ export async function getOrCreateCollectionNFT(
 //   // Store the collection NFT mint address in the environment
 //   fs.appendFileSync(".env", `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`);
 
-<<<<<<< HEAD
   fs.appendFileSync(
     ".env",
     `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`
@@ -635,11 +587,3 @@ export async function getOrCreateCollectionNFT(
 }
 
 */
-=======
-//   return {
-//     mint: collectionNft.mintAddress,
-//     metadata: collectionNft.metadataAddress,
-//     masterEditionAccount: collectionNft.masterEditionAddress,
-//   };
-// }
->>>>>>> 937a81cf4c66584c13655e727ab64e6e713545f7
