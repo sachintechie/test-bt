@@ -41,7 +41,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username : strin
 
   try {
     console.log("createUser", tenant.id, tenantuserid);
-    const customer = await getCustomer(tenantuserid, tenant.id);
+    const customer = await getAdminUser(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       return { customer, error: null };
     } else {
