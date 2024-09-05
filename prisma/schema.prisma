@@ -46,6 +46,7 @@ model customer {
   cubistuserid      String?
   isactive          Boolean?
   createdat         String?
+  updatedat         String?
   iss               String?             
   isbonuscredit     Boolean?
   usertype          String?

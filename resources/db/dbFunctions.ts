@@ -80,6 +80,7 @@ export async function createCustomer(customer: customer) {
         partialtoken: customer.partialtoken,
         usertype: customer.usertype,
         createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString()
       }
     });
     return newCustomer;
@@ -97,6 +98,7 @@ export async function updateCustomer(customer: updatecustomer) {
       where: { id: customer.id },
       data: {
         partialtoken: customer.partialtoken,
+        updatedat: customer.updatedat,
       }
     });
     return newCustomer;

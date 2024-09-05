@@ -8,6 +8,7 @@ export interface customer {
   isactive: boolean;
   isBonusCredit: boolean;
   createdat: string;
+  updatedat?: string;
   usertype?: string;
   partialtoken?: string;
   iss?: string;
@@ -19,6 +20,7 @@ export interface updatecustomer {
   cubistuserid?: string;
   iss?: string;
   emailid?: string;
+  updatedat?: string;
 }
 
 export interface tenant {

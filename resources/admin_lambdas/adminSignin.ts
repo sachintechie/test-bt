@@ -89,6 +89,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username : strin
               name: name ? name :username,
               tenantuserid,
               tenantid: tenant.id,
+              iss:iss,
               cubistuserid: cubistUserId,
               isactive: true,
               isBonusCredit: false,

@@ -21,6 +21,23 @@ export const handler = async (event: any) => {
         const tenant = res.rows[0];
         console.log(tenant);
 
+        if (isUserAdminLike(idToken)) {
+          return {
+            isAuthorized: true,
+            resolverContext: {
+              id: tenant.id,
+              name: tenant.name,
+              apikey: tenant.apikey,
+              logo: tenant.logo,
+              isactive: tenant.isactive,
+              createdat: tenant.createdat,
+              userpoolid: tenant.userpoolid,
+              cognitoclientid: tenant.cognitoclientid,
+              userType : "ADMIN"
+            }
+          };
+        }
+
         return {
           isAuthorized: true,
           resolverContext: {
@@ -31,7 +48,8 @@ export const handler = async (event: any) => {
             isactive: tenant.isactive,
             createdat: tenant.createdat,
             userpoolid: tenant.userpoolid,
-            cognitoclientid: tenant.cognitoclientid
+            cognitoclientid: tenant.cognitoclientid,
+            userType : "USER"
           }
         };
       }

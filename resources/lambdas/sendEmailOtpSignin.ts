@@ -47,6 +47,7 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
         const updatedCustomer = await updateCustomer({
           id:customer.id,
           partialtoken: sendMailResponse.data?.partial_token,
+          updatedat: new Date().toISOString()
         });
         return { customer, error: null };
 
