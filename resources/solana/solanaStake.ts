@@ -121,7 +121,9 @@ export async function solanaStaking(
   const stakeAccountInfo = await getStakeAccountInfo(tx?.stakeAccountPubKey?.toString()!, connection);
 
   console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
-  const newAmount=stakeAccountInfo.currentStakeAmount?stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL:amount
+  const newAmount=stakeAccountInfo.currentStakeAmount?stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL:amount;
+  const token=await getToken(symbol)
+
   const newStakeAccount = await insertStakeAccount(
     senderWalletAddress,
     receiverWalletAddress,
@@ -135,9 +137,9 @@ export async function solanaStaking(
     stakeAccountStatus,
     tenantTransactionId,
     tx?.stakeAccountPubKey?.toString() || "",
+    token?.id as string,
     lockupExpirationTimestamp
   );
-  const token=await getToken(symbol)
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
     receiverWalletAddress,
@@ -347,8 +349,8 @@ stakeAccountData?.updatedat
 const unStakeDate = new Date(stakeAccountData?.updatedat || "");
 const withdrawDate = new Date();
 const diffTime = Math.abs(withdrawDate.getTime() - unStakeDate.getTime());
-const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
+const diffDays = Math.abs(diffTime / (1000 * 60 * 60 * 24));
+console.log("diffDays",diffDays,"difftime",diffTime,unStakeDate,withdrawDate);
   if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.CLOSED){
     return { data: null ,error:"No stake account found for this user "};
   }

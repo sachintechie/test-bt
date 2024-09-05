@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
-import { createAdminUser, getAdminUser, getCustomer } from "../db/dbFunctions";
+import { createAdminUser, getAdminUser } from "../db/dbFunctions";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -41,7 +41,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username : strin
 
   try {
     console.log("createUser", tenant.id, tenantuserid);
-    const customer = await getCustomer(tenantuserid, tenant.id);
+    const customer = await getAdminUser(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       return { customer, error: null };
     } else {
@@ -73,18 +73,23 @@ async function createUser(tenant: tenant, tenantuserid: string, username : strin
           const sub = proof.identity!.sub;
           const email = proof.email;
           const name = proof.preferred_username;
-
+          let cubistUserId ;
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
-            const cubistUserId = await org.createOidcUser({ iss, sub }, email, {
+             cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name,memberRole:"Member"
             });
+          }
+          else{
+            cubistUserId = proof.user_info?.user_id;
+          }
             const customer = await createAdminUser({
               emailid: email ? email : "",
               name: name ? name :username,
               tenantuserid,
               tenantid: tenant.id,
+              iss:iss,
               cubistuserid: cubistUserId,
               isactive: true,
               isBonusCredit: false,
@@ -101,18 +106,6 @@ async function createUser(tenant: tenant, tenantuserid: string, username : strin
             };
 
             return { customer: customerData, error: null };
-          } else {
-            const customer = await getAdminUser(tenantuserid, tenant.id);
-
-            if (customer != null && customer != undefined) {
-              return { customer, error: null };
-            } else {
-              return {
-                customer: null,
-                error: "admin not found for the given tenantuserid and tenantid"
-              };
-            }
-          }
         } catch (e) {
           console.log(`Not verified: ${e}`);
           return {

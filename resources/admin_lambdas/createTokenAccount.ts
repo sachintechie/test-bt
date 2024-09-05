@@ -1,6 +1,6 @@
 import { getAdminTransactionByTenantTransactionId, getTokenBySymbol, insertAdminTransaction } from "../db/dbFunctions";
 import { tenant, TransactionStatus } from "../db/models";
-import { batchTransferSPLToken } from "../solana/airdropSplToken";
+import { batchTransferSPLToken, createSplTokenAccounts } from "../solana/airdropSplToken";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
 
 export const handler = async (event: any) => {
@@ -12,7 +12,7 @@ export const handler = async (event: any) => {
     );
     if (isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined) {
       if (event.arguments?.input?.chainType === "Solana") {
-        const data = await adminTransfer(
+        const data = await createTokenAccount(
           event.identity.resolverContext as tenant,
           event.arguments?.input?.senderWalletAddress,
           event.arguments?.input?.recipients,
@@ -24,8 +24,8 @@ export const handler = async (event: any) => {
         );
 
         const response = {
-          status: data?.transaction != null ? 200 : 400,
-          data: data?.transaction,
+          status: data?.tokenAccounts != null ? 200 : 400,
+          data: data?.tokenAccounts,
           error: data?.error
         };
         console.log("Wallet", response);
@@ -54,35 +54,38 @@ export const handler = async (event: any) => {
   }
 };
 
-
-async function adminTransfer(tenant : tenant, senderWalletAddress : string, recipients : any, symbol : string, oidcToken : string, adminUserId : string, chainType : string, tenantTransactionId : string) {
+async function createTokenAccount(
+  tenant: tenant,
+  senderWalletAddress: string,
+  recipients: any,
+  symbol: string,
+  oidcToken: string,
+  adminUserId: string,
+  chainType: string,
+  tenantTransactionId: string
+) {
   try {
-  
     const token = await getTokenBySymbol(symbol);
     console.log("Customer Wallets", recipients, "tenant", tenant, token, "token");
-    const amount = recipients.map((item : any) => Number(item.amount)).reduce((prev : any, curr : any) => prev + curr, 0);
-
-    if (recipients.length > 0 && tenant != null && token != null) {
-      const blockchainTransaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);
-      if (blockchainTransaction.trxHash != null) {
-        const transactionStatus = await verifySolanaTransaction(blockchainTransaction.trxHash);
-        const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-
-        const transaction = await insertAdminTransaction(
-          senderWalletAddress,
-          "",
-          amount,
-          chainType,
-          symbol,
-          blockchainTransaction.trxHash,
-          tenant.id,
-          adminUserId,
-          token.id,
-          process.env["SOLANA_NETWORK"] ?? "",
-          txStatus,
-          tenantTransactionId
-        );
-        return { transaction, error: null };
+    if (token == null) {
+      return {
+        status: 400,
+        data: null,
+        error: "This token not supported at yet"
+      };
+    }
+    if (recipients.length > 0 && tenant != null) {
+      const blockchainTransaction = await createSplTokenAccounts(
+        recipients,
+        token?.decimalprecision ?? 0,
+        chainType,
+        token.contractaddress,
+        oidcToken,
+        senderWalletAddress,
+        tenant
+      );
+      if (blockchainTransaction.tokenAccounts != null) {
+        return { tokenAccounts: blockchainTransaction.tokenAccounts, error: null };
       } else {
         return {
           status: 400,
