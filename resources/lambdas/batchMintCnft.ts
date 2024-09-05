@@ -1,5 +1,5 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import { mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
+import { mintCompressedNftToCollection, MintResult, airdropSolToWallets, initializeTokenAccounts, airdropTokens } from "../solana/cNft/commonFunctions";
 import { tenant } from "../db/models";
 import { getSolConnection } from "../solana/solanaFunctions";
 import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
@@ -47,7 +47,8 @@ export const handler = async (event: any) => {
 async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, oidcToken: string) {
   try {
     // Create a Solana connection
-    const connection = await getSolConnection();
+   // const connection = await getSolConnection();
+    const connection = new Connection('https://api.devnet.solana.com', 'processed');
 
     // Fetch the payer's keypair (or create one if it doesn't exist)
     const payer = await getPayerCsSignerKey("Solana", tenant.id);
@@ -59,24 +60,36 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       };
     }
 
+    const mintAddress = new PublicKey("..."); // Replace with your token mint address
+   // const payer = Keypair.generate(); // The payer needs to have enough SOL to cover fees
 
 
-    // Get or create the NFT collection details
 
-  
+  // Get or create the NFT collection details
 
-    const collectionDetails = {
-      mint: new PublicKey("9ZaAdtajfjeStX1jxkQiPrbt9yYGseB9tAZ8fmC799xH"),
-      metadata: new PublicKey("HMj3e6Qa9i3JcyUUDpKTBRNTi5CQcAgtjx3KHowomcTn"),
-      masterEditionAccount: new PublicKey("4JYBkAnG3c3KdGhqNJngh7cxMPVC5oAdvwRHLdKZEgYW"),
-    }
+   const collectionDetails = {
+     mint: new PublicKey("9ZaAdtajfjeStX1jxkQiPrbt9yYGseB9tAZ8fmC799xH"),
+     metadata: new PublicKey("HMj3e6Qa9i3JcyUUDpKTBRNTi5CQcAgtjx3KHowomcTn"),
+     masterEditionAccount: new PublicKey("4JYBkAnG3c3KdGhqNJngh7cxMPVC5oAdvwRHLdKZEgYW"),
+  }
 
+
+// const collectionDetails = await getOrCreateCollectionNFT(connection, payer.key)
    let receiverList: PublicKey[] = [];
+   await airdropSolToWallets(connection, receiverList, 1); // Airdrops 1 SOL to each wallet
+
+   //await initializeTokenAccounts(connection, payer, receiverList, mintAddress);
+   //await airdropTokens(connection, payer, mintAddress, receiverList, 1000); // Airdrops 1000 tokens to each wallet
+
     // Convert the receiver wallet address to a PublicKey
+    /*
     receivers.map((receiver) => {
       const recipientPublicKey = new PublicKey(receiver);
       receiverList.push(recipientPublicKey);
     });
+    */
+
+    const receiverArray = ['BfbSjfhaD2GQ6uM3yquoDgoKrEbVPUqTZuk1McJ2K5bv','Ge18sweHd9goH6AmgMBywbfAqyb3VCQCX4KabazEMkRU','BJMqUixndJvAFDdvYyYxexfzS7zPBwnzzTVHcF6cGK7S','7swbSFJaBfNeiC7V7HU6WuUKegwR5HELywjGqE7FdrME','Hy4acbgqaZgd1SNfA5THaGHUPQbAzJko6TPmpww9mkvK']
 
     // Mint the compressed NFT(s) to the collection
     const data: MintResult = await mintCompressedNftToCollection(

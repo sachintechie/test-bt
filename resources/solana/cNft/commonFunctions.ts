@@ -6,6 +6,7 @@ import { getCubistConfig  } from "../../db/dbFunctions";
 import {
   Connection,
   Keypair,
+  LAMPORTS_PER_SOL,
   PublicKey,
   Transaction,
   sendAndConfirmTransaction,
@@ -30,9 +31,15 @@ import {
 } from "@metaplex-foundation/mpl-bubblegum"
 
 import { uris } from "./uri"
-import { Metaplex, Nft, keypairIdentity } from "@metaplex-foundation/js"
+import { Metaplex, Nft, keypairIdentity, KeypairSigner, IdentityDriver, CreateNftInput } from "@metaplex-foundation/js"
 import { PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID } from "@metaplex-foundation/mpl-token-metadata"
 import { tenant } from "../../db/models";
+import { MetaplexPlugin } from '@metaplex-foundation/js';
+import { getOrCreateAssociatedTokenAccount, 
+  createMint, 
+  mintTo, 
+  getMint, 
+  getAccount, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 
 // Define your Cubist environment configuration
@@ -47,7 +54,12 @@ const getCubistWalletAddress = async (): Promise<PublicKey> => {
   return new PublicKey(cubistWalletAddressString);
 };
 
+
+
+
 export const getSolanaConnection = (): Connection => {
+
+
   const connection = new Connection('https://api.mainnet-beta.solana.com');
   return connection;
 };
@@ -157,6 +169,12 @@ export async function createAndInitializeTree(
     [treeKeypair.publicKey.toBuffer()],
     BUBBLEGUM_PROGRAM_ID
   );
+
+  const treeAccountInfo = await connection.getAccountInfo(treeKeypair.publicKey);
+if (!treeAccountInfo) {
+  console.error("Tree account is not initialized");
+}
+
   const allocTreeIx = await createAllocTreeIx(
     connection,
     treeKeypair.publicKey,
@@ -222,7 +240,6 @@ export async function mintCompressedNftToCollection(
   oidcToken: string,
   tenantId: tenant
 ): Promise<MintResult> {
-  const sessionKey = await getCubistSessionKey(oidcToken, tenantId);
   const [treeAuthority] = PublicKey.findProgramAddressSync(
     [treeAddress.toBuffer()],
     BUBBLEGUM_PROGRAM_ID
@@ -367,6 +384,70 @@ export type CollectionDetails = {
 }
 
 
+export async function airdropSolToWallets(connection: Connection, receiverList: PublicKey[], amountInSol: number) {
+  for (const publicKey of receiverList) {
+    console.log(`Airdropping ${amountInSol} SOL to ${publicKey.toString()}...`);
+
+    // Airdrop SOL
+    const signature = await connection.requestAirdrop(publicKey, amountInSol * LAMPORTS_PER_SOL);
+    await connection.confirmTransaction(signature, 'processed');
+    
+    console.log(`Airdrop complete for ${publicKey.toString()}`);
+  }
+}
+
+export async function initializeTokenAccounts(
+  connection: Connection,
+  payer: Keypair, // The wallet paying for initialization (must have enough SOL)
+  receiverList: PublicKey[],
+  mint: PublicKey // The mint address of the token
+) {
+  for (const publicKey of receiverList) {
+    console.log(`Initializing token account for ${publicKey.toString()}...`);
+
+    const tokenAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      payer,      // Payer who funds the creation of the associated token account
+      mint,       // The mint address of the token
+      publicKey   // The owner of the associated token account
+    );
+
+    console.log(`Token account created for ${publicKey.toString()}: ${tokenAccount.address.toString()}`);
+  }
+}
+
+export async function airdropTokens(
+  connection: Connection,
+  payer: Keypair,
+  mint: PublicKey,
+  receiverList: PublicKey[],
+  amount: number // Amount in smallest denomination (like lamports for SOL)
+) {
+  for (const recipient of receiverList) {
+    console.log(`Airdropping tokens to ${recipient.toString()}...`);
+
+    // Get or create the associated token account for the recipient
+    const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
+      connection,
+      payer,
+      mint,
+      recipient
+    );
+
+    // Mint tokens to the recipient's associated token account
+    await mintTo(
+      connection,
+      payer,                  // Payer who pays for the transaction
+      mint,                   // Mint address of the token
+      recipientTokenAccount.address, // Recipient's associated token account address
+      payer,                  // Authority to mint tokens
+      amount                  // Amount of tokens to mint
+    );
+
+    console.log(`Airdropped ${amount} tokens to ${recipient.toString()}`);
+  }
+}
+
 /*
 export async function getOrCreateCollectionNFT(
   connection: Connection,
@@ -375,7 +456,9 @@ export async function getOrCreateCollectionNFT(
   const envCollectionNft = walletConfig.COLLECTION_NFT
   
   // Create Metaplex instance using payer as identity
-  const metaplex = new Metaplex(connection).use(keypairIdentity(payer )) 
+  // const metaplex = new Metaplex(connection).use(keypairIdentity(payer)) 
+  const metaplex = new Metaplex(connection).use(new PublicKey(payer.materialId))
+
 
   if (envCollectionNft) {
     const collectionNftAddress = new PublicKey(envCollectionNft)
@@ -425,74 +508,71 @@ export async function getOrCreateCollectionNFT(
   }
 }
 
-
 */
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
-async function getOrCreateCollectionNFT(
+interface CollectionDetails {
+  mint: PublicKey;
+  metadata: PublicKey;
+  masterEditionAccount: PublicKey;
+}
+
+
+// Custom identity class implementing the IdentityDriver interface
+class CubistIdentity implements IdentityDriver {
+  public publicKey: PublicKey;
+
+  constructor(private sessionKey: any, public payer: Keypair) {
+    this.publicKey = new PublicKey(sessionKey.materialId);
+  }
+
+  // Method to sign a transaction
+  async signTransaction(tx: Transaction): Promise<Transaction> {
+    tx.partialSign(this.payer); // Partial sign with payer if needed
+    const serializedTx = tx.serializeMessage().toString('base64');
+    const response = await this.sessionKey.signSolana({ message_base64: serializedTx });
+    const signature = Buffer.from(response.data.signature.slice(2), 'hex'); // Hex to buffer
+    tx.addSignature(this.publicKey, signature); // Add signature to transaction
+    return tx;
+  }
+
+  // Sign a single message
+  async signMessage(message: Uint8Array): Promise<Uint8Array> {
+    const messageBase64 = Buffer.from(message).toString('base64');
+    const response = await this.sessionKey.signSolana({ message_base64: messageBase64 });
+    const signature = Buffer.from(response.data.signature.slice(2), 'hex'); // Convert signature to Buffer
+    return signature;
+  }
+
+  // Method to sign all transactions
+  async signAllTransactions(txs: Transaction[]): Promise<Transaction[]> {
+    return Promise.all(txs.map((tx) => this.signTransaction(tx)));
+  }
+}
+
+export async function getOrCreateCollectionNFT(
   connection: Connection,
   payer: Keypair,
   oidcToken: string,
-  tenantId: tenant
+  tenantId: string
 ): Promise<CollectionDetails> {
   const envCollectionNft = walletConfig.COLLECTION_NFT;
 
   // Obtain a Cubist session key
   const sessionKey = await getCubistSessionKey(oidcToken, tenantId);
 
-  // Define a custom signer using Cubist
-  const cubistSigner: Signer = {
-    publicKey: new PublicKey(sessionKey.materialId), // Set the public key from Cubist session
-    signMessage: async (message: Uint8Array) => {
-      const messageBase64 = Buffer.from(message).toString("base64");
-      const response = await sessionKey.signSolana({ message_base64: messageBase64 });
-      const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Convert signature to Buffer
-      return signature;
-    },
-  };
-
-  // Create Metaplex instance using Cubist signer as identity
-  const metaplex = new Metaplex(connection).use({
-    signTransaction: async (tx) => {
-      tx.partialSign(payer); // Partial sign with payer if needed
-      const serializedTx = tx.serializeMessage().toString("base64");
-      const response = await sessionKey.signSolana({ message_base64: serializedTx });
-      const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Hex to buffer
-      tx.addSignature(cubistSigner.publicKey, signature); // Add signature to transaction
-      return tx;
-    },
-    identity: cubistSigner, // Set custom Cubist signer
-  });
+  // Create Metaplex instance using the custom Cubist identity
+  const cubistIdentity = new CubistIdentity(sessionKey, payer);
+  const metaplex = new Metaplex(connection).use(cubistIdentity);
 
   // Check for existing collection NFT
   if (envCollectionNft) {
     const collectionNftAddress = new PublicKey(envCollectionNft);
     const collectionNft = await metaplex.nfts().findByMint({ mintAddress: collectionNftAddress });
 
-    if (collectionNft.model !== "nft") {
-      throw new Error("Invalid collection NFT");
+    if (collectionNft.model !== 'nft') {
+      throw new Error('Invalid collection NFT');
     }
 
     return {
@@ -508,22 +588,24 @@ async function getOrCreateCollectionNFT(
   // Create a regular collection NFT using Metaplex
   const collectionNft = await metaplex.nfts().create({
     uri: randomUri,
-    name: "Collection NFT",
+    name: 'Collection NFT',
     sellerFeeBasisPoints: 0,
-    updateAuthority: cubistSigner, // Use Cubist signer for the update authority
-    mintAuthority: cubistSigner, // Use Cubist signer for mint authority
+    updateAuthority: cubistIdentity, // Use Cubist identity for the update authority
+    mintAuthority: cubistIdentity, // Use Cubist identity for mint authority
     tokenStandard: 0,
-    symbol: "Collection",
+    symbol: 'Collection',
     isMutable: true,
     isCollection: true,
   });
 
   // Store the collection NFT mint address in the environment
-  fs.appendFileSync(".env", `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`);
+  fs.appendFileSync('.env', `\nCOLLECTION_NFT=${collectionNft.mintAddress.toBase58()}`);
 
   return {
     mint: collectionNft.mintAddress,
     metadata: collectionNft.metadataAddress,
     masterEditionAccount: collectionNft.masterEditionAddress,
   };
-  */
+}
+
+*/
