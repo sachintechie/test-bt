@@ -1980,3 +1980,38 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
     throw err;
   }
 }
+
+export async function getOrdersByProductId(productId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        productid: productId 
+      },
+      include: {
+        buyer: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        seller: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true 
+      }
+    });
+    return orders;
+  } catch (err) {
+    throw err;
+  }
+}
