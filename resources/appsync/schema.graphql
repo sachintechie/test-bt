@@ -621,6 +621,33 @@ type GetWishlistByCusotmerIdData {
   createdat:  String
 
 }
+
+input CreateOrderInput {
+  sellerId: String!
+  buyerId: String!
+  productId: String!
+  price: Float!
+  quantity: Int!
+  status: String
+}
+
+type OrderData {
+  sellerid: String
+  buyerid: String
+  productid: String
+  price: Float
+  quantity: Int
+  status: String
+  createdat: String
+  updatedat: String
+}
+
+type CreateOrderResponse {
+  status: Int
+  data: OrderData
+  error: AWSJSON
+}
+
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
@@ -670,6 +697,7 @@ type Mutation {
   BatchMintCnft(input: MintCnftInput): BatchMintCnft
   AddToWishlist(input: WishlistInput): WishlistResponse
   RemoveFromWishlist(input: WishlistInput): WishlistResponse
+  CreateOrder(input: CreateOrderInput): CreateOrderResponse
 }
 
 schema {

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter, order } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1799,5 +1799,24 @@ export async function getWishlistByCustomerId(customerId: string) {
     return wishlistItems;
   } catch (error) {
     throw error;
+  }
+}
+
+export async function createOrder(order: order) {
+  const prisma = new PrismaClient();
+  try {
+    const newOrder = await prisma.order.create({
+      data: {
+        sellerid: order.sellerid,
+        buyerid: order.buyerid,
+        productid: order.productid,
+        price: order.price,
+        quantity: order.quantity,
+        status: "PENDING"
+      }
+    });
+    return newOrder;
+  } catch (err) {
+    throw err;
   }
 }

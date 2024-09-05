@@ -36,7 +36,8 @@ const MUTATIONS=[
   'batchMintCnft',
   'adminTransfer',
   'addToWishlist',
-  'removeFromWishlist'
+  'removeFromWishlist',
+  'createOrder'
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {

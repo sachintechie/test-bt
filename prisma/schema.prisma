@@ -56,6 +56,8 @@ model customer {
   staketransactions staketransaction[]
   stakeaccounts     stakeaccount[]
   wishlists         productwishlist[]
+  sellerorders      order[]            @relation("SellerOrders")
+  buyerorders       order[]            @relation("BuyerOrders")
 }
 
 model adminuser {
@@ -246,6 +248,7 @@ model product {
   transactions      transaction[]
   productattributes productattribute[]
   wishlists  productwishlist[]
+  orders            order[]
   @@unique([categoryid, name])
 }
 
@@ -369,4 +372,28 @@ model productwishlist {
   productid    String     
   product      product    @relation(fields: [productid], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
+}
+
+enum orderstatus {
+  PENDING
+  PLACED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  DISPUTED
+}
+
+model order {
+  id         String       @id @default(uuid())
+  sellerid   String?
+  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
+  buyerid    String?
+  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
+  productid  String?
+  product    product?     @relation(fields: [productid], references: [id])
+  price      String?
+  quantity   String?
+  status     orderstatus?
+  createdat  DateTime   @default(now())
+  updatedat  DateTime
 }
