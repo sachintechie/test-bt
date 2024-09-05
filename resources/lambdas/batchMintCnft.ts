@@ -3,6 +3,7 @@ import { mintCompressedNftToCollection, MintResult, airdropSolToWallets, initial
 import { tenant } from "../db/models";
 import { getSolConnection } from "../solana/solanaFunctions";
 import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
+import { delay } from "@cubist-labs/cubesigner-sdk";
 
 // Define your handler function
 export const handler = async (event: any) => {
@@ -48,7 +49,7 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) 
   try {
     // Create a Solana connection
    // const connection = await getSolConnection();
-    const connection = new Connection('https://api.devnet.solana.com', 'processed');
+    const connection = new Connection('https://devnet.helius-rpc.com/?api-key=94ca9cc5-df4e-403a-9156-bbd631a6b13e', 'processed');
 
     // Fetch the payer's keypair (or create one if it doesn't exist)
     const payer = await getPayerCsSignerKey("Solana", tenant.id);
@@ -86,6 +87,7 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) 
     });
     
     await airdropSolToWallets(connection, receiverList, 1); // Airdrops 1 SOL to each wallet
+    await delay(2000);
     //await initializeTokenAccounts(connection, payer, receiverList, mintAddress);
     //await airdropTokens(connection, payer, mintAddress, receiverList, 1000); // Airdrops 1000 tokens to each wallet
     
