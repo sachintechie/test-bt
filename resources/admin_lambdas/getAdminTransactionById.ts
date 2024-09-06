@@ -1,4 +1,4 @@
-import { getAdminTransactionsByWalletAddress } from "../db/dbFunctions";
+import { getAdminTransactionsById } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
@@ -25,7 +25,7 @@ async function getTransactions(tenant: tenant, tenantTransactionId: string) {
   console.log("tenantTransactionId", tenantTransactionId);
 
   try {
-    const wallet = await getAdminTransactionsByWalletAddress(tenantTransactionId, tenant, "");
+    const wallet = await getAdminTransactionsById(tenantTransactionId, tenant, "");
     console.log(wallet, "Wallet");
     return wallet;
   } catch (err) {
