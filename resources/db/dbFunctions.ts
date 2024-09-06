@@ -1171,6 +1171,28 @@ export async function getAdminTransactionsByWalletAddress(walletAddress: string,
   }
 }
 
+export async function getAdminTransactionsById(tenantTransactionId: string, tenant: tenant, symbol: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const transactions = await prisma.admintransaction.findMany({
+      where: {
+        tenanttransactionid: tenantTransactionId,
+        tenantid: tenant.id
+      }
+    });
+    const token = await prisma.token.findFirst({
+      where: {
+        symbol: symbol
+      }
+    });
+    return transactions.map((t: any) => {
+      return { ...t, ...(token || {}) };
+    });
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getStakeTransactions(stakeaccountid: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();

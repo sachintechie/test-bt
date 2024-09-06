@@ -105,10 +105,16 @@ input ListWalletTokenInput {
   walletAddress: String!
 }
 
+input GetAdminTransactionInput {
+tenantTransactionId: String!
+}
+
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
   ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+  GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
+
 }
 
 type Mutation {
