@@ -38,7 +38,8 @@ const MUTATIONS=[
   'addToWishlist',
   'removeFromWishlist',
   'createOrder',
-  'createTokenAccount'
+  'createTokenAccount',
+  'updateOrderStatus'
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {

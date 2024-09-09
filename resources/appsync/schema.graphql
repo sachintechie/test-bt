@@ -648,6 +648,142 @@ type CreateOrderResponse {
   error: AWSJSON
 }
 
+input GetOrdersBySellerIdInput {
+	sellerId: String!
+}
+
+type GetOrdersBySellerIdResponse {
+  status: Int
+  data: [GetOrdersBySellerIdData]
+  error: AWSJSON
+}
+
+type CustomerData {
+  emailid: String
+  name: String
+  isactive: Boolean
+  usertype: String
+  iss: String
+  }
+
+type GetOrdersBySellerIdData {
+  buyer: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: String
+  createdat: String
+  updatedat: String
+}
+
+input GetOrdersByBuyerIdInput {
+	buyerId: String!
+}
+
+type GetOrdersByBuyerIdResponse {
+  status: Int
+  data: [GetOrdersByBuyerIdData]
+  error: AWSJSON
+}
+
+type GetOrdersByBuyerIdData {
+  seller: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: String
+  createdat: String
+  updatedat: String
+}
+
+
+input GetOrderByIdInput {
+	orderId: String!
+}
+
+type GetOrderByIdResponse {
+  status: Int
+  data: GetOrderByIdData
+  error: AWSJSON
+}
+
+type GetOrderByIdData {
+  seller: CustomerData
+  buyer: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: String
+  createdat: String
+  updatedat: String
+}
+
+input GetOrdersByTenantIdInput {
+	tenantId: String!
+}
+
+type GetOrdersByTenantIdResponse {
+  status: Int
+  data: [GetOrdersByTenantIdData]
+  error: AWSJSON
+}
+
+type GetOrdersByTenantIdData {
+  seller: CustomerData
+  buyer: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: String
+  createdat: String
+  updatedat: String
+}
+
+input UpdateOrderStatusInput {
+	orderId: String!
+	status: String!
+}
+
+type UpdateOrderStatusResponse {
+  status: Int
+  data: UpdateOrderStatusResponseData
+  error: AWSJSON
+}
+
+type UpdateOrderStatusData {
+  sellerid: String
+  buyerid: String
+  productid: String
+  status: String
+  updatedat: String
+}
+
+type UpdateOrderStatusResponseData {
+	message: String
+	order: UpdateOrderStatusData
+}
+
+input GetOrdersByProductIdInput {
+  productId: String!
+}
+
+type GetOrdersByProductIdResponse {
+  status: Int
+  data: [GetOrdersByProductIdData]
+  error: AWSJSON
+}
+
+type GetOrdersByProductIdData {
+  buyer: CustomerData
+  seller: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: String
+  createdat: String
+  updatedat: String
+}
+
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
@@ -684,7 +820,12 @@ type Query {
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): GetProductsResponse
   GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse 
-  }
+  GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
+  GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
+  GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
+  GetOrdersByTenantId(input: GetOrdersByTenantIdInput): GetOrdersByTenantIdResponse
+  GetOrdersByProductId(input: GetOrdersByProductIdInput): GetOrdersByProductIdResponse
+}
 
 type Mutation {
   CreateCategory(input: CreateCategoryInput): CategoryResponse
@@ -698,6 +839,7 @@ type Mutation {
   AddToWishlist(input: WishlistInput): WishlistResponse
   RemoveFromWishlist(input: WishlistInput): WishlistResponse
   CreateOrder(input: CreateOrderInput): CreateOrderResponse
+  UpdateOrderStatus(input: UpdateOrderStatusInput): UpdateOrderStatusResponse
 }
 
 schema {
