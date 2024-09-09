@@ -234,6 +234,8 @@ export async function getKey(oidcClient: any, chainType: string, cubistUserid: s
   }
 }
 
+
+
 export async function signTransaction(transaction: Transaction, key: cs.Key) {
   const base64Payer = transaction.serializeMessage().toString("base64");
   // sign using the well-typed solana end point (which requires a base64 serialized Message)
