@@ -368,3 +368,93 @@ export async function batchTransferSPLToken(
     return { trxHash: null, error: e };
   }
 }
+
+export async function createSplTokenAccounts(
+  receipients: any[],
+  decimalPrecision: number,
+  chainType: string,
+  contractAddress: string,
+  oidcToken: string,
+  senderWalletAddress: string,
+  tenant: any
+) {
+  try {
+    console.log("Receiver Wallet Address", receipients);
+    const connection = await getSolConnection();
+
+    // 1. Collect values from events
+    const mint = new PublicKey(contractAddress);
+    //let sendingAmount = parseFloat(amount.toString());
+    console.log("decimalPrecision", decimalPrecision);
+    let LAMPORTS_PER_SPLTOKEN = 10 ** decimalPrecision;
+    console.log("LAMPORTS_PER_SPLTOKEN", LAMPORTS_PER_SPLTOKEN);
+    const cubistConfig = await getCubistConfig(tenant.id);
+    if (cubistConfig == null) {
+      return {
+        transaction: null,
+        error: "Cubist Configuration not found for the given tenant"
+      };
+    }
+ 
+   // 2. Get the oidcClient key from oidcToken
+   const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
+   if (!oidcClient) {
+     return {
+       trxHash: null,
+       error: "Please send a valid identity token for verification"
+     };
+   }
+   const keys = await oidcClient.sessionKeys();
+   console.log("Keys", keys);
+   if(keys.length === 0){
+
+    return {
+      trxHash: null,
+      error: "Given identity token is not the owner of given wallet address"
+    };
+   }
+   const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
+
+   const senderPublicKey = new PublicKey(senderKey.materialId);
+
+
+    //Check sol balance on payer address
+    const senderSolBalance = await connection.getBalance(senderPublicKey);
+    if (senderSolBalance < 0.05) {
+      return {
+        trxHash: null,
+        error: "Insufficient balance in payer account"
+      };
+    }
+
+    const fromTokenAccount = await getOrCreateAssociatedTokenAccountForKey(connection, senderKey, mint, senderPublicKey);
+
+    // Get the wallet's associated token account for the given mint
+
+    console.log("From Token Account", fromTokenAccount);
+   const tokenAccounts = [];
+    for (const recipient of receipients) {
+      // const toWallet = new PublicKey(receiverWalletAddress[0].walletaddress);
+      const toWallet = new PublicKey(recipient.walletAddress);
+      const toTokenAccount = await getOrCreateAssociatedTokenAccountForKey(connection, senderKey, mint, toWallet);
+      tokenAccounts.push(toTokenAccount);
+
+      //  const toTokenAccount = await getOrCreateAssociatedAccountInfo(recipient.walletaddress);
+
+      // const toTokenAccount = await getOrCreateRecipientAssociatedTokenAccount(
+      //   connection, toWallet, mint, toWallet
+
+      // );
+      // console.log("To Token Account", toTokenAccount);
+
+    
+    }
+
+    
+    console.log(`tokenAccounts: ${tokenAccounts}`);
+    return { tokenAccounts: tokenAccounts, error: null };
+  } catch (e) {
+    console.log("from airdrop fun", e);
+    return { trxHash: null, error: e };
+  }
+}

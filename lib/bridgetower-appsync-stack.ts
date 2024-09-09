@@ -1,11 +1,11 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import {env, envConfig, isDevOrProd} from "./utils/env";
+import {env, envConfig, isDevOrProd, isOnDemandProd} from "./utils/env";
 import {configResolver, newAppSyncApi} from "./utils/appsync";
 import {capitalize, readFilesFromFolder} from "./utils/utils";
 import {newApiGateway} from "./utils/apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import {DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo} from "./utils/aurora";
+import {DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo} from "./utils/aurora";
 import {AuroraStack} from "./bridgetower-aurora-stack";
 import {newNodeJsFunction} from "./utils/lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
@@ -37,7 +37,8 @@ const MUTATIONS=[
   'adminTransfer',
   'addToWishlist',
   'removeFromWishlist',
-  'createOrder'
+  'createOrder',
+  'createTokenAccount'
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
@@ -59,7 +60,9 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     const lambdaMap=new Map<string, lambda.Function>();
 
     let databaseInfo:DatabaseInfo;
-    if(!isDevOrProd()){
+    if(isOnDemandProd()){
+      databaseInfo = getOnDemandProdDatabaseInfo(this);
+    }else if(!isDevOrProd()){
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getDatabaseInfo(this, props.auroraStack!);
     }else{
@@ -104,4 +107,3 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     });
   }
 }
-

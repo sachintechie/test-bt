@@ -168,11 +168,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Bootstrap to ondemand-prod
-        env:
-          CDK_ENV: "ondemand-prod"
-        run: npx cdk bootstrap
-
       - name: Deploy to ondemand-prod
         env:
           CDK_ENV: "ondemand-prod"

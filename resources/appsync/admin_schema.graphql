@@ -86,6 +86,8 @@ type Query {
 
 type Mutation {
   AdminTransfer(input: AdminTransferInput): AdminTransfer
+  CreateTokenAccount(input: AdminTransferInput): AdminTransfer
+
 }
 
 schema {

@@ -1,5 +1,5 @@
 import { clusterApiUrl, Connection, PublicKey } from "@solana/web3.js";
-import { getOrCreateKeypair, getOrCreateCollectionNFT, mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
+import { mintCompressedNftToCollection, MintResult } from "../solana/cNft/commonFunctions";
 import { tenant } from "../db/models";
 import { getSolConnection } from "../solana/solanaFunctions";
 import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
@@ -23,7 +23,7 @@ export const handler = async (event: any) => {
         body: JSON.stringify({ message: "Missing required fields" })
       };
     }
-   const data = await airdropCNFT(tenant, receiverWalletAddress, amount, oidcToken);
+   const data = await airdropCNFT(tenant, receiverWalletAddress, amount);
     // Build the response
     return {
       statusCode: 200,
@@ -44,13 +44,14 @@ export const handler = async (event: any) => {
   }
 };
 
-async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, oidcToken: string) {
+async function airdropCNFT(tenant: tenant, receivers: string[], amount: number) {
   try {
     // Create a Solana connection
     const connection = await getSolConnection();
 
     // Fetch the payer's keypair (or create one if it doesn't exist)
     const payer = await getPayerCsSignerKey("Solana", tenant.id);
+    console.log("Payer", payer);
     if (payer?.key == null) {
       return {
         transaction: null,
@@ -58,9 +59,19 @@ async function airdropCNFT(tenant: tenant, receivers: string[], amount: number, 
       };
     }
 
+
+
     // Get or create the NFT collection details
-    const collectionDetails = await getOrCreateCollectionNFT(connection, payer);
-let receiverList: PublicKey[] = [];
+
+  
+
+    const collectionDetails = {
+      mint: new PublicKey("9ZaAdtajfjeStX1jxkQiPrbt9yYGseB9tAZ8fmC799xH"),
+      metadata: new PublicKey("HMj3e6Qa9i3JcyUUDpKTBRNTi5CQcAgtjx3KHowomcTn"),
+      masterEditionAccount: new PublicKey("4JYBkAnG3c3KdGhqNJngh7cxMPVC5oAdvwRHLdKZEgYW"),
+    }
+
+   let receiverList: PublicKey[] = [];
     // Convert the receiver wallet address to a PublicKey
     receivers.map((receiver) => {
       const recipientPublicKey = new PublicKey(receiver);
@@ -75,7 +86,6 @@ let receiverList: PublicKey[] = [];
       collectionDetails,
       receiverList,
       amount,
-      oidcToken,
       tenant
     );
 
