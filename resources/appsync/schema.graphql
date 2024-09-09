@@ -454,10 +454,7 @@ type GetMetadataResponse {
   metadata: AWSJSON
 }
 
-input CreateCategoryInput {
-  name: String!
-  tenantId: String!
-}
+
 
 type CategoryResponse {
   status: Int
@@ -828,7 +825,6 @@ type Query {
 }
 
 type Mutation {
-  CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
   CreateWallet(input: CreateWalletInput): GetWallet

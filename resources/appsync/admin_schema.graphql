@@ -78,7 +78,24 @@ input AdminRecipient {
   amount: Float
 }
 
+input CreateCategoryInput {
+  name: String!
+  tenantId: String
+}
 
+type CategoryResponse {
+  status: Int
+  data: CategoryData
+  error: AWSJSON
+}
+
+type CategoryData {
+  name: String!
+  tenantid: String!
+  createdat: String
+  updatedat: String
+}
+  
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
@@ -87,7 +104,7 @@ type Query {
 type Mutation {
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
-
+  CreateCategory(input: CreateCategoryInput): CategoryResponse
 }
 
 schema {
