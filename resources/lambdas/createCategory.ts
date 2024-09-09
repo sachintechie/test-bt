@@ -1,6 +1,6 @@
 import { tenant } from "../db/models";
-import { createCategory } from "../db/dbFunctions"; // Assuming you have a function to create a category in your DB
-
+import { createCategory, getAdminUser} from "../db/dbFunctions"; // Assuming you have a function to create a category in your DB
+import { verifyToken } from "../cognito/commonFunctions"
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -16,7 +16,7 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const category = await createCategoryInDb(tenantContext, tenantUserId, categoryName);
+    const category = await createCategoryInDb(tenantContext, event.headers?.identity, tenantUserId, categoryName);
 
     return {
       status: 200,
@@ -33,10 +33,21 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createCategoryInDb(tenant: tenant, tenantUserId: string, categoryName: string) {
-  // Logic to create the category in the database
-  const newCategory = await createCategory({ tenantid: tenant.id, name: categoryName });
-
-  // Save to DB
-  return newCategory;
+async function createCategoryInDb(tenant: tenant, oidcToken: string, tenantUserId: string, categoryName: string ) {
+  const admin = await getAdminUser(tenantUserId, tenant.id);
+  if (admin != null && admin?.cubistuserid) {
+    return { admin, error: null };
+  } else {
+    if (!oidcToken) {
+      return {
+        admin: null,
+        error: "Please provide an identity token for verification"
+      };
+    } else {
+      const verification = await verifyToken(tenant,oidcToken);
+      if(!verification) throw new Error (`Admin veification failed`)
+      const newCategory = await createCategory({ tenantid: tenant.id, name: categoryName });
+      return newCategory;
+    }
+  }
 }
