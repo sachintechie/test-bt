@@ -155,6 +155,24 @@ type ProductAttributeData {
   updatedat: String
 }
 
+input UpdateCategoryInput {
+	categoryId: String!
+	categoryName: String!
+}
+
+type UpdateCategoryResponse {
+  status: Int
+  data: UpdateCategoryData
+  error: AWSJSON
+}
+
+type UpdateCategoryData {
+  name: String
+  tenantid: String
+  createdat: String
+  updatedat: String
+}
+
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
@@ -166,6 +184,7 @@ type Mutation {
   CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+  UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
 }
 
 schema {

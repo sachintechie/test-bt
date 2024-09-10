@@ -2020,3 +2020,23 @@ export async function getOrdersByProductId(productId: string) {
     throw err;
   }
 }
+
+
+export async function updateCategory(categoryId: string, category: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updated = await prisma.productcategory.update({
+      where: {
+        id: categoryId,
+      },
+      data: {
+        name: category,
+		updatedat: new Date().toISOString()
+      },
+    });
+
+    return updated;
+  } catch (err) {
+    throw err;
+  }
+}
