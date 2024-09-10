@@ -2040,3 +2040,27 @@ export async function updateCategory(categoryId: string, category: string) {
     throw err;
   }
 }
+
+export async function updateProduct(id: string, product: Partial<product>) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const updatedProduct = await prisma.product.update({
+      where: {
+        id: id,
+      },
+      data: product,
+    });
+
+    return updatedProduct;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+
+
+
+
