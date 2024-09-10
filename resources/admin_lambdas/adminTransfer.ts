@@ -1,4 +1,5 @@
-import { getAdminTransactionByTenantTransactionId, getTokenBySymbol, insertAdminTransaction } from "../db/dbFunctions";
+import { getAdminTransactionByTenantTransactionId, insertAdminTransaction } from "../db/adminDbFunctions";
+import {  getTokenBySymbol } from "../db/dbFunctions";
 import { tenant, TransactionStatus } from "../db/models";
 import { batchTransferSPLToken } from "../solana/airdropSplToken";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";

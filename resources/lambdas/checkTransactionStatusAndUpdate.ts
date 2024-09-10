@@ -1,9 +1,7 @@
 import {
-  getAllAdminTransactions,
   getAllStakingTransactions,
   getAllTransactions,
   getTenantCallBackUrl,
-  updateAdminTransaction,
   updateStakingTransaction,
   updateTransaction
 } from "../db/dbFunctions";
@@ -11,6 +9,7 @@ import { CallbackStatus, TransactionStatus } from "../db/models";
 import axios from "axios";
 import * as crypto from "crypto";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
+import { getAllAdminTransactions, updateAdminTransaction } from "../db/adminDbFunctions";
 
 export const handler = async (event: any) => {
   try {
