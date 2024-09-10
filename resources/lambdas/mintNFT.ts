@@ -17,28 +17,8 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 export const handler = async (event: any, context: any) => {
   const { toAddress, numberOfTokens, chain, contractAddress, metadata } = event.arguments?.input;
   try{
-    const web3=chain==='AVAX'?web3Avax:web3Eth;
 
-    const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
-    web3.eth.accounts.wallet.add(account);
-
-    const contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
-
-
-    const tx = {
-      from: account.address,
-      to: contractAddress,
-      gas: 300000,
-      data: contract.methods.batchMint(toAddress, numberOfTokens).encodeABI()
-    };
-
-    const nextTokenId = await contract.methods.getNextTokenId().call() as BigInt;
-
-    const receipt = await web3.eth.sendTransaction(tx);
-
-    for (let i = 0; i < numberOfTokens; i++) {
-      await storeMetadataInDynamoDB(dynamoDB,contractAddress, Number(nextTokenId)+i, metadata);
-    }
+    const receipt = await mintNFT(toAddress, numberOfTokens, chain, contractAddress, metadata);
 
     return {
       status: 200,
@@ -53,3 +33,30 @@ export const handler = async (event: any, context: any) => {
     };
   }
 };
+
+export const mintNFT = async (toAddress: string, numberOfTokens: number, chain: string, contractAddress: string, metadata: any) => {
+  const web3=chain==='AVAX'?web3Avax:web3Eth;
+
+  const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
+  web3.eth.accounts.wallet.add(account);
+
+  const contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
+
+
+  const tx = {
+    from: account.address,
+    to: contractAddress,
+    gas: 300000,
+    data: contract.methods.batchMint(toAddress, numberOfTokens).encodeABI()
+  };
+
+  const nextTokenId = await contract.methods.getNextTokenId().call() as BigInt;
+
+  const receipt = await web3.eth.sendTransaction(tx);
+
+  for (let i = 0; i < numberOfTokens; i++) {
+    await storeMetadataInDynamoDB(dynamoDB,contractAddress, Number(nextTokenId)+i, metadata);
+  }
+
+  return receipt;
+}

@@ -1,5 +1,7 @@
 import { createProduct } from "../db/dbFunctions";
 import { productRarity } from "../db/models";
+import {mintNFT} from "./mintNFT";
+import {mintERC1155} from "./mintERC1155";
 
 interface CreateProductInput {
   name: string;
@@ -7,7 +9,16 @@ interface CreateProductInput {
   rarity: productRarity;
   price: number;
   purchasedPercentage: number;
+  isMintAble?: boolean;
+  chainType?: string;
+  tokenType?: string;
+  quantity?: number;
+  toAddress?: string;
+  contractAddress?: string;
+  metadata?: any;
+  tokenId?: number; // for ERC1155
 }
+
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -32,6 +43,15 @@ export const handler = async (event: any, context: any) => {
       price: input.price,
       purchasedpercentage: input.purchasedPercentage
     });
+
+    const { isMintAble, chainType, tokenType, quantity,toAddress, contractAddress,metadata,tokenId} = event.arguments?.input;
+    if (isMintAble && chainType && tokenType && quantity) {
+      if(tokenType === "ERC1155") {
+        await mintERC1155(toAddress, [tokenId], [quantity], chainType, contractAddress, metadata);
+      }else{
+        await mintNFT(toAddress, quantity, chainType, contractAddress, metadata);
+      }
+    }
 
     return {
       statusCode: 200,
