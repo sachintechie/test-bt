@@ -109,11 +109,34 @@ input GetAdminTransactionInput {
 tenantTransactionId: String!
 }
 
+input GetAdminWalletBalanceInput {
+  walletAddress: String!
+  symbol: String
+}
+
+type GetAdminWalletBalance {
+  status: Int
+  data: [GetAdminWalletBalanceData]
+  error: AWSJSON
+}
+
+type GetAdminWalletBalanceData {
+  customerid: String!
+  walletaddress: String!
+  symbol: String
+  createdat: String
+  chaintype: String
+  contractaddress: String
+  balance: Float
+  tokenname: String
+}
+
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
   ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
   GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
+  GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
 
 }
 
