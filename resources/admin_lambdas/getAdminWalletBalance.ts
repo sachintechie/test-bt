@@ -1,5 +1,5 @@
+import { getAdminWalletAndTokenByWalletAddress } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
-import { getAdminWalletAndTokenByWalletAddress } from "../db/dbFunctions";
 import { getSolBalance, getSplTokenBalance } from "../solana/solanaFunctions";
 
 export const handler = async (event: any) => {
