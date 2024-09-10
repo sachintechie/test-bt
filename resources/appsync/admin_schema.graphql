@@ -198,21 +198,12 @@ input UpdateProductAttributeInput {
   productId: String!
 }
 
-type ProductAttributeResponse {
+type UpdateProductAttributeResponse {
   status: Int
-  data: ProductAttributeData
+  data:ProductAttributeData
   error: AWSJSON
 }
 
-type ProductAttributeData {
-  id: String!
-  key: String!
-  value: String!
-  type: String
-  productid: String
-  createdat: String
-  updatedat: String
-}
 
 type Query {
   AdminSignin(input: SigninInput): SignIn
@@ -227,7 +218,7 @@ type Mutation {
   CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
   UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
   UpdateProduct(input: UpdateProductInput): UpdateProductResponse
-  UpdateProductAttribute(input: UpdateProductAttributeInput): ProductAttributeResponse
+  UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 }
 
 schema {
