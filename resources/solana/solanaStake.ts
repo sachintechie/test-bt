@@ -250,6 +250,7 @@ async function createStakeAccountWithStakeProgram(
     transaction.partialSign(stakeAccount);
 
     const tx = await connection.sendRawTransaction(transaction.serialize());
+    await connection.confirmTransaction(tx);
     console.log("[createStakeAccountWithStakeProgram]tx:", tx);
 
     return { txHash: tx, stakeAccountPubKey: stakeAccount.publicKey };
@@ -385,6 +386,7 @@ console.log("diffDays",diffDays,"difftime",diffTime,unStakeDate,withdrawDate);
       await signTransaction(transaction, payerKey);
       try {
         const tx = await connection.sendRawTransaction(transaction.serialize());
+        await connection.confirmTransaction(tx);
        const stakeTrx = await createWithdrawTransaction(accountPubkey, tx);
         await updateStakeAccount(accountPubkey,StakeAccountStatus.CLOSED);
         console.log(`Withdrawn ${lamports} lamports from ${accountPubkey}, transaction signature: ${tx}`);
@@ -446,6 +448,7 @@ export async function mergeStakeAccounts(connection: Connection,stakeAccounts:st
 
         await signTransaction(transaction, payerKey);
         const signature = await connection.sendRawTransaction(transaction.serialize());
+        await connection.confirmTransaction(signature);
         console.log(`Merged ${targetAccount} into ${baseAccount}, transaction signature: ${signature}`);
         await insertMergeStakeAccountsTransaction(targetAccount,baseAccount, signature);
         await mergeDbStakeAccounts(targetAccount, baseAccount);

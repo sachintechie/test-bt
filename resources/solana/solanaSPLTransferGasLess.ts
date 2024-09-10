@@ -178,6 +178,7 @@ const createAssociatedTokenAccount = async (
   transaction.addSignature(new PublicKey(payerKey.materialId), sigBytes);
 
   const txHash = await connection.sendRawTransaction(transaction.serialize());
+  await connection.confirmTransaction(txHash);
   console.log(`txHash: ${txHash}`);
 };
 

@@ -78,10 +78,43 @@ input AdminRecipient {
   amount: Float
 }
 
+type ListWalletTransactions {
+  status: Int
+  data: [TransactionData]
+  error: AWSJSON
+}
+
+type TransactionData {
+  customerid: String
+  walletaddress: String
+  receiverwalletaddress: String
+  chaintype: String
+  txhash: String
+  symbol: String
+  amount: Float
+  createdat: String
+  tokenid: String
+  tenantuserid: String
+  status: String
+  callbackstatus: String
+  id: String
+  network: String
+  tenanttransactionid: String
+}
+input ListWalletTokenInput {
+  walletAddress: String!
+}
+
+input GetAdminTransactionInput {
+tenantTransactionId: String!
+}
 
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
+  ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+  GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
+
 }
 
 type Mutation {

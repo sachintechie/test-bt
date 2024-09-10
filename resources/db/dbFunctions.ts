@@ -1149,6 +1149,50 @@ export async function getTransactionsByWalletAddress(walletAddress: string, tena
   }
 }
 
+export async function getAdminTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const transactions = await prisma.admintransaction.findMany({
+      where: {
+        walletaddress: walletAddress,
+        tenantid: tenant.id
+      }
+    });
+    const token = await prisma.token.findFirst({
+      where: {
+        symbol: symbol
+      }
+    });
+    return transactions.map((t: any) => {
+      return { ...t, ...(token || {}) };
+    });
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getAdminTransactionsById(tenantTransactionId: string, tenant: tenant, symbol: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const transactions = await prisma.admintransaction.findMany({
+      where: {
+        tenanttransactionid: tenantTransactionId,
+        tenantid: tenant.id
+      }
+    });
+    const token = await prisma.token.findFirst({
+      where: {
+        symbol: symbol
+      }
+    });
+    return transactions.map((t: any) => {
+      return { ...t, ...(token || {}) };
+    });
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getStakeTransactions(stakeaccountid: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
@@ -1225,6 +1269,21 @@ export async function getAllStakingTransactions() {
     const stakingTransactions = await prisma.staketransaction.findMany({
       where: {
         status: "PENDING"
+      }
+    });
+    return stakingTransactions;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getAllAdminTransactions(chainType :string) {
+  try {
+    const prisma = await getPrismaClient();
+    const stakingTransactions = await prisma.admintransaction.findMany({
+      where: {
+        status: "PENDING",
+        chaintype: chainType
       }
     });
     return stakingTransactions;
@@ -1468,6 +1527,23 @@ export async function updateStakingTransaction(transactionId: string, status: st
   try {
     const prisma = await getPrismaClient();
     const updatedTransaction = await prisma.staketransaction.update({
+      where: { id: transactionId },
+      data: {
+        status: status,
+        callbackstatus: callbackStatus,
+        updatedat: new Date().toISOString()
+      }
+    });
+    return updatedTransaction;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateAdminTransaction(transactionId: string, status: string, callbackStatus: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedTransaction = await prisma.admintransaction.update({
       where: { id: transactionId },
       data: {
         status: status,
