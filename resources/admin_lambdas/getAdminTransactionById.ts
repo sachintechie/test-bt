@@ -1,4 +1,4 @@
-import { getAdminTransactionsById } from "../db/dbFunctions";
+import { getAdminTransactionsById } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {

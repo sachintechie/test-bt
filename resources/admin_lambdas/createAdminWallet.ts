@@ -1,6 +1,6 @@
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
-import { createAdminWallet, getAdminUser, getAdminWalletByAdmin } from "../db/dbFunctions";
+import { createAdminWallet, getAdminUser, getAdminWalletByAdmin } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -89,3 +89,5 @@ async function createAdminUserWallet(tenant: tenant, tenantuserid: string, chain
     throw e;
   }
 }
+
+
