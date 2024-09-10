@@ -1010,6 +1010,38 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
   }
 }
 
+export async function getAdminWalletAndTokenByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const wallet = await prisma.adminwallet.findFirst({
+      where: {
+        walletaddress: walletAddress
+      }
+    });
+    let tokens;
+    if (symbol == null || symbol == "") {
+      tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "" }
+      });
+    } else {
+      tokens = await prisma.token.findMany({
+        where: { chaintype: wallet?.chaintype || "", symbol: symbol }
+      });
+    }
+
+    const walletsWithChainTypePromises = tokens.map(async (t: any) => {
+      const wallet = await prisma.wallet.findFirst({
+        where: { chaintype: t.chaintype, walletaddress: walletAddress }
+      });
+      return { ...t, ...wallet, tokenname: t.name, tokenid: t.id };
+    });
+    return await Promise.all(walletsWithChainTypePromises);
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 export async function getWalletAndTokenByWalletAddressBySymbol(walletAddress: string, tenant: tenant, symbol: string) {
   try {
     const prisma = await getPrismaClient();
