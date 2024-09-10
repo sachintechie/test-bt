@@ -95,7 +95,66 @@ type CategoryData {
   createdat: String
   updatedat: String
 }
-  
+
+enum ProductRarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
+}
+
+input CreateProductInput {
+  name: String!
+  categoryId: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedPercentage: Float
+}
+
+ type ProductResponse {
+  status: Int
+  data: ProductData
+  error: AWSJSON
+}
+
+type ProductData {
+  id: String!
+  name: String!
+  categoryid: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedpercentage: Float
+  availablepercentage: Float
+  category: CategoryData!
+  createdat: String
+  updatedat: String
+  productattributes: [ProductAttributeData!]!
+}
+
+input ProductAttributeInput {
+  key: String!
+  value: String!
+  type: String!
+  productId: String!
+}
+
+type ProductAttributeResponse {
+  status: Int
+  data: ProductAttributeData
+  error: AWSJSON
+}
+
+type ProductAttributeData {
+  id: String!
+  key: String!
+  value: String!
+  type: String!
+  productid: String!
+  createdat: String
+  updatedat: String
+}
+
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
@@ -105,6 +164,8 @@ type Mutation {
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
   CreateCategory(input: CreateCategoryInput): CategoryResponse
+  CreateProduct(input: CreateProductInput): ProductResponse
+  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
 }
 
 schema {

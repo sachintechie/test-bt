@@ -491,14 +491,6 @@ enum ProductRarity {
   MYTHICAL
 }
 
-input CreateProductInput {
-  name: String!
-  categoryId: String!
-  rarity: ProductRarity
-  price: Float
-  purchasedPercentage: Float
-}
-
 type ProductResponse {
   status: Int
   data: ProductData
@@ -541,19 +533,6 @@ input GetProductByIdInput {
 
 input GetProductsByCategoryIdInput {
   categoryId: String
-}
-
-input ProductAttributeInput {
-  key: String!
-  value: String!
-  type: String!
-  productId: String!
-}
-
-type ProductAttributeResponse {
-  status: Int
-  data: ProductAttributeData
-  error: AWSJSON
 }
 
 input GetProductAttributesByProductIdInput {
@@ -825,8 +804,6 @@ type Query {
 }
 
 type Mutation {
-  CreateProduct(input: CreateProductInput): ProductResponse
-  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
   MergeStake(input: MergeStakeInput): ListStakeAccounts
