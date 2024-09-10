@@ -121,7 +121,6 @@ type GetAdminWalletBalance {
 }
 
 type GetAdminWalletBalanceData {
-  customerid: String!
   walletaddress: String!
   symbol: String
   createdat: String

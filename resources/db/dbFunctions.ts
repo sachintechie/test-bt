@@ -1030,7 +1030,7 @@ export async function getAdminWalletAndTokenByWalletAddress(walletAddress: strin
     }
 
     const walletsWithChainTypePromises = tokens.map(async (t: any) => {
-      const wallet = await prisma.wallet.findFirst({
+      const wallet = await prisma.adminwallet.findFirst({
         where: { chaintype: t.chaintype, walletaddress: walletAddress }
       });
       return { ...t, ...wallet, tokenname: t.name, tokenid: t.id };
