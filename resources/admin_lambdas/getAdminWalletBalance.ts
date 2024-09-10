@@ -1,5 +1,5 @@
 import { tenant } from "../db/models";
-import { getWalletAndTokenByWalletAddress } from "../db/dbFunctions";
+import { getAdminWalletAndTokenByWalletAddress } from "../db/dbFunctions";
 import { getSolBalance, getSplTokenBalance } from "../solana/solanaFunctions";
 
 export const handler = async (event: any) => {
@@ -30,7 +30,7 @@ async function getBalance(tenant: tenant, walletAddress: string, symbol: string)
   console.log("Wallet Address", walletAddress);
 
   try {
-    const wallet = await getWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
+    const wallet = await getAdminWalletAndTokenByWalletAddress(walletAddress, tenant, symbol);
     let balance = 0;
     console.log(wallet, "Wallet");
     for (const token of wallet) {
