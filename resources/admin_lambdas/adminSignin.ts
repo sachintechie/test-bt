@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
-import { createAdminUser, getAdminUser } from "../db/dbFunctions";
+import { createAdminUser, getAdminUser } from "../db/adminDbFunctions";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
