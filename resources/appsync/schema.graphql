@@ -463,6 +463,7 @@ type CategoryResponse {
 }
 
 type CategoryData {
+  id:   String!
   name: String!
   tenantid: String!
   createdat: String
@@ -506,8 +507,6 @@ input CreateProductInput {
   metadata: AWSJSON
   tokenId: Int
 }
-
-
 
 type ProductResponse {
   status: Int
