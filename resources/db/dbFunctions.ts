@@ -1582,7 +1582,7 @@ export async function addToWishlist(customerId: string, productId: string) {
       throw new Error("Product is already in the wishlist");
     }
 
-    const newWishlistItem = await prisma.wishlist.create({
+    const newWishlistItem = await prisma.productwishlist.create({
       data: {
         customerid: customerId,
         productid: productId
@@ -1626,7 +1626,7 @@ export async function getWishlistByCustomerId(customerId: string) {
   try {
     const wishlistItems = await prisma.productwishlist.findMany({
       where: {
-        customerId: customerId
+        customerid: customerId
       },
       include: {
         product: true
@@ -1640,8 +1640,10 @@ export async function getWishlistByCustomerId(customerId: string) {
 }
 
 export async function createOrder(order: order) {
-  const prisma = new PrismaClient();
   try {
+    const prisma = await getPrismaClient();
+
+
     const newOrder = await prisma.order.create({
       data: {
         sellerid: order.sellerid,
@@ -1649,9 +1651,11 @@ export async function createOrder(order: order) {
         productid: order.productid,
         price: order.price,
         quantity: order.quantity,
-        status: "PENDING"
+        status: "PENDING",
+        updatedat: new Date().toISOString()
       }
     });
+
     return newOrder;
   } catch (err) {
     throw err;
@@ -1896,7 +1900,7 @@ export async function updateProductAttribute(productId: string, key: string, new
     const prisma = await getPrismaClient();
 
     
-    const updatedAttribute = await prisma.productattribute.update({
+    const updatedAttribute = await prisma.productattribute.updateMany({
       where: {
         productid: productId,
         key: key,
