@@ -1895,24 +1895,22 @@ export async function updateProductAttribute(productId: string, key: string, new
   try {
     const prisma = await getPrismaClient();
 
-    
     const updatedAttribute = await prisma.productattribute.update({
       where: {
-        productid: productId,
-        key: key,
+        AND: [
+          { productid: productId },
+          { key: key }
+        ]
       },
       data: {
         value: newValue,
-		updatedat: new Date().toISOString()
+        updatedat: new Date().toISOString()
       },
     });
 
-    if (updatedAttribute.count === 0) {
-      throw new Error("Attribute not found.");
-    }
-
     return updatedAttribute;
   } catch (err) {
+    console.error("Error in updateProductAttribute:", err);
     throw err;
   }
 }
