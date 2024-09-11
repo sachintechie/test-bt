@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter, order ,orderstatus} from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1567,3 +1567,367 @@ export async function filterProducts(filters: productfilter[]) {
     throw err;
   }
 }
+
+export async function addToWishlist(customerId: string, productId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const existingWishlistItem = await prisma.productwishlist.findFirst({
+      where: {
+        customerid: customerId,
+        productid: productId
+      }
+    });
+
+    if (existingWishlistItem) {
+      throw new Error("Product is already in the wishlist");
+    }
+
+    const newWishlistItem = await prisma.wishlist.create({
+      data: {
+        customerid: customerId,
+        productid: productId
+      }
+    });
+
+    return newWishlistItem;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function removeFromWishlist(customerId: string, productId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const existingWishlistItem = await prisma.productwishlist.findFirst({
+      where: {
+        customerid: customerId,
+        productid: productId
+      }
+    });
+
+    if (!existingWishlistItem) {
+      throw new Error("Product is not in the wishlist");
+    }
+
+    await prisma.productwishlist.delete({
+      where: {
+        id: existingWishlistItem.id
+      }
+    });
+
+    return existingWishlistItem;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getWishlistByCustomerId(customerId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const wishlistItems = await prisma.productwishlist.findMany({
+      where: {
+        customerId: customerId
+      },
+      include: {
+        product: true
+      }
+    });
+
+    return wishlistItems;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function createOrder(order: order) {
+  const prisma = new PrismaClient();
+  try {
+    const newOrder = await prisma.order.create({
+      data: {
+        sellerid: order.sellerid,
+        buyerid: order.buyerid,
+        productid: order.productid,
+        price: order.price,
+        quantity: order.quantity,
+        status: "PENDING"
+      }
+    });
+    return newOrder;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getOrdersBySeller(sellerId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        sellerid: sellerId
+      },
+      include: {
+        buyer: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true
+      }
+    });
+    return orders;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getOrdersByBuyer(buyerId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        buyerid: buyerId
+      },
+      include: {
+        seller: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true
+      }
+    });
+    return orders;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getOrderById(orderId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const order = await prisma.order.findUnique({
+      where: {
+        id: orderId
+      },
+      include: {
+        buyer: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        seller: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true
+      }
+    });
+    return order;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getOrdersByTenant(tenantId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        product: {
+          tenantid: tenantId 
+        }
+      },
+      include: {
+        buyer: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        seller: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true
+      }
+    });
+    return orders;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateOrderStatus(orderId: string, status: orderstatus) {
+	// TODO: add role check
+  const prisma = new PrismaClient();
+  try {
+    const updatedOrder = await prisma.order.update({
+      where: {
+        id: orderId
+      },
+      data: {
+        status: status,
+		updatedat : new Date().toISOString()
+      },
+      select: {
+        sellerid: true,
+        buyerid: true,
+        productid: true,
+        status: true,
+        updatedat: true
+      }
+    });
+
+    return {
+      message: 'Order status updated successfully',
+      order: {
+        sellerid: updatedOrder.sellerid,
+        buyerid: updatedOrder.buyerid,
+        productid: updatedOrder.productid,
+        status: updatedOrder.status,
+        updatedat: updatedOrder.updatedat
+      }
+    };
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getOrdersByProductId(productId: string) {
+  const prisma = new PrismaClient();
+  try {
+    const orders = await prisma.order.findMany({
+      where: {
+        productid: productId 
+      },
+      include: {
+        buyer: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        seller: {
+          select: {
+            name: true,
+            emailid: true,
+            isactive: true,
+            iss: true,
+            usertype: true
+          }
+        },
+        product: true 
+      }
+    });
+    return orders;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+export async function updateCategory(categoryId: string, category: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updated = await prisma.productcategory.update({
+      where: {
+        id: categoryId,
+      },
+      data: {
+        name: category,
+		updatedat: new Date().toISOString()
+      },
+    });
+
+    return updated;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateProduct(id: string, product: Partial<product>) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const updatedProduct = await prisma.product.update({
+      where: {
+        id: id,
+      },
+      data: product,
+    });
+
+    return updatedProduct;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+export async function updateProductAttribute(productId: string, key: string, newValue: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+   
+    const updatedAttribute = await prisma.productattribute.updateMany({
+      where: {
+        productid: productId,
+        key: key
+      },
+      data: {
+        value: newValue,
+        updatedat: new Date().toISOString()
+      },
+    });
+
+    if (updatedAttribute.count === 0) {
+      throw new Error("Attribute not found.");
+    }
+
+   
+    const fetchedAttribute = await prisma.productattribute.findFirst({
+      where: {
+        productid: productId,
+        key: key,
+      },
+    });
+
+    if (fetchedAttribute) {
+      return fetchedAttribute;
+    } else {
+      throw new Error("Updated attribute could not be found.");
+    }
+  } catch (err) {
+    console.error("Error in updateProductAttribute:", err);
+    throw err;
+  }
+}
+
+

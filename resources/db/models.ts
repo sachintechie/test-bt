@@ -86,6 +86,16 @@ export interface productfilter {
   value: number | string;
 }
 
+export interface order {
+  id?: string;
+  sellerid?: string;
+  buyerid?: string;
+  productid?: string;
+  price?: string;
+  quantity?: string;
+  status?: orderstatus;
+}
+
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",
@@ -122,4 +132,13 @@ export enum productRarity {
   EPIC = "EPIC",
   LEGENDARY = "LEGENDARY",
   MYTHICAL = "MYTHICAL"
+}
+
+export enum orderstatus {
+  CREATED = "CREATED",
+  CONFIRMED = "CONFIRMED",
+  SHIPPED = "SHIPPED",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+  DISPUTED = "DISPUTED"
 }
