@@ -130,7 +130,7 @@ type GetAdminWalletBalanceData {
   balance: Float
   tokenname: String
 }
-=======
+
 input CreateCategoryInput {
   name: String!
   tenantId: String
@@ -282,5 +282,3 @@ schema {
   query: Query
   mutation: Mutation
 }
-
-
