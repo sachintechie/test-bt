@@ -26,21 +26,6 @@ input CreateCategoryInput {
 	tenantId: String!
 }
 
-input CreateProductInput {
-	name: String!
-	categoryId: String!
-	rarity: ProductRarity
-	price: Float
-	purchasedPercentage: Float
-	isMintAble: Boolean
-	chainType: String
-	tokenType: String
-	quantity: Int
-	toAddress: String
-	contractAddress: String
-	metadata: AWSJSON
-	tokenId: Int
-}
 
 input CreateWalletInput {
 	tenantUserId: String!
@@ -176,15 +161,8 @@ input GetProductByIdInput {
 	productId: String
 }
 
-input GetProductsByCategoryIdInput {
-	categoryId: String
-}
 
-type GetProductsResponse {
-	status: Int
-	data: [ProductData]
-	error: AWSJSON
-}
+
 
 type GetWallet {
 	status: Int
@@ -351,32 +329,10 @@ type ProductAttributeData {
 	updatedat: String
 }
 
-input ProductAttributeInput {
-	key: String!
-	value: String!
-	type: String!
-	productId: String!
-}
 
-type ProductAttributeResponse {
-	status: Int
-	data: ProductAttributeData
-	error: AWSJSON
-}
 
-type ProductData {
-	id: String!
-	name: String!
-	categoryid: String!
-	rarity: ProductRarity
-	price: Float
-	purchasedpercentage: Float
-	availablepercentage: Float
-	category: CategoryData!
-	createdat: String
-	updatedat: String
-	productattributes: [ProductAttributeData!]!
-}
+
+
 
 input ProductFilter {
 	key: String
@@ -392,11 +348,7 @@ enum ProductRarity {
 	MYTHICAL
 }
 
-type ProductResponse {
-	status: Int
-	data: ProductData
-	error: AWSJSON
-}
+
 
 type SignIn {
 	status: Int
@@ -578,21 +530,10 @@ type UpdateMetadataResponse {
 	modifiedMetadata: AWSJSON!
 }
 
-input GetMetadataInput {
-  contractAddress: String!
-  tokenId: Int!
-}
 
-type GetMetadataResponse {
-  status: Int
-  message: String
-  metadata: AWSJSON
-}
 
-input CreateCategoryInput {
-  name: String!
-  tenantId: String!
-}
+
+
 
 type WithdrawStake {
 	status: Int
@@ -604,19 +545,9 @@ input WithdrawStakeInput {
 	accountPublicKey: String!
 }
 
-type GetCategoriesResponse {
-  status: Int
-  data: [CategoryData]
-  error: AWSJSON
-}
 
-enum ProductRarity {
-  NORMAL
-  RARE
-  EPIC
-  LEGENDARY
-  MYTHICAL
-}
+
+
 
 input CreateProductInput {
   name: String!
@@ -655,15 +586,7 @@ type ProductData {
   productattributes: [ProductAttributeData!]!
 }
 
-type ProductAttributeData {
-  id: String!
-  key: String!
-  value: String!
-  type: String!
-  productid: String!
-  createdat: String
-  updatedat: String
-}
+
 
 type GetProductsResponse {
   status: Int
@@ -671,9 +594,7 @@ type GetProductsResponse {
   error: AWSJSON
 }
 
-input GetProductByIdInput {
-  productId: String
-}
+
 
 input GetProductsByCategoryIdInput {
   categoryId: String
@@ -692,33 +613,15 @@ type ProductAttributeResponse {
   error: AWSJSON
 }
 
-input GetProductAttributesByProductIdInput {
-  productId: String!
-}
 
-type GetProductAttributesResponse {
-  status: Int
-  data: [ProductAttributeData]
-  error: AWSJSON
-}
 
-enum FilterOperator {
-  gt
-  lt
-  gte
-  lte
-  eq
-}
 
-input FilterProductInput {
-  filters: [ProductFilter]
-}
 
-input ProductFilter {
-  key: String
-  operator: FilterOperator
-  value: String
-}
+
+
+
+
+
 
 input WishlistInput{
 customerId : String!
@@ -916,7 +819,11 @@ type GetOrdersByProductIdData {
   createdat: String
   updatedat: String
 }
-
+type Web3TransactionResponse {
+  status: Int
+  transactionHash: String
+  error: String
+}
 type Query {
   GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
   GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
