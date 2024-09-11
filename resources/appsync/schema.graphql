@@ -26,6 +26,21 @@ input CreateCategoryInput {
 	tenantId: String!
 }
 
+input CreateOrderInput {
+	sellerId: String!
+	buyerId: String!
+	productId: String!
+	price: Float!
+	quantity: Int!
+	status: String
+}
+
+type CreateOrderResponse {
+	status: Int
+	data: OrderData
+	error: AWSJSON
+}
+
 input CreateProductInput {
 	name: String!
 	categoryId: String!
@@ -55,6 +70,14 @@ type CustomerAndWalletCounts {
 	status: Int
 	data: CustomerAndWalletCountData
 	error: AWSJSON
+}
+
+type CustomerData {
+	emailid: String
+	name: String
+	isactive: Boolean
+	usertype: String
+	iss: String
 }
 
 type CustomerKyc {
@@ -162,6 +185,109 @@ type GetMetadataResponse {
 	metadata: AWSJSON
 }
 
+type GetOrderByIdData {
+	seller: CustomerData
+	buyer: CustomerData
+	product: ProductData
+	price: Float
+	quantity: Int
+	status: String
+	createdat: String
+	updatedat: String
+}
+
+input GetOrderByIdInput {
+	orderId: String!
+}
+
+type GetOrderByIdResponse {
+	status: Int
+	data: GetOrderByIdData
+	error: AWSJSON
+}
+
+type GetOrdersByBuyerIdData {
+	seller: CustomerData
+	product: ProductData
+	price: Float
+	quantity: Int
+	status: String
+	createdat: String
+	updatedat: String
+}
+
+input GetOrdersByBuyerIdInput {
+	buyerId: String!
+}
+
+type GetOrdersByBuyerIdResponse {
+	status: Int
+	data: [GetOrdersByBuyerIdData]
+	error: AWSJSON
+}
+
+type GetOrdersByProductIdData {
+	buyer: CustomerData
+	seller: CustomerData
+	product: ProductData
+	price: Float
+	quantity: Int
+	status: String
+	createdat: String
+	updatedat: String
+}
+
+input GetOrdersByProductIdInput {
+	productId: String!
+}
+
+type GetOrdersByProductIdResponse {
+	status: Int
+	data: [GetOrdersByProductIdData]
+	error: AWSJSON
+}
+
+type GetOrdersBySellerIdData {
+	buyer: CustomerData
+	product: ProductData
+	price: Float
+	quantity: Int
+	status: String
+	createdat: String
+	updatedat: String
+}
+
+input GetOrdersBySellerIdInput {
+	sellerId: String!
+}
+
+type GetOrdersBySellerIdResponse {
+	status: Int
+	data: [GetOrdersBySellerIdData]
+	error: AWSJSON
+}
+
+type GetOrdersByTenantIdData {
+	seller: CustomerData
+	buyer: CustomerData
+	product: ProductData
+	price: Float
+	quantity: Int
+	status: String
+	createdat: String
+	updatedat: String
+}
+
+input GetOrdersByTenantIdInput {
+	tenantId: String!
+}
+
+type GetOrdersByTenantIdResponse {
+	status: Int
+	data: [GetOrdersByTenantIdData]
+	error: AWSJSON
+}
+
 input GetProductAttributesByProductIdInput {
 	productId: String!
 }
@@ -233,6 +359,19 @@ type GetWalletData {
 input GetWalletInput {
 	tenantUserId: String!
 	chainType: String!
+}
+
+type GetWishlistByCusotmerIdData {
+	customerid: String!
+	product: [ProductData]
+	productid: String
+	createdat: String
+}
+
+type GetWishlistByCusotmerIdResponse {
+	status: Int
+	data: [GetWishlistByCusotmerIdData]
+	error: AWSJSON
 }
 
 input KycAccessTokenInput {
@@ -339,6 +478,17 @@ input MintNFTInput {
 	chain: String!
 	contractAddress: String!
 	metadata: AWSJSON
+}
+
+type OrderData {
+	sellerid: String
+	buyerid: String
+	productid: String
+	price: Float
+	quantity: Int
+	status: String
+	createdat: String
+	updatedat: String
 }
 
 type ProductAttributeData {
@@ -578,10 +728,55 @@ type UpdateMetadataResponse {
 	modifiedMetadata: AWSJSON!
 }
 
+type UpdateOrderStatusData {
+	sellerid: String
+	buyerid: String
+	productid: String
+	status: String
+	updatedat: String
+}
+
+input UpdateOrderStatusInput {
+	orderId: String!
+	status: String!
+}
+
+type UpdateOrderStatusResponse {
+	status: Int
+	data: UpdateOrderStatusResponseData
+	error: AWSJSON
+}
+
+type UpdateOrderStatusResponseData {
+	message: String
+	order: UpdateOrderStatusData
+}
+
 type Web3TransactionResponse {
 	status: Int
 	transactionHash: String
 	error: String
+}
+
+input WishlistByCustomerIdInput {
+	customerId: String!
+}
+
+type WishlistData {
+	customerid: String!
+	productid: String!
+	createdat: String
+}
+
+input WishlistInput {
+	customerId: String!
+	productId: String!
+}
+
+type WishlistResponse {
+	status: Int
+	data: WishlistData
+	error: AWSJSON
 }
 
 type WithdrawStake {
@@ -603,6 +798,10 @@ type Mutation {
 	MergeStake(input: MergeStakeInput): ListStakeAccounts
 	WithdrawStake(input: WithdrawStakeInput): WithdrawStake
 	BatchMintCnft(input: MintCnftInput): BatchMintCnft
+	AddToWishlist(input: WishlistInput): WishlistResponse
+	RemoveFromWishlist(input: WishlistInput): WishlistResponse
+	CreateOrder(input: CreateOrderInput): CreateOrderResponse
+	UpdateOrderStatus(input: UpdateOrderStatusInput): UpdateOrderStatusResponse
 }
 
 type Query {
@@ -640,6 +839,12 @@ type Query {
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 	FilterProducts(input: FilterProductInput): GetProductsResponse
+	GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
+	GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
+	GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
+	GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
+	GetOrdersByTenantId(input: GetOrdersByTenantIdInput): GetOrdersByTenantIdResponse
+	GetOrdersByProductId(input: GetOrdersByProductIdInput): GetOrdersByProductIdResponse
 }
 
 schema {
