@@ -1,7 +1,7 @@
-import { getAdminTransactionByTenantTransactionId, getTokenBySymbol, insertAdminTransaction } from "../db/dbFunctions";
-import { tenant, TransactionStatus } from "../db/models";
-import { batchTransferSPLToken, createSplTokenAccounts } from "../solana/airdropSplToken";
-import { verifySolanaTransaction } from "../solana/solanaFunctions";
+import { getAdminTransactionByTenantTransactionId } from "../db/adminDbFunctions";
+import { getTokenBySymbol } from "../db/dbFunctions";
+import { tenant } from "../db/models";
+import { createSplTokenAccounts } from "../solana/airdropSplToken";
 
 export const handler = async (event: any) => {
   try {

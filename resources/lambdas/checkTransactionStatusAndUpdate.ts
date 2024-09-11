@@ -9,11 +9,13 @@ import { CallbackStatus, TransactionStatus } from "../db/models";
 import axios from "axios";
 import * as crypto from "crypto";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
+import { getAllAdminTransactions, updateAdminTransaction } from "../db/adminDbFunctions";
 
 export const handler = async (event: any) => {
   try {
     const transactions = await updateTransactions();
     const stakingtransaction = await updateStakingTransactions();
+    const admintransaction = await updateAdminTransactions("Solana");
     return {
       status: 200,
       data: transactions,
@@ -73,6 +75,35 @@ async function updateStakingTransactions() {
           const callbackStatus =  CallbackStatus.PENDING;
 
           const updatedTransaction = await updateStakingTransaction(trx.id, status, callbackStatus);
+          updatedTransactions.push(updatedTransaction);
+
+          //call the callback url with the updated transaction status
+        } else {
+          console.log("Tenant callbackurl not found");
+        }
+      }
+    }
+    return updatedTransactions;
+  } catch (err) {
+    console.log(err);
+    throw err;
+  }
+}
+
+async function updateAdminTransactions(chainType: string) {
+  try {
+    let updatedTransactions = [];
+    const transactions = await getAllAdminTransactions(chainType);
+    for (const trx of transactions) {
+      if (trx.status === TransactionStatus.PENDING) {
+        const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+        const tenant = await getTenantCallBackUrl(trx.tenantid);
+        trx.status = status;
+        if (tenant != null ) {
+        //  const callback = await updateTenant(tenant, trx);
+          const callbackStatus =  CallbackStatus.PENDING;
+
+          const updatedTransaction = await updateAdminTransaction(trx.id, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
 
           //call the callback url with the updated transaction status

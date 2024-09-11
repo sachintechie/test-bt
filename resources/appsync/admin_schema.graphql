@@ -78,6 +78,59 @@ input AdminRecipient {
   amount: Float
 }
 
+
+type ListWalletTransactions {
+  status: Int
+  data: [TransactionData]
+  error: AWSJSON
+}
+
+type TransactionData {
+  customerid: String
+  walletaddress: String
+  receiverwalletaddress: String
+  chaintype: String
+  txhash: String
+  symbol: String
+  amount: Float
+  createdat: String
+  tokenid: String
+  tenantuserid: String
+  status: String
+  callbackstatus: String
+  id: String
+  network: String
+  tenanttransactionid: String
+}
+input ListWalletTokenInput {
+  walletAddress: String!
+}
+
+input GetAdminTransactionInput {
+tenantTransactionId: String!
+}
+
+input GetAdminWalletBalanceInput {
+  walletAddress: String!
+  symbol: String
+}
+
+type GetAdminWalletBalance {
+  status: Int
+  data: [GetAdminWalletBalanceData]
+  error: AWSJSON
+}
+
+type GetAdminWalletBalanceData {
+  walletaddress: String!
+  symbol: String
+  createdat: String
+  chaintype: String
+  contractaddress: String
+  balance: Float
+  tokenname: String
+}
+=======
 input CreateCategoryInput {
   name: String!
   tenantId: String
@@ -208,6 +261,10 @@ type UpdateProductAttributeResponse {
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
+  ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+  GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
+  GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
+
 }
 
 type Mutation {

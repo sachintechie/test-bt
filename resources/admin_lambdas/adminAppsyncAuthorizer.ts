@@ -21,7 +21,7 @@ export const handler = async (event: any) => {
         const tenant = res.rows[0];
         console.log(tenant);
 
-        if (isUserAdminLike(idToken)) {
+        if (await isUserAdminLike(idToken)) {
           return {
             isAuthorized: true,
             resolverContext: {
@@ -72,7 +72,7 @@ export const handler = async (event: any) => {
   }
 };
 
-function isUserAdminLike(idToken: string) {
+async function isUserAdminLike(idToken: string) {
   try {
     // Decode the ID Token
     const decodedToken:any = jwt_decode.decode(idToken);
