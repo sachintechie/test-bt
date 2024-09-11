@@ -1,5 +1,4 @@
 input CreateWalletInput {
-  tenantUserId: String!
   chainType: String!
 }
 
