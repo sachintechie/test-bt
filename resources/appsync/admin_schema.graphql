@@ -130,10 +130,9 @@ type GetAdminWalletBalanceData {
   balance: Float
   tokenname: String
 }
-=======
+
 input CreateCategoryInput {
-  name: String!
-  tenantId: String
+  categoryName: String!
 }
 
 type CategoryResponse {
@@ -163,6 +162,14 @@ input CreateProductInput {
   rarity: ProductRarity
   price: Float
   purchasedPercentage: Float
+  isMintAble: Boolean
+  chainType: String
+  tokenType: String
+  quantity: Int
+  toAddress: String
+  contractAddress: String
+  metadata: AWSJSON
+  tokenId: Int
 }
 
  type ProductResponse {
@@ -282,5 +289,3 @@ schema {
   query: Query
   mutation: Mutation
 }
-
-
