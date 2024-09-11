@@ -1895,12 +1895,10 @@ export async function updateProductAttribute(productId: string, key: string, new
   try {
     const prisma = await getPrismaClient();
 
-    const updatedAttribute = await prisma.productattribute.update({
+    const updatedAttribute = await prisma.productattribute.updateMany({
       where: {
-        AND: [
-          { productid: productId },
-          { key: key }
-        ]
+        productid: productId,
+        key: key
       },
       data: {
         value: newValue,
@@ -1908,12 +1906,15 @@ export async function updateProductAttribute(productId: string, key: string, new
       },
     });
 
+    if (updatedAttribute.count === 0) {
+      throw new Error("Attribute not found.");
+    }
+
     return updatedAttribute;
   } catch (err) {
     console.error("Error in updateProductAttribute:", err);
     throw err;
   }
 }
-
 
 
