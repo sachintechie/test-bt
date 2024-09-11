@@ -52,22 +52,17 @@ export const handler = async (event: any, context: any) => {
         await mintNFT(toAddress, quantity, chainType, contractAddress, metadata);
       }
     }
-
     return {
-      statusCode: 200,
-      body: JSON.stringify({
-        data: product,
-        error: null
-      })
+      status: 200,
+      data: product,
+      error: null
     };
   } catch (error) {
     console.error("Error creating product:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
         data: null,
         error: "Internal Server Error"
-      })
     };
   }
 };
