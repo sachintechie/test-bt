@@ -377,8 +377,8 @@ model productwishlist {
 }
 
 enum orderstatus {
-  PENDING
-  PLACED
+  CREATED
+  CONFIRMED
   SHIPPED
   DELIVERED
   CANCELLED

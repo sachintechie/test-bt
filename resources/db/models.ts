@@ -135,8 +135,8 @@ export enum productRarity {
 }
 
 export enum orderstatus {
-  PENDING = "PENDING",
-  PLACED = "PLACED",
+  CREATED = "CREATED",
+  CONFIRMED = "CONFIRMED",
   SHIPPED = "SHIPPED",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
