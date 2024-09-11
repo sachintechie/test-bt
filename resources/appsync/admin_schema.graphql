@@ -132,8 +132,7 @@ type GetAdminWalletBalanceData {
 }
 
 input CreateCategoryInput {
-  name: String!
-  tenantId: String
+  categoryName: String!
 }
 
 type CategoryResponse {
