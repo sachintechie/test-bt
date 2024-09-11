@@ -78,6 +78,7 @@ input AdminRecipient {
   amount: Float
 }
 
+
 type ListWalletTransactions {
   status: Int
   data: [TransactionData]
@@ -129,6 +130,133 @@ type GetAdminWalletBalanceData {
   balance: Float
   tokenname: String
 }
+=======
+input CreateCategoryInput {
+  name: String!
+  tenantId: String
+}
+
+type CategoryResponse {
+  status: Int
+  data: CategoryData
+  error: AWSJSON
+}
+
+type CategoryData {
+  name: String!
+  tenantid: String!
+  createdat: String
+  updatedat: String
+}
+
+enum ProductRarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
+}
+
+input CreateProductInput {
+  name: String!
+  categoryId: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedPercentage: Float
+}
+
+ type ProductResponse {
+  status: Int
+  data: ProductData
+  error: AWSJSON
+}
+
+type ProductData {
+  id: String!
+  name: String!
+  categoryid: String!
+  rarity: ProductRarity
+  price: Float
+  purchasedpercentage: Float
+  availablepercentage: Float
+  category: CategoryData!
+  createdat: String
+  updatedat: String
+  productattributes: [ProductAttributeData!]!
+}
+
+input ProductAttributeInput {
+  key: String!
+  value: String!
+  type: String!
+  productId: String!
+}
+
+type ProductAttributeResponse {
+  status: Int
+  data: ProductAttributeData
+  error: AWSJSON
+}
+
+type ProductAttributeData {
+  id: String!
+  key: String!
+  value: String!
+  type: String!
+  productid: String!
+  createdat: String
+  updatedat: String
+}
+
+input UpdateCategoryInput {
+	categoryId: String!
+	categoryName: String!
+}
+
+type UpdateCategoryResponse {
+  status: Int
+  data: UpdateCategoryData
+  error: AWSJSON
+}
+
+type UpdateCategoryData {
+  name: String
+  tenantid: String
+  createdat: String
+  updatedat: String
+}
+
+input UpdateProductInput {
+  productId: String!
+  productData: UpdateProductInputData!
+}
+
+input UpdateProductInputData {
+  name: String
+  categoryId: String
+  rarity: ProductRarity
+  price: Float
+  purchasedPercentage: Float
+}
+
+ type UpdateProductResponse {
+  status: Int
+  data: ProductData
+  error: AWSJSON
+}
+
+input UpdateProductAttributeInput {
+  key: String!
+  newValue: String!
+  productId: String!
+}
+
+type UpdateProductAttributeResponse {
+  status: Int
+  data:ProductAttributeData
+  error: AWSJSON
+}
+
 
 type Query {
   AdminSignin(input: SigninInput): SignIn
@@ -142,7 +270,12 @@ type Query {
 type Mutation {
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
-
+  CreateCategory(input: CreateCategoryInput): CategoryResponse
+  CreateProduct(input: CreateProductInput): ProductResponse
+  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+  UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
+  UpdateProduct(input: UpdateProductInput): UpdateProductResponse
+  UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 }
 
 schema {
