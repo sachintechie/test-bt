@@ -1,6 +1,8 @@
 import { getStakingTransactionByTenantTransactionId,getMasterValidatorNode } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import { solanaStaking } from "../solana/solanaStake";
+import { AvalancheStaking } from "../avalanche/stake";
+
 export const handler = async (event: any) => {
   try {
     console.log(event);
@@ -42,7 +44,7 @@ export const handler = async (event: any) => {
         return response;
       }
       if (event.arguments?.input?.chainType === "Avalanche") {
-        const data = await solanaStaking(
+        const data = await AvalancheStaking(
           event.identity.resolverContext as tenant,
           event.arguments?.input?.senderWalletAddress,
           masterValidatorNode.validatornodeaddress || "",
@@ -52,7 +54,8 @@ export const handler = async (event: any) => {
           event.arguments?.input?.tenantUserId,
           event.arguments?.input?.chainType,
           event.arguments?.input?.tenantTransactionId,
-          event.arguments?.input?.lockupExpirationTimestamp
+          event.arguments?.input?.lockupExpirationTimestamp,
+          event.arguments?.input?.rewardAddresses
         );
 
         const response = {
