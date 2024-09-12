@@ -1,3 +1,5 @@
+import { PendingRequestsOnReconnectingError } from "web3";
+
 export interface customer {
   id?: string;
   tenantuserid: string;
@@ -140,5 +142,6 @@ export enum orderstatus {
   SHIPPED = "SHIPPED",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
-  DISPUTED = "DISPUTED"
+  DISPUTED = "DISPUTED",
+  PENDING = "PENDING"
 }

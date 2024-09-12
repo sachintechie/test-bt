@@ -20,8 +20,29 @@ export const handler = async (event: any) => {
 
         const tenant = res.rows[0];
         console.log(tenant);
-
-        if (await isUserAdminLike(idToken)) {
+        if(tenant.iscognitoactive === true){
+          if (await isUserAdminLike(idToken)) {
+            return {
+              isAuthorized: true,
+              resolverContext: {
+                id: tenant.id,
+                name: tenant.name,
+                apikey: tenant.apikey,
+                logo: tenant.logo,
+                isactive: tenant.isactive,
+                createdat: tenant.createdat,
+                userpoolid: tenant.userpoolid,
+                cognitoclientid: tenant.cognitoclientid,
+                userType : "ADMIN"
+              }
+            };
+          }
+  
+          return {
+            isAuthorized: false
+          };
+        }
+        else if (tenant.name === "OnDemand") {
           return {
             isAuthorized: true,
             resolverContext: {
@@ -36,22 +57,15 @@ export const handler = async (event: any) => {
               userType : "ADMIN"
             }
           };
+
+        }
+        else{
+          return {
+            isAuthorized: false
+          };
         }
 
-        return {
-          isAuthorized: true,
-          resolverContext: {
-            id: tenant.id,
-            name: tenant.name,
-            apikey: tenant.apikey,
-            logo: tenant.logo,
-            isactive: tenant.isactive,
-            createdat: tenant.createdat,
-            userpoolid: tenant.userpoolid,
-            cognitoclientid: tenant.cognitoclientid,
-            userType : "USER"
-          }
-        };
+
       }
       return {
         isAuthorized: false

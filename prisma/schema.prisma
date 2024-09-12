@@ -203,6 +203,7 @@ model tenant {
   cubistorgid      String?
   userpoolid       String?
   cognitoclientid  String?
+  iscognitoactive  Boolean?
   cubistconfig     cubistconfig[]
   customer         customer[]
   adminuser        adminuser[]
@@ -383,6 +384,7 @@ enum orderstatus {
   DELIVERED
   CANCELLED
   DISPUTED
+  PENDING
 }
 
 model order {
@@ -395,7 +397,7 @@ model order {
   product    product?     @relation(fields: [productid], references: [id])
   price      String?
   quantity   String?
-  status     orderstatus?
+  status     orderstatus
   createdat  DateTime   @default(now())
   updatedat  DateTime
 }

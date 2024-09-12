@@ -21,7 +21,7 @@ export async function getAvaxBalance(address: string) {
     const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID);
     const xchain: AVMAPI = avalanche.XChain();
     const pchain: PlatformVMAPI = avalanche.PChain();
-    return { xchain, pchain };
+    return { xchain, pchain, networkID };
   }
 
   export async function verifyAvalancheTransaction(txID: string) {
