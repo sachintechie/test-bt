@@ -374,7 +374,7 @@ model productwishlist {
   customer     customer   @relation(fields: [customerid], references: [id], onDelete: Cascade)
   productid    String     
   product      product    @relation(fields: [productid], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now())
+  createdat    DateTime   @default(now())
 }
 
 enum orderstatus {
