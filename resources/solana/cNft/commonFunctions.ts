@@ -331,18 +331,11 @@ export type CollectionDetails = {
   masterEditionAccount: PublicKey;
 };
 
-// async function getOrCreateCollectionNFT(
-//   connection: Connection,
-//   payer: Keypair,
-//   oidcToken: string,
-//   tenantId: tenant
-// ): Promise<CollectionDetails> {
-//   const envCollectionNft = walletConfig.COLLECTION_NFT;
 
 export async function airdropSolToWallets(connection: Connection, receiverList: PublicKey[], amountInSol: number) {
   for (const publicKey of receiverList) {
     console.log(`Airdropping ${amountInSol} SOL to ${publicKey.toString()}...`);
-
+    
     // Airdrop SOL
     const signature = await connection.requestAirdrop(publicKey, amountInSol * LAMPORTS_PER_SOL);
     await connection.confirmTransaction(signature, 'processed');
@@ -380,7 +373,7 @@ export async function airdropTokens(
 ) {
   for (const recipient of receiverList) {
     console.log(`Airdropping tokens to ${recipient.toString()}...`);
-
+    
     // Get or create the associated token account for the recipient
     const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
       connection,
@@ -388,7 +381,7 @@ export async function airdropTokens(
       mint,
       recipient
     );
-
+    
     // Mint tokens to the recipient's associated token account
     await mintTo(
       connection,
@@ -404,8 +397,8 @@ export async function airdropTokens(
 }
 
 
-
 /*
+
 export async function getOrCreateCollectionNFT(
   connection: Connection,
   payer:Keypair
@@ -415,21 +408,21 @@ export async function getOrCreateCollectionNFT(
   // Create Metaplex instance using payer as identity
   // const metaplex = new Metaplex(connection).use(keypairIdentity(payer)) 
   const metaplex = new Metaplex(connection).use(new PublicKey(payer.materialId))
-
-
+  
+  
   // Define a custom signer using Cubist
-   const cubistSigner: Signer = {
+  const cubistSigner: Signer = {
      publicKey: new PublicKey(sessionKey.materialId), // Set the public key from Cubist session
     signMessage: async (message: Uint8Array) => {
       const messageBase64 = Buffer.from(message).toString("base64");
-       const response = await sessionKey.signSolana({ message_base64: messageBase64 });
-       const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Convert signature to Buffer
+      const response = await sessionKey.signSolana({ message_base64: messageBase64 });
+      const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Convert signature to Buffer
       return signature;
-     },
+    },
   };
-
-   // Create Metaplex instance using Cubist signer as identity
-   const metaplex = new Metaplex(connection).use({
+  
+  // Create Metaplex instance using Cubist signer as identity
+  const metaplex = new Metaplex(connection).use({
      signTransaction: async (tx) => {
        tx.partialSign(payer); // Partial sign with payer if needed
        const serializedTx = tx.serializeMessage().toString("base64");
@@ -437,19 +430,19 @@ export async function getOrCreateCollectionNFT(
        const signature = Buffer.from(response.data().signature.slice(2), "hex"); // Hex to buffer
        tx.addSignature(cubistSigner.publicKey, signature); // Add signature to transaction
        return tx;
-     },
-     identity: cubistSigner, // Set custom Cubist signer
-   });
+      },
+      identity: cubistSigner, // Set custom Cubist signer
+    });
 
-  // Check for existing collection NFT
+    // Check for existing collection NFT
   if (envCollectionNft) {
     const collectionNftAddress = new PublicKey(envCollectionNft);
     const collectionNft = await metaplex.nfts().findByMint({ mintAddress: collectionNftAddress });
-
+    
     if (collectionNft.model !== "nft") {
       throw new Error("Invalid collection NFT");
     }
-
+    
     return {
       mint: collectionNft.mint.address,
       metadata: collectionNft.metadataAddress,
@@ -459,7 +452,7 @@ export async function getOrCreateCollectionNFT(
 
   // Select a random URI from uris
   const randomUri = uris[Math.floor(Math.random() * uris.length)];
-
+  
   // Create a regular collection NFT using Metaplex
   const collectionNft = await metaplex.nfts().create({
     uri: randomUri,
@@ -472,7 +465,7 @@ export async function getOrCreateCollectionNFT(
     isMutable: true,
     isCollection: true,
   });
-
+  
   // Store the collection NFT mint address in the environment
   fs.appendFileSync(".env", `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`);
 
@@ -480,7 +473,7 @@ export async function getOrCreateCollectionNFT(
     ".env",
     `\n${"COLLECTION_NFT"}=${collectionNft.mintAddress.toBase58()}`
   )
-
+  
   return {
     mint: collectionNft.mintAddress,
     metadata: collectionNft.metadataAddress,
@@ -490,14 +483,13 @@ export async function getOrCreateCollectionNFT(
 */
 
 
-
 /*
 interface CollectionDetails {
   mint: PublicKey;
   metadata: PublicKey;
   masterEditionAccount: PublicKey;
-}
-
+  }
+*/
 
 // Custom identity class implementing the IdentityDriver interface
 class CubistIdentity implements IdentityDriver {
@@ -588,4 +580,4 @@ export async function getOrCreateCollectionNFT(
   };
 }
 
-*/
+
