@@ -81,12 +81,13 @@ input AdminRecipient {
 
 type ListWalletTransactions {
   status: Int
-  data: [TransactionListData]
+  data: TransactionListData
   error: AWSJSON
 }
 
 type TransactionListData{
 total : Int
+totalPages : Int
 transactions : [TransactionData]
 }
 

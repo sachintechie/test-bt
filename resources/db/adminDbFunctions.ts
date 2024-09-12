@@ -272,6 +272,7 @@ export async function getAdminTransactionsByWalletAddress(walletAddress: string,
     });
     const data = {
       "total" : transactionCount,
+      "totalPages" : Math.ceil(transactionCount/limit),
       "transactions" : list
     }
     return data;
