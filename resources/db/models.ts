@@ -98,6 +98,13 @@ export interface order {
   status?: orderstatus;
 }
 
+export interface productwishlist {
+id?: string;
+customerid : string
+productid : string
+createdAt : string
+}
+
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",

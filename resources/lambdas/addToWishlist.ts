@@ -21,6 +21,7 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
+	console.error("Error adding product to wishlist:", error);
     return {
       status: 500,
       data: null,
