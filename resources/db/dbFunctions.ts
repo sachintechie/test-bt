@@ -1914,7 +1914,6 @@ export async function updateProductAttribute(productId: string, key: string, new
       throw new Error("Attribute not found.");
     }
 
-
     const fetchedAttribute = await prisma.productattribute.findFirst({
       where: {
         productid: productId,
