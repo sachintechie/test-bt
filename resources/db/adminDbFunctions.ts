@@ -243,23 +243,38 @@ export async function getAdminWalletAndTokenByWalletAddress(walletAddress: strin
 }
 
 
-export async function getAdminTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+export async function getAdminTransactionsByWalletAddress(walletAddress: string, tenant: tenant, limit: number,pageNo: number,symbol: string) {
   try {
     const prisma = await getPrismaClient();
+    const transactionCount = await prisma.admintransaction.count({where: {
+      walletaddress: walletAddress,
+      tenantid: tenant.id
+    },});
+    if (transactionCount == 0) {
+      return [];
+    }
     const transactions = await prisma.admintransaction.findMany({
       where: {
         walletaddress: walletAddress,
         tenantid: tenant.id
-      }
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+
     });
     const token = await prisma.token.findFirst({
       where: {
         symbol: symbol
       }
     });
-    return transactions.map((t: any) => {
+    const list = transactions.map((t: any) => {
       return { ...t, ...(token || {}) };
     });
+    const data = {
+      "total" : transactionCount,
+      "transactions" : list
+    }
+    return data;
   } catch (err) {
     throw err;
   }

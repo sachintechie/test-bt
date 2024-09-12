@@ -81,8 +81,13 @@ input AdminRecipient {
 
 type ListWalletTransactions {
   status: Int
-  data: [TransactionData]
+  data: [TransactionListData]
   error: AWSJSON
+}
+
+type TransactionListData{
+total : Int
+transactions : [TransactionData]
 }
 
 type TransactionData {
@@ -103,7 +108,9 @@ type TransactionData {
   tenanttransactionid: String
 }
 input ListWalletTokenInput {
-  walletAddress: String!
+  walletAddress: String!,
+  limit: Int!,
+  pageNo: Int!,
 }
 
 input GetAdminTransactionInput {
