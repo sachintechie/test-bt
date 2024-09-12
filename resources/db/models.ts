@@ -1,3 +1,5 @@
+import { PendingRequestsOnReconnectingError } from "web3";
+
 export interface customer {
   id?: string;
   tenantuserid: string;

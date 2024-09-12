@@ -100,8 +100,8 @@ async function updateAdminTransactions(chainType: string) {
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
         if (tenant != null ) {
-        //  const callback = await updateTenant(tenant, trx);
-          const callbackStatus =  CallbackStatus.PENDING;
+          const callback = await updateTenant(tenant, trx);
+          const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
           const updatedTransaction = await updateAdminTransaction(trx.id, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
@@ -136,6 +136,39 @@ async function updateTenant(tenant: any, transaction: any) {
     url: tenant.callbackurl,
     headers: tenantHeader,
     data: payload
+  };
+  // Send the request using axios
+  await axios(options)
+    .then((response) => {
+      console.log("Response:", response);
+      if (response.data != null && response.data != undefined && response.data == "Webhook received and verified.") {
+        data = true;
+      } else {
+        data = false;
+      }
+    })
+    .catch((error) => {
+      console.error("Error:", error.response ? error.response.data : error.message);
+    });
+  return data;
+}
+
+async function updateAdminTenant(tenant: any, transaction: any) {
+  var data;
+  const tenantSecret = tenant.tenantsecret;
+  const tenantHeaderKey = tenant.tenantheaderkey;
+  const payload = JSON.stringify(transaction);
+
+  const tenantHeader = {
+    "Content-Type": "application/json",
+    [tenantHeaderKey]: tenantSecret
+  };
+  // Options for the axios request
+  const options = {
+    method: "post",
+    url: tenant.callbackurl,
+    headers: tenantHeader,
+    data: transaction
   };
   // Send the request using axios
   await axios(options)

@@ -62,6 +62,10 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
     const token = await getTokenBySymbol(symbol);
     console.log("Customer Wallets", recipients, "tenant", tenant, token, "token");
     const amount = recipients.map((item : any) => Number(item.amount)).reduce((prev : any, curr : any) => prev + curr, 0);
+    let recipientAddresses = "";
+    const recipientAddress = recipients.map((item : any) => recipientAddresses += item.recipient + ",");
+    console.log("Recipient Addresses", recipientAddresses);
+
 
     if (recipients.length > 0 && tenant != null && token != null) {
       const blockchainTransaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);
@@ -71,7 +75,7 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
 
         const transaction = await insertAdminTransaction(
           senderWalletAddress,
-          "",
+          recipientAddresses,
           amount,
           chainType,
           symbol,
