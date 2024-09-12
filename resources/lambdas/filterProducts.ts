@@ -3,23 +3,23 @@ import { productfilter } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
   try {
-    
     const inputFilters = event.arguments?.input?.filters || [];
 
     const filters: productfilter[] = [];
 
-   
+    
     inputFilters.forEach((filter: any) => {
       const { key, operator, value } = filter;
 
+   
       filters.push({
         key,
         operator,
-        value: isNaN(Number(value)) ? value : Number(value), 
+        value: String(value), 
       });
     });
 
-    // If no valid filters are provided
+   
     if (filters.length === 0) {
       return {
         status: 400,
