@@ -1651,7 +1651,7 @@ export async function createOrder(order: order) {
         productid: order.productid,
         price: order.price,
         quantity: order.quantity,
-        status: "PENDING",
+        status: orderstatus.PENDING,
         updatedat: new Date().toISOString()
       }
     });
@@ -1898,16 +1898,14 @@ export async function updateProduct(id: string, product: Partial<product>) {
 export async function updateProductAttribute(productId: string, key: string, newValue: string) {
   try {
     const prisma = await getPrismaClient();
-
-    
     const updatedAttribute = await prisma.productattribute.updateMany({
       where: {
         productid: productId,
-        key: key,
+        key: key
       },
       data: {
         value: newValue,
-		updatedat: new Date().toISOString()
+        updatedat: new Date().toISOString()
       },
     });
 
@@ -1915,11 +1913,23 @@ export async function updateProductAttribute(productId: string, key: string, new
       throw new Error("Attribute not found.");
     }
 
-    return updatedAttribute;
+   
+    const fetchedAttribute = await prisma.productattribute.findFirst({
+      where: {
+        productid: productId,
+        key: key,
+      },
+    });
+
+    if (fetchedAttribute) {
+      return fetchedAttribute;
+    } else {
+      throw new Error("Updated attribute could not be found.");
+    }
   } catch (err) {
+    console.error("Error in updateProductAttribute:", err);
     throw err;
   }
 }
-
 
 
