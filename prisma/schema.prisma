@@ -377,12 +377,13 @@ model productwishlist {
 }
 
 enum orderstatus {
-  PENDING
-  PLACED
+  CREATED
+  CONFIRMED
   SHIPPED
   DELIVERED
   CANCELLED
   DISPUTED
+  PENDING
 }
 
 model order {
@@ -395,7 +396,7 @@ model order {
   product    product?     @relation(fields: [productid], references: [id])
   price      String?
   quantity   String?
-  status     orderstatus?
+  status     orderstatus
   createdat  DateTime   @default(now())
   updatedat  DateTime
 }

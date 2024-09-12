@@ -162,14 +162,6 @@ input CreateProductInput {
   rarity: ProductRarity
   price: Float
   purchasedPercentage: Float
-  isMintAble: Boolean
-  chainType: String
-  tokenType: String
-  quantity: Int
-  toAddress: String
-  contractAddress: String
-  metadata: AWSJSON
-  tokenId: Int
 }
 
  type ProductResponse {
