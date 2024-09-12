@@ -68,6 +68,13 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
 
 
     if (recipients.length > 0 && tenant != null && token != null) {
+      if(recipients.length <= 10){
+        return {
+          status: 400,
+          data: null,
+          error: "Recipients should be more than 10"
+        };
+      }
       const blockchainTransaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);
       if (blockchainTransaction.trxHash != null) {
         const transactionStatus = await verifySolanaTransaction(blockchainTransaction.trxHash);
