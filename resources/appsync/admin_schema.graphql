@@ -256,6 +256,43 @@ type UpdateProductAttributeResponse {
   error: AWSJSON
 }
 
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  error: AWSJSON
+}
+
+input GetCategoryByIdInput {
+  categoryId: String
+}
+
+input GetCategoriesByTenantIdInput {
+  tenantId: String
+}
+
+type GetProductsResponse {
+  status: Int
+  data: [ProductData]
+  error: AWSJSON
+}
+
+input GetProductByIdInput {
+  productId: String
+}
+
+input GetProductsByCategoryIdInput {
+  categoryId: String
+}
+
+input GetProductAttributesByProductIdInput {
+  productId: String!
+}
+
+type GetProductAttributesResponse {
+  status: Int
+  data: [ProductAttributeData]
+  error: AWSJSON
+}
 
 type Query {
   AdminSignin(input: SigninInput): SignIn
@@ -263,7 +300,13 @@ type Query {
   ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
   GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
   GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-
+  GetCategories: GetCategoriesResponse
+  GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
+  GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
+  GetProducts: GetProductsResponse
+  GetProductById(input: GetProductByIdInput): ProductResponse
+  GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
+  GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 type Mutation {
