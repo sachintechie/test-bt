@@ -1543,7 +1543,14 @@ export async function filterProducts(filters: productfilter[]) {
 
     filters.forEach((filter) => {
       const condition: any = {};
-      condition[filter.operator] = filter.value;
+
+      // Handle the "eq" operator as a direct equality check
+      if (filter.operator === "eq") {
+        condition["value"] = filter.value;  
+      } else {
+        condition[filter.operator] = filter.value;  
+      }
+
 
       whereClause.AND.push({
         productattributes: {
@@ -1567,6 +1574,7 @@ export async function filterProducts(filters: productfilter[]) {
     throw err;
   }
 }
+
 
 export async function addToWishlist(customerId: string, productId: string) {
   const prisma = new PrismaClient();
