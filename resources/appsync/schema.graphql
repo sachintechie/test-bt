@@ -21,11 +21,6 @@ type CategoryResponse {
 	error: AWSJSON
 }
 
-input CreateCategoryInput {
-	name: String!
-	tenantId: String!
-}
-
 input CreateOrderInput {
 	sellerId: String!
 	buyerId: String!
@@ -41,21 +36,6 @@ type CreateOrderResponse {
 	error: AWSJSON
 }
 
-input CreateProductInput {
-	name: String!
-	categoryId: String!
-	rarity: ProductRarity
-	price: Float
-	purchasedPercentage: Float
-	isMintAble: Boolean
-	chainType: String
-	tokenType: String
-	quantity: Int
-	toAddress: String
-	contractAddress: String
-	metadata: AWSJSON
-	tokenId: Int
-}
 
 input CreateWalletInput {
 	tenantUserId: String!
@@ -510,19 +490,6 @@ type ProductAttributeData {
 	updatedat: AWSDateTime
 }
 
-input ProductAttributeInput {
-	key: String!
-	value: String!
-	type: String!
-	productId: String!
-}
-
-type ProductAttributeResponse {
-	status: Int
-	data: ProductAttributeData
-	error: AWSJSON
-}
-
 type ProductData {
 	id: String!
 	name: String!
@@ -799,9 +766,6 @@ input WithdrawStakeInput {
 }
 
 type Mutation {
-	CreateCategory(input: CreateCategoryInput): CategoryResponse
-	CreateProduct(input: CreateProductInput): ProductResponse
-	CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
 	MergeStake(input: MergeStakeInput): ListStakeAccounts

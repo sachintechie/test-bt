@@ -1577,7 +1577,7 @@ export async function filterProducts(filters: productfilter[]) {
 
 
 export async function addToWishlist(customerId: string, productId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const existingWishlistItem = await prisma.productwishlist.findFirst({
       where: {
@@ -1604,7 +1604,7 @@ export async function addToWishlist(customerId: string, productId: string) {
 }
 
 export async function removeFromWishlist(customerId: string, productId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const existingWishlistItem = await prisma.productwishlist.findFirst({
       where: {
@@ -1630,7 +1630,7 @@ export async function removeFromWishlist(customerId: string, productId: string) 
 }
 
 export async function getWishlistByCustomerId(customerId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const wishlistItems = await prisma.productwishlist.findMany({
       where: {
@@ -1671,7 +1671,7 @@ export async function createOrder(order: order) {
 }
 
 export async function getOrdersBySeller(sellerId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -1697,7 +1697,7 @@ export async function getOrdersBySeller(sellerId: string) {
 }
 
 export async function getOrdersByBuyer(buyerId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -1723,7 +1723,7 @@ export async function getOrdersByBuyer(buyerId: string) {
 }
 
 export async function getOrderById(orderId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const order = await prisma.order.findUnique({
       where: {
@@ -1758,7 +1758,7 @@ export async function getOrderById(orderId: string) {
 }
 
 export async function getOrdersByTenant(tenantId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -1796,7 +1796,7 @@ export async function getOrdersByTenant(tenantId: string) {
 
 export async function updateOrderStatus(orderId: string, status: orderstatus) {
   // TODO: add role check
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const updatedOrder = await prisma.order.update({
       where: {
@@ -1831,7 +1831,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
 }
 
 export async function getOrdersByProductId(productId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
