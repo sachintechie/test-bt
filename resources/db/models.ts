@@ -75,6 +75,11 @@ export interface productcategory {
   tenantid: string;
 }
 
+export interface updateproductattribute{
+  productId: string,
+  key: string, 
+  newValue: string
+}
 export interface productattribute {
   key: string;
   value: string;

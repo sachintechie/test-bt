@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, order, orderstatus } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, order, orderstatus, updateproductattribute } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1659,7 +1659,7 @@ export async function createOrder(order: order) {
         productid: order.productid,
         price: order.price,
         quantity: order.quantity,
-        status: orderstatus.PENDING,
+        status: orderstatus.CREATED,
         updatedat: new Date().toISOString()
       }
     });
@@ -1902,11 +1902,10 @@ export async function updateProduct(id: string, product: Partial<product>) {
   }
 }
 
-
-export async function updateProductAttribute(productId: string, key: string, newValue: string) {
+export async function updateProductAttribute(updateproductattribute:updateproductattribute) {
   try {
     const prisma = await getPrismaClient();
-
+    const {productId, key, newValue} = updateproductattribute
     const updatedAttribute = await prisma.productattribute.updateMany({
       where: {
         productid: productId,
