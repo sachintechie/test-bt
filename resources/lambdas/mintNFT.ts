@@ -2,11 +2,11 @@ import Web3 from "web3";
 import contractAbi from '../abi/BridgeTowerNftUpgradeable.json';
 import AWS from "aws-sdk";
 import {storeMetadataInDynamoDB} from "../utils/dynamodb";
-
+import {tenant} from "../db/models";
+import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
-const PRIVATE_KEY = process.env.PRIVATE_KEY!;
 const CONTRACT_ABI = contractAbi.abi;
 
 const web3Avax = new Web3(AVAX_RPC_URL);
@@ -17,8 +17,9 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 export const handler = async (event: any, context: any) => {
   const { toAddress, numberOfTokens, chain, contractAddress, metadata } = event.arguments?.input;
   try{
-
-    const receipt = await mintNFT(toAddress, numberOfTokens, chain, contractAddress, metadata);
+    const tenant= event.identity.resolverContext as tenant;
+    const tenantId=tenant.id;
+    const receipt = await mintNFT(toAddress, numberOfTokens, chain, contractAddress, metadata,tenantId);
 
     return {
       status: 200,
@@ -34,25 +35,32 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-export const mintNFT = async (toAddress: string, numberOfTokens: number, chain: string, contractAddress: string, metadata: any) => {
+export const mintNFT = async (toAddress: string, numberOfTokens: number, chain: string, contractAddress: string, metadata: any,tenantId:string) => {
   const web3=chain==='AVAX'?web3Avax:web3Eth;
-
-  const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
-  web3.eth.accounts.wallet.add(account);
+  const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
   const contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
 
-
-  const tx = {
-    from: account.address,
+  const tx:any = {
+    from: payerKey.key?.materialId,
     to: contractAddress,
-    gas: 300000,
+    type:'0x02',
+    maxPriorityFeePerGas: web3.utils.toWei('1', 'gwei'), // Priority fee for miners
+    maxFeePerGas: web3.utils.toWei('30', 'gwei'),        // Maximum fee you're willing to pay
     data: contract.methods.batchMint(toAddress, numberOfTokens).encodeABI()
   };
 
-  const nextTokenId = await contract.methods.getNextTokenId().call() as BigInt;
+  // Estimate gas for the transaction if needed
+  const gasEstimate = await web3.eth.estimateGas(tx);
+  tx.gas  = `0x${  gasEstimate.toString(16)}`;
+  // Adjust the gas limit accordingly if required
+  console.log(tx)
 
-  const receipt = await web3.eth.sendTransaction(tx);
+  const signedTx = await payerKey.key?.signEvm({tx,chain_id:43113});
+  const receipt = await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx||'');
+
+
+  const nextTokenId = await contract.methods.getNextTokenId().call() as BigInt;
 
   for (let i = 0; i < numberOfTokens; i++) {
     await storeMetadataInDynamoDB(dynamoDB,contractAddress, Number(nextTokenId)+i, metadata);
