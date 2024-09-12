@@ -454,8 +454,6 @@ type GetMetadataResponse {
   metadata: AWSJSON
 }
 
-
-
 type CategoryResponse {
   status: Int
   data: CategoryData
@@ -466,8 +464,8 @@ type CategoryData {
   id:   String!
   name: String!
   tenantid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input GetCategoryByIdInput {
@@ -507,8 +505,8 @@ type ProductData {
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
 }
 
@@ -518,8 +516,8 @@ type ProductAttributeData {
   value: String!
   type: String!
   productid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 type GetProductsResponse {
@@ -578,7 +576,7 @@ type WishlistResponse {
 type WishlistData {
   customerid: String!
   productid:  String!
-  createdat:  String
+  createdat:  AWSDateTime
 }
 
 input WishlistByCustomerIdInput{
@@ -594,8 +592,8 @@ type GetWishlistByCusotmerIdResponse {
 type GetWishlistByCusotmerIdData {
   customerid: String!
   product: [ProductData]
-  productid:  String
-  createdat:  String
+  productid:  AWSDateTime
+  createdat:  AWSDateTime
 
 }
 
@@ -615,8 +613,8 @@ type OrderData {
   price: Float
   quantity: Int
   status: String
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 type CreateOrderResponse {
@@ -649,8 +647,8 @@ type GetOrdersBySellerIdData {
   price: Float
   quantity: Int
   status: String
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input GetOrdersByBuyerIdInput {
@@ -669,8 +667,8 @@ type GetOrdersByBuyerIdData {
   price: Float
   quantity: Int
   status: String
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 
@@ -691,8 +689,8 @@ type GetOrderByIdData {
   price: Float
   quantity: Int
   status: String
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input GetOrdersByTenantIdInput {
@@ -712,8 +710,8 @@ type GetOrdersByTenantIdData {
   price: Float
   quantity: Int
   status: String
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input UpdateOrderStatusInput {
@@ -732,7 +730,7 @@ type UpdateOrderStatusData {
   buyerid: String
   productid: String
   status: String
-  updatedat: String
+  updatedat: AWSDateTime
 }
 
 type UpdateOrderStatusResponseData {
@@ -757,8 +755,8 @@ type GetOrdersByProductIdData {
   price: Float
   quantity: Int
   status: String
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 type Query {

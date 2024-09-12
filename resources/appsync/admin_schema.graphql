@@ -144,8 +144,8 @@ type CategoryResponse {
 type CategoryData {
   name: String!
   tenantid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 enum ProductRarity {
@@ -179,8 +179,8 @@ type ProductData {
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
 }
 
@@ -203,8 +203,8 @@ type ProductAttributeData {
   value: String!
   type: String!
   productid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input UpdateCategoryInput {
@@ -214,15 +214,8 @@ input UpdateCategoryInput {
 
 type UpdateCategoryResponse {
   status: Int
-  data: UpdateCategoryData
+  data: CategoryData
   error: AWSJSON
-}
-
-type UpdateCategoryData {
-  name: String
-  tenantid: String
-  createdat: String
-  updatedat: String
 }
 
 input UpdateProductInput {
