@@ -102,7 +102,7 @@ export interface productwishlist {
 id?: string;
 customerid : string
 productid : string
-createdAt : string
+createdat : string
 }
 
 export enum TransactionStatus {
