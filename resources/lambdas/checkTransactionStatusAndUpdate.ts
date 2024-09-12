@@ -100,7 +100,7 @@ async function updateAdminTransactions(chainType: string) {
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
         if (tenant != null ) {
-          const callback = await updateTenant(tenant, trx);
+          const callback = await updateAdminTenant(tenant, trx);
           const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
           const updatedTransaction = await updateAdminTransaction(trx.id, status, callbackStatus);
