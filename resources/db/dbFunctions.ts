@@ -1599,7 +1599,11 @@ export async function addToWishlist(customerId: string, productId: string) {
 
     return newWishlistItem;
   } catch (error) {
-    throw error;
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product to the wishlist.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
