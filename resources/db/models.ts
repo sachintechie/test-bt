@@ -76,6 +76,11 @@ export interface productcategory {
   tenantid: string;
 }
 
+export interface updateproductattribute{
+  productId: string,
+  key: string, 
+  newValue: string
+}
 export interface productattribute {
   key: string;
   value: string;
@@ -97,6 +102,13 @@ export interface order {
   price?: string;
   quantity?: string;
   status?: orderstatus;
+}
+
+export interface productwishlist {
+id?: string;
+customerid : string
+productid : string
+createdat : string
 }
 
 export enum TransactionStatus {
@@ -143,6 +155,5 @@ export enum orderstatus {
   SHIPPED = "SHIPPED",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
-  DISPUTED = "DISPUTED",
-  PENDING = "PENDING"
+  DISPUTED = "DISPUTED"
 }

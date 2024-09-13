@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, order, orderstatus } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, order, orderstatus, updateproductattribute } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1543,7 +1543,14 @@ export async function filterProducts(filters: productfilter[]) {
 
     filters.forEach((filter) => {
       const condition: any = {};
-      condition[filter.operator] = filter.value;
+
+      // Handle the "eq" operator as a direct equality check
+      if (filter.operator === "eq") {
+        condition["value"] = filter.value;  
+      } else {
+        condition[filter.operator] = filter.value;  
+      }
+
 
       whereClause.AND.push({
         productattributes: {
@@ -1568,8 +1575,9 @@ export async function filterProducts(filters: productfilter[]) {
   }
 }
 
+
 export async function addToWishlist(customerId: string, productId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const existingWishlistItem = await prisma.productwishlist.findFirst({
       where: {
@@ -1591,12 +1599,16 @@ export async function addToWishlist(customerId: string, productId: string) {
 
     return newWishlistItem;
   } catch (error) {
-    throw error;
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product to the wishlist.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
 export async function removeFromWishlist(customerId: string, productId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const existingWishlistItem = await prisma.productwishlist.findFirst({
       where: {
@@ -1622,7 +1634,7 @@ export async function removeFromWishlist(customerId: string, productId: string) 
 }
 
 export async function getWishlistByCustomerId(customerId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const wishlistItems = await prisma.productwishlist.findMany({
       where: {
@@ -1651,7 +1663,7 @@ export async function createOrder(order: order) {
         productid: order.productid,
         price: order.price,
         quantity: order.quantity,
-        status: orderstatus.PENDING,
+        status: orderstatus.CREATED,
         updatedat: new Date().toISOString()
       }
     });
@@ -1663,7 +1675,7 @@ export async function createOrder(order: order) {
 }
 
 export async function getOrdersBySeller(sellerId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -1689,7 +1701,7 @@ export async function getOrdersBySeller(sellerId: string) {
 }
 
 export async function getOrdersByBuyer(buyerId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -1715,7 +1727,7 @@ export async function getOrdersByBuyer(buyerId: string) {
 }
 
 export async function getOrderById(orderId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const order = await prisma.order.findUnique({
       where: {
@@ -1750,7 +1762,7 @@ export async function getOrderById(orderId: string) {
 }
 
 export async function getOrdersByTenant(tenantId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -1788,7 +1800,7 @@ export async function getOrdersByTenant(tenantId: string) {
 
 export async function updateOrderStatus(orderId: string, status: orderstatus) {
   // TODO: add role check
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const updatedOrder = await prisma.order.update({
       where: {
@@ -1823,7 +1835,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
 }
 
 export async function getOrdersByProductId(productId: string) {
-  const prisma = new PrismaClient();
+  const prisma = await getPrismaClient();
   try {
     const orders = await prisma.order.findMany({
       where: {
@@ -1894,11 +1906,10 @@ export async function updateProduct(id: string, product: Partial<product>) {
   }
 }
 
-
-export async function updateProductAttribute(productId: string, key: string, newValue: string) {
+export async function updateProductAttribute(updateproductattribute:updateproductattribute) {
   try {
     const prisma = await getPrismaClient();
-
+    const {productId, key, newValue} = updateproductattribute
     const updatedAttribute = await prisma.productattribute.updateMany({
       where: {
         productid: productId,
