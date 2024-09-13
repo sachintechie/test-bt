@@ -386,7 +386,7 @@ enum orderstatus {
   DISPUTED
 }
 
-model order {
+model orders {
   id         String       @id @default(uuid())
   sellerid   String?
   seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])

@@ -1688,7 +1688,7 @@ export async function createOrder(order: order) {
     const prisma = await getPrismaClient();
 
 
-    const newOrder = await prisma.order.create({
+    const newOrder = await prisma.orders.create({
       data: {
         sellerid: order.sellerid,
         buyerid: order.buyerid,
@@ -1709,7 +1709,7 @@ export async function createOrder(order: order) {
 export async function getOrdersBySeller(sellerId: string) {
   const prisma = await getPrismaClient();
   try {
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         sellerid: sellerId
       },
@@ -1735,7 +1735,7 @@ export async function getOrdersBySeller(sellerId: string) {
 export async function getOrdersByBuyer(buyerId: string) {
   const prisma = await getPrismaClient();
   try {
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         buyerid: buyerId
       },
@@ -1761,7 +1761,7 @@ export async function getOrdersByBuyer(buyerId: string) {
 export async function getOrderById(orderId: string) {
   const prisma = await getPrismaClient();
   try {
-    const order = await prisma.order.findUnique({
+    const order = await prisma.orders.findUnique({
       where: {
         id: orderId
       },
@@ -1796,7 +1796,7 @@ export async function getOrderById(orderId: string) {
 export async function getOrdersByTenant(tenantId: string) {
   const prisma = await getPrismaClient();
   try {
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         product: {
           tenantid: tenantId
@@ -1834,7 +1834,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
   // TODO: add role check
   const prisma = await getPrismaClient();
   try {
-    const updatedOrder = await prisma.order.update({
+    const updatedOrder = await prisma.orders.update({
       where: {
         id: orderId
       },
@@ -1869,7 +1869,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
 export async function getOrdersByProductId(productId: string) {
   const prisma = await getPrismaClient();
   try {
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where: {
         productid: productId
       },
