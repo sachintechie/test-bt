@@ -8,7 +8,7 @@ export const handler = async (event: any) => {
   try {
     console.log("Event", event);
     let token = event.authorizationToken;
-    let idToken  = event.requestHeaders.identity;
+    let idToken  = event?.requestHeaders?.identity;
 
     if (token != null) {
       // console.log("Token provided", token);
@@ -32,6 +32,7 @@ export const handler = async (event: any) => {
                 isactive: tenant.isactive,
                 createdat: tenant.createdat,
                 userpoolid: tenant.userpoolid,
+                iscognitoactive: tenant.iscognitoactive,
                 cognitoclientid: tenant.cognitoclientid,
                 userType : "ADMIN"
               }
@@ -53,6 +54,7 @@ export const handler = async (event: any) => {
               isactive: tenant.isactive,
               createdat: tenant.createdat,
               userpoolid: tenant.userpoolid,
+              iscognitoactive: tenant.iscognitoactive,
               cognitoclientid: tenant.cognitoclientid,
               userType : "ADMIN"
             }
