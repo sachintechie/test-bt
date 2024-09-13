@@ -106,6 +106,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
             const params: AWS.CognitoIdentityServiceProvider.AdminCreateUserRequest = {
               UserPoolId: tenant.userpoolid, // Replace with your Cognito User Pool ID
               Username:  email ? email : "" , // Username of the user to be created
+
               UserAttributes: [
                 {
                   Name: "email",
