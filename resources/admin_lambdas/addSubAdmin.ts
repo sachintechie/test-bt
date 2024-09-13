@@ -88,19 +88,6 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
             cubistUserId = proof.user_info?.user_id;
           }
           
-
-          const customer = await createAdminUser({
-            emailid: email ? email : "",
-            name: name ? name : username,
-            tenantuserid,
-            tenantid: tenant.id,
-            iss: iss,
-            cubistuserid: cubistUserId,
-            isactive: true,
-            isBonusCredit: false,
-            createdat: new Date().toISOString()
-          });
-          console.log("Created customer", customer.id);
           if(tenant.iscognitoactive && tenant.userpoolid){
             // Define parameters for creating a new Cognito user
             const params: AWS.CognitoIdentityServiceProvider.AdminCreateUserRequest = {
@@ -137,6 +124,19 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
             };
             await cognito.adminAddUserToGroup(groupParams).promise();
           }
+          const customer = await createAdminUser({
+            emailid: email ? email : "",
+            name: name ? name : username,
+            tenantuserid,
+            tenantid: tenant.id,
+            iss: iss,
+            cubistuserid: cubistUserId,
+            isactive: true,
+            isBonusCredit: false,
+            createdat: new Date().toISOString()
+          });
+          console.log("Created customer", customer.id);
+        
           const customerData = {
             cubistuserid: cubistUserId,
             tenantuserid: tenantuserid,
