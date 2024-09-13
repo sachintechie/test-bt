@@ -122,7 +122,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
             // Optionally, set a permanent password for the user
             const setPasswordParams: AWS.CognitoIdentityServiceProvider.AdminSetUserPasswordRequest = {
               UserPoolId: tenant.userpoolid,
-              Username: username,
+              Username: email ? email : "",
               Password: password,
               Permanent: true
             };
