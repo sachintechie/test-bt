@@ -16,6 +16,28 @@ type SignInData {
 
 input SigninInput {
   tenantUserId: String!
+  name: String!
+}
+
+input AddSubAdminInput {
+  tenantUserId: String!
+  name: String!
+  password: String!
+}
+
+
+type AddSubAdmin {
+  status: Int
+  data: AddSubAdminData
+  error: AWSJSON
+}
+
+type AddSubAdminData {
+  id: String
+  createdat: String
+  tenantuserid: String
+  tenantid: String
+  emailid: String
 }
 
 
@@ -319,6 +341,7 @@ type Query {
 }
 
 type Mutation {
+  AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
   CreateCategory(input: CreateCategoryInput): CategoryResponse
