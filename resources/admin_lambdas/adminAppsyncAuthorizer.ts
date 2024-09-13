@@ -16,7 +16,7 @@ export const handler = async (event: any) => {
       const res = await executeQuery(query);
       // console.log(res.rows);
       if (res.rows.length > 0 && res.rows[0].apikey === token) {
-        console.log("tenant-insie-if");
+        console.log("tenant-inside-if");
 
         const tenant = res.rows[0];
         console.log(tenant);
