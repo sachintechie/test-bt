@@ -351,6 +351,43 @@ export async function getAdminUser(tenantUserId: string, tenantId: string) {
   }
 }
 
+export async function getAdminUserByEmail(emailId: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.adminuser.findFirst({
+      where: {
+        emailid: emailId,
+        tenantid: tenantId
+      }
+    });
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function updateAdminCubistData(customer: updatecustomer) {
+  try {
+
+
+    const prisma = await getPrismaClient();
+    const newCustomer = await prisma.adminuser.update({
+      where: { id: customer.id },
+      data: {
+
+        cubistuserid: customer.cubistuserid,
+        emailid: customer.emailid,
+        iss: customer.iss,
+
+
+      }
+    });
+    return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
 
 
 
