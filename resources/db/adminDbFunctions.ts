@@ -366,6 +366,28 @@ export async function getAdminUserByEmail(emailId: string, tenantId: string) {
   }
 }
 
+export async function updateAdminCubistData(customer: updatecustomer) {
+  try {
+
+
+    const prisma = await getPrismaClient();
+    const newCustomer = await prisma.adminuser.update({
+      where: { id: customer.id },
+      data: {
+
+        cubistuserid: customer.cubistuserid,
+        emailid: customer.emailid,
+        iss: customer.iss,
+
+
+      }
+    });
+    return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
 
 
 

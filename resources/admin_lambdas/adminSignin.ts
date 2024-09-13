@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
-import { createAdminUser, getAdminUser } from "../db/adminDbFunctions";
+import { createAdminUser, getAdminUser, updateAdminCubistData } from "../db/adminDbFunctions";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -36,12 +36,12 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createUser(tenant: tenant, tenantuserid: string, username : string,oidcToken: string) {
+async function createUser(tenant: tenant, tenantuserid: string, username: string, oidcToken: string) {
   console.log("Creating admin user");
 
   try {
     console.log("createUser", tenant.id, tenantuserid);
-    const customer = await getAdminUser(tenantuserid, tenant.id);
+    let customer = await getAdminUser(tenantuserid, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       return { customer, error: null };
     } else {
@@ -73,39 +73,55 @@ async function createUser(tenant: tenant, tenantuserid: string, username : strin
           const sub = proof.identity!.sub;
           const email = proof.email;
           const name = proof.preferred_username;
-          let cubistUserId ;
+          if(customer?.emailid != email){
+            return {
+              customer: null,
+              error: "Email id does not match with the provided token"
+            };
+          }
+          let cubistUserId;
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
-             cubistUserId = await org.createOidcUser({ iss, sub }, email, {
-              name,memberRole:"Member"
+            cubistUserId = await org.createOidcUser({ iss, sub }, email, {
+              name,
+              memberRole: "Member"
+            });
+          } else {
+            cubistUserId = proof.user_info?.user_id;
+          }
+          
+          if (customer != null) {
+             customer = await updateAdminCubistData({
+              cubistuserid: cubistUserId,
+              iss:iss,
+              id: customer.id
             });
           }
           else{
-            cubistUserId = proof.user_info?.user_id;
-          }
-            const customer = await createAdminUser({
-              emailid: email ? email : "",
-              name: name ? name :username,
-              tenantuserid,
-              tenantid: tenant.id,
-              iss:iss,
-              cubistuserid: cubistUserId,
-              isactive: true,
-              isBonusCredit: false,
-              createdat: new Date().toISOString(),
-            });
-            console.log("Created customer", customer.id);
-            const customerData = {
-              cubistuserid: cubistUserId,
-              tenantuserid: tenantuserid,
-              tenantid: tenant.id,
-              emailid: email,
-              id: customer.id,
-              createdat: new Date().toISOString()
-            };
+           customer = await createAdminUser({
+            emailid: email ? email : "",
+            name: name ? name : username,
+            tenantuserid,
+            tenantid: tenant.id,
+            iss: iss,
+            cubistuserid: cubistUserId,
+            isactive: true,
+            isBonusCredit: false,
+            createdat: new Date().toISOString()
+          });
+        }
+          console.log("Created customer", customer.id);
+          const customerData = {
+            cubistuserid: cubistUserId,
+            tenantuserid: tenantuserid,
+            tenantid: tenant.id,
+            emailid: email,
+            id: customer.id,
+            createdat: new Date().toISOString()
+          };
 
-            return { customer: customerData, error: null };
+          return { customer: customerData, error: null };
         } catch (e) {
           console.log(`Not verified: ${e}`);
           return {
