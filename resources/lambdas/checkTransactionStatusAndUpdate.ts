@@ -100,7 +100,7 @@ async function updateAdminTransactions(chainType: string) {
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
         if (tenant != null ) {
-          const callback = await updateTenant(tenant, trx);
+          const callback = await updateAdminTenant(tenant, trx);
           const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 
           const updatedTransaction = await updateAdminTransaction(trx.id, status, callbackStatus);
@@ -174,7 +174,7 @@ async function updateAdminTenant(tenant: any, transaction: any) {
   await axios(options)
     .then((response) => {
       console.log("Response:", response);
-      if (response.data != null && response.data != undefined && response.data == "Webhook received and verified.") {
+      if (response.status != null && response.status != undefined && response.status == 200 && response.statusText == "OK") {
         data = true;
       } else {
         data = false;
