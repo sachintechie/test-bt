@@ -119,7 +119,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
             // Define parameters for adding a user to the group
             const groupParams: AWS.CognitoIdentityServiceProvider.AdminAddUserToGroupRequest = {
               UserPoolId: tenant.userpoolid, // Replace with your Cognito User Pool ID
-              Username: username, // Username of the user to be added to the group
+              Username: email ? email : "", // Username of the user to be added to the group
               GroupName: ADMIN_GROUP ? ADMIN_GROUP : "Admin" // Name of the group to add the user to
             };
             await cognito.adminAddUserToGroup(groupParams).promise();
