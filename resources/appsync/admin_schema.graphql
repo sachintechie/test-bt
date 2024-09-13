@@ -20,7 +20,7 @@ input SigninInput {
 }
 
 input AddSubAdminInput {
-  tenantUserId: String!
+  emailId: String!
   name: String!
   password: String!
 }

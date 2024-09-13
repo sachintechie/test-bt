@@ -351,6 +351,21 @@ export async function getAdminUser(tenantUserId: string, tenantId: string) {
   }
 }
 
+export async function getAdminUserByEmail(emailId: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.adminuser.findFirst({
+      where: {
+        emailid: emailId,
+        tenantid: tenantId
+      }
+    });
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
 
 
 
