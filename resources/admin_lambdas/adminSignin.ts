@@ -14,7 +14,6 @@ export const handler = async (event: any, context: any) => {
     const data = await createUser(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.tenantUserId,
-      event.arguments?.input?.name,
       event.headers?.identity
     );
 
@@ -36,7 +35,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createUser(tenant: tenant, tenantuserid: string, username: string, oidcToken: string) {
+async function createUser(tenant: tenant, tenantuserid: string,  oidcToken: string) {
   console.log("Creating admin user");
 
   try {
@@ -73,7 +72,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
           const sub = proof.identity!.sub;
           const email = proof.email;
           const name = proof.preferred_username;
-          if(customer?.emailid != email){
+          if (customer?.emailid != email) {
             return {
               customer: null,
               error: "Email id does not match with the provided token"
@@ -90,27 +89,26 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
           } else {
             cubistUserId = proof.user_info?.user_id;
           }
-          
+
           if (customer != null) {
-             customer = await updateAdminCubistData({
+            customer = await updateAdminCubistData({
               cubistuserid: cubistUserId,
-              iss:iss,
+              iss: iss,
               id: customer.id
             });
+          } else {
+            customer = await createAdminUser({
+              emailid: email ? email : "",
+              name: name ? name : "",
+              tenantuserid,
+              tenantid: tenant.id,
+              iss: iss,
+              cubistuserid: cubistUserId,
+              isactive: true,
+              isBonusCredit: false,
+              createdat: new Date().toISOString()
+            });
           }
-          else{
-           customer = await createAdminUser({
-            emailid: email ? email : "",
-            name: name ? name : username,
-            tenantuserid,
-            tenantid: tenant.id,
-            iss: iss,
-            cubistuserid: cubistUserId,
-            isactive: true,
-            isBonusCredit: false,
-            createdat: new Date().toISOString()
-          });
-        }
           console.log("Created customer", customer.id);
           const customerData = {
             cubistuserid: cubistUserId,
