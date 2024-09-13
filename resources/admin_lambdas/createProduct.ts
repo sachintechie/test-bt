@@ -59,10 +59,14 @@ export const handler = async (event: any, context: any) => {
     };
   } catch (error) {
     console.error("Error creating product:", error);
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return {
       statusCode: 500,
         data: null,
-        error: "Internal Server Error"
+        error: errorMessage
     };
   }
 };

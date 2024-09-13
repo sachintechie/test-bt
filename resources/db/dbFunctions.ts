@@ -1383,6 +1383,16 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
 export async function createCategory(category: productcategory) {
   try {
     const prisma = await getPrismaClient();
+    const existingCategory = await prisma.productcategory.findFirst({
+      where: {
+        name: category.name,
+        tenantid: category.tenantid
+      }
+    });
+
+    if (existingCategory) {
+      throw new Error("Category is already added against this tenant with this name");
+    }
     const newCategory = await prisma.productcategory.create({
       data: {
         name: category.name,
@@ -1391,8 +1401,12 @@ export async function createCategory(category: productcategory) {
     });
 
     return newCategory;
-  } catch (err) {
-    throw err;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the category");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
@@ -1440,6 +1454,16 @@ export async function createProduct(product: product) {
       throw new Error("purchasedpercentage cannot exceed 100.");
     }
     const prisma = await getPrismaClient();
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        name: product.name,
+        categoryid: product.categoryid
+      }
+    });
+
+    if (existingProduct) {
+      throw new Error("Product is already added against this category with this name");
+    }
     const newProduct = await prisma.product.create({
       data: {
         name: product.name,
@@ -1451,8 +1475,12 @@ export async function createProduct(product: product) {
       }
     });
     return newProduct;
-  } catch (err) {
-    throw err;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
@@ -1629,7 +1657,11 @@ export async function removeFromWishlist(customerId: string, productId: string) 
 
     return existingWishlistItem;
   } catch (error) {
-    throw error;
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product to the wishlist.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
