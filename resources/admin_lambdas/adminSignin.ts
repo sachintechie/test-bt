@@ -73,6 +73,12 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
           const sub = proof.identity!.sub;
           const email = proof.email;
           const name = proof.preferred_username;
+          if(customer?.emailid != email){
+            return {
+              customer: null,
+              error: "Email id does not match with the provided token"
+            };
+          }
           let cubistUserId;
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
