@@ -1658,7 +1658,7 @@ export async function removeFromWishlist(customerId: string, productId: string) 
     return existingWishlistItem;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while adding the product to the wishlist.");
+      throw new Error(error.message || "An error occurred while removing the product from wishlist.");
     } else {
       throw new Error("An unexpected error occurred.");
     }
