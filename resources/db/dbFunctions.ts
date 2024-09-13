@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, order, orderstatus, updateproductattribute } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1683,7 +1683,7 @@ export async function getWishlistByCustomerId(customerId: string) {
   }
 }
 
-export async function createOrder(order: order) {
+export async function createOrder(order: orders) {
   try {
     const prisma = await getPrismaClient();
 
