@@ -57,8 +57,8 @@ model customer {
   staketransactions staketransaction[]
   stakeaccounts     stakeaccount[]
   wishlists         productwishlist[]
-  sellerorders      order[]            @relation("SellerOrders")
-  buyerorders       order[]            @relation("BuyerOrders")
+  sellerorders      orders[]            @relation("SellerOrders")
+  buyerorders       orders[]            @relation("BuyerOrders")
 }
 
 model adminuser {
@@ -251,7 +251,7 @@ model product {
   transactions      transaction[]
   productattributes productattribute[]
   wishlists  productwishlist[]
-  orders            order[]
+  orders            orders[]
   @@unique([categoryid, name])
 }
 
