@@ -72,7 +72,7 @@ async function createUser(tenant: tenant, tenantuserid: string,  oidcToken: stri
           const sub = proof.identity!.sub;
           const email = proof.email;
           const name = proof.preferred_username;
-          if (customer?.emailid != email) {
+          if (customer != null && customer?.emailid != email) {
             return {
               customer: null,
               error: "Email id does not match with the provided token"
