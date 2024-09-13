@@ -32,6 +32,7 @@ export const handler = async (event: any) => {
                 isactive: tenant.isactive,
                 createdat: tenant.createdat,
                 userpoolid: tenant.userpoolid,
+                iscognitoactive: tenant.iscognitoactive,
                 cognitoclientid: tenant.cognitoclientid,
                 userType : "ADMIN"
               }
@@ -53,6 +54,7 @@ export const handler = async (event: any) => {
               isactive: tenant.isactive,
               createdat: tenant.createdat,
               userpoolid: tenant.userpoolid,
+              iscognitoactive: tenant.iscognitoactive,
               cognitoclientid: tenant.cognitoclientid,
               userType : "ADMIN"
             }

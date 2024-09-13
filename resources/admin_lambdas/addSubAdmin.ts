@@ -101,7 +101,7 @@ async function createUser(tenant: tenant, tenantuserid: string, username: string
             createdat: new Date().toISOString()
           });
           console.log("Created customer", customer.id);
-          if(tenant.userpoolid){
+          if(tenant.iscognitoactive && tenant.userpoolid){
             // Define parameters for creating a new Cognito user
             const params: AWS.CognitoIdentityServiceProvider.AdminCreateUserRequest = {
               UserPoolId: tenant.userpoolid, // Replace with your Cognito User Pool ID
