@@ -11,8 +11,8 @@ type BatchMintCnftData {
 type CategoryData {
 	name: String!
 	tenantid: String!
-	createdat: String
-	updatedat: String
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 type CategoryResponse {
@@ -21,18 +21,13 @@ type CategoryResponse {
 	error: AWSJSON
 }
 
-input CreateCategoryInput {
-	name: String!
-	tenantId: String!
-}
-
 input CreateOrderInput {
 	sellerId: String!
 	buyerId: String!
 	productId: String!
 	price: Float!
 	quantity: Int!
-	status: String
+	status: OrderStatus
 }
 
 type CreateOrderResponse {
@@ -41,21 +36,6 @@ type CreateOrderResponse {
 	error: AWSJSON
 }
 
-input CreateProductInput {
-	name: String!
-	categoryId: String!
-	rarity: ProductRarity
-	price: Float
-	purchasedPercentage: Float
-	isMintAble: Boolean
-	chainType: String
-	tokenType: String
-	quantity: Int
-	toAddress: String
-	contractAddress: String
-	metadata: AWSJSON
-	tokenId: Int
-}
 
 input CreateWalletInput {
 	tenantUserId: String!
@@ -191,9 +171,9 @@ type GetOrderByIdData {
 	product: ProductData
 	price: Float
 	quantity: Int
-	status: String
-	createdat: String
-	updatedat: String
+	status: OrderStatus
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 input GetOrderByIdInput {
@@ -211,9 +191,9 @@ type GetOrdersByBuyerIdData {
 	product: ProductData
 	price: Float
 	quantity: Int
-	status: String
-	createdat: String
-	updatedat: String
+	status: OrderStatus
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 input GetOrdersByBuyerIdInput {
@@ -232,9 +212,9 @@ type GetOrdersByProductIdData {
 	product: ProductData
 	price: Float
 	quantity: Int
-	status: String
-	createdat: String
-	updatedat: String
+	status: OrderStatus
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 input GetOrdersByProductIdInput {
@@ -252,9 +232,9 @@ type GetOrdersBySellerIdData {
 	product: ProductData
 	price: Float
 	quantity: Int
-	status: String
-	createdat: String
-	updatedat: String
+	status: OrderStatus
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 input GetOrdersBySellerIdInput {
@@ -273,9 +253,9 @@ type GetOrdersByTenantIdData {
 	product: ProductData
 	price: Float
 	quantity: Int
-	status: String
-	createdat: String
-	updatedat: String
+	status: OrderStatus
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 input GetOrdersByTenantIdInput {
@@ -365,7 +345,7 @@ type GetWishlistByCusotmerIdData {
 	customerid: String!
 	product: [ProductData]
 	productid: String
-	createdat: String
+	createdat: AWSDateTime
 }
 
 type GetWishlistByCusotmerIdResponse {
@@ -480,15 +460,24 @@ input MintNFTInput {
 	metadata: AWSJSON
 }
 
+enum OrderStatus {
+  CREATED
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  DISPUTED
+}
+
 type OrderData {
 	sellerid: String
 	buyerid: String
 	productid: String
 	price: Float
 	quantity: Int
-	status: String
-	createdat: String
-	updatedat: String
+	status: OrderStatus
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 type ProductAttributeData {
@@ -497,21 +486,8 @@ type ProductAttributeData {
 	value: String!
 	type: String!
 	productid: String!
-	createdat: String
-	updatedat: String
-}
-
-input ProductAttributeInput {
-	key: String!
-	value: String!
-	type: String!
-	productId: String!
-}
-
-type ProductAttributeResponse {
-	status: Int
-	data: ProductAttributeData
-	error: AWSJSON
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 type ProductData {
@@ -523,8 +499,8 @@ type ProductData {
 	purchasedpercentage: Float
 	availablepercentage: Float
 	category: CategoryData!
-	createdat: String
-	updatedat: String
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 	productattributes: [ProductAttributeData!]!
 }
 
@@ -732,13 +708,13 @@ type UpdateOrderStatusData {
 	sellerid: String
 	buyerid: String
 	productid: String
-	status: String
-	updatedat: String
+	status: OrderStatus
+	updatedat: AWSDateTime
 }
 
 input UpdateOrderStatusInput {
 	orderId: String!
-	status: String!
+	status: OrderStatus!
 }
 
 type UpdateOrderStatusResponse {
@@ -765,7 +741,7 @@ input WishlistByCustomerIdInput {
 type WishlistData {
 	customerid: String!
 	productid: String!
-	createdat: String
+	createdat: AWSDateTime
 }
 
 input WishlistInput {
@@ -790,9 +766,6 @@ input WithdrawStakeInput {
 }
 
 type Mutation {
-	CreateCategory(input: CreateCategoryInput): CategoryResponse
-	CreateProduct(input: CreateProductInput): ProductResponse
-	CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
 	MergeStake(input: MergeStakeInput): ListStakeAccounts

@@ -173,8 +173,8 @@ type CategoryResponse {
 type CategoryData {
   name: String!
   tenantid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 enum ProductRarity {
@@ -186,11 +186,19 @@ enum ProductRarity {
 }
 
 input CreateProductInput {
-  name: String!
-  categoryId: String!
-  rarity: ProductRarity
-  price: Float
-  purchasedPercentage: Float
+	name: String!
+	categoryId: String!
+	rarity: ProductRarity
+	price: Float
+	purchasedPercentage: Float
+	isMintAble: Boolean
+	chainType: String
+	tokenType: String
+	quantity: Int
+	toAddress: String
+	contractAddress: String
+	metadata: AWSJSON
+	tokenId: Int
 }
 
  type ProductResponse {
@@ -208,8 +216,8 @@ type ProductData {
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
 }
 
@@ -232,8 +240,8 @@ type ProductAttributeData {
   value: String!
   type: String!
   productid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input UpdateCategoryInput {
@@ -243,15 +251,8 @@ input UpdateCategoryInput {
 
 type UpdateCategoryResponse {
   status: Int
-  data: UpdateCategoryData
+  data: CategoryData
   error: AWSJSON
-}
-
-type UpdateCategoryData {
-  name: String
-  tenantid: String
-  createdat: String
-  updatedat: String
 }
 
 input UpdateProductInput {
@@ -285,6 +286,43 @@ type UpdateProductAttributeResponse {
   error: AWSJSON
 }
 
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  error: AWSJSON
+}
+
+input GetCategoryByIdInput {
+  categoryId: String
+}
+
+input GetCategoriesByTenantIdInput {
+  tenantId: String
+}
+
+type GetProductsResponse {
+  status: Int
+  data: [ProductData]
+  error: AWSJSON
+}
+
+input GetProductByIdInput {
+  productId: String
+}
+
+input GetProductsByCategoryIdInput {
+  categoryId: String
+}
+
+input GetProductAttributesByProductIdInput {
+  productId: String!
+}
+
+type GetProductAttributesResponse {
+  status: Int
+  data: [ProductAttributeData]
+  error: AWSJSON
+}
 
 type Query {
   AdminSignin(input: SigninInput): SignIn
@@ -292,7 +330,13 @@ type Query {
   ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
   GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
   GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-
+  GetCategories: GetCategoriesResponse
+  GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
+  GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
+  GetProducts: GetProductsResponse
+  GetProductById(input: GetProductByIdInput): ProductResponse
+  GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
+  GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 type Mutation {
