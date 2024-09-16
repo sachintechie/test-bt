@@ -1857,7 +1857,8 @@ export async function addReview(productReview:productreview) {
         productid,
         orderid,
         comment,
-        rating
+        rating,
+        updatedat:new Date().toISOString()
       }
     });
 
