@@ -4,7 +4,7 @@ export const handler = async (event: any, context: any) => {
   try {
     const { customerId, productId, orderId, comment, rating } = event.arguments?.input;
 
-    if (!customerId || !productId || orderId || comment || rating) {
+    if (!customerId || !productId || !orderId || !comment || !rating) {
       return {
         status: 400,
         data: null,
