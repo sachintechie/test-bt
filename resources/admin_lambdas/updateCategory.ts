@@ -1,6 +1,6 @@
 import { tenant } from "../db/models";
-import { updateCategory,getCategoryById } from "../db/dbFunctions"; 
-
+import { getCategoryById } from "../db/dbFunctions"; 
+import { updateCategory } from "../db/adminDbFunctions"
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);

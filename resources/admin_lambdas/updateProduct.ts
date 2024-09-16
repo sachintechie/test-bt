@@ -1,4 +1,4 @@
-import { updateProduct } from "../db/dbFunctions";
+import { updateProduct } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {

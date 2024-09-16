@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute, productreview } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1380,35 +1380,7 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
 }
 
-export async function createCategory(category: productcategory) {
-  try {
-    const prisma = await getPrismaClient();
-    const existingCategory = await prisma.productcategory.findFirst({
-      where: {
-        name: category.name,
-        tenantid: category.tenantid
-      }
-    });
 
-    if (existingCategory) {
-      throw new Error("Category is already added against this tenant with this name");
-    }
-    const newCategory = await prisma.productcategory.create({
-      data: {
-        name: category.name,
-        tenantid: category.tenantid
-      }
-    });
-
-    return newCategory;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while adding the category");
-    } else {
-      throw new Error("An unexpected error occurred.");
-    }
-  }
-}
 
 export async function getCategories() {
   try {
@@ -1445,42 +1417,6 @@ export async function getCategoriesByTenantId(tenant: tenant) {
     return category;
   } catch (err) {
     throw err;
-  }
-}
-
-export async function createProduct(product: product) {
-  try {
-    if (product.purchasedpercentage > 100) {
-      throw new Error("purchasedpercentage cannot exceed 100.");
-    }
-    const prisma = await getPrismaClient();
-    const existingProduct = await prisma.product.findFirst({
-      where: {
-        name: product.name,
-        categoryid: product.categoryid
-      }
-    });
-
-    if (existingProduct) {
-      throw new Error("Product is already added against this category with this name");
-    }
-    const newProduct = await prisma.product.create({
-      data: {
-        name: product.name,
-        categoryid: product.categoryid,
-        rarity: product.rarity,
-        price: product.price,
-        purchasedpercentage: product.purchasedpercentage,
-        availablepercentage: 100 - product.purchasedpercentage
-      }
-    });
-    return newProduct;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while adding the product");
-    } else {
-      throw new Error("An unexpected error occurred.");
-    }
   }
 }
 
@@ -1528,23 +1464,6 @@ export async function getProductsByCategoryId(categoryId: string) {
       }
     });
     return products;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function createProductAttribute(productattributes: productattribute) {
-  try {
-    const prisma = await getPrismaClient();
-    const newAttribute = await prisma.productattribute.create({
-      data: {
-        key: productattributes.key,
-        value: productattributes.value,
-        type: productattributes.type,
-        productid: productattributes.productid
-      }
-    });
-    return newAttribute;
   } catch (err) {
     throw err;
   }
@@ -1901,77 +1820,76 @@ export async function getOrdersByProductId(productId: string) {
   }
 }
 
-
-export async function updateCategory(categoryId: string, category: string) {
+export async function addReview(productReview:productreview) {
+  const prisma = await getPrismaClient();
   try {
-    const prisma = await getPrismaClient();
-    const updated = await prisma.productcategory.update({
+    const {customerid,orderid,productid,comment,rating} = productReview
+    const existingReview = await prisma.productreview.findFirst({
       where: {
-        id: categoryId,
-      },
-      data: {
-        name: category,
-        updatedat: new Date().toISOString()
-      },
+        customerid,
+        productid,
+        orderid
+      }
     });
 
-    return updated;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function updateProduct(id: string, product: Partial<product>) {
-  try {
-    const prisma = await getPrismaClient();
-
-    const updatedProduct = await prisma.product.update({
-      where: {
-        id: id,
-      },
-      data: product,
-    });
-
-    return updatedProduct;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function updateProductAttribute(updateproductattribute:updateproductattribute) {
-  try {
-    const prisma = await getPrismaClient();
-    const {productId, key, newValue} = updateproductattribute
-    const updatedAttribute = await prisma.productattribute.updateMany({
-      where: {
-        productid: productId,
-        key: key
-      },
-      data: {
-        value: newValue,
-        updatedat: new Date().toISOString()
-      },
-    });
-
-    if (updatedAttribute.count === 0) {
-      throw new Error("Attribute not found.");
+    if (existingReview) {
+      throw new Error("Already reviewed this product against this order");
     }
-    const fetchedAttribute = await prisma.productattribute.findFirst({
-      where: {
-        productid: productId,
-        key: key,
-      },
+
+    const newReview = await prisma.producreview.create({
+      data: {
+        customerid,
+        productid,
+        orderid,
+        comment,
+        rating
+      }
     });
 
-    if (fetchedAttribute) {
-      return fetchedAttribute;
+    return newReview;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while giving review to product.");
     } else {
-      throw new Error("Updated attribute could not be found.");
+      throw new Error("An unexpected error occurred.");
     }
-  } catch (err) {
-    console.error("Error in updateProductAttribute:", err);
-    throw err;
   }
 }
 
+export async function getReviewsByCustomerId(customerId: string) {
+  const prisma = await getPrismaClient();
+  try {
+    const reviews = await prisma.productreview.findMany({
+      where: {
+        customerid: customerId
+      },
+      include: {
+        product: true,
+        customer:true
+      }
+    });
 
+    return reviews;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export async function getReviewsByProductId(productId: string) {
+  const prisma = await getPrismaClient();
+  try {
+    const reviews = await prisma.productreview.findMany({
+      where: {
+        productid: productId
+      },
+      include: {
+        product: true,
+        customer:true
+      }
+    });
+
+    return reviews;
+  } catch (error) {
+    throw error;
+  }
+}

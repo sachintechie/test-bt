@@ -111,6 +111,15 @@ productid : string
 createdat : string
 }
 
+export interface productreview {
+  id?: string;
+  customerid?: string;
+  productid?: string;
+  orderid?:string;
+  comment?: string;
+  rating?: number;
+}
+
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",

@@ -1,3 +1,18 @@
+
+input AddReviewInput {
+	customerId: String
+	productId: String 
+	orderId: String 
+	comment: String
+	rating: Float
+}
+
+type AddReviewResponse {
+	status: Int
+	data: ReviewData
+	error: AWSJSON
+}
+
 type BatchMintCnft {
 	status: Int
 	data: BatchMintCnftData
@@ -74,6 +89,17 @@ type CustomerKycData {
 	type: String
 	kycid: String
 	kyctype: String
+}
+
+type ReviewData{
+	id: String
+	comment: String
+	rating : Float
+	customerid: String
+	productid: String
+	orderid: String
+	createdat: String
+	updatedat: String
 }
 
 input CustomerKycInput {
@@ -290,6 +316,14 @@ type GetProductsResponse {
 	status: Int
 	data: [ProductData]
 	error: AWSJSON
+}
+
+input GetReviewsByCustomerIdInput {
+	customerId: String!
+}
+
+input GetReviewsByProductIdInput {
+	productId: String!
 }
 
 type GetWallet {
@@ -521,6 +555,12 @@ enum ProductRarity {
 type ProductResponse {
 	status: Int
 	data: ProductData
+	error: AWSJSON
+}
+
+type ReviewResponse {
+	status: Int
+	data: [ReviewData]
 	error: AWSJSON
 }
 
@@ -765,6 +805,7 @@ input WithdrawStakeInput {
 	accountPublicKey: String!
 }
 
+
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
@@ -775,6 +816,7 @@ type Mutation {
 	RemoveFromWishlist(input: WishlistInput): WishlistResponse
 	CreateOrder(input: CreateOrderInput): CreateOrderResponse
 	UpdateOrderStatus(input: UpdateOrderStatusInput): UpdateOrderStatusResponse
+	AddReview(input: AddReviewInput): AddReviewResponse
 }
 
 type Query {
@@ -818,6 +860,8 @@ type Query {
 	GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
 	GetOrdersByTenantId(input: GetOrdersByTenantIdInput): GetOrdersByTenantIdResponse
 	GetOrdersByProductId(input: GetOrdersByProductIdInput): GetOrdersByProductIdResponse
+	GetReviewsByCustomerId(input: GetReviewsByCustomerIdInput): ReviewResponse
+	GetReviewsByProductId(input: GetReviewsByProductIdInput): ReviewResponse
 }
 
 schema {
