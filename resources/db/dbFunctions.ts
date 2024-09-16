@@ -1469,18 +1469,6 @@ export async function getProductsByCategoryId(categoryId: string) {
   }
 }
 
-export async function GetProductAttributesByProductId(productId: string) {
-  try {
-    const prisma = await getPrismaClient();
-    const attributes = await prisma.productattribute.findMany({
-      where: { productid: productId }
-    });
-    return attributes;
-  } catch (err) {
-    throw err;
-  }
-}
-
 export async function filterProducts(filters: productfilter[]) {
   const prisma = await getPrismaClient();
   try {
@@ -1491,22 +1479,37 @@ export async function filterProducts(filters: productfilter[]) {
     filters.forEach((filter) => {
       const condition: any = {};
 
-      // Handle the "eq" operator as a direct equality check
-      if (filter.operator === "eq") {
-        condition["value"] = filter.value;  
-      } else {
-        condition[filter.operator] = filter.value;  
-      }
-
-
-      whereClause.AND.push({
-        productattributes: {
-          some: {
-            key: filter.key,
-            value: condition
-          }
+      
+      if (filter.key === "price") {
+    
+        if (filter.operator === "eq") {
+          whereClause.AND.push({
+            price: parseFloat(filter.value as string),  
+          });
+        } else {
+          const priceCondition: any = {};
+          priceCondition[filter.operator] = parseFloat(filter.value as string); 
+          whereClause.AND.push({
+            price: priceCondition
+          });
         }
-      });
+      } else {
+        
+        if (filter.operator === "eq") {
+          condition["value"] = String(filter.value); 
+        } else {
+          condition[filter.operator] = String(filter.value);  
+        }
+
+        whereClause.AND.push({
+          productattributes: {
+            some: {
+              key: filter.key,
+              value: condition
+            }
+          }
+        });
+      }
     });
 
     const products = await prisma.product.findMany({
