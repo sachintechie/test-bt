@@ -1469,6 +1469,18 @@ export async function getProductsByCategoryId(categoryId: string) {
   }
 }
 
+export async function GetProductAttributesByProductId(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const attributes = await prisma.productattributes.findMany({
+      where: { productId: productId }
+    });
+    return attributes;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function filterProducts(filters: productfilter[]) {
   const prisma = await getPrismaClient();
   try {
@@ -1839,7 +1851,7 @@ export async function addReview(productReview:productreview) {
       throw new Error("Already reviewed this product against this order");
     }
 
-    const newReview = await prisma.productreview.create({
+    const newReview = await prisma.producreview.create({
       data: {
         customerid,
         productid,
