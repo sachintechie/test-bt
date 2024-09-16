@@ -1491,28 +1491,19 @@ export async function filterProducts(filters: productfilter[]) {
     filters.forEach((filter) => {
       const condition: any = {};
 
-      
-      if (filter.key === "price") {
-    
-        if (filter.operator === "eq") {
-          whereClause.AND.push({
-            price: parseFloat(filter.value as string),  
-          });
-        } else {
-          const priceCondition: any = {};
-          priceCondition[filter.operator] = parseFloat(filter.value as string); 
-          whereClause.AND.push({
-            price: priceCondition
-          });
-        }
+     
+      if (filter.operator === "eq") {
+        whereClause.AND.push({
+          productattributes: {
+            some: {
+              key: filter.key,
+              value: filter.value 
+            }
+          }
+        });
       } else {
         
-        if (filter.operator === "eq") {
-          condition["value"] = String(filter.value); 
-        } else {
-          condition[filter.operator] = String(filter.value);  
-        }
-
+        condition[filter.operator] = filter.value;
         whereClause.AND.push({
           productattributes: {
             some: {
@@ -1536,6 +1527,7 @@ export async function filterProducts(filters: productfilter[]) {
     throw err;
   }
 }
+
 
 
 export async function addToWishlist(customerId: string, productId: string) {
