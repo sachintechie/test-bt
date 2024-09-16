@@ -98,8 +98,8 @@ type ReviewData{
 	customerid: String
 	productid: String
 	orderid: String
-	createdat: String
-	updatedat: String
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 input CustomerKycInput {

@@ -16,11 +16,10 @@ type SignInData {
 
 input SigninInput {
   tenantUserId: String!
-  name: String!
 }
 
 input AddSubAdminInput {
-  tenantUserId: String!
+  emailId: String!
   name: String!
   password: String!
 }
