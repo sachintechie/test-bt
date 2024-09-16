@@ -401,7 +401,7 @@ model orders {
   status     orderstatus
   productreviews productreview[]
   createdat  DateTime   @default(now())
-  updatedat  DateTime
+  updatedat  DateTime   @updatedAt
 }
 
 model productreview {
@@ -415,5 +415,5 @@ model productreview {
   orderid     String?
   orders      orders?     @relation(fields: [orderid], references: [id])
   createdat   DateTime     @default(now())
-  updatedat   DateTime
+  updatedat   DateTime    @updatedAt
 }
