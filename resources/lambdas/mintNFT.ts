@@ -40,14 +40,15 @@ export const mintNFT = async (toAddress: string, numberOfTokens: number, chain: 
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
   const contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
-
+  const currentNonce = await web3.eth.getTransactionCount(payerKey.key?.materialId!, 'pending');
   const tx:any = {
     from: payerKey.key?.materialId,
     to: contractAddress,
     type:'0x02',
     maxPriorityFeePerGas: web3.utils.toWei('1', 'gwei'), // Priority fee for miners
     maxFeePerGas: web3.utils.toWei('30', 'gwei'),        // Maximum fee you're willing to pay
-    data: contract.methods.batchMint(toAddress, numberOfTokens).encodeABI()
+    data: contract.methods.batchMint(toAddress, numberOfTokens).encodeABI(),
+    nonce: `0x${  currentNonce.toString(16)}`
   };
 
   // Estimate gas for the transaction if needed
