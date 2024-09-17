@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute, productreview } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute, productreview, productcollection } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1921,3 +1921,146 @@ export async function getReviewsByProductId(productId: string) {
     throw error;
   }
 }
+
+export async function addProductToCollection(productcollection:productcollection) {
+  const prisma = await getPrismaClient();
+  const {customerid,description,productid,title } = productcollection
+  try {
+    let collection = await prisma.productcollection.findFirst({
+      where: {
+        customerid,
+        title
+      }
+    });
+
+    if (!collection) {
+      collection = await prisma.productcollection.create({
+        data: {
+          customerid,
+          title,
+          description,
+          updatedat: new Date().toISOString()
+        }
+      });
+    }
+
+    const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
+      where: {
+        productcollectionid: collection.id,
+        productid
+      }
+    });
+
+    if (existingProductInCollection) {
+      throw new Error("This product is already in the collection.");
+    }
+
+    const newProductInCollection = await prisma.productcollectionproducts.create({
+      data: {
+        productcollectionid: collection.id,
+        productid
+      }
+    });
+
+    return newProductInCollection;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product to the collection.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function removeProductFromCollection(collectionId: string, productId: string) {
+  const prisma = await getPrismaClient();
+
+  //WHEN IDENTITY DONE MATCH THAT PERSON CALLING FUNCTION IS OWNER OR NOT  
+
+  try {
+    // Check if the product exists in the collection
+    const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
+      where: {
+        productcollectionid_productid: { 
+          productcollectionid: collectionId,
+          productid: productId
+        }
+      }
+    });
+
+    if (!existingProductInCollection) {
+      throw new Error("This product is not in the collection.");
+    }
+
+    // Remove the product from the collection
+    const removedProduct = await prisma.productcollectionproducts.delete({
+      where: {
+          productcollectionid: collectionId,
+          productid: productId
+      }
+    });
+
+    return removedProduct;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while removing the product from the collection.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function getCollectionById(collectionId: string) {
+  const prisma = await getPrismaClient();
+  
+  try {
+    const collection = await prisma.productcollection.findUnique({
+      where: {
+        id: collectionId
+      },
+      include: {
+        products: true 
+          }
+    });
+
+    if (!collection) {
+      throw new Error("Collection not found.");
+    }
+
+    return collection;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while retrieving the collection.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function getCollectionByCustomerId(customerId: string) {
+  const prisma = await getPrismaClient();
+  
+  try {
+    const collections = await prisma.productcollection.findMany({
+      where: {
+        customerid: customerId
+      },
+      include: {
+        products: true
+      }
+    });
+
+    if (collections.length === 0) {
+      throw new Error("No collections found for this customer.");
+    }
+
+    return collections;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while retrieving collections.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
