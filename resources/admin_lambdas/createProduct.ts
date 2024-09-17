@@ -1,4 +1,4 @@
-import { createProduct } from "../db/dbFunctions";
+import { createProduct } from "../db/adminDbFunctions";
 import { productRarity } from "../db/models";
 import {mintNFT} from "../lambdas/mintNFT";
 import {mintERC1155} from "../lambdas/mintERC1155";

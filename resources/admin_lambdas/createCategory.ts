@@ -1,5 +1,5 @@
 import { tenant } from "../db/models";
-import { createCategory} from "../db/dbFunctions"; // Assuming you have a function to create a category in your DB
+import { createCategory} from "../db/adminDbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);

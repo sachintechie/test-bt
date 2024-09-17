@@ -1,5 +1,5 @@
 import { productattribute } from "../db/models";
-import { createProductAttribute } from "../db/dbFunctions";
+import { createProductAttribute } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
