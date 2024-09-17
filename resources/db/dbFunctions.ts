@@ -1491,55 +1491,42 @@ export async function filterProducts(filters: productfilter[]) {
     filters.forEach((filter) => {
       const condition: any = {};
 
-      
+    
       if (filter.key === "price" || filter.key === "categoryid" || filter.key === "rarity") {
-       
-        if (filter.operator === "eq") {
-          whereClause.AND.push({
-            [filter.key]: filter.value  
-          });
-        } else {
-          condition[filter.operator] = filter.value;
-          whereClause.AND.push({
-            [filter.key]: condition  
-          });
-        }
-      } else {
-       
-        if (filter.operator === "eq") {
-          whereClause.AND.push({
-            productattributes: {
-              some: {
-                key: filter.key,
-                value: filter.value 
-              }
-            }
-          });
+        if (filter.key === "price") {
+     
+          const priceValue = typeof filter.value === 'string' ? parseFloat(filter.value) : filter.value;
+          if (filter.operator === "eq") {
+            whereClause.AND.push({
+              price: priceValue
+            });
+          } else {
+            condition[filter.operator] = priceValue;
+            whereClause.AND.push({
+              price: condition  
+            });
+          }
         } else {
          
-          if (["gte", "gt", "lte", "lt"].includes(filter.operator)) {
-            condition[filter.operator] = String(filter.value);  
+          if (filter.operator === "eq") {
+            whereClause.AND.push({
+              [filter.key]: filter.value
+            });
           } else {
-            condition[filter.operator] = filter.value; 
+            condition[filter.operator] = filter.value;
+            whereClause.AND.push({
+              [filter.key]: condition
+            });
           }
-
-          whereClause.AND.push({
-            productattributes: {
-              some: {
-                key: filter.key,
-                value: condition  
-              }
-            }
-          });
         }
       }
     });
 
+    
     const products = await prisma.product.findMany({
       where: whereClause,
       include: {
-        productattributes: true,  
-      
+        productattributes: true  
       }
     });
 
@@ -1548,6 +1535,8 @@ export async function filterProducts(filters: productfilter[]) {
     throw err;
   }
 }
+
+
 
 
 

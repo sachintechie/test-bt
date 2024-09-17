@@ -7,28 +7,18 @@ export const handler = async (event: any, context: any) => {
 
     const filters: productfilter[] = [];
 
-    
     inputFilters.forEach((filter: any) => {
       const { key, operator, value } = filter;
 
-   
+     
       filters.push({
         key,
         operator,
-        value: String(value), 
+        value: key === "price" ? parseFloat(value) : value  
       });
     });
 
-   
-    if (filters.length === 0) {
-      return {
-        status: 400,
-        data: null,
-        error: "Invalid input",
-      };
-    }
 
-  
     const products = await filterProducts(filters);
 
     return {
@@ -41,7 +31,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error: error,
+      error: "Internal Server Error",
     };
   }
 };
