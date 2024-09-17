@@ -445,5 +445,5 @@ model productcollectionproducts {
   productid           String
   product             product           @relation(fields: [productid], references: [id])
 
-  @@id([productCollectionId, productId])
+  @@id([productcollectionid, productid])
 }
