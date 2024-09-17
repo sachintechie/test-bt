@@ -18,6 +18,7 @@ export async function getAvaxBalance(address: string) {
     const port: number = 443;
     const protocol: string = "https";
     const networkID: number = 1; // Mainnet ID is 1
+    //const networkID = Defaults.network['mainnet'].networkID;
     const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID);
     const xchain: AVMAPI = avalanche.XChain();
     const pchain: PlatformVMAPI = avalanche.PChain();

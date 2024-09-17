@@ -5,136 +5,128 @@ import {
   getFirstWallet,
   insertStakeAccount,
   insertStakingTransaction
-  
 } from "../db/dbFunctions";
+
 import { Avalanche, BinTools, Buffer } from "avalanche";
-import { AVMAPI, KeyChain as AVMKeyChain, KeyChain, Tx } from "avalanche/dist/apis/avm";
+import { AVMAPI, KeyChain as AVMKeyChain, KeyChain, Tx,  } from "avalanche/dist/apis/avm";
 import { Defaults, UnixNow } from "avalanche/dist/utils";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
-import { PlatformVMAPI } from "avalanche/dist/apis/platformvm";
-import { getAvaxBalance, verifyAvalancheTransaction } from "./commonFunctions";
+import { UnsignedTx, UTXOSet, GetUTXOsResponse, PlatformVMAPI, KeyChain as PlatformVMKeyChain, Tx as PlatformVMTx } from "avalanche/dist/apis/platformvm";
+import { getAvaxBalance,getAvaxConnection, verifyAvalancheTransaction } from "./commonFunctions";
+
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
 
+const CUBE_SIGNER_TOKEN = env("CUBE_SIGNER_TOKEN", null /* load from fs */);
+// create like CUBE_SIGNER_TOKEN=$(cs token create ... --output base64)
 
 
 
-// export async function staking(
-//   tenant: tenant,
-//   senderWalletAddress: string,
-//   receiverWalletAddress: string,
-//   amount: number,
-//   symbol: string,
-//   oidcToken: string,
-//   tenantUserId: string,
-//   chainType: string,
-//   tenantTransactionId: string,
-//   lockupExpirationTimestamp: number
-// ) {
+export async function AvalancheStaking(
+  tenant: tenant,
+  senderWalletAddress: string,
+  receiverWalletAddress: string,
+  amount: number,
+  symbol: string,
+  oidcToken: string,
+  tenantUserId: string,
+  chainType: string,
+  tenantTransactionId: string,
+  lockupExpirationTimestamp: number,
+  rewardAddresses: string[]
+) {
   
 
-//   // 1. Check if oidcToken exists, if not return error
-//   if (!oidcToken)
-//     return {
-//       wallet: null,
-//       error: "Please send a valid identity token for verification"
-//     };
-//   // 2. Get Cubist Configuration, if not found return error
-//   const cubistConfig = await getCubistConfig(tenant.id);
-//   if (cubistConfig == null)
-//     return {
-//       transaction: null,
-//       error: "Cubist Configuration not found for the given tenant"
-//     };
-//   // 3. Get first wallet by wallet address, if not found return error
-//   const wallet = await getFirstWallet(senderWalletAddress, tenant, symbol);
-//   if (!wallet) {
-//     return {
-//       transaction: null,
-//       error: "Wallet not found for the given wallet address"
-//     };
-//   }
+  // 1. Check if oidcToken exists, if not return error
+  if (!oidcToken)
+    return {
+      wallet: null,
+      error: "Please send a valid identity token for verification"
+    };
+  // 2. Get Cubist Configuration, if not found return error
+  const cubistConfig = await getCubistConfig(tenant.id);
+  if (cubistConfig == null)
+    return {
+      transaction: null,
+      error: "Cubist Configuration not found for the given tenant"
+    };
+  // 3. Get first wallet by wallet address, if not found return error
+  const wallet = await getFirstWallet(senderWalletAddress, tenant, symbol);
+  if (!wallet) {
+    return {
+      transaction: null,
+      error: "Wallet not found for the given wallet address"
+    };
+  }
 
-//   // 4. Check the Symbol, if SOL then stake SOL, if not then return error
-//   if (symbol !== "SOL") {
-//     return {
-//       transaction: null,
-//       error: "Symbol not Supported"
-//     };
-//   }
-//   // 5. Check customer ID, if not found return error
-//   if (!wallet.customerid) {
-//     return {
-//       transaction: null,
-//       error: "Customer ID not found"
-//     };
-//   }
+  // 4. Check the Symbol, if SOL then stake SOL, if not then return error
+  if (symbol !== "SOL") {
+    return {
+      transaction: null,
+      error: "Symbol not Supported"
+    };
+  }
+  // 5. Check customer ID, if not found return error
+  if (!wallet.customerid) {
+    return {
+      transaction: null,
+      error: "Customer ID not found"
+    };
+  }
 
-//   // 6. Get balance of the wallet, if balance is less than amount return error
-//   const balance = await getAvaxBalance(senderWalletAddress);
-//   if ( balance != null && balance < amount) {
-//     return {
-//       transaction: null,
-//       error: "Insufficient AVAX balance"
-//     };
-//   }
+  // 6. Get balance of the wallet, if balance is less than amount return error
+  const balance = await getAvaxBalance(senderWalletAddress);
+  if ( balance != null && balance < amount) {
+    return {
+      transaction: null,
+      error: "Insufficient AVAX balance"
+    };
+  }
 
-//   // 7. Stake SOL
-//   const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
-//   console.log("[solanaStaking]tx:", tx);
-//   // 8. Check if transaction is successful, if not return error
-//   if (tx.error) {
-//     console.log("[solanaStaking]tx.error:", tx.error);
-//     return {
-//       transaction: null,
-//       error: tx.error
-//     };
-//   }
+  
+  // 7. Stake AVAX
+  const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid, rewardAddresses);
+  console.log("[avalancheStaking]tx:", tx);
+  // 8. Check if transaction is successful, if not return error
+  if (tx.error) {
+    console.log("[avalancheStaking]tx.error:", tx.error);
+    return {
+      transaction: null,
+      error: tx.error
+    };
+  }
 
-//   // 9. Verify the transaction and insert the stake account and staking transaction
-//   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
-//   const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-//   const stakeAccountStatus = StakeAccountStatus.OPEN;
+  // 9. Verify the transaction and insert the stake account and staking transaction
+  const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
+  const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+  const stakeAccountStatus = StakeAccountStatus.OPEN;
 
-//   const newStakeAccount = await insertStakeAccount(
-//     senderWalletAddress,
-//     receiverWalletAddress,
-//     amount,
-//     chainType,
-//     symbol,
-//     tenant.id,
-//     wallet.customerid,
-//     tenantUserId,
-//     process.env["SOLANA_NETWORK"] ?? "",
-//     stakeAccountStatus,
-//     tenantTransactionId,
-//     tx?.stakeAccountPubKey?.toString() || "",
-//     lockupExpirationTimestamp
-//   );
-//   const transaction = await insertStakingTransaction(
-//     senderWalletAddress,
-//     receiverWalletAddress,
-//     amount,
-//     chainType,
-//     symbol,
-//     tx?.trxHash || "",
-//     tenant.id,
-//     wallet.customerid,
-//     wallet.tokenid,
-//     tenantUserId,
-//     process.env["SOLANA_NETWORK"] ?? "",
-//     txStatus,
-//     tenantTransactionId,
-//     tx?.stakeAccountPubKey?.toString() || "",
-//     newStakeAccount.stakeaccountid,
-//     StakeType.STAKE
-//   );
-//   console.log("[solanaStaking]transaction:", transaction);
-//   return { transaction, error: null };
-// }
+  
+  const transaction = await insertStakingTransaction(
+    senderWalletAddress,
+    receiverWalletAddress,
+    amount,
+    chainType,
+    symbol,
+    tx?.trxHash || "",
+    tenant.id,
+    wallet.customerid,
+    wallet.tokenid,
+    tenantUserId,
+    process.env["AVALANCHE_NETWORK"] ?? "",
+    txStatus,
+    tenantTransactionId,
+    tx?.stakeAccountPubKey?.toString() || "",
+    "",
+    StakeType.STAKE
+  );
+  console.log("[AvalancheStaking]transaction:", transaction);
+  return { transaction, error: null };
+}
+
 
 export async function stakeAvax(
   senderWalletAddress: string,
@@ -142,82 +134,132 @@ export async function stakeAvax(
   validatorNodeKey: string,
   oidcToken: string,
   lockupExpirationTimestamp: number,
-  cubistOrgId: string
+  cubistOrgId: string,
+  rewardAddresses: string[]
 ) {
-  // try {
-  //   const { xchain, pchain } = await getAvaxConnection();
-  //   const validatorAddress = new PublicKey(validatorNodeKey);
-  //   const amountToStake = parseFloat(amount.toString());
-  //   const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
-  //   if (!oidcClient) {
-  //     return {
-  //       trxHash: null,
-  //       stakeAccountPubKey: null,
-  //       error: "Please send a valid identity token for verification"
-  //     };
-  //   }
-  //   const keys = await oidcClient.sessionKeys();
-  //   if (keys.length === 0) {
-  //     return {
-  //       trxHash: null,
-  //       error: "Given identity token is not the owner of given wallet address"
-  //     };
-  //   }
-  //   const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress);
-  //   if (senderKey.length === 0) {
-  //     return {
-  //       trxHash: null,
-  //       error: "Given identity token is not the owner of given wallet address"
-  //     };
-  //   }
-  //   const staketransaction = await createStakeAccountWithStakeProgram(
-  //     pchain,
-  //     senderKey[0],
-  //     amountToStake,
-  //     validatorAddress,
-  //     lockupExpirationTimestamp
-  //   );
-  //   return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };
-  // } catch (err: any) {
-  //   console.log(await err);
-  //   return { trxHash: null, error: err };
-  // }
+  try {
+    const { xchain, pchain } = await getAvaxConnection();
+    const networkID  = 1;
+    const amountToStake = parseFloat(amount.toString());
+    // Check staking parameters
+    const MIN_VALIDATOR_STAKE = networkID === 1 ? 2000 : 1; // Mainnet or Fuji Testnet
+    const MIN_DELEGATOR_STAKE = networkID === 1 ? 25 : 1;
+    const MIN_VALIDATION_TIME = networkID === 1 ? 2 * 7 * 24 * 60 * 60 : 24 * 60 * 60; // 2 weeks or 24 hours
+    const MAX_VALIDATION_TIME = networkID === 1 ? 365 * 24 * 60 * 60 : 365 * 24 * 60 * 60; // 1 year
+    
+    if (amountToStake < MIN_VALIDATOR_STAKE && amountToStake < MIN_DELEGATOR_STAKE) {
+      return {
+        trxHash: null,
+        error: "Stake amount does not meet the minimum requirement."
+      };
+    }
+    
+    const currentTime = Math.floor(Date.now() / 1000);
+    const stakingDuration = lockupExpirationTimestamp - currentTime;
+    if (stakingDuration < MIN_VALIDATION_TIME || stakingDuration > MAX_VALIDATION_TIME) {
+      return {
+        trxHash: null,
+        error: "Staking duration does not meet the allowed range."
+      };
+    }
+   
+    const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
+    
+    if (!oidcClient) {
+      return {
+        trxHash: null,
+        stakeAccountPubKey: null,
+        error: "Please send a valid identity token for verification"
+      };
+    }
+    
+    
+    //Initialize CubeSigner client
+    //const oidcClient = await cs.CubeSignerClient.create(await cs.defaultSignerSessionManager());
+    
+    // get token/signer info and establish signer session.
+    //const session = CUBE_SIGNER_TOKEN ?? csFs.defaultSignerSessionManager();
+    //const oidcClient = await cs.CubeSignerClient.create(session);
+    
+    
+    const keys = await oidcClient.sessionKeys();
+    if (keys.length === 0) {
+      return {
+        trxHash: null,
+        error: "Given identity token is not the owner of the given wallet address"
+      };
+    }
+    
+    const senderKey = keys.find((key: cs.Key) => key.materialId === senderWalletAddress);
+    if (!senderKey) {
+      return {
+        trxHash: null,
+        error: "Given identity token is not the owner of the given wallet address"
+      };
+    }
 
-      return { trxHash: null,stakeAccountPubKey: "null", error: "err" };
 
+
+    // using cubesigner client to creat stake transaction
+    const staketransaction = await createStakeAccountWithStakeProgram(
+      pchain,
+      senderKey,
+      amountToStake,
+      validatorNodeKey, // Use validatorNodeKey directly as string
+      lockupExpirationTimestamp,
+      oidcClient,
+      rewardAddresses
+    );
+    return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };
+  } catch (err: any) {
+    console.log(await err);
+    return { trxHash: null, error: err };
+  }
 }
 
 
-// export async function createStakeAccountWithStakeProgram(
-//   pchain: PlatformVMAPI,
-//   senderKey: Key,
-//   amount: number,
-//   lockupExpirationTimestamp: number
-// ) {
+export async function createStakeAccountWithStakeProgram(
+  pchain: PlatformVMAPI,
+  senderKey: Key,
+  amount: number,
+  validatorNodeKey: string,
+  lockupExpirationTimestamp: number,
+  oidcClient: any,
+  rewardAddresses: string[]
+) {
+   try { 
+ // const { networkID } = await getAvaxConnection();
+  const stakeAmountString: string = amount.toFixed(0); // Amount to stake in nAVAX (1 AVAX = 10^9 nAVAX)
+  const startTime: number = UnixNow() + 60; // Start staking in 60 seconds
+  const endTime: number = lockupExpirationTimestamp; // Use the provided expiration timestamp
+  const pKeychain: PlatformVMKeyChain = pchain.keyChain();
+  const pAddressStrings: string[] = pKeychain.getAddressStrings();
+  
+    
 
+  const utxoResponse: GetUTXOsResponse = await pchain.getUTXOs(pAddressStrings);
+  const utxoSet: UTXOSet = utxoResponse.utxos;
 
-//   const stakeAmount: number = amount; // Amount to stake in nAVAX (1 AVAX = 10^9 nAVAX)
-// const startTime: number = UnixNow() + 60; // Start staking in 60 seconds
-// const endTime: number = UnixNow() + 60 * 60 * 24 * 30; // End staking in 30 days
-// const nodeID: string = "NodeID-..."; // Node ID to delegate to
-// const pKeychain: KeyChain = pchain.keyChain();
-// const pAddressStrings: string[] = pKeychain.getAddressStrings();
-// const avaxAssetID: string = Defaults.network[networkID].X.avaxAssetID;
+    // Build the Add Delegator Transaction
+    const stakeTx: UnsignedTx = await pchain.buildAddDelegatorTx(
+      utxoSet,
+      pAddressStrings,
+      pAddressStrings,
+      pAddressStrings,
+      stakeAmountString,
+      startTime,
+      endTime,
+      validatorNodeKey,
+      rewardAddresses
+    );
 
-// const utxoSet: UTXOSet = await pchain.getUTXOs(pAddressStrings);
-// const stakeTx: Tx = await pchain.buildAddDelegatorTx(
-//   utxoSet,
-//   pAddressStrings,
-//   pAddressStrings,
-//   pAddressStrings,
-//   stakeAmount,
-//   startTime,
-//   endTime,
-//   nodeID
-// );
+    // Sign the transaction using Cubist Signer
+    const signedTx: PlatformVMTx = await oidcClient.signTransaction(oidcClient, stakeTx );
 
-// const signedTx: Tx = stakeTx.sign(pKeychain);
-// }
-
-
-
+    // Update and return signed transaction
+    return { txHash: signedTx.toString(), stakeAccountPubKey: senderKey.publicKey.toString() };
+  } catch (err: any) {
+    console.log(err);
+    return { txHash: null, error: err.message || "Failed to create stake account" };
+}
+}
