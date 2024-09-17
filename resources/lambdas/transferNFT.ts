@@ -2,6 +2,7 @@ import Web3 from "web3";
 import contractAbi from '../abi/BridgeTowerNftUpgradeable.json';
 import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
 import {tenant} from "../db/models";
+import {getPrismaClient} from "../db/dbFunctions";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -54,5 +55,21 @@ export const transferNFT = async (toAddress: string, tokenIds: any, chain: strin
   console.log(tx)
 
   const signedTx = await payerKey.key?.signEvm({tx,chain_id:43113});
-  return web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || '');
+  const receipt=await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || '');
+
+  const prisma = await getPrismaClient();
+  await prisma.contracttransaction.create(
+    {
+      data: {
+        txhash: tx,
+        contractaddress: contractAddress,
+        chain: chain,
+        fromaddress: payerKey.key?.materialId!,
+        methodname: 'batchTransfer',
+        params: JSON.stringify({from: payerKey.key?.materialId, to: toAddress, tokenIds: tokenIds}),
+      }
+    }
+  )
+
+  return receipt;
 }

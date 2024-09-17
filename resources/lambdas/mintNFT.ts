@@ -4,6 +4,7 @@ import AWS from "aws-sdk";
 import {storeMetadataInDynamoDB} from "../utils/dynamodb";
 import {tenant} from "../db/models";
 import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
+import {getPrismaClient} from "../db/dbFunctions";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -66,6 +67,20 @@ export const mintNFT = async (toAddress: string, numberOfTokens: number, chain: 
   for (let i = 0; i < numberOfTokens; i++) {
     await storeMetadataInDynamoDB(dynamoDB,contractAddress, Number(nextTokenId)+i, metadata);
   }
+
+  const prisma = await getPrismaClient();
+  await prisma.contracttransaction.create(
+    {
+      data: {
+        txhash: tx,
+        contractaddress: contractAddress,
+        chain: chain,
+        fromaddress: payerKey.key?.materialId!,
+        methodname: 'batchMint',
+        params: JSON.stringify({to: toAddress, numberOfTokens: numberOfTokens}),
+      }
+    }
+  )
 
   return receipt;
 }
