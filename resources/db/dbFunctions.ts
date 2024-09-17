@@ -1491,10 +1491,8 @@ export async function filterProducts(filters: productfilter[]) {
     filters.forEach((filter) => {
       const condition: any = {};
 
-    
       if (filter.key === "price" || filter.key === "categoryid" || filter.key === "rarity") {
         if (filter.key === "price") {
-     
           const priceValue = typeof filter.value === 'string' ? parseFloat(filter.value) : filter.value;
           if (filter.operator === "eq") {
             whereClause.AND.push({
@@ -1503,11 +1501,10 @@ export async function filterProducts(filters: productfilter[]) {
           } else {
             condition[filter.operator] = priceValue;
             whereClause.AND.push({
-              price: condition  
+              price: condition
             });
           }
         } else {
-         
           if (filter.operator === "eq") {
             whereClause.AND.push({
               [filter.key]: filter.value
@@ -1519,14 +1516,30 @@ export async function filterProducts(filters: productfilter[]) {
             });
           }
         }
+      } else {
+        const attrCondition: any = {};
+
+        if (["gte", "gt", "lte", "lt"].includes(filter.operator)) {
+          attrCondition[filter.operator] = String(filter.value);
+        } else {
+          attrCondition[filter.operator] = filter.value;
+        }
+
+        whereClause.AND.push({
+          productattributes: {
+            some: {
+              key: filter.key,
+              value: attrCondition
+            }
+          }
+        });
       }
     });
 
-    
     const products = await prisma.product.findMany({
       where: whereClause,
       include: {
-        productattributes: true  
+        productattributes: true
       }
     });
 
@@ -1535,10 +1548,6 @@ export async function filterProducts(filters: productfilter[]) {
     throw err;
   }
 }
-
-
-
-
 
 
 export async function addToWishlist(customerId: string, productId: string) {
