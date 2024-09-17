@@ -61,7 +61,7 @@ export const transferNFT = async (toAddress: string, tokenIds: any, chain: strin
   await prisma.contracttransaction.create(
     {
       data: {
-        txhash: tx,
+        txhash: receipt.transactionHash.toString(),
         contractaddress: contractAddress,
         chain: chain,
         fromaddress: payerKey.key?.materialId!,

@@ -72,7 +72,7 @@ export const mintNFT = async (toAddress: string, numberOfTokens: number, chain: 
   await prisma.contracttransaction.create(
     {
       data: {
-        txhash: tx,
+        txhash: receipt.transactionHash.toString(),
         contractaddress: contractAddress,
         chain: chain,
         fromaddress: payerKey.key?.materialId!,

@@ -72,7 +72,7 @@ export const mintERC1155 = async (toAddress: string, ids: number[], amounts: num
   await prisma.contracttransaction.create(
     {
       data: {
-        txhash: tx,
+        txhash: receipt.transactionHash.toString(),
         contractaddress: contractAddress,
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
