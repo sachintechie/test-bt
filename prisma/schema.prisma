@@ -24,15 +24,15 @@ model chaintype {
 }
 
 model cubistconfig {
-  id                 String   @id @default(uuid())
-  tenantid           String?
-  tenant             tenant?  @relation(fields: [tenantid], references: [id])
-  orgid              String
-  isactive           Boolean?
-  createdat          String?
-  updatedat          String?
-  signersecretname   String
-  gaspayersecretname String
+  id                  String   @id @default(uuid())
+  tenantid            String?
+  tenant              tenant?  @relation(fields: [tenantid], references: [id])
+  orgid               String
+  isactive            Boolean?
+  createdat           String?
+  updatedat           String?
+  signersecretname    String
+  gaspayersecretname  String
   sendtokensecretname String?
 }
 
@@ -47,7 +47,7 @@ model customer {
   isactive          Boolean?
   createdat         String?
   updatedat         String?
-  iss               String?             
+  iss               String?
   isbonuscredit     Boolean?
   usertype          String?
   partialtoken      String?
@@ -63,18 +63,18 @@ model customer {
 }
 
 model adminuser {
-  id            String        @id @default(uuid())
-  tenantuserid  String?
-  tenantid      String?
-  tenant        tenant?       @relation(fields: [tenantid], references: [id])
-  emailid       String?
-  name          String?
-  cubistuserid  String?
-  isactive      Boolean?
-  createdat     String?
-  iss           String?
-  isbonuscredit Boolean?
-  adminwallets  adminwallet[]
+  id                String             @id @default(uuid())
+  tenantuserid      String?
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  emailid           String?
+  name              String?
+  cubistuserid      String?
+  isactive          Boolean?
+  createdat         String?
+  iss               String?
+  isbonuscredit     Boolean?
+  adminwallets      adminwallet[]
   admintransactions admintransaction[]
 }
 
@@ -212,7 +212,7 @@ model tenant {
   gaspayerwallet   gaspayerwallet[]
   stakeaccount     stakeaccount[]
   staketransaction staketransaction[]
-  categories productcategory[]
+  categories       productcategory[]
   products         product[]
 }
 
@@ -225,12 +225,12 @@ enum productrarity {
 }
 
 model productcategory {
-  id        String     @id @default(uuid()) 
+  id        String    @id @default(uuid())
   name      String
-  tenantid  String     
-  tenant    tenant     @relation(fields: [tenantid], references: [id])
-  createdat    DateTime?  @default(now())
-  updatedat    DateTime?  @updatedAt
+  tenantid  String
+  tenant    tenant    @relation(fields: [tenantid], references: [id])
+  createdat DateTime? @default(now())
+  updatedat DateTime? @updatedAt
   products  product[]
 
   @@unique([tenantid, name])
@@ -258,28 +258,28 @@ model product {
 }
 
 model productattribute {
-  id        String     @id @default(uuid())
+  id        String    @id @default(uuid())
   key       String
   value     String
   type      String
   productid String
-  product   product  @relation(fields: [productid], references: [id])
-  createdat         DateTime?            @default(now())
-  updatedat         DateTime?            @updatedAt
+  product   product   @relation(fields: [productid], references: [id])
+  createdat DateTime? @default(now())
+  updatedat DateTime? @updatedAt
 }
 
 model token {
-  id               String             @id @default(uuid())
-  name             String?
-  chaintype        String
-  contractaddress  String
-  symbol           String?
-  decimalprecision Int
-  isactive         Boolean?
-  createdat        String?
-  transactions     transaction[]
+  id                String             @id @default(uuid())
+  name              String?
+  chaintype         String
+  contractaddress   String
+  symbol            String?
+  decimalprecision  Int
+  isactive          Boolean?
+  createdat         String?
+  transactions      transaction[]
   admintransactions admintransaction[]
-  staketransaction staketransaction[]
+  staketransaction  staketransaction[]
 }
 
 model transaction {
@@ -289,7 +289,7 @@ model transaction {
   customer              customer? @relation(fields: [customerid], references: [id])
   tokenid               String?
   token                 token?    @relation(fields: [tokenid], references: [id])
-  productid             String?   
+  productid             String?
   product               product?  @relation(fields: [productid], references: [id])
   walletaddress         String?
   symbol                String?
@@ -308,14 +308,23 @@ model transaction {
   callbackstatus        String?
 }
 
+model contracttransaction {
+  id              String @id @default(uuid())
+  chain           String
+  txhash          String
+  fromaddress     String
+  contractaddress String
+  methodname      String
+  params          String
+}
 
 model admintransaction {
-  id                    String    @id @default(uuid())
+  id                    String     @id @default(uuid())
   tenantid              String
-  adminuserid            String?
-  adminuser              adminuser? @relation(fields: [adminuserid], references: [id])
+  adminuserid           String?
+  adminuser             adminuser? @relation(fields: [adminuserid], references: [id])
   tokenid               String?
-  token                 token?    @relation(fields: [tokenid], references: [id])
+  token                 token?     @relation(fields: [tokenid], references: [id])
   walletaddress         String?
   symbol                String?
   receiverwalletaddress String?
@@ -371,12 +380,12 @@ model adminwallet {
 }
 
 model productwishlist {
-  id           String     @id @default(uuid())
-  customerid   String     
-  customer     customer   @relation(fields: [customerid], references: [id], onDelete: Cascade)
-  productid    String     
-  product      product    @relation(fields: [productid], references: [id], onDelete: Cascade)
-  createdat    DateTime   @default(now())
+  id         String   @id @default(uuid())
+  customerid String
+  customer   customer @relation(fields: [customerid], references: [id], onDelete: Cascade)
+  productid  String
+  product    product  @relation(fields: [productid], references: [id], onDelete: Cascade)
+  createdat  DateTime @default(now())
 }
 
 enum orderstatus {

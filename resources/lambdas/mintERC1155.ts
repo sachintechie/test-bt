@@ -4,6 +4,7 @@ import {storeMetadataInDynamoDB} from "../utils/dynamodb";
 import AWS from "aws-sdk";
 import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
 import {tenant} from "../db/models";
+import {getPrismaClient} from "../db/dbFunctions";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -41,14 +42,15 @@ export const mintERC1155 = async (toAddress: string, ids: number[], amounts: num
   const contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
 
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
-
+  const currentNonce = await web3.eth.getTransactionCount(payerKey.key?.materialId!, 'pending');
   const tx:any = {
     from: payerKey.key?.materialId,
     to: contractAddress,
     type:'0x02',
     maxPriorityFeePerGas: web3.utils.toWei('1', 'gwei'), // Priority fee for miners
     maxFeePerGas: web3.utils.toWei('30', 'gwei'),        // Maximum fee you're willing to pay
-    data:  contract.methods.batchMint(toAddress, ids, amounts, web3.utils.padRight("0x0", 64)).encodeABI()
+    data:  contract.methods.batchMint(toAddress, ids, amounts, web3.utils.padRight("0x0", 64)).encodeABI(),
+    nonce: `0x${  currentNonce.toString(16)}`
   };
 
   // Estimate gas for the transaction if needed
@@ -65,6 +67,21 @@ export const mintERC1155 = async (toAddress: string, ids: number[], amounts: num
   for (const i of ids) {
     await storeMetadataInDynamoDB(dynamoDB,contractAddress, i, metadata);
   }
+
+  const prisma = await getPrismaClient();
+  await prisma.contracttransaction.create(
+    {
+      data: {
+        txhash: receipt.transactionHash.toString(),
+        contractaddress: contractAddress,
+        chain: chain,
+        fromaddress: payerKey.key?.materialId!,
+        methodname: 'batchMint',
+        params: JSON.stringify({to: toAddress, ids: ids, amounts: amounts}),
+      }
+    }
+  )
+
 
   return receipt;
 }
