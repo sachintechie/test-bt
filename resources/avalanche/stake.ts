@@ -12,8 +12,9 @@ import { AVMAPI, KeyChain as AVMKeyChain, KeyChain, Tx,  } from "avalanche/dist/
 import { Defaults, UnixNow } from "avalanche/dist/utils";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
-import { UnsignedTx, UTXOSet, GetUTXOsResponse, PlatformVMAPI, KeyChain as PlatformVMKeyChain, Tx as PlatformVMTx } from "avalanche/dist/apis/platformvm";
+import { UnsignedTx, UTXOSet, GetUTXOsResponse, PlatformVMAPI, GetValidatorsAtResponse, KeyChain as PlatformVMKeyChain, Tx as PlatformVMTx } from "avalanche/dist/apis/platformvm";
 import { getAvaxBalance,getAvaxConnection, verifyAvalancheTransaction } from "./commonFunctions";
+import { InfoAPI } from "avalanche/dist/apis/info";
 
 
 const env: any = {
@@ -127,6 +128,94 @@ export async function AvalancheStaking(
   return { transaction, error: null };
 }
 
+async function getValidatorStake(pchain: PlatformVMAPI, validatorNodeKey: string) {
+  try {
+   // Fetch current validators information
+   const validatorInfo: GetValidatorsAtResponse = await pchain.getCurrentValidators() as GetValidatorsAtResponse;
+
+   // Check if the 'validators' field exists
+   if (!validatorInfo || !validatorInfo.validators) {
+     throw new Error("No validators found in the response");
+   }
+
+   // Access the 'validators' array in the response
+   const validators = Object.values(validatorInfo.validators);
+
+   // Find the specific validator's uptime info
+   const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
+
+   if (!validator) {
+     throw new Error(`Validator with node key ${validatorNodeKey} not found`);
+   }
+
+    // Retrieve the validator's own stake and total delegated stake
+    const selfStaked = parseFloat(validator.stakeAmount) / 1e9; // Convert from nAVAX to AVAX
+    const totalDelegated = parseFloat(validator.delegatorWeight) / 1e9; // Convert from nAVAX to AVAX
+
+    return {
+      selfStaked,
+      totalDelegated,
+    };
+  } catch (error) {
+    console.error("Error fetching validator stake: ", error);
+    throw error;
+  }
+}
+
+async function getValidatorDelegationFee(pchain: PlatformVMAPI, validatorNodeKey: string) {
+  try {
+    // Fetch current validators information
+   const validatorInfo: GetValidatorsAtResponse = await pchain.getCurrentValidators() as GetValidatorsAtResponse;
+
+   
+   if (!validatorInfo || !validatorInfo.validators) {
+     throw new Error("No validators found in the response");
+   }
+
+   const validators = Object.values(validatorInfo.validators);
+
+   const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
+
+   if (!validator) {
+     throw new Error(`Validator with node key ${validatorNodeKey} not found`);
+   }
+
+    // Retrieve the delegation fee rate in percentage
+    const delegationFeeRate = parseFloat(validator.delegationFee);
+    
+    return delegationFeeRate; // Already in percentage
+  } catch (error) {
+    console.error("Error fetching delegation fee rate: ", error);
+    throw error;
+  }
+}
+
+async function getValidatorUptime(pchain: PlatformVMAPI, validatorNodeKey: string) {
+  try {
+    // Fetch current validators information
+    const validatorInfo: GetValidatorsAtResponse = await pchain.getCurrentValidators() as GetValidatorsAtResponse;
+
+    // Check if the 'validators' field exists
+    if (!validatorInfo || !validatorInfo.validators) {
+      throw new Error("No validators found in the response");
+    }
+
+    const validators = Object.values(validatorInfo.validators);
+
+    const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
+
+    if (!validator) {
+      throw new Error(`Validator with node key ${validatorNodeKey} not found`);
+    }
+
+    // Return the weighted uptime (which is already a percentage)
+    return parseFloat(validator.uptime);
+  } catch (error) {
+    console.error("Error fetching validator uptime: ", error);
+    throw error;
+  }
+}
+
 
 export async function stakeAvax(
   senderWalletAddress: string,
@@ -146,7 +235,11 @@ export async function stakeAvax(
     const MIN_DELEGATOR_STAKE = networkID === 1 ? 25 : 1;
     const MIN_VALIDATION_TIME = networkID === 1 ? 2 * 7 * 24 * 60 * 60 : 24 * 60 * 60; // 2 weeks or 24 hours
     const MAX_VALIDATION_TIME = networkID === 1 ? 365 * 24 * 60 * 60 : 365 * 24 * 60 * 60; // 1 year
-    
+    const MIN_DELEGATION_FEE_RATE = 2; // Minimum delegation fee rate (in percentage)
+    const MAX_VALIDATOR_WEIGHT = 3000000; // Maximum 3 million AVAX or 5x validator stake
+
+
+
     if (amountToStake < MIN_VALIDATOR_STAKE && amountToStake < MIN_DELEGATOR_STAKE) {
       return {
         trxHash: null,
@@ -156,10 +249,41 @@ export async function stakeAvax(
     
     const currentTime = Math.floor(Date.now() / 1000);
     const stakingDuration = lockupExpirationTimestamp - currentTime;
+
     if (stakingDuration < MIN_VALIDATION_TIME || stakingDuration > MAX_VALIDATION_TIME) {
       return {
         trxHash: null,
         error: "Staking duration does not meet the allowed range."
+      };
+    }
+
+    // getting delegation fee rate check 
+    const delegationFeeRate = await getValidatorDelegationFee(pchain, validatorNodeKey);
+    if (delegationFeeRate < MIN_DELEGATION_FEE_RATE) {
+      return {
+        trxHash: null,
+        error: "Delegation fee rate does not meet the minimum required rate of 2%."
+      };
+    }
+
+    // Check maximum weight of validator
+    const validatorStake = await getValidatorStake(pchain , validatorNodeKey); // Placeholder function
+    const totalWeight = validatorStake.totalDelegated + validatorStake.selfStaked;
+    const maxWeight = Math.min(MAX_VALIDATOR_WEIGHT, 5 * validatorStake.selfStaked);
+    
+    if (totalWeight > maxWeight) {
+      return {
+        trxHash: null,
+        error: `Validator weight exceeds the limit. Total delegated + self-stake must not exceed ${maxWeight} AVAX.`
+      };
+    }
+
+    //  can integrate the uptime check from your validator
+    const validatorUptime = await getValidatorUptime(pchain, validatorNodeKey); // Placeholder function
+    if (validatorUptime < 80) {
+      return {
+        trxHash: null,
+        error: "Validator uptime is below 80%, staking reward may not be guaranteed."
       };
     }
    
@@ -252,7 +376,7 @@ export async function createStakeAccountWithStakeProgram(
       validatorNodeKey,
       rewardAddresses
     );
-
+    
     // Sign the transaction using Cubist Signer
     const signedTx: PlatformVMTx = await oidcClient.signTransaction(oidcClient, stakeTx );
 
@@ -263,3 +387,5 @@ export async function createStakeAccountWithStakeProgram(
     return { txHash: null, error: err.message || "Failed to create stake account" };
 }
 }
+
+  
