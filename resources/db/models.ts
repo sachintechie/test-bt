@@ -94,13 +94,13 @@ export interface productfilter {
   value: number | string;
 }
 
-export interface order {
+export interface orders {
   id?: string;
   sellerid?: string;
   buyerid?: string;
   productid?: string;
-  price?: string;
-  quantity?: string;
+  price?: number;
+  quantity?: number;
   status?: orderstatus;
 }
 
@@ -109,6 +109,15 @@ id?: string;
 customerid : string
 productid : string
 createdat : string
+}
+
+export interface productreview {
+  id?: string;
+  customerid?: string;
+  productid?: string;
+  orderid?:string;
+  comment?: string;
+  rating?: number;
 }
 
 export enum TransactionStatus {

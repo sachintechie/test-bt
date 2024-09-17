@@ -1,4 +1,4 @@
-import { createProduct } from "../db/dbFunctions";
+import { createProduct } from "../db/adminDbFunctions";
 import { productRarity } from "../db/models";
 import {mintNFT} from "../lambdas/mintNFT";
 import {mintERC1155} from "../lambdas/mintERC1155";
@@ -59,10 +59,14 @@ export const handler = async (event: any, context: any) => {
     };
   } catch (error) {
     console.error("Error creating product:", error);
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return {
       statusCode: 500,
         data: null,
-        error: "Internal Server Error"
+        error: errorMessage
     };
   }
 };

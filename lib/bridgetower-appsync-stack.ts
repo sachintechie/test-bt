@@ -43,7 +43,8 @@ const MUTATIONS=[
   'updateCategory',
   'updateProduct',
   'updateProductAttribute',
-  'addSubAdmin'
+  'addSubAdmin',
+  'addReview'
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
