@@ -255,7 +255,7 @@ model product {
   wishlists  productwishlist[]
   orders            orders[]
   productreviews    productreview[]
-  collections       productcollection[]
+  collections       productcollectionproducts[]
   @@unique([categoryid, name])
 }
 
@@ -433,7 +433,7 @@ model productcollection {
   id          String       @id @default(uuid())
   customerid String?
   customer   customer?    @relation(fields: [customerid], references: [id])
-  products    product[]      @relation("productcollectionproducts", references: [id])
+  products    productcollectionproducts[]      @relation("productcollectionproducts", references: [id])
   title       String?
   description String?
   createdat   DateTime     @default(now())
