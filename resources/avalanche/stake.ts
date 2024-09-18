@@ -21,8 +21,6 @@ const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
 
-const CUBE_SIGNER_TOKEN = env("CUBE_SIGNER_TOKEN", null /* load from fs */);
-// create like CUBE_SIGNER_TOKEN=$(cs token create ... --output base64)
 
 
 
