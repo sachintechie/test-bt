@@ -36,6 +36,7 @@ type BatchMintCnftData {
 }
 
 type CategoryData {
+	id: String!
 	name: String!
 	tenantid: String!
 	createdat: AWSDateTime
