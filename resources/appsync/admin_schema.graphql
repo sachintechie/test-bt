@@ -106,11 +106,32 @@ type ListWalletTransactions {
   error: AWSJSON
 }
 
+type ListAdminUsers {
+  status: Int
+  data: AdminUserListData
+  error: AWSJSON
+}
+
 type TransactionListData{
 total : Int
 totalPages : Int
 transactions : [TransactionData]
 }
+
+type AdminUserListData{
+total : Int
+totalPages : Int
+transactions : [AdminUserData]
+}
+
+type AdminUserData {
+  id: String
+  createdat: String
+  tenantuserid: String
+  tenantid: String
+  emailid: String
+}
+
 
 type TransactionData {
   customerid: String
@@ -131,6 +152,11 @@ type TransactionData {
 }
 input ListWalletTokenInput {
   walletAddress: String!,
+  limit: Int!,
+  pageNo: Int!,
+}
+
+input ListAdminUsersInput {
   limit: Int!,
   pageNo: Int!,
 }
@@ -328,6 +354,8 @@ type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
   ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+    ListAdminUsers(input: ListAdminUsersInput): ListWalletTransactions
+
   GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
   GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
   GetCategories: GetCategoriesResponse
