@@ -1,4 +1,4 @@
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter } from "./models";
+import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter, updateproductattribute } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
@@ -243,23 +243,69 @@ export async function getAdminWalletAndTokenByWalletAddress(walletAddress: strin
 }
 
 
-export async function getAdminTransactionsByWalletAddress(walletAddress: string, tenant: tenant, symbol: string) {
+export async function getAdminTransactionsByWalletAddress(walletAddress: string, tenant: tenant, limit: number,pageNo: number,symbol: string) {
   try {
     const prisma = await getPrismaClient();
+    const transactionCount = await prisma.admintransaction.count({where: {
+      walletaddress: walletAddress,
+      tenantid: tenant.id
+    },});
+    if (transactionCount == 0) {
+      return [];
+    }
     const transactions = await prisma.admintransaction.findMany({
       where: {
         walletaddress: walletAddress,
         tenantid: tenant.id
-      }
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+
     });
     const token = await prisma.token.findFirst({
       where: {
         symbol: symbol
       }
     });
-    return transactions.map((t: any) => {
+    const list = transactions.map((t: any) => {
       return { ...t, ...(token || {}) };
     });
+    const data = {
+      "total" : transactionCount,
+      "totalPages" : Math.ceil(transactionCount/limit),
+      "transactions" : list
+    }
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getAdminUsers( tenant: tenant, limit: number,pageNo: number) {
+  try {
+    const prisma = await getPrismaClient();
+    const userCount = await prisma.adminuser.count({where: {
+      tenantid: tenant.id
+    },});
+    if (userCount == 0) {
+      return [];
+    }
+    const users = await prisma.adminuser.findMany({
+      where: {
+        tenantid: tenant.id
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+
+    });
+
+ 
+    const data = {
+      "total" : userCount,
+      "totalPages" : Math.ceil(userCount/limit),
+      "transactions" : users
+    }
+    return data;
   } catch (err) {
     throw err;
   }
@@ -335,9 +381,193 @@ export async function getAdminUser(tenantUserId: string, tenantId: string) {
   }
 }
 
+export async function getAdminUserByEmail(emailId: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.adminuser.findFirst({
+      where: {
+        emailid: emailId,
+        tenantid: tenantId
+      }
+    });
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function updateAdminCubistData(customer: updatecustomer) {
+  try {
 
 
+    const prisma = await getPrismaClient();
+    const newCustomer = await prisma.adminuser.update({
+      where: { id: customer.id },
+      data: {
+
+        cubistuserid: customer.cubistuserid,
+        emailid: customer.emailid,
+        iss: customer.iss,
 
 
+      }
+    });
+    return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
 
+export async function createCategory(category: productcategory) {
+  try {
+    const prisma = await getPrismaClient();
+    const existingCategory = await prisma.productcategory.findFirst({
+      where: {
+        name: category.name,
+        tenantid: category.tenantid
+      }
+    });
+    if (existingCategory) {
+      throw new Error("Category is already added against this tenant with this name");
+    }
+    const newCategory = await prisma.productcategory.create({
+      data: {
+        name: category.name,
+        tenantid: category.tenantid
+      }
+    });
 
+    return newCategory;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the category");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function createProduct(product: product) {
+  try {
+    if (product.purchasedpercentage > 100) {
+      throw new Error("purchasedpercentage cannot exceed 100.");
+    }
+    const prisma = await getPrismaClient();
+    const existingProduct = await prisma.product.findFirst({
+      where: {
+        name: product.name,
+        categoryid: product.categoryid
+      }
+    });
+
+    if (existingProduct) {
+      throw new Error("Product is already added against this category with this name");
+    }
+    const newProduct = await prisma.product.create({
+      data: {
+        name: product.name,
+        categoryid: product.categoryid,
+        rarity: product.rarity,
+        price: product.price,
+        purchasedpercentage: product.purchasedpercentage,
+        availablepercentage: 100 - product.purchasedpercentage
+      }
+    });
+    return newProduct;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function createProductAttribute(productattributes: productattribute) {
+  try {
+    const prisma = await getPrismaClient();
+    const newAttribute = await prisma.productattribute.create({
+      data: {
+        key: productattributes.key,
+        value: productattributes.value,
+        type: productattributes.type,
+        productid: productattributes.productid
+      }
+    });
+    return newAttribute;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateCategory(categoryId: string, category: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updated = await prisma.productcategory.update({
+      where: {
+        id: categoryId,
+      },
+      data: {
+        name: category,
+        updatedat: new Date().toISOString()
+      },
+    });
+
+    return updated;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateProduct(id: string, product: Partial<product>) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const updatedProduct = await prisma.product.update({
+      where: {
+        id: id,
+      },
+      data: product,
+    });
+
+    return updatedProduct;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateProductAttribute(updateproductattribute:updateproductattribute) {
+  try {
+    const prisma = await getPrismaClient();
+    const {productId, key, newValue} = updateproductattribute
+    const updatedAttribute = await prisma.productattribute.updateMany({
+      where: {
+        productid: productId,
+        key: key
+      },
+      data: {
+        value: newValue,
+        updatedat: new Date().toISOString()
+      },
+    });
+
+    if (updatedAttribute.count === 0) {
+      throw new Error("Attribute not found.");
+    }
+    const fetchedAttribute = await prisma.productattribute.findFirst({
+      where: {
+        productid: productId,
+        key: key,
+      },
+    });
+
+    if (fetchedAttribute) {
+      return fetchedAttribute;
+    } else {
+      throw new Error("Updated attribute could not be found.");
+    }
+  } catch (err) {
+    console.error("Error in updateProductAttribute:", err);
+    throw err;
+  }
+}

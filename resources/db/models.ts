@@ -1,3 +1,5 @@
+import { PendingRequestsOnReconnectingError } from "web3";
+
 export interface customer {
   id?: string;
   tenantuserid: string;
@@ -29,6 +31,7 @@ export interface tenant {
   apikey: string;
   logo: string;
   isactive: boolean;
+  iscognitoactive: boolean;
   createdat: string;
   userpoolid: string;
   cognitoclientid: string;
@@ -73,6 +76,11 @@ export interface productcategory {
   tenantid: string;
 }
 
+export interface updateproductattribute{
+  productId: string,
+  key: string, 
+  newValue: string
+}
 export interface productattribute {
   key: string;
   value: string;
@@ -86,14 +94,30 @@ export interface productfilter {
   value: number | string;
 }
 
-export interface order {
+export interface orders {
   id?: string;
   sellerid?: string;
   buyerid?: string;
   productid?: string;
-  price?: string;
-  quantity?: string;
+  price?: number;
+  quantity?: number;
   status?: orderstatus;
+}
+
+export interface productwishlist {
+id?: string;
+customerid : string
+productid : string
+createdat : string
+}
+
+export interface productreview {
+  id?: string;
+  customerid?: string;
+  productid?: string;
+  orderid?:string;
+  comment?: string;
+  rating?: number;
 }
 
 export enum TransactionStatus {
@@ -135,8 +159,8 @@ export enum productRarity {
 }
 
 export enum orderstatus {
-  PENDING = "PENDING",
-  PLACED = "PLACED",
+  CREATED = "CREATED",
+  CONFIRMED = "CONFIRMED",
   SHIPPED = "SHIPPED",
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",

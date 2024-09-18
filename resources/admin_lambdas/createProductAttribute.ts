@@ -1,5 +1,5 @@
 import { productattribute } from "../db/models";
-import { createProductAttribute } from "../db/dbFunctions";
+import { createProductAttribute } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -24,10 +24,14 @@ export const handler = async (event: any, context: any) => {
     };
   } catch (error) {
     console.error("Error creating attribute:", error);
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return {
       status: 500,
       data: null,
-      error: "Internal Server Error"
+      error: errorMessage
     };
   }
 };

@@ -1,11 +1,11 @@
-import { getAdminTransactionsByWalletAddress } from "../db/adminDbFunctions";
+import { getAdminTransactionsByWalletAddress, getAdminUsers } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const tokens = await getTransactions(event.identity.resolverContext as tenant, event.arguments?.input?.walletAddress,
+    const tokens = await getAdminUser(event.identity.resolverContext as tenant,
       event.arguments?.input?.limit,event.arguments?.input?.pageNo);
     return {
       status: 200,
@@ -22,11 +22,10 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getTransactions(tenant: tenant, walletAddress: string,limit: number,pageNo: number) {
-  console.log("Wallet Address", walletAddress);
+async function getAdminUser(tenant: tenant, limit: number,pageNo: number) {
 
   try {
-    const wallet = await getAdminTransactionsByWalletAddress(walletAddress, tenant,limit,pageNo,"");
+    const wallet = await getAdminUsers( tenant,limit,pageNo);
     console.log(wallet, "Wallet");
     return wallet;
   } catch (err) {

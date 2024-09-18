@@ -18,6 +18,27 @@ input SigninInput {
   tenantUserId: String!
 }
 
+input AddSubAdminInput {
+  emailId: String!
+  name: String!
+  password: String!
+}
+
+
+type AddSubAdmin {
+  status: Int
+  data: AddSubAdminData
+  error: AWSJSON
+}
+
+type AddSubAdminData {
+  id: String
+  createdat: String
+  tenantuserid: String
+  tenantid: String
+  emailid: String
+}
+
 
 type AdminTransfer {
   status: Int
@@ -81,9 +102,36 @@ input AdminRecipient {
 
 type ListWalletTransactions {
   status: Int
-  data: [TransactionData]
+  data: TransactionListData
   error: AWSJSON
 }
+
+type ListAdminUsers {
+  status: Int
+  data: AdminUserListData
+  error: AWSJSON
+}
+
+type TransactionListData{
+total : Int
+totalPages : Int
+transactions : [TransactionData]
+}
+
+type AdminUserListData{
+total : Int
+totalPages : Int
+transactions : [AdminUserData]
+}
+
+type AdminUserData {
+  id: String
+  createdat: String
+  tenantuserid: String
+  tenantid: String
+  emailid: String
+}
+
 
 type TransactionData {
   customerid: String
@@ -103,7 +151,14 @@ type TransactionData {
   tenanttransactionid: String
 }
 input ListWalletTokenInput {
-  walletAddress: String!
+  walletAddress: String!,
+  limit: Int!,
+  pageNo: Int!,
+}
+
+input ListAdminUsersInput {
+  limit: Int!,
+  pageNo: Int!,
 }
 
 input GetAdminTransactionInput {
@@ -144,8 +199,8 @@ type CategoryResponse {
 type CategoryData {
   name: String!
   tenantid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 enum ProductRarity {
@@ -157,19 +212,19 @@ enum ProductRarity {
 }
 
 input CreateProductInput {
-  name: String!
-  categoryId: String!
-  rarity: ProductRarity
-  price: Float
-  purchasedPercentage: Float
-  isMintAble: Boolean
-  chainType: String
-  tokenType: String
-  quantity: Int
-  toAddress: String
-  contractAddress: String
-  metadata: AWSJSON
-  tokenId: Int
+	name: String!
+	categoryId: String!
+	rarity: ProductRarity
+	price: Float
+	purchasedPercentage: Float
+	isMintAble: Boolean
+	chainType: String
+	tokenType: String
+	quantity: Int
+	toAddress: String
+	contractAddress: String
+	metadata: AWSJSON
+	tokenId: Int
 }
 
  type ProductResponse {
@@ -187,8 +242,8 @@ type ProductData {
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
 }
 
@@ -211,8 +266,8 @@ type ProductAttributeData {
   value: String!
   type: String!
   productid: String!
-  createdat: String
-  updatedat: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input UpdateCategoryInput {
@@ -222,15 +277,8 @@ input UpdateCategoryInput {
 
 type UpdateCategoryResponse {
   status: Int
-  data: UpdateCategoryData
+  data: CategoryData
   error: AWSJSON
-}
-
-type UpdateCategoryData {
-  name: String
-  tenantid: String
-  createdat: String
-  updatedat: String
 }
 
 input UpdateProductInput {
@@ -264,17 +312,63 @@ type UpdateProductAttributeResponse {
   error: AWSJSON
 }
 
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  error: AWSJSON
+}
+
+input GetCategoryByIdInput {
+  categoryId: String
+}
+
+input GetCategoriesByTenantIdInput {
+  tenantId: String
+}
+
+type GetProductsResponse {
+  status: Int
+  data: [ProductData]
+  error: AWSJSON
+}
+
+input GetProductByIdInput {
+  productId: String
+}
+
+input GetProductsByCategoryIdInput {
+  categoryId: String
+}
+
+input GetProductAttributesByProductIdInput {
+  productId: String!
+}
+
+type GetProductAttributesResponse {
+  status: Int
+  data: [ProductAttributeData]
+  error: AWSJSON
+}
 
 type Query {
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
   ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+    ListAdminUsers(input: ListAdminUsersInput): ListWalletTransactions
+
   GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
   GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-
+  GetCategories: GetCategoriesResponse
+  GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
+  GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
+  GetProducts: GetProductsResponse
+  GetProductById(input: GetProductByIdInput): ProductResponse
+  GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
+  GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 type Mutation {
+  AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
   CreateCategory(input: CreateCategoryInput): CategoryResponse

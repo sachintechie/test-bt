@@ -8,7 +8,7 @@ export const handler = async (event: any) => {
   try {
     console.log("Event", event);
     let token = event.authorizationToken;
-    let idToken  = event.requestHeaders.identity;
+    let idToken  = event?.requestHeaders?.identity;
 
     if (token != null) {
       // console.log("Token provided", token);
@@ -16,12 +16,34 @@ export const handler = async (event: any) => {
       const res = await executeQuery(query);
       // console.log(res.rows);
       if (res.rows.length > 0 && res.rows[0].apikey === token) {
-        console.log("tenant-insie-if");
+        console.log("tenant-inside-if");
 
         const tenant = res.rows[0];
         console.log(tenant);
-
-        if (await isUserAdminLike(idToken)) {
+        if(tenant.iscognitoactive === true){
+          if (await isUserAdminLike(idToken)) {
+            return {
+              isAuthorized: true,
+              resolverContext: {
+                id: tenant.id,
+                name: tenant.name,
+                apikey: tenant.apikey,
+                logo: tenant.logo,
+                isactive: tenant.isactive,
+                createdat: tenant.createdat,
+                userpoolid: tenant.userpoolid,
+                iscognitoactive: tenant.iscognitoactive,
+                cognitoclientid: tenant.cognitoclientid,
+                userType : "ADMIN"
+              }
+            };
+          }
+  
+          return {
+            isAuthorized: false
+          };
+        }
+        else if (tenant.name === "OnDemand") {
           return {
             isAuthorized: true,
             resolverContext: {
@@ -32,26 +54,20 @@ export const handler = async (event: any) => {
               isactive: tenant.isactive,
               createdat: tenant.createdat,
               userpoolid: tenant.userpoolid,
+              iscognitoactive: tenant.iscognitoactive,
               cognitoclientid: tenant.cognitoclientid,
               userType : "ADMIN"
             }
           };
+
+        }
+        else{
+          return {
+            isAuthorized: false
+          };
         }
 
-        return {
-          isAuthorized: true,
-          resolverContext: {
-            id: tenant.id,
-            name: tenant.name,
-            apikey: tenant.apikey,
-            logo: tenant.logo,
-            isactive: tenant.isactive,
-            createdat: tenant.createdat,
-            userpoolid: tenant.userpoolid,
-            cognitoclientid: tenant.cognitoclientid,
-            userType : "USER"
-          }
-        };
+
       }
       return {
         isAuthorized: false

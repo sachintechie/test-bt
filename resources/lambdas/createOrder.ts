@@ -29,10 +29,14 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return {
       status: 500,
       data: null,
-      error: "Internal Server Error"
+      error: errorMessage
     };
   }
 };

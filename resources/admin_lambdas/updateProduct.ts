@@ -1,4 +1,4 @@
-import { updateProduct } from "../db/dbFunctions";
+import { updateProduct } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -6,6 +6,7 @@ export const handler = async (event: any, context: any) => {
 
     const { productId, productData } = event.arguments?.input;
 
+    // Validate the input
     if (!productId || !productData) {
       return {
         status: 400,
@@ -14,20 +15,33 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    // If purchasedpercentage is provided, calculate availablepercentage
-    if (productData.purchasedpercentage !== undefined) {
-      if (productData.purchasedpercentage > 100) {
+   
+    const updatedProductData: any = {
+      ...productData,  
+    };
+
+    // Convert categoryId to categoryid and lowercase it if provided
+    if (productData.categoryId) {
+      updatedProductData.categoryid = productData.categoryId.toLowerCase();
+      delete updatedProductData.categoryId; // Remove the original camel case field
+    }
+
+    // Rename purchasedPercentage to purchasedpercentage and calculate availablepercentage if provided
+    if (productData.purchasedPercentage !== undefined) {
+      if (productData.purchasedPercentage > 100) {
         return {
           status: 400,
           data: null,
-          error: "purchasedpercentage cannot exceed 100."
+          error: "purchasedPercentage cannot exceed 100."
         };
       }
-      productData.availablepercentage = 100 - productData.purchasedpercentage;
+
+      updatedProductData.purchasedpercentage = productData.purchasedPercentage;
+      updatedProductData.availablepercentage = 100 - productData.purchasedPercentage;
+      delete updatedProductData.purchasedPercentage; // Remove the original camel case field
     }
 
-    // Now pass the productData (including availablepercentage if applicable) to updateProduct
-    const updatedProduct = await updateProduct(productId, productData);
+    const updatedProduct = await updateProduct(productId, updatedProductData);
 
     return {
       status: 200,
@@ -36,10 +50,14 @@ export const handler = async (event: any, context: any) => {
     };
   } catch (error) {
     console.error("Error updating product:", error);
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return {
       status: 500,
       data: null,
-      error: error
+      error:errorMessage,
     };
   }
 };
