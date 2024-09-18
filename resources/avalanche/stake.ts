@@ -63,8 +63,8 @@ export async function AvalancheStaking(
     };
   }
 
-  // 4. Check the Symbol, if SOL then stake SOL, if not then return error
-  if (symbol !== "SOL") {
+  // 4. Check the Symbol, if AVAX then stake AVAX, if not then return error
+  if (symbol !== "AVAX") {
     return {
       transaction: null,
       error: "Symbol not Supported"
