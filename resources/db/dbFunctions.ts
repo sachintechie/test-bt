@@ -1926,6 +1926,16 @@ export async function addProductToCollection(productcollection:productcollection
   const prisma = await getPrismaClient();
   const {customerid,description,productid,title } = productcollection
   try {
+    const owned = await prisma.orders.findFirst({
+      where: {
+        buyerid: customerid,
+        productid,
+        status: orderstatus.DELIVERED,
+      }
+    });
+    if(!owned){
+      throw new Error("This product is not owned by this customer");
+    }
     let collection = await prisma.productcollection.findFirst({
       where: {
         customerid,
