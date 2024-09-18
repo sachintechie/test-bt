@@ -1,7 +1,7 @@
-import { createProduct } from "../db/dbFunctions";
+import { createProduct } from "../db/adminDbFunctions";
 import { productRarity } from "../db/models";
-import {mintNFT} from "./mintNFT";
-import {mintERC1155} from "./mintERC1155";
+import {mintNFT} from "../lambdas/mintNFT";
+import {mintERC1155} from "../lambdas/mintERC1155";
 
 interface CreateProductInput {
   name: string;
@@ -52,22 +52,21 @@ export const handler = async (event: any, context: any) => {
         await mintNFT(toAddress, quantity, chainType, contractAddress, metadata);
       }
     }
-
     return {
-      statusCode: 200,
-      body: JSON.stringify({
-        data: product,
-        error: null
-      })
+      status: 200,
+      data: product,
+      error: null
     };
   } catch (error) {
     console.error("Error creating product:", error);
+    let errorMessage = "An unknown error occurred.";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
     return {
       statusCode: 500,
-      body: JSON.stringify({
         data: null,
-        error: "Internal Server Error"
-      })
+        error: errorMessage
     };
   }
 };
