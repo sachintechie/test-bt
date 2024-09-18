@@ -5,7 +5,8 @@ import { PlatformVMAPI } from "avalanche/dist/apis/platformvm";
 
 
 export async function getAvaxBalance(address: string) {
-    const pAddress: string = address; 
+    const pAddress: string = "P-" + address; 
+
     const { xchain, pchain } = await getAvaxConnection();
     const balanceResponse = await pchain.getBalance(pAddress);
     const balance = balanceResponse.balance;

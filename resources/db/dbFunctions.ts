@@ -1472,8 +1472,8 @@ export async function getProductsByCategoryId(categoryId: string) {
 export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
-    const attributes = await prisma.productattributes.findMany({
-      where: { productId: productId }
+    const attributes = await prisma.productattribute.findMany({
+      where: { productid: productId }
     });
     return attributes;
   } catch (err) {
