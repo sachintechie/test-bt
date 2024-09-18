@@ -538,10 +538,30 @@ type ProductData {
 	productattributes: [ProductAttributeData!]!
 }
 
+type FilterProductData {
+	id: String!
+	name: String!
+	categoryid: String
+	rarity: ProductRarity
+	price: Float
+	purchasedpercentage: Float
+	availablepercentage: Float
+	category: CategoryData
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+	productattributes: [ProductAttributeData!]!
+}
+
 input ProductFilter {
 	key: String
 	operator: FilterOperator
 	value: String
+}
+
+type FilterProductResponse {
+	status: Int
+	data: [FilterProductData]
+	error: AWSJSON
 }
 
 enum ProductRarity {
@@ -853,7 +873,7 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-	FilterProducts(input: FilterProductInput): GetProductsResponse
+	FilterProducts(input: FilterProductInput): FilterProductResponse
 	GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
 	GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
 	GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
