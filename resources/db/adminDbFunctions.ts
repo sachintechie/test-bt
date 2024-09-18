@@ -303,7 +303,7 @@ export async function getAdminUsers( tenant: tenant, limit: number,pageNo: numbe
     const data = {
       "total" : userCount,
       "totalPages" : Math.ceil(userCount/limit),
-      "transactions" : users
+      "users" : users
     }
     return data;
   } catch (err) {
