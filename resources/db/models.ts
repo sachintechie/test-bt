@@ -116,8 +116,8 @@ export interface productreview {
   customerid?: string;
   productid?: string;
   orderid?:string;
-  comment?: string;
-  rating?: number;
+  comment: string;
+  rating: number;
 }
 
 export enum TransactionStatus {
