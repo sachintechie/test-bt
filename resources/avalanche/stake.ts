@@ -13,7 +13,7 @@ import { Defaults, UnixNow } from "avalanche/dist/utils";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 import { UnsignedTx, UTXOSet, GetUTXOsResponse, PlatformVMAPI, GetValidatorsAtResponse, KeyChain as PlatformVMKeyChain, Tx as PlatformVMTx } from "avalanche/dist/apis/platformvm";
-import { getAvaxBalance,getAvaxConnection, verifyAvalancheTransaction } from "./commonFunctions";
+import { getAvaxBalance,getAvaxConnection, getAvaxTestConnection, verifyAvalancheTransaction } from "./commonFunctions";
 import { InfoAPI } from "avalanche/dist/apis/info";
 
 
@@ -86,6 +86,14 @@ export async function AvalancheStaking(
   }
 
   
+  // Checking if lockupExpirationTimestamp is provided or vallid
+  if (!lockupExpirationTimestamp || isNaN(lockupExpirationTimestamp)) {
+    return {
+      transaction: null,
+      error: "Invalid or missing lockupExpirationTimestamp"
+    };
+  }
+
   // 7. Stake AVAX
   const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid, rewardAddresses);
   console.log("[avalancheStaking]tx:", tx);
@@ -225,8 +233,9 @@ export async function stakeAvax(
   rewardAddresses: string[]
 ) {
   try {
-    const { xchain, pchain } = await getAvaxConnection();
+    const { xchain, pchain } = await getAvaxTestConnection();
     const networkID  = 1;
+
     const amountToStake = parseFloat(amount.toString());
     // Check staking parameters
     const MIN_VALIDATOR_STAKE = networkID === 1 ? 2000 : 1; // Mainnet or Fuji Testnet
