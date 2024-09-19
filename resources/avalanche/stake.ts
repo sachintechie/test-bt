@@ -182,7 +182,7 @@ export async function createStakeAccountWithStakeProgram(
   oidcClient: any
 ) {
   try {
-    const stakeAmount = BigInt(1 * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
+    const stakeAmount = BigInt(amount * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
     console.log("Stake Amount:", stakeAmount);
     const start = BigInt(Math.floor(Date.now() / 1000) + 60); // Stake starts in 60 seconds
     const end = BigInt(lockupExpirationTimestamp); // Stake ends at expiration timestamp
