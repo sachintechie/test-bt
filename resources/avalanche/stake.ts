@@ -33,7 +33,6 @@ export async function AvalancheStaking(
   chainType: string,
   tenantTransactionId: string,
   lockupExpirationTimestamp: number,
-  rewardAddresses: string[]
 ) {
   
 
@@ -93,7 +92,7 @@ export async function AvalancheStaking(
   }
 
   // 7. Stake AVAX
-  const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid, rewardAddresses);
+  const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
   console.log("[avalancheStaking]tx:", tx);
   // 8. Check if transaction is successful, if not return error
   if (tx.error) {
@@ -228,7 +227,6 @@ export async function stakeAvax(
   oidcToken: string,
   lockupExpirationTimestamp: number,
   cubistOrgId: string,
-  rewardAddresses: string[]
 ) {
   try {
     const { avmapi, pvmapi } = await getAvaxConnection();
@@ -337,9 +335,11 @@ export async function stakeAvax(
       amountToStake,
       validatorNodeKey, // Use validatorNodeKey directly as string
       lockupExpirationTimestamp,
-      oidcClient,
-      rewardAddresses
+      oidcClient
     );
+    if(staketransaction.txHash == null){
+      return {trxhash: null, error: staketransaction.error};
+    }
     return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };
   } catch (err: any) {
     console.log(await err);
@@ -354,8 +354,7 @@ export async function createStakeAccountWithStakeProgram(
   amount: number,
   validatorNodeKey: string,
   lockupExpirationTimestamp: number,
-  oidcClient: any,
-  rewardAddresses: string[]
+  oidcClient: any
 ) {
    try { 
  // const { networkID } = await getAvaxConnection();
@@ -368,14 +367,14 @@ export async function createStakeAccountWithStakeProgram(
   console.log("stakeAmountString", stakeAmountString);
 
   console.log("validatorNodeKey", validatorNodeKey);
-  console.log("rewardAddresses", rewardAddresses);
+  console.log("rewardAddresses", pAddressStrings);
   const start =  BigInt(Math.floor(Date.now() / 1000) + 60) // Stake starts in 60 seconds
 const end =  BigInt(Math.floor(Date.now() / 1000) + 3600) //
 console.log("startTime", start);
 console.log("endTime", end);
   const context = await Context.getContextFromURI(process.env.AVAX_PUBLIC_URL);
 
-  const { utxos } = await pvmapi.getUTXOs({ addresses:  [senderKey.materialId] });
+  const { utxos } = await pvmapi.getUTXOs({ addresses:  [pAddressStrings] });
   const stakeTx = pvm.newAddPermissionlessDelegatorTx(
     context,
     utxos,
@@ -398,7 +397,7 @@ console.log("endTime", end);
     return { txHash: signedTx.toString(), stakeAccountPubKey: senderKey.publicKey.toString() };
   } catch (err: any) {
     console.log(err);
-    return { txHash: null, error: err.message || "Failed to create stake account" };
+    return { txHash: null, error: err.message || "Failed to create stake transaction" };
 }
 }
 

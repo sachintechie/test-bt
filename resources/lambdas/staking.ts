@@ -56,8 +56,7 @@ export const handler = async (event: any) => {
           event.arguments?.input?.tenantUserId,
           event.arguments?.input?.chainType,
           event.arguments?.input?.tenantTransactionId,
-          event.arguments?.input?.lockupExpirationTimestamp,
-          event.arguments?.input?.rewardAddresses
+          event.arguments?.input?.lockupExpirationTimestamp
         );
 
         const response = {
