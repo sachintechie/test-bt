@@ -17,7 +17,8 @@ export async function getAvaxBalance(address: string) {
     const ip: string = process.env["AVAX_URL"]! // Testnet URL
     const port: number = 443; 
     const protocol: string = "https";
-    const networkID: number = Number(process.env["AVAX_NETWORK_ID"]); // Avalanche Testnet ID
+    const AVAX_NETWORK_ID: string = process.env["AVAX_NETWORK_ID"]!; 
+    const networkID: number = Number.parseInt(AVAX_NETWORK_ID); 
     const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID);
     const xchain: AVMAPI = avalanche.XChain();
     const pchain: PlatformVMAPI = avalanche.PChain(); 
