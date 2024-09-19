@@ -248,7 +248,7 @@ export async function createStakeAccountWithStakeProgram(
     const start = BigInt(Math.floor(Date.now() / 1000) + 60); // Stake starts in 60 seconds
     const end = BigInt(lockupExpirationTimestamp); // Stake ends at expiration timestamp
     const pAddressStrings: string = "P-" + senderKey.materialId;
-    const context = await Context.getContextFromURI(process.env.AVAX_PUBLIC_URL);
+    const context = await Context.getContextFromURI(process.env.AVAX_URL);
     console.log("context", context);
     // Get UTXOs and create staking transaction
     const { utxos } = await pvmapi.getUTXOs({ addresses: [pAddressStrings] });
