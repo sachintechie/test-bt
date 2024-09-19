@@ -29,7 +29,8 @@ export const handler = async (event: any) => {
 
       // Handle tenant with active Cognito
       if (tenant.iscognitoactive === true) {
-        let idToken = event?.requestHeaders?.identity;
+        let idToken  = event?.requestHeaders?.identity;
+
         if (idToken == null) return { isAuthorized: false };
 
         // Check if user has admin-like privileges
