@@ -113,7 +113,7 @@ createdat : string
 
 export interface productreview {
   id?: string;
-  customerid?: string;
+  customerid: string;
   productid?: string;
   orderid?:string;
   comment: string;

@@ -1866,11 +1866,11 @@ export async function addReview(productReview:productreview) {
     const newReview = await prisma.productreview.create({
       data: {
         customerid,
-        productid,
         orderid,
+        productid,
         comment,
         rating,
-        updatedat:new Date().toISOString()
+        updatedat: new Date().toISOString()
       }
     });
 
