@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute, productreview, productcollection } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute, productreview, productcollection, productRarity } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1491,6 +1491,15 @@ export async function filterProducts(filters: productfilter[]) {
     filters.forEach((filter) => {
       const condition: any = {};
 
+	 
+      if (filter.key === "rarity") {
+        // Check if the value is not one of the allowed product rarities
+        const rarityValue = filter.value as productRarity;
+        if (!Object.values(productRarity).includes(rarityValue)) {
+          throw new Error(`Invalid rarity value: ${filter.value}. Allowed values are ${Object.values(productRarity).join(", ")}.`);
+        }
+	}
+
       if (filter.key === "price" || filter.key === "rarity") {
         if (filter.key === "price") {
           const priceValue = typeof filter.value === 'string' ? parseFloat(filter.value) : filter.value;
@@ -1544,8 +1553,12 @@ export async function filterProducts(filters: productfilter[]) {
     });
 
     return products;
-  } catch (err) {
-    throw err;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while removing the product from wishlist.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
