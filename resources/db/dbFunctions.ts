@@ -1491,7 +1491,7 @@ export async function filterProducts(filters: productfilter[]) {
     filters.forEach((filter) => {
       const condition: any = {};
 
-      if (filter.key === "price" || filter.key === "categoryid" || filter.key === "rarity") {
+      if (filter.key === "price" || filter.key === "rarity") {
         if (filter.key === "price") {
           const priceValue = typeof filter.value === 'string' ? parseFloat(filter.value) : filter.value;
           if (filter.operator === "eq") {
@@ -1521,15 +1521,15 @@ export async function filterProducts(filters: productfilter[]) {
 
         if (["gte", "gt", "lte", "lt"].includes(filter.operator)) {
           attrCondition[filter.operator] = String(filter.value);
-        } else {
-          attrCondition[filter.operator] = filter.value;
+        } else if (filter.operator === "eq") {
+          attrCondition.value = filter.value; 
         }
 
         whereClause.AND.push({
           productattributes: {
             some: {
               key: filter.key,
-              value: attrCondition
+              value: attrCondition.value ? attrCondition.value : attrCondition
             }
           }
         });
@@ -1548,6 +1548,7 @@ export async function filterProducts(filters: productfilter[]) {
     throw err;
   }
 }
+
 
 
 export async function addToWishlist(customerId: string, productId: string) {
