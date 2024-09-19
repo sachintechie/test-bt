@@ -1343,6 +1343,24 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
   }
 }
 
+export async function getCustomerIdByTenant(email: string, tenantId: string) {
+  try {
+
+    console.log("email", email, tenantId);
+    const prisma = await getPrismaClient();
+    const customer = await prisma.customer.findFirst({
+      where: {
+        emailid: email,
+        tenantid: tenantId
+      }
+    });
+    console.log("customer", customer);
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
 export async function getEmailOtpCustomer(tenantUserId: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
@@ -1472,8 +1490,8 @@ export async function getProductsByCategoryId(categoryId: string) {
 export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
-    const attributes = await prisma.productattributes.findMany({
-      where: { productId: productId }
+    const attributes = await prisma.productattribute.findMany({
+      where: { productid: productId }
     });
     return attributes;
   } catch (err) {
@@ -1866,11 +1884,11 @@ export async function addReview(productReview:productreview) {
     const newReview = await prisma.productreview.create({
       data: {
         customerid,
-        productid,
         orderid,
+        productid,
         comment,
         rating,
-        updatedat:new Date().toISOString()
+        updatedat: new Date().toISOString()
       }
     });
 
@@ -1991,10 +2009,10 @@ export async function removeProductFromCollection(collectionId: string, productI
     // Check if the product exists in the collection
     const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
       where: {
-        productcollectionid_productid: { 
+        
           productcollectionid: collectionId,
           productid: productId
-        }
+        
       }
     });
 
@@ -2004,10 +2022,12 @@ export async function removeProductFromCollection(collectionId: string, productI
 
     // Remove the product from the collection
     const removedProduct = await prisma.productcollectionproducts.delete({
-      where: {
-          productcollectionid: collectionId,
-          productid: productId
+     where: {
+      productcollectionid_productid:{
+      productcollectionid: collectionId,
+      productid: productId
       }
+     }
     });
 
     return removedProduct;
