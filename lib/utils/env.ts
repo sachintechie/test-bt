@@ -27,8 +27,6 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
   }
   const web3InfoEnv={
     AVAX_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
-    AVAX_URL:'api.avax-test.network',
-    AVAX_NETWORK_ID:'43113',
     ETH_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
     PRIVATE_KEY:'0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e',
     METADATA_TABLE:'METADATA_TABLE'
@@ -49,6 +47,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        AVAX_URL:'api.avax-test.network',
+        AVAX_NETWORK_ID:'43113'
       };
     case "staging":
       return {
@@ -64,6 +64,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         SOLANA_NETWORK: "mainnet",
         SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
         CS_API_ROOT: "https://prod.signer.cubist.dev",
+        AVAX_URL:'api.avax.network',
+        AVAX_NETWORK_ID:'1',
 
       };
     case "schoolhack-prod":
@@ -72,6 +74,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
+          AVAX_URL:'api.avax.network',
+          AVAX_NETWORK_ID:'1',
         };
     case "ondemand-prod":
         return {
@@ -79,6 +83,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
+          AVAX_URL:'api.avax.network',
+          AVAX_NETWORK_ID:'1',
         };  
     default:
       return {
@@ -86,6 +92,8 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        AVAX_URL:'api.avax-test.network',
+        AVAX_NETWORK_ID:'43113'
       };
   }
 };
