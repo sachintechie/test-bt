@@ -1,7 +1,7 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
-import { getCubistConfig, getFirstWallet, insertStakeAccount, insertStakingTransaction } from "../db/dbFunctions";
-import { avm, pvm, evm, Context, utils, networkIDs } from "@avalabs/avalanchejs";
+import {  StakeType, tenant, TransactionStatus } from "../db/models";
+import { getCubistConfig, getFirstWallet, insertStakingTransaction } from "../db/dbFunctions";
+import {  pvm, Context, utils, networkIDs } from "@avalabs/avalanchejs";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 import { getAvaxBalance, getAvaxConnection, verifyAvalancheTransaction } from "./commonFunctions";
@@ -243,30 +243,53 @@ export async function createStakeAccountWithStakeProgram(
   oidcClient: any
 ) {
   try {
-    const stakeAmount = BigInt(amount * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
+   // const stakeAmount = BigInt(amount * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
+    const stakeAmount = amount * 1e9; // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
+
     console.log("Stake Amount:", stakeAmount);
-    const start = BigInt(Math.floor(Date.now() / 1000) + 60); // Stake starts in 60 seconds
-    const end = BigInt(lockupExpirationTimestamp); // Stake ends at expiration timestamp
+    // const start = BigInt(Math.floor(Date.now() / 1000) + 60); // Stake starts in 60 seconds
+    // const end = BigInt(lockupExpirationTimestamp); // Stake ends at expiration timestamp
+   const start = Math.floor(Date.now() / 1000) + 60; // Stake starts in 60 seconds
+    const end = lockupExpirationTimestamp; // Stake ends at expiration timestamp
     const pAddressStrings: string = "P-" + senderKey.materialId;
     const context = await Context.getContextFromURI(process.env.AVAX_URL);
     console.log("context", context);
     // Get UTXOs and create staking transaction
     const { utxos } = await pvmapi.getUTXOs({ addresses: [pAddressStrings] });
     console.log("utxos", utxos);
-    const stakeTx = pvm.newAddPermissionlessDelegatorTx(
-      context,
-      utxos,
-      [utils.bech32ToBytes(pAddressStrings)],
-      validatorNodeKey,
-      networkIDs.PrimaryNetworkID.toString(),
-      start,
-      end,
-      stakeAmount,
-      [utils.bech32ToBytes(pAddressStrings)]
-    );
+    const addressBytes = utils.bech32ToBytes(pAddressStrings);
+    // const stakeTx  = pvm.newAddPermissionlessDelegatorTx(
+    //   context,
+    //   utxos,
+    //   [utils.bech32ToBytes(pAddressStrings)],
+    //   validatorNodeKey,
+    //   networkIDs.PrimaryNetworkID.toString(),
+    //   start,
+    //   end,
+    //   stakeAmount,
+    //   [utils.bech32ToBytes(pAddressStrings)]
+    // );
+    const stakeTx: cs.AvaTx = {
+      P: {
+        AddPermissionlessValidator: {
+        //  context: context,
+         // utxos: utxos,
+         // fromAddressesBytes: addressBytes,
+          nodeID: "NodeID-7txYhtd9hAzDqecm3nNTzpptGgJAi1NMd",
+          subnetID: '5',
+          startTime: start,
+          endTime: end,
+          stakeAmount : stakeAmount,
+          //rewardAddress: ,
+         // delegatorRewardsOwner: utils.bech32ToBytes(pAddressStrings),
+        }
+      }
+   
+    };
     console.log("stakeTx", stakeTx);
     // Sign the transaction using Cubist Signer
-    const signedTx = await oidcClient.signTransaction(oidcClient, stakeTx);
+    
+    const signedTx = await senderKey.signAva(stakeTx);
     console.log("Stake signedTx:", signedTx);
     const result = await pvmapi.issueSignedTx(signedTx.getSignedTx());
     console.log("Stake Transaction Result:", result);

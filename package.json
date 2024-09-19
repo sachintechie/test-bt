@@ -29,7 +29,6 @@
     "@solana/spl-account-compression": "^0.1.8",
     "@solana/spl-token": "^0.4.8",
     "@solana/web3.js": "^1.91.8",
-    "avalanche": "^3.16.0",
     "aws-cdk-lib": "^2.142.1",
     "aws-jwt-verify": "^4.0.1",
     "aws-sdk": "^2.1629.0",
