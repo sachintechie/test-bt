@@ -120,12 +120,17 @@ export interface productreview {
   rating?: number;
 }
 
-export interface productcollection {
+export interface createcollection {
   id?: string;
   customerid?: string;
-  productid?: string;
   title?: string;
   description?: string;
+}
+
+export interface addtocollection{
+collectionid:string;
+customerid:string;
+productid:string;
 }
 
 export enum TransactionStatus {
