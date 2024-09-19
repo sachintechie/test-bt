@@ -1343,6 +1343,24 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
   }
 }
 
+export async function getCustomerIdByTenant(email: string, tenantId: string) {
+  try {
+
+    console.log("email", email, tenantId);
+    const prisma = await getPrismaClient();
+    const customer = await prisma.customer.findFirst({
+      where: {
+        emailid: email,
+        tenantid: tenantId
+      }
+    });
+    console.log("customer", customer);
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
 export async function getEmailOtpCustomer(tenantUserId: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
