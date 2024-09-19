@@ -281,6 +281,36 @@ export async function getAdminTransactionsByWalletAddress(walletAddress: string,
   }
 }
 
+export async function getAdminUsers( tenant: tenant, limit: number,pageNo: number) {
+  try {
+    const prisma = await getPrismaClient();
+    const userCount = await prisma.adminuser.count({where: {
+      tenantid: tenant.id
+    },});
+    if (userCount == 0) {
+      return [];
+    }
+    const users = await prisma.adminuser.findMany({
+      where: {
+        tenantid: tenant.id
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+
+    });
+
+ 
+    const data = {
+      "total" : userCount,
+      "totalPages" : Math.ceil(userCount/limit),
+      "users" : users
+    }
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getAdminTransactionsById(tenantTransactionId: string, tenant: tenant, symbol: string) {
   try {
     const prisma = await getPrismaClient();
@@ -342,6 +372,21 @@ export async function getAdminUser(tenantUserId: string, tenantId: string) {
     const customer = await prisma.adminuser.findFirst({
       where: {
         tenantuserid: tenantUserId,
+        tenantid: tenantId
+      }
+    });
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+export async function getAdminUserByTenant(email: string, tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const customer = await prisma.adminuser.findFirst({
+      where: {
+        emailid: email,
         tenantid: tenantId
       }
     });

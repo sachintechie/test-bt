@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productfilter, orders, orderstatus, productreview, createcollection, addtocollection } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productfilter, orders, orderstatus, productreview, createcollection, addtocollection, productRarity } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1343,6 +1343,24 @@ export async function getCustomer(tenantUserId: string, tenantId: string) {
   }
 }
 
+export async function getCustomerIdByTenant(email: string, tenantId: string) {
+  try {
+
+    console.log("email", email, tenantId);
+    const prisma = await getPrismaClient();
+    const customer = await prisma.customer.findFirst({
+      where: {
+        emailid: email,
+        tenantid: tenantId
+      }
+    });
+    console.log("customer", customer);
+    return customer ? customer : null;
+  } catch (err) {
+    return null;
+  }
+}
+
 export async function getEmailOtpCustomer(tenantUserId: string, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
@@ -1472,8 +1490,8 @@ export async function getProductsByCategoryId(categoryId: string) {
 export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
-    const attributes = await prisma.productattributes.findMany({
-      where: { productId: productId }
+    const attributes = await prisma.productattribute.findMany({
+      where: { productid: productId }
     });
     return attributes;
   } catch (err) {
@@ -1490,6 +1508,15 @@ export async function filterProducts(filters: productfilter[]) {
 
     filters.forEach((filter) => {
       const condition: any = {};
+
+	 
+      if (filter.key === "rarity") {
+        // Check if the value is not one of the allowed product rarities
+        const rarityValue = filter.value as productRarity;
+        if (!Object.values(productRarity).includes(rarityValue)) {
+          throw new Error(`Invalid rarity value: ${filter.value}. Allowed values are ${Object.values(productRarity).join(", ")}.`);
+        }
+	}
 
       if (filter.key === "price" || filter.key === "rarity") {
         if (filter.key === "price") {
@@ -1544,8 +1571,12 @@ export async function filterProducts(filters: productfilter[]) {
     });
 
     return products;
-  } catch (err) {
-    throw err;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while removing the product from wishlist.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
@@ -1867,11 +1898,11 @@ export async function addReview(productReview:productreview) {
     const newReview = await prisma.productreview.create({
       data: {
         customerid,
-        productid,
         orderid,
+        productid,
         comment,
         rating,
-        updatedat:new Date().toISOString()
+        updatedat: new Date().toISOString()
       }
     });
 
@@ -2038,7 +2069,8 @@ export async function removeProductFromCollection(collectionId: string, productI
           productid: productId
         }
       }
-    });
+     }
+    );
 
     const updatedCollection = await prisma.productcollection.findFirst({
       where: {
