@@ -13,7 +13,7 @@ import { Defaults, UnixNow } from "avalanche/dist/utils";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 import { UnsignedTx, UTXOSet, GetUTXOsResponse, PlatformVMAPI, GetValidatorsAtResponse, KeyChain as PlatformVMKeyChain, Tx as PlatformVMTx } from "avalanche/dist/apis/platformvm";
-import { getAvaxBalance,getAvaxConnection, getAvaxTestConnection, verifyAvalancheTransaction } from "./commonFunctions";
+import { getAvaxBalance,getAvaxConnection, verifyAvalancheTransaction } from "./commonFunctions";
 import { InfoAPI } from "avalanche/dist/apis/info";
 
 
@@ -233,7 +233,7 @@ export async function stakeAvax(
   rewardAddresses: string[]
 ) {
   try {
-    const { xchain, pchain } = await getAvaxTestConnection();
+    const { xchain, pchain } = await getAvaxConnection();
     const networkID  = 1;
 
     const amountToStake = parseFloat(amount.toString());
