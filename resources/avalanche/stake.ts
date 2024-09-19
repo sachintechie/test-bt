@@ -290,9 +290,10 @@ export async function createStakeAccountWithStakeProgram(
     // Sign the transaction using Cubist Signer
     
     const signedTx = await senderKey.signAva(stakeTx);
-    console.log("Stake signedTx:", signedTx);
-    const result = await pvmapi.issueSignedTx(signedTx.getSignedTx());
-    console.log("Stake Transaction Result:", result);
+    // stakeTx.addSignature(ava.utils.hexToBuffer(signedTx.data().signature));
+    // console.log("Stake signedTx:", signedTx);
+    // const result = await pvmapi.issueSignedTx(stakeTx);
+    console.log("Stake Transaction Result:", signedTx);
     // Update and return signed transaction
     return { txHash: signedTx.toString(), stakeAccountPubKey: senderKey.publicKey.toString() };
     } catch (err: any) {
