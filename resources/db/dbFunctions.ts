@@ -1965,14 +1965,23 @@ export async function addProductToCollection(productcollection:productcollection
       throw new Error("This product is already in the collection.");
     }
 
-    const newProductInCollection = await prisma.productcollectionproducts.create({
+    await prisma.productcollectionproducts.create({
       data: {
         productcollectionid: collection.id,
         productid
       }
     });
 
-    return newProductInCollection;
+    const updatedCollection = await prisma.productcollection.findFirst({
+      where: {
+        id: collection.id
+      },
+      include: {
+        products: true, 
+      }
+    });
+
+    return updatedCollection;
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the product to the collection.");
@@ -2003,7 +2012,7 @@ export async function removeProductFromCollection(collectionId: string, productI
     }
 
     // Remove the product from the collection
-    const removedProduct = await prisma.productcollectionproducts.delete({
+  await prisma.productcollectionproducts.delete({
       where: {
         productcollectionid_productid: {
           productcollectionid: collectionId,
@@ -2012,7 +2021,16 @@ export async function removeProductFromCollection(collectionId: string, productI
       }
     });
 
-    return removedProduct;
+    const updatedCollection = await prisma.productcollection.findFirst({
+      where: {
+        id: collectionId
+      },
+      include: {
+        products: true,  // Include the updated products list
+      }
+    });
+
+    return updatedCollection;
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while removing the product from the collection.");
