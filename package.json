@@ -16,6 +16,7 @@
     "format:write": "prettier --write ."
   },
   "dependencies": {
+    "@avalabs/avalanchejs": "^4.0.5",
     "@aws-sdk/client-iam": "^3.614.0",
     "@aws-sdk/client-organizations": "^3.614.0",
     "@aws-sdk/client-secrets-manager": "^3.583.0",
@@ -50,6 +51,7 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/mocha": "^9.1.1",
     "@types/pg": "^8.11.6",
+    "@types/bn.js": "^5.1.6",
     "aws-cdk": "2.141.0",
     "chai": "^4.3.6",
     "globals": "^15.3.0",

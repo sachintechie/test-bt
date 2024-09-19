@@ -1,21 +1,24 @@
-import { AVMAPI } from "avalanche/dist/apis/avm";
-import { PlatformVMAPI } from "avalanche/dist/apis/platformvm";
 
-import { Avalanche, Buffer, BinTools } from 'avalanche';
+
+import { avm, pvm, evm } from '@avalabs/avalanchejs';
+
 export async function getAvaxBalance(address: string) {
   try{
+ 
     const pAddress: string = "P-" + address; 
-    console.log(`Fetching balance for address: ${pAddress}`);
-    const { xchain, pchain } = await getAvaxConnection();
-  
-console.log("P-Chain Balance:" + await pchain.getBalance(address));
-console.log("P-Chain Balance:" + await pchain.getBalance(pAddress));
+    const { avmapi, pvmapi } = await getAvaxConnection();
 
-    const balanceResponse = await pchain.getTx(pAddress);
-    const balance = balanceResponse.toString();
+    console.log(`Fetching balance for address: ${await pvmapi.getBalance({ addresses: [address] })}`);
+    console.log(`Fetching balance for address: ${await pvmapi.getBalance({ addresses: [pAddress] })}`);
+
+    console.log(`Fetching balance for address: ${pAddress}`);
+    const { utxos } = await pvmapi.getUTXOs({ addresses: [address] });
+
+console.log("P-Chain Balance:" + await pvmapi.getUTXOs({ addresses: [address] }));
+console.log("P-Chain Balance:" + await pvmapi.getUTXOs({ addresses: [pAddress] }));
+
+    const balance = utxos.toString();
     console.log(`P-Chain Balance: ${balance} nAVAX`);
-    const balanceres = await pchain.getTx(address);
-    console.log("P-Chain Balance:" + balanceres);
   
     return Number.parseInt(balance);}
     catch (error) {
@@ -25,25 +28,27 @@ console.log("P-Chain Balance:" + await pchain.getBalance(pAddress));
   }
   
   export async function getAvaxConnection() {
-    const avalanche = new Avalanche('testnet'); // Connect to Avalanche testnet
+    const pvmapi = new pvm.PVMApi("https://api.avax-test.network/ext/bc/P");
+    const avmapi = new avm.AVMApi("https://api.avax-test.network/ext/bc/P");
+
     // const ip: string = process.env["AVAX_URL"]! // Testnet URL
     // const port: number = 443; 
     // const protocol: string = "https";
      const AVAX_NETWORK_ID: string = process.env["AVAX_NETWORK_ID"]!; 
      const networkID: number = Number.parseInt(AVAX_NETWORK_ID); 
   //  const avalanche: Avalanche = new Avalanche(ip, port, protocol, networkID);
-    const xchain: AVMAPI = avalanche.XChain();
-    const pchain: PlatformVMAPI = avalanche.PChain(); 
-        return { xchain, pchain, networkID };
+    // const xchain: AVMAPI = avalanche.XChain();
+    // const pchain: PlatformVMAPI = avalanche.PChain(); 
+        return { pvmapi, avmapi, networkID };
 }
 
 
 
   export async function verifyAvalancheTransaction(txID: string) {
     try {
-        const { pchain } = await getAvaxConnection();
-      const status = await pchain.getTxStatus(txID);
-      console.log(`Transaction Status: ${status}`);
+        const { pvmapi } = await getAvaxConnection();
+      const status = await pvmapi.getTxStatus({txID});
+      console.log(`Transaction Status: ${status.status}`);
       return status;
     } catch (error) {
       console.error("Error fetching transaction status:", error);

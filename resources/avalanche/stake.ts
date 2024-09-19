@@ -6,15 +6,13 @@ import {
   insertStakeAccount,
   insertStakingTransaction
 } from "../db/dbFunctions";
-
-import { Avalanche, BinTools, Buffer } from "avalanche";
-import { AVMAPI, KeyChain as AVMKeyChain, KeyChain, Tx,  } from "avalanche/dist/apis/avm";
-import { Defaults, UnixNow } from "avalanche/dist/utils";
-import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
+import { avm, pvm, evm, Context, utils, networkIDs } from '@avalabs/avalanchejs';
+import BN from "bn.js";
+import { oidcLogin } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
-import { UnsignedTx, UTXOSet, GetUTXOsResponse, PlatformVMAPI, GetValidatorsAtResponse, KeyChain as PlatformVMKeyChain, Tx as PlatformVMTx } from "avalanche/dist/apis/platformvm";
 import { getAvaxBalance,getAvaxConnection, verifyAvalancheTransaction } from "./commonFunctions";
-import { InfoAPI } from "avalanche/dist/apis/info";
+import { GetValidatorsAtResponse, PVMApi } from "@avalabs/avalanchejs/dist/vms/pvm";
+import { sign } from "jsonwebtoken";
 
 
 const env: any = {
@@ -108,7 +106,7 @@ export async function AvalancheStaking(
 
   // 9. Verify the transaction and insert the stake account and staking transaction
   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
-  const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+  const txStatus = transactionStatus?.status === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
   const stakeAccountStatus = StakeAccountStatus.OPEN;
 
   
@@ -134,7 +132,7 @@ export async function AvalancheStaking(
   return { transaction, error: null };
 }
 
-async function getValidatorStake(pchain: PlatformVMAPI, validatorNodeKey: string) {
+async function getValidatorStake(pchain: PVMApi, validatorNodeKey: string) {
   try {
    // Fetch current validators information
    const validatorInfo: GetValidatorsAtResponse = await pchain.getCurrentValidators() as GetValidatorsAtResponse;
@@ -168,7 +166,7 @@ async function getValidatorStake(pchain: PlatformVMAPI, validatorNodeKey: string
   }
 }
 
-async function getValidatorDelegationFee(pchain: PlatformVMAPI, validatorNodeKey: string) {
+async function getValidatorDelegationFee(pchain: PVMApi, validatorNodeKey: string) {
   try {
     // Fetch current validators information
    const validatorInfo: GetValidatorsAtResponse = await pchain.getCurrentValidators() as GetValidatorsAtResponse;
@@ -196,7 +194,7 @@ async function getValidatorDelegationFee(pchain: PlatformVMAPI, validatorNodeKey
   }
 }
 
-async function getValidatorUptime(pchain: PlatformVMAPI, validatorNodeKey: string) {
+async function getValidatorUptime(pchain: PVMApi, validatorNodeKey: string) {
   try {
     // Fetch current validators information
     const validatorInfo: GetValidatorsAtResponse = await pchain.getCurrentValidators() as GetValidatorsAtResponse;
@@ -233,7 +231,7 @@ export async function stakeAvax(
   rewardAddresses: string[]
 ) {
   try {
-    const { xchain, pchain } = await getAvaxConnection();
+    const { avmapi, pvmapi } = await getAvaxConnection();
     const networkID  = 1;
 
     const amountToStake = parseFloat(amount.toString());
@@ -265,7 +263,7 @@ export async function stakeAvax(
     }
 
     // getting delegation fee rate check 
-    const delegationFeeRate = await getValidatorDelegationFee(pchain, validatorNodeKey);
+    const delegationFeeRate = await getValidatorDelegationFee(pvmapi, validatorNodeKey);
     if (delegationFeeRate < MIN_DELEGATION_FEE_RATE) {
       return {
         trxHash: null,
@@ -274,7 +272,7 @@ export async function stakeAvax(
     }
 
     // Check maximum weight of validator
-    const validatorStake = await getValidatorStake(pchain , validatorNodeKey); // Placeholder function
+    const validatorStake = await getValidatorStake(pvmapi , validatorNodeKey); // Placeholder function
     const totalWeight = validatorStake.totalDelegated + validatorStake.selfStaked;
     const maxWeight = Math.min(MAX_VALIDATOR_WEIGHT, 5 * validatorStake.selfStaked);
     
@@ -286,7 +284,7 @@ export async function stakeAvax(
     }
 
     //  can integrate the uptime check from your validator
-    const validatorUptime = await getValidatorUptime(pchain, validatorNodeKey); // Placeholder function
+    const validatorUptime = await getValidatorUptime(pvmapi, validatorNodeKey); // Placeholder function
     if (validatorUptime < 80) {
       return {
         trxHash: null,
@@ -333,7 +331,7 @@ export async function stakeAvax(
 
     // using cubesigner client to creat stake transaction
     const staketransaction = await createStakeAccountWithStakeProgram(
-      pchain,
+      pvmapi,
       senderKey,
       amountToStake,
       validatorNodeKey, // Use validatorNodeKey directly as string
@@ -350,7 +348,7 @@ export async function stakeAvax(
 
 
 export async function createStakeAccountWithStakeProgram(
-  pchain: PlatformVMAPI,
+  pvmapi: PVMApi,
   senderKey: Key,
   amount: number,
   validatorNodeKey: string,
@@ -361,39 +359,40 @@ export async function createStakeAccountWithStakeProgram(
    try { 
  // const { networkID } = await getAvaxConnection();
   const stakeAmountString: string = amount.toFixed(0); // Amount to stake in nAVAX (1 AVAX = 10^9 nAVAX)
-  const startTime: number = UnixNow() + 60; // Start staking in 60 seconds
-  const endTime: number = lockupExpirationTimestamp; // Use the provided expiration timestamp
-  const pKeychain: PlatformVMKeyChain = pchain.keyChain();
-  const pAddressStrings: string[] = pKeychain.getAddressStrings();
+  const starttime: Number = Date.now() ; // Start staking in 60 seconds
+  const endtime: Number = Date.now() + 60; // Use the provided expiration timestamp
+  const pAddressStrings: string = senderKey.materialId;
 
   console.log("pAddressStrings", pAddressStrings);
   console.log("stakeAmountString", stakeAmountString);
-  console.log("startTime", startTime);
-  console.log("endTime", endTime);
+
   console.log("validatorNodeKey", validatorNodeKey);
   console.log("rewardAddresses", rewardAddresses);
-  
-    
+  const start =  BigInt(Math.floor(Date.now() / 1000) + 60) // Stake starts in 60 seconds
+const end =  BigInt(Math.floor(Date.now() / 1000) + 3600) //
+console.log("startTime", start);
+console.log("endTime", end);
+  const context = await Context.getContextFromURI(process.env.AVAX_PUBLIC_URL);
 
-  const utxoResponse: GetUTXOsResponse = await pchain.getUTXOs(pAddressStrings);
-  const utxoSet: UTXOSet = utxoResponse.utxos;
+  const { utxos } = await pvmapi.getUTXOs({ addresses:  [senderKey.materialId] });
+  const stakeTx = pvm.newAddPermissionlessDelegatorTx(
+    context,
+    utxos,
+    [utils.bech32ToBytes(pAddressStrings)],
+    validatorNodeKey,
+    networkIDs.PrimaryNetworkID.toString(),
+    start ,
+    end,
+    BigInt(1e9),
+    [utils.bech32ToBytes(pAddressStrings)]
+  );
 
-    // Build the Add Delegator Transaction
-    const stakeTx: UnsignedTx = await pchain.buildAddDelegatorTx(
-      utxoSet,
-      pAddressStrings,
-      pAddressStrings,
-      pAddressStrings,
-      stakeAmountString,
-      startTime,
-      endTime,
-      validatorNodeKey,
-      rewardAddresses
-    );
     
     // Sign the transaction using Cubist Signer
-    const signedTx: PlatformVMTx = await oidcClient.signTransaction(oidcClient, stakeTx );
-
+    const signedTx = await oidcClient.signTransaction(oidcClient, stakeTx );
+    
+    const result = await pvmapi.issueSignedTx(signedTx.getSignedTx());
+    console.log("Stake Transaction Result:", result);
     // Update and return signed transaction
     return { txHash: signedTx.toString(), stakeAccountPubKey: senderKey.publicKey.toString() };
   } catch (err: any) {
