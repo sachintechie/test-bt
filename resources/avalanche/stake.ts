@@ -236,8 +236,8 @@ export async function stakeAvax(
 
     const amountToStake = parseFloat(amount.toString());
     // Check staking parameters
-    const MIN_VALIDATOR_STAKE = networkID === 1 ? 2000 : 1; // Mainnet or Fuji Testnet
-    const MIN_DELEGATOR_STAKE = networkID === 1 ? 25 : 1;
+    const MIN_VALIDATOR_STAKE = networkID === 1 ? 1 : 1; // Mainnet or Fuji Testnet
+    const MIN_DELEGATOR_STAKE = networkID === 1 ? 1 : 1;
     const MIN_VALIDATION_TIME = networkID === 1 ? 2 * 7 * 24 * 60 * 60 : 24 * 60 * 60; // 2 weeks or 24 hours
     const MAX_VALIDATION_TIME = networkID === 1 ? 365 * 24 * 60 * 60 : 365 * 24 * 60 * 60; // 1 year
     const MIN_DELEGATION_FEE_RATE = 2; // Minimum delegation fee rate (in percentage)
@@ -245,7 +245,7 @@ export async function stakeAvax(
 
 
 
-    if (amountToStake < MIN_VALIDATOR_STAKE && amountToStake < MIN_DELEGATOR_STAKE) {
+    if (amountToStake < MIN_DELEGATOR_STAKE) {
       return {
         trxHash: null,
         error: "Stake amount does not meet the minimum requirement."

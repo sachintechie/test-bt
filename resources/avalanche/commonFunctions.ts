@@ -19,9 +19,9 @@ export async function getAvaxBalance(address: string) {
 }
 
 export async function getAvaxConnection() {
-  const pvmapi = new pvm.PVMApi("https://api.avax-test.network");
-  const avmapi = new avm.AVMApi("https://api.avax-test.network");
-
+  const pvmapi = new pvm.PVMApi( process.env["AVAX_URL"]);
+  const avmapi = new avm.AVMApi( process.env["AVAX_URL"]);
+ 
   // const ip: string = process.env["AVAX_URL"]! // Testnet URL
   // const port: number = 443;
   // const protocol: string = "https";
