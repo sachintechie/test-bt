@@ -43,6 +43,8 @@ export const handler = async (event: any) => {
         console.log("Wallet", response);
         return response;
       }
+
+      
       if (event.arguments?.input?.chainType === "Avalanche") {
         const data = await AvalancheStaking(
           event.identity.resolverContext as tenant,
@@ -63,7 +65,7 @@ export const handler = async (event: any) => {
           data: data?.transaction,
           error: data?.error
         };
-        console.log("Wallet", response);
+        console.log("AvalancheStaking response Wallet", response);
         return response;
       }
       
