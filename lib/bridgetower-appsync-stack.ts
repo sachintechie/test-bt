@@ -45,7 +45,7 @@ const MUTATIONS=[
   'updateProductAttribute',
   'addSubAdmin',
   'addReview',
-  'CreateCollection',
+  'createCollection',
   'addProductToCollection',
   'removeProductFromCollection'
 ]
