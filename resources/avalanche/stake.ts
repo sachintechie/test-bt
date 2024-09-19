@@ -365,6 +365,13 @@ export async function createStakeAccountWithStakeProgram(
   const endTime: number = lockupExpirationTimestamp; // Use the provided expiration timestamp
   const pKeychain: PlatformVMKeyChain = pchain.keyChain();
   const pAddressStrings: string[] = pKeychain.getAddressStrings();
+
+  console.log("pAddressStrings", pAddressStrings);
+  console.log("stakeAmountString", stakeAmountString);
+  console.log("startTime", startTime);
+  console.log("endTime", endTime);
+  console.log("validatorNodeKey", validatorNodeKey);
+  console.log("rewardAddresses", rewardAddresses);
   
     
 
