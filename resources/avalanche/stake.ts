@@ -361,7 +361,7 @@ export async function createStakeAccountWithStakeProgram(
   const stakeAmountString: string = amount.toFixed(0); // Amount to stake in nAVAX (1 AVAX = 10^9 nAVAX)
   const starttime: Number = Date.now() ; // Start staking in 60 seconds
   const endtime: Number = Date.now() + 60; // Use the provided expiration timestamp
-  const pAddressStrings: string = senderKey.materialId;
+  const pAddressStrings: string = "P-" +senderKey.materialId;
 
   console.log("pAddressStrings", pAddressStrings);
   console.log("stakeAmountString", stakeAmountString);
