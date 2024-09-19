@@ -19,6 +19,7 @@ console.log("P-Chain Balance:" + await pchain.getBalance(pAddress));
   
     return Number.parseInt(balance);}
     catch (error) {
+      console.error("Error fetching balance:", error);
       return 0;
     }
   }
