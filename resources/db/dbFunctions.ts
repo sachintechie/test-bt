@@ -1991,10 +1991,10 @@ export async function removeProductFromCollection(collectionId: string, productI
     // Check if the product exists in the collection
     const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
       where: {
-        productcollectionid_productid: { 
-          productcollectionid: collectionId,
-          productid: productId
-        }
+        AND: [
+          { productcollectionid: collectionId },
+          { productid: productId }
+        ]
       }
     });
 
@@ -2005,8 +2005,10 @@ export async function removeProductFromCollection(collectionId: string, productI
     // Remove the product from the collection
     const removedProduct = await prisma.productcollectionproducts.delete({
       where: {
+        productcollectionid_productid: {
           productcollectionid: collectionId,
           productid: productId
+        }
       }
     });
 

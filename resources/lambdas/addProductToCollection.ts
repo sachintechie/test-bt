@@ -8,7 +8,7 @@ export const handler = async (event: any, context: any) => {
       return {
         status: 400,
         data: null,
-        error: "Customer ID, Product ID Title and Description must be provided."
+        error: "Customer ID, Product ID, Title and Description must be provided."
       };
     }
 
