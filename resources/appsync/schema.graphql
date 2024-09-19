@@ -1,7 +1,7 @@
 input AddProductToCollectionInput {
 	customerId: String
 	productId: String 
-	collectionId:string
+	collectionId:String
 }
 
 input CreateCollectionInput {
