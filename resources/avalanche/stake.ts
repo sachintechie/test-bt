@@ -285,12 +285,13 @@ export async function stakeAvax(
 
     //  can integrate the uptime check from your validator
     const validatorUptime = await getValidatorUptime(pvmapi, validatorNodeKey); // Placeholder function
-    if (validatorUptime < 80) {
-      return {
-        trxHash: null,
-        error: "Validator uptime is below 80%, staking reward may not be guaranteed."
-      };
-    }
+    console.log("Validator Uptime:", validatorUptime);
+    // if (validatorUptime < 80) {
+    //   return {
+    //     trxHash: null,
+    //     error: "Validator uptime is below 80%, staking reward may not be guaranteed."
+    //   };
+    // }
    
     const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
     
