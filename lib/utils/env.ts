@@ -47,7 +47,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        AVAX_URL:'api.avax-test.network',
+        AVAX_URL:'https://api.avax-test.network',
         AVAX_NETWORK_ID:'43113'
       };
     case "staging":
@@ -64,7 +64,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         SOLANA_NETWORK: "mainnet",
         SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
         CS_API_ROOT: "https://prod.signer.cubist.dev",
-        AVAX_URL:'api.avax.network',
+        AVAX_URL:'https://api.avax.network',
         AVAX_NETWORK_ID:'1',
 
       };
@@ -74,7 +74,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
-          AVAX_URL:'api.avax.network',
+          AVAX_URL:'https://api.avax.network',
           AVAX_NETWORK_ID:'1',
         };
     case "ondemand-prod":
@@ -83,7 +83,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
           SOLANA_NETWORK: "mainnet",
           SOLANA_NETWORK_URL: "https://mainnet.helius-rpc.com/?api-key=c32a796d-9a0e-4c52-86b4-477f27a60b21",
           CS_API_ROOT: "https://prod.signer.cubist.dev",
-          AVAX_URL:'api.avax.network',
+          AVAX_URL:'https://api.avax.network',
           AVAX_NETWORK_ID:'1',
         };  
     default:
@@ -92,7 +92,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
-        AVAX_URL:'api.avax-test.network',
+        AVAX_URL:'https://api.avax-test.network',
         AVAX_NETWORK_ID:'43113'
       };
   }
