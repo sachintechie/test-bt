@@ -27,6 +27,7 @@ export interface updatecustomer {
 
 export interface tenant {
   id: string;
+  customerid: string;
   name: string;
   apikey: string;
   logo: string;
@@ -113,11 +114,11 @@ createdat : string
 
 export interface productreview {
   id?: string;
-  customerid?: string;
+  customerid: string;
   productid?: string;
   orderid?:string;
-  comment?: string;
-  rating?: number;
+  comment: string;
+  rating: number;
 }
 
 export interface createcollection {

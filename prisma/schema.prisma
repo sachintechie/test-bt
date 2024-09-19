@@ -418,8 +418,8 @@ model orders {
 
 model productreview {
   id          String       @id @default(uuid())
-  comment     String
-  rating      Float
+  comment     String?
+  rating      Float?
   customerid String
   customer   customer?    @relation(fields: [customerid], references: [id])
   productid   String?

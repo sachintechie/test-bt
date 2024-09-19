@@ -1,188 +1,88 @@
-
-type SignIn {
-  status: Int
-  data: SignInData
-  error: AWSJSON
-}
-
-type SignInData {
-  id: String
-  createdat: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
-}
-
-
-input SigninInput {
-  tenantUserId: String!
-}
-
-input AddSubAdminInput {
-  emailId: String!
-  name: String!
-  password: String!
-}
-
-
 type AddSubAdmin {
-  status: Int
-  data: AddSubAdminData
-  error: AWSJSON
+	status: Int
+	data: AddSubAdminData
+	error: AWSJSON
 }
 
 type AddSubAdminData {
-  id: String
-  createdat: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
+	id: String
+	createdat: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
 }
 
-
-type AdminTransfer {
-  status: Int
-  data: AdminTransferData
-  error: AWSJSON
-}
-
-type AdminTransferData {
-  adminuserid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  status: String
-  transactionid: String
-  network: String
-  tenanttransactionid: String
-}
-
-
-
-input AdminTransferInput {
-  senderWalletAddress: String!
-  recipients: [AdminRecipient]!
-  symbol: String!
-  chainType: String!
-  adminUserId: String!
-  tenantTransactionId: String!
-}
-
-input CreateWalletInput {
-  tenantUserId: String!
-  chainType: String!
-}
-
-type GetWallet {
-  status: Int
-  data: GetWalletData
-  error: AWSJSON
-}
-
-type GetWalletData {
-  customerid: String
-  walletaddress: String
-  createdat: String
-  chaintype: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
+input AddSubAdminInput {
+	emailId: String!
+	name: String!
+	password: String!
 }
 
 input AdminRecipient {
-  walletAddress: String
-  amount: Float
+	walletAddress: String
+	amount: Float
 }
 
-
-type ListWalletTransactions {
-  status: Int
-  data: TransactionListData
-  error: AWSJSON
+type AdminTransfer {
+	status: Int
+	data: AdminTransferData
+	error: AWSJSON
 }
 
-type TransactionListData{
-total : Int
-totalPages : Int
-transactions : [TransactionData]
+type AdminTransferData {
+	adminuserid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	status: String
+	transactionid: String
+	network: String
+	tenanttransactionid: String
 }
 
-type TransactionData {
-  customerid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  tenantuserid: String
-  status: String
-  callbackstatus: String
-  id: String
-  network: String
-  tenanttransactionid: String
-}
-input ListWalletTokenInput {
-  walletAddress: String!,
-  limit: Int!,
-  pageNo: Int!,
+input AdminTransferInput {
+	senderWalletAddress: String!
+	recipients: [AdminRecipient]!
+	symbol: String!
+	chainType: String!
+	adminUserId: String!
+	tenantTransactionId: String!
 }
 
-input GetAdminTransactionInput {
-tenantTransactionId: String!
+type AdminUserData {
+	id: String
+	createdat: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
 }
 
-input GetAdminWalletBalanceInput {
-  walletAddress: String!
-  symbol: String
-}
-
-type GetAdminWalletBalance {
-  status: Int
-  data: [GetAdminWalletBalanceData]
-  error: AWSJSON
-}
-
-type GetAdminWalletBalanceData {
-  walletaddress: String!
-  symbol: String
-  createdat: String
-  chaintype: String
-  contractaddress: String
-  balance: Float
-  tokenname: String
-}
-
-input CreateCategoryInput {
-  categoryName: String!
-}
-
-type CategoryResponse {
-  status: Int
-  data: CategoryData
-  error: AWSJSON
+type AdminUserListData {
+	total: Int
+	totalPages: Int
+	users: [AdminUserData]
 }
 
 type CategoryData {
-  name: String!
-  tenantid: String!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
+	name: String!
+	tenantid: String!
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
-enum ProductRarity {
-  NORMAL
-  RARE
-  EPIC
-  LEGENDARY
-  MYTHICAL
+type CategoryResponse {
+	status: Int
+	data: CategoryData
+	error: AWSJSON
+}
+
+input CreateCategoryInput {
+	categoryName: String!
 }
 
 input CreateProductInput {
@@ -201,47 +101,204 @@ input CreateProductInput {
 	tokenId: Int
 }
 
- type ProductResponse {
-  status: Int
-  data: ProductData
-  error: AWSJSON
+input CreateWalletInput {
+	tenantUserId: String!
+	chainType: String!
 }
 
-type ProductData {
-  id: String!
-  name: String!
-  categoryid: String!
-  rarity: ProductRarity
-  price: Float
-  purchasedpercentage: Float
-  availablepercentage: Float
-  category: CategoryData!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-  productattributes: [ProductAttributeData!]!
+input GetAdminTransactionInput {
+	tenantTransactionId: String!
 }
 
-input ProductAttributeInput {
-  key: String!
-  value: String!
-  type: String!
-  productId: String!
+type GetAdminWalletBalance {
+	status: Int
+	data: [GetAdminWalletBalanceData]
+	error: AWSJSON
 }
 
-type ProductAttributeResponse {
-  status: Int
-  data: ProductAttributeData
-  error: AWSJSON
+type GetAdminWalletBalanceData {
+	walletaddress: String!
+	symbol: String
+	createdat: String
+	chaintype: String
+	contractaddress: String
+	balance: Float
+	tokenname: String
+}
+
+input GetAdminWalletBalanceInput {
+	walletAddress: String!
+	symbol: String
+}
+
+input GetCategoriesByTenantIdInput {
+	tenantId: String
+}
+
+type GetCategoriesResponse {
+	status: Int
+	data: [CategoryData]
+	error: AWSJSON
+}
+
+input GetCategoryByIdInput {
+	categoryId: String
+}
+
+input GetProductAttributesByProductIdInput {
+	productId: String!
+}
+
+type GetProductAttributesResponse {
+	status: Int
+	data: [ProductAttributeData]
+	error: AWSJSON
+}
+
+input GetProductByIdInput {
+	productId: String
+}
+
+input GetProductsByCategoryIdInput {
+	categoryId: String
+}
+
+type GetProductsResponse {
+	status: Int
+	data: [ProductData]
+	error: AWSJSON
+}
+
+type GetWallet {
+	status: Int
+	data: GetWalletData
+	error: AWSJSON
+}
+
+type GetWalletData {
+	customerid: String
+	walletaddress: String
+	createdat: String
+	chaintype: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
+}
+
+type ListAdminUsers {
+	status: Int
+	data: AdminUserListData
+	error: AWSJSON
+}
+
+input ListAdminUsersInput {
+	limit: Int!
+	pageNo: Int!
+}
+
+input ListWalletTokenInput {
+	walletAddress: String!
+	limit: Int!
+	pageNo: Int!
+}
+
+type ListWalletTransactions {
+	status: Int
+	data: TransactionListData
+	error: AWSJSON
 }
 
 type ProductAttributeData {
-  id: String!
-  key: String!
-  value: String!
-  type: String!
-  productid: String!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
+	id: String!
+	key: String!
+	value: String!
+	type: String!
+	productid: String!
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+}
+
+input ProductAttributeInput {
+	key: String!
+	value: String!
+	type: String!
+	productId: String!
+}
+
+type ProductAttributeResponse {
+	status: Int
+	data: ProductAttributeData
+	error: AWSJSON
+}
+
+type ProductData {
+	id: String!
+	name: String!
+	categoryid: String!
+	rarity: ProductRarity
+	price: Float
+	purchasedpercentage: Float
+	availablepercentage: Float
+	category: CategoryData!
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+	productattributes: [ProductAttributeData!]!
+}
+
+enum ProductRarity {
+	NORMAL
+	RARE
+	EPIC
+	LEGENDARY
+	MYTHICAL
+}
+
+type ProductResponse {
+	status: Int
+	data: ProductData
+	error: AWSJSON
+}
+
+type SignIn {
+	status: Int
+	data: SignInData
+	error: AWSJSON
+}
+
+type SignInData {
+	id: String
+	createdat: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
+}
+
+input SigninInput {
+	tenantUserId: String!
+}
+
+type TransactionData {
+	customerid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	tenantuserid: String
+	status: String
+	callbackstatus: String
+	id: String
+	network: String
+	tenanttransactionid: String
+}
+
+type TransactionListData {
+	total: Int
+	totalPages: Int
+	transactions: [TransactionData]
 }
 
 input UpdateCategoryInput {
@@ -250,108 +307,71 @@ input UpdateCategoryInput {
 }
 
 type UpdateCategoryResponse {
-  status: Int
-  data: CategoryData
-  error: AWSJSON
-}
-
-input UpdateProductInput {
-  productId: String!
-  productData: UpdateProductInputData!
-}
-
-input UpdateProductInputData {
-  name: String
-  categoryId: String
-  rarity: ProductRarity
-  price: Float
-  purchasedPercentage: Float
-}
-
- type UpdateProductResponse {
-  status: Int
-  data: ProductData
-  error: AWSJSON
+	status: Int
+	data: CategoryData
+	error: AWSJSON
 }
 
 input UpdateProductAttributeInput {
-  key: String!
-  newValue: String!
-  productId: String!
+	key: String!
+	newValue: String!
+	productId: String!
 }
 
 type UpdateProductAttributeResponse {
-  status: Int
-  data:ProductAttributeData
-  error: AWSJSON
+	status: Int
+	data: ProductAttributeData
+	error: AWSJSON
 }
 
-type GetCategoriesResponse {
-  status: Int
-  data: [CategoryData]
-  error: AWSJSON
+input UpdateProductInput {
+	productId: String!
+	productData: UpdateProductInputData!
 }
 
-input GetCategoryByIdInput {
-  categoryId: String
+input UpdateProductInputData {
+	name: String
+	categoryId: String
+	rarity: ProductRarity
+	price: Float
+	purchasedPercentage: Float
 }
 
-input GetCategoriesByTenantIdInput {
-  tenantId: String
-}
-
-type GetProductsResponse {
-  status: Int
-  data: [ProductData]
-  error: AWSJSON
-}
-
-input GetProductByIdInput {
-  productId: String
-}
-
-input GetProductsByCategoryIdInput {
-  categoryId: String
-}
-
-input GetProductAttributesByProductIdInput {
-  productId: String!
-}
-
-type GetProductAttributesResponse {
-  status: Int
-  data: [ProductAttributeData]
-  error: AWSJSON
-}
-
-type Query {
-  AdminSignin(input: SigninInput): SignIn
-  CreateAdminWallet(input: CreateWalletInput): GetWallet
-  ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
-  GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
-  GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-  GetCategories: GetCategoriesResponse
-  GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
-  GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-  GetProducts: GetProductsResponse
-  GetProductById(input: GetProductByIdInput): ProductResponse
-  GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
-  GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+type UpdateProductResponse {
+	status: Int
+	data: ProductData
+	error: AWSJSON
 }
 
 type Mutation {
-  AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
-  AdminTransfer(input: AdminTransferInput): AdminTransfer
-  CreateTokenAccount(input: AdminTransferInput): AdminTransfer
-  CreateCategory(input: CreateCategoryInput): CategoryResponse
-  CreateProduct(input: CreateProductInput): ProductResponse
-  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
-  UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
-  UpdateProduct(input: UpdateProductInput): UpdateProductResponse
-  UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
+	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
+	AdminTransfer(input: AdminTransferInput): AdminTransfer
+	CreateTokenAccount(input: AdminTransferInput): AdminTransfer
+	CreateCategory(input: CreateCategoryInput): CategoryResponse
+	CreateProduct(input: CreateProductInput): ProductResponse
+	CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+	UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
+	UpdateProduct(input: UpdateProductInput): UpdateProductResponse
+	UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
+}
+
+type Query {
+	AdminSignin(input: SigninInput): SignIn
+	CreateAdminWallet(input: CreateWalletInput): GetWallet
+	ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+	ListAdminUsers(input: ListAdminUsersInput): ListAdminUsers
+	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
+	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
+	GetCategories: GetCategoriesResponse
+	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
+	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
+	GetProducts: GetProductsResponse
+	GetProductById(input: GetProductByIdInput): ProductResponse
+	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
+	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 schema {
-  query: Query
-  mutation: Mutation
+	query: Query
+	mutation: Mutation
 }
