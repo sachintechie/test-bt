@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute, productreview, productcollection } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productfilter, orders, orderstatus, productreview, createcollection, addtocollection } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1922,9 +1922,44 @@ export async function getReviewsByProductId(productId: string) {
   }
 }
 
-export async function addProductToCollection(productcollection:productcollection) {
+export async function createCollection(createcollection:createcollection) {
   const prisma = await getPrismaClient();
-  const {customerid,description,productid,title } = productcollection
+  const {customerid,description,title } = createcollection
+  try {
+    const collection = await prisma.productcollection.findFirst({
+      where: {
+        customerid,
+        title,
+        description
+      }
+    });
+    if(collection) 
+    {
+      throw new Error("Collection is already present");
+    }
+
+     const newCollection = await prisma.productcollection.create({
+        data: {
+          customerid,
+          title,
+          description,
+          updatedat: new Date().toISOString()
+        }
+      });
+
+    return newCollection;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product to the collection.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function addProductToCollection(productcollection:addtocollection) {
+  const prisma = await getPrismaClient();
+  const {customerid,productid,collectionid } = productcollection
   try {
     const owned = await prisma.orders.findFirst({
       where: {
@@ -1936,27 +1971,10 @@ export async function addProductToCollection(productcollection:productcollection
     if(!owned){
       throw new Error("This product is not owned by this customer");
     }
-    let collection = await prisma.productcollection.findFirst({
-      where: {
-        customerid,
-        title
-      }
-    });
-
-    if (!collection) {
-      collection = await prisma.productcollection.create({
-        data: {
-          customerid,
-          title,
-          description,
-          updatedat: new Date().toISOString()
-        }
-      });
-    }
 
     const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
       where: {
-        productcollectionid: collection.id,
+        productcollectionid: collectionid,
         productid
       }
     });
@@ -1967,14 +1985,14 @@ export async function addProductToCollection(productcollection:productcollection
 
     await prisma.productcollectionproducts.create({
       data: {
-        productcollectionid: collection.id,
+        productcollectionid: collectionid,
         productid
       }
     });
 
     const updatedCollection = await prisma.productcollection.findFirst({
       where: {
-        id: collection.id
+        id: collectionid
       },
       include: {
         products: true, 
