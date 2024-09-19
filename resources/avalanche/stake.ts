@@ -61,7 +61,7 @@ export async function AvalancheStaking(
     };
   }
 
-  // 4. Check the Symbol, if AVAX then stake AVAX, if not then return error
+  // 4. Check the Symbol, if SOL then stake SOL, if not then return error
   if (symbol !== "AVAX") {
     return {
       transaction: null,
@@ -86,6 +86,14 @@ export async function AvalancheStaking(
   }
 
   
+  // Checking if lockupExpirationTimestamp is provided or vallid
+  if (!lockupExpirationTimestamp || isNaN(lockupExpirationTimestamp)) {
+    return {
+      transaction: null,
+      error: "Invalid or missing lockupExpirationTimestamp"
+    };
+  }
+
   // 7. Stake AVAX
   const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid, rewardAddresses);
   console.log("[avalancheStaking]tx:", tx);
@@ -227,6 +235,7 @@ export async function stakeAvax(
   try {
     const { xchain, pchain } = await getAvaxConnection();
     const networkID  = 1;
+
     const amountToStake = parseFloat(amount.toString());
     // Check staking parameters
     const MIN_VALIDATOR_STAKE = networkID === 1 ? 2000 : 1; // Mainnet or Fuji Testnet

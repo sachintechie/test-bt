@@ -24,6 +24,8 @@ export async function getAvaxBalance(address: string) {
     return { xchain, pchain, networkID };
 }
 
+
+
   export async function verifyAvalancheTransaction(txID: string) {
     try {
         const { pchain } = await getAvaxConnection();
