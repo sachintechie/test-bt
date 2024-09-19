@@ -9,12 +9,14 @@ export async function getAvaxBalance(address: string) {
     const pAddress: string = "P-" + address; 
     console.log(`Fetching balance for address: ${pAddress}`);
     const { xchain, pchain } = await getAvaxConnection();
-    const balanceres = await pchain.getBalance(address);
-    console.log(balanceres.balance);
+  
 
     const balanceResponse = await pchain.getBalance(pAddress);
     const balance = balanceResponse.balance;
     console.log(`P-Chain Balance: ${balance} nAVAX`);
+    const balanceres = await pchain.getBalance(address);
+    console.log("P-Chain Balance:" + balanceres.balance);
+  
     return balance;}
     catch (error) {
       return 0;
