@@ -358,13 +358,13 @@ export async function createStakeAccountWithStakeProgram(
 ) {
    try { 
  // const { networkID } = await getAvaxConnection();
-  const stakeAmountString: string = amount.toFixed(0); // Amount to stake in nAVAX (1 AVAX = 10^9 nAVAX)
+  const stakeAmount = BigInt (amount); // Amount to stake in nAVAX (1 AVAX = 10^9 nAVAX)
   const starttime: Number = Date.now() ; // Start staking in 60 seconds
   const endtime: Number = Date.now() + 60; // Use the provided expiration timestamp
   const pAddressStrings: string = "P-" +senderKey.materialId;
 
   console.log("pAddressStrings", pAddressStrings);
-  console.log("stakeAmountString", stakeAmountString);
+  console.log("stakeAmount", stakeAmount);
 
   console.log("validatorNodeKey", validatorNodeKey);
   console.log("rewardAddresses", pAddressStrings);
@@ -373,8 +373,10 @@ const end =  BigInt(Math.floor(Date.now() / 1000) + 3600) //
 console.log("startTime", start);
 console.log("endTime", end);
   const context = await Context.getContextFromURI(process.env.AVAX_PUBLIC_URL);
+  console.log("context", context);
 
   const { utxos } = await pvmapi.getUTXOs({ addresses:  [pAddressStrings] });
+console.log("utxos", utxos);
   const stakeTx = pvm.newAddPermissionlessDelegatorTx(
     context,
     utxos,
@@ -383,14 +385,15 @@ console.log("endTime", end);
     networkIDs.PrimaryNetworkID.toString(),
     start ,
     end,
-    BigInt(1e9),
-    [utils.bech32ToBytes(pAddressStrings)]
+    stakeAmount,
+        [utils.bech32ToBytes(pAddressStrings)]
   );
-
+console.log("stakeTx", stakeTx);
     
     // Sign the transaction using Cubist Signer
     const signedTx = await oidcClient.signTransaction(oidcClient, stakeTx );
-    
+    console.log("Stake signedTx:", signedTx);
+
     const result = await pvmapi.issueSignedTx(signedTx.getSignedTx());
     console.log("Stake Transaction Result:", result);
     // Update and return signed transaction
