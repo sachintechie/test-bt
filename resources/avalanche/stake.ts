@@ -124,6 +124,32 @@ async function getValidatorDelegationFee(pchain: PVMApi, validatorNodeKey: strin
   }
 }
 
+async function getValidatorUptime(pchain: PVMApi, validatorNodeKey: string) {
+  try {
+    // Fetch current validators information
+    const validatorInfo: GetValidatorsAtResponse = await pchain.getCurrentValidators() as GetValidatorsAtResponse;
+
+    // Check if the 'validators' field exists
+    if (!validatorInfo || !validatorInfo.validators) {
+      throw new Error("No validators found in the response");
+    }
+
+    const validators = Object.values(validatorInfo.validators);
+
+    const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
+
+    if (!validator) {
+      throw new Error(`Validator with node key ${validatorNodeKey} not found`);
+    }
+
+    // Return the weighted uptime (which is already a percentage)
+    return parseFloat(validator.uptime);
+  } catch (error) {
+    console.error("Error fetching validator uptime: ", error);
+    throw error;
+  }
+}
+
 export async function stakeAvax(
   senderWalletAddress: string,
   amount: number,
@@ -138,12 +164,47 @@ export async function stakeAvax(
     // Validate staking parameters
     const amountToStake = parseFloat(amount.toString());
     const currentTime = Math.floor(Date.now() / 1000);
+    const networkID  = 1;
+    const MIN_VALIDATOR_STAKE = networkID === 1 ? 2000 : 1; // Mainnet or Fuji Testnet
+    const MIN_DELEGATOR_STAKE = networkID === 1 ? 1 : 1;
+    const MIN_VALIDATION_TIME = networkID === 1 ? 2 * 7 * 24 * 60 * 60 : 24 * 60 * 60; // 2 weeks or 24 hours
+    const MAX_VALIDATION_TIME = networkID === 1 ? 365 * 24 * 60 * 60 : 365 * 24 * 60 * 60; // 1 year
+    const MIN_DELEGATION_FEE_RATE = 2; // Minimum delegation fee rate (in percentage)
+    const MAX_VALIDATOR_WEIGHT = 3000000; // Maximum 3 million AVAX or 5x validator stake
     const stakingDuration = lockupExpirationTimestamp - currentTime;
+    if (amountToStake < MIN_VALIDATOR_STAKE && amountToStake < MIN_DELEGATOR_STAKE) {
+      return {
+        trxHash: null,
+        error: "Stake amount does not meet the minimum requirement."
+      };
+    }
 
+    if (stakingDuration < MIN_VALIDATION_TIME || stakingDuration > MAX_VALIDATION_TIME) {
+      return {
+        trxHash: null,
+        error: "Staking duration does not meet the allowed range."
+      };
+    }
+   
     // Fetch validator fee rate and check if it meets the minimum requirement
     const delegationFeeRate = await getValidatorDelegationFee(pvmapi, validatorNodeKey);
     if (delegationFeeRate < 2) return { trxHash: null, error: "Delegation fee rate does not meet the minimum required rate of 2%" };
 
+        // Check maximum weight of validator
+        const validatorStake = await getValidatorStake(pvmapi , validatorNodeKey); // Placeholder function
+        const totalWeight = validatorStake.totalDelegated + validatorStake.selfStaked;
+        const maxWeight = Math.min(MAX_VALIDATOR_WEIGHT, 5 * validatorStake.selfStaked);
+        
+        if (totalWeight > maxWeight) {
+          return {
+            trxHash: null,
+            error: `Validator weight exceeds the limit. Total delegated + self-stake must not exceed ${maxWeight} AVAX.`
+          };
+        }
+
+           //  can integrate the uptime check from your validator
+    const validatorUptime = await getValidatorUptime(pvmapi, validatorNodeKey); // Placeholder function
+   
     // OIDC login and session management
     const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
     if (!oidcClient) return { trxHash: null, error: "Invalid identity token" };
@@ -182,7 +243,7 @@ export async function createStakeAccountWithStakeProgram(
   oidcClient: any
 ) {
   try {
-    const stakeAmount = BigInt(1 * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
+    const stakeAmount = BigInt(amount * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
     console.log("Stake Amount:", stakeAmount);
     const start = BigInt(Math.floor(Date.now() / 1000) + 60); // Stake starts in 60 seconds
     const end = BigInt(lockupExpirationTimestamp); // Stake ends at expiration timestamp

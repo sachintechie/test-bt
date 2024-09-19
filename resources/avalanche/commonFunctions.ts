@@ -8,7 +8,7 @@ export async function getAvaxBalance(address: string) {
     console.log(balanceRes);
     //let sendingAmount = parseFloat(amount.toString());
     let LAMPORTS_PER_AVAX = 10 ** 9;
-    console.log("LAMPORTS_PER_SPLTOKEN", LAMPORTS_PER_AVAX);
+    console.log("LAMPORTS_PER_AVAX", LAMPORTS_PER_AVAX);
 
     const balance = Number(balanceRes.balance) / LAMPORTS_PER_AVAX;
     return balance;
