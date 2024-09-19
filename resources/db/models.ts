@@ -113,7 +113,7 @@ createdat : string
 
 export interface productreview {
   id?: string;
-  customerid?: string;
+  customerid: string;
   productid?: string;
   orderid?:string;
   comment: string;
@@ -123,7 +123,7 @@ export interface productreview {
 export interface productcollection {
   id?: string;
   customerid?: string;
-  productid?: string;
+  productid: string;
   title?: string;
   description?: string;
 }

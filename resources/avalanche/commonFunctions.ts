@@ -8,8 +8,8 @@ export async function getAvaxBalance(address: string) {
     const pAddress: string = "P-" + address; 
     const { avmapi, pvmapi } = await getAvaxConnection();
 
-    console.log(`Fetching balance for address: ${await pvmapi.getBalance({ addresses: [address] })}`);
     console.log(`Fetching balance for address: ${await pvmapi.getBalance({ addresses: [pAddress] })}`);
+    console.log(`Fetching balance for address: ${await pvmapi.getBalance({ addresses: [address] })}`);
 
     console.log(`Fetching balance for address: ${pAddress}`);
     const { utxos } = await pvmapi.getUTXOs({ addresses: [address] });
