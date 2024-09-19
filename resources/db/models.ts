@@ -120,6 +120,14 @@ export interface productreview {
   rating?: number;
 }
 
+export interface productcollection {
+  id?: string;
+  customerid?: string;
+  productid?: string;
+  title?: string;
+  description?: string;
+}
+
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",

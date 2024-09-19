@@ -60,6 +60,7 @@ model customer {
   sellerorders      orders[]            @relation("SellerOrders")
   buyerorders       orders[]            @relation("BuyerOrders")
   productreviews    productreview[]
+  collections       productcollection[] 
 }
 
 model adminuser {
@@ -254,6 +255,8 @@ model product {
   wishlists  productwishlist[]
   orders            orders[]
   productreviews    productreview[]
+  collections            productcollectionproducts[] @relation("productcollectionproductsproduct")
+
   @@unique([categoryid, name])
 }
 
@@ -425,4 +428,23 @@ model productreview {
   orders      orders?     @relation(fields: [orderid], references: [id])
   createdat   DateTime     @default(now())
   updatedat   DateTime    @updatedAt
+}
+
+model productcollection {
+  id          String       @id @default(uuid())
+  customerid String?
+  customer   customer?    @relation(fields: [customerid], references: [id])
+  products               productcollectionproducts[] @relation("productcollectionproductscollection")
+  title       String?
+  description String?
+  createdat   DateTime     @default(now())
+  updatedat   DateTime    @updatedAt
+}
+model productcollectionproducts {
+  productcollectionid     String
+  productcollection       productcollection          @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
+  productid               String
+  product                 product                    @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
+
+  @@id([productcollectionid, productid])
 }
