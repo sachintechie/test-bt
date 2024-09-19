@@ -28,7 +28,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
   const web3InfoEnv={
     AVAX_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
     AVAX_URL:'api.avax-test.network',
-    AVAX_NETWORK_ID:43113,
+    AVAX_NETWORK_ID:'43113',
     ETH_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
     PRIVATE_KEY:'0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e',
     METADATA_TABLE:'METADATA_TABLE'
