@@ -3,95 +3,99 @@ import { ethers } from "ethers";
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL; // Infura or any RPC provider URL
 const PRIVATE_KEY = process.env.AVAX_PRIVATE_KEY; // Private key of the wallet making the transaction
 const CONTRACT_ADDRESS = process.env.STORE_AVAX_CONTRACT_ADDRESS; // Deployed contract address
-const CONTRACT_ABI: any[] = [
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "user",
-        type: "address"
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "dataHash",
-        type: "bytes32"
-      }
-    ],
-    name: "HashStored",
-    type: "event"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address"
-      }
-    ],
-    name: "getHashData",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "dataHash",
-        type: "bytes32"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "_dataHash",
-        type: "bytes32"
-      }
-    ],
-    name: "storeHash",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address"
-      }
-    ],
-    name: "storedHashes",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "dataHash",
-        type: "bytes32"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  }
-];
-
-export async function storeHash(dataHash: string) {
+const CONTRACT_ABI :any[] =[
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        }
+      ],
+      "name": "getInteraction",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "interactions",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "hash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "metadata",
+          "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_hash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "string",
+          "name": "_metadata",
+          "type": "string"
+        }
+      ],
+      "name": "storeHash",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ];
+export async function storeHash(dataHash: string,metaData: string) {
   try {
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
 
     // Format the data hash to bytes32
-    const _dataHash = ethers.utils.formatBytes32String(dataHash);
+   // const _dataHash = ethers.utils.formatBytes32String(dataHash);
 
     console.log("Data Hash (bytes32):", dataHash);
     // Connect to the smart contract
     const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
-    console.log("Contract connected:", _dataHash);
-    console.log("Data hash:", dataHash);
-    console.log("Storing data hash in the contract...", ethers.utils.toUtf8String(dataHash));
+   const _dataHash = "0x" + dataHash;
+   const _metadata=metaData.toString();
 
-    const tx = await contract.storeHash(dataHash);
+    const tx = await contract.storeHash(_dataHash,_metadata);
     console.log("Transaction sent:", tx.hash);
 
     const receipt = await tx.wait();
@@ -107,14 +111,14 @@ export async function storeHash(dataHash: string) {
     const iface = new ethers.utils.Interface(CONTRACT_ABI);
     // Decode the input data
     const parsedTransaction = iface.parseTransaction({ data: transaction.data });
-    console.log("Decoded Arguments:", parsedTransaction);
-    const decodedDataHash = ethers.utils.parseBytes32String(parsedTransaction.args[0]); // Assuming _dataHash is the first argument
+    console.log("parsedTransaction Arguments:", parsedTransaction);
 
     return {
       data: {
         message: "Transaction successful!",
         transactionHash: receipt.transactionHash,
-        dataHash: decodedDataHash,
+        dataHash:parsedTransaction.args._hash,
+        metaData: parsedTransaction.args._metadata,
         transactionDetails: transaction,
         error: null
       }

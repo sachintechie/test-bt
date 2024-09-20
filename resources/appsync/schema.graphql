@@ -725,12 +725,14 @@ type StoreHashData {
 	message: String
 	transactionHash: String
 	dataHash: String
+	metaData: String
 	transactionDetails: AWSJSON
 }
 
 input StoreHashInput {
 	chainType: String!
 	dataHash: String!
+	metaData:String!
 }
 
 type TransactionData {
