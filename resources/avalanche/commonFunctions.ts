@@ -1,5 +1,87 @@
 import { avm, pvm, evm } from "@avalabs/avalanchejs";
-
+import { ethers } from "ethers";
+const CONTRACT_ABI :any[] =[
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "metadata",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "name": "HashStored",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "getHashData",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "dataHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "metadata",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "_dataHash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_metaData",
+        "type": "bytes32"
+      }
+    ],
+    "name": "storeHash",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
+];
+// Environment variables (set in AWS Lambda or using dotenv)
+const AVAX_RPC_URL = process.env.AVAX_RPC_URL; // Infura or any RPC provider URL
 export async function getAvaxBalance(address: string) {
   try {
     const pAddress: string = "P-" + address;
@@ -43,4 +125,44 @@ export async function verifyAvalancheTransaction(txID: string) {
     console.error("Error fetching transaction status:", error);
     return null;
   }
+}
+
+export async function getHashTransactionDetails(txID: string) {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
+
+    const transaction = await provider.getTransaction(txID);
+
+    if (transaction) {
+      console.log("Transaction Details:", transaction.data);
+    } else {
+      console.log("Transaction not found.");
+    }
+    const iface = new ethers.utils.Interface(CONTRACT_ABI);
+    // Decode the input data
+    const parsedTransaction = iface.parseTransaction({ data: transaction.data });
+    console.log("parsedTransaction Arguments:", parsedTransaction);
+    return {
+      data: {
+        message: "Transaction successful!",
+        transactionHash: transaction.hash,
+        hash:parsedTransaction.args._hash,
+        metaData: parsedTransaction.args._metadata,
+        blockHash:transaction.blockHash,
+        type:transaction.type,
+        blockNumber:transaction.blockNumber,
+        confirmations:transaction.confirmations,
+        from:transaction.from,
+        to:transaction.to,
+        nonce:transaction.nonce,
+        chainId:transaction.chainId,
+      },error:null
+    };
+  } catch (error) {
+    console.error("Error fetching transaction status:", error);
+    return {
+      data: null,
+      error: error
+    };
+    }
 }

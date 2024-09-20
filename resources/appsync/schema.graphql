@@ -724,15 +724,27 @@ type StoreHash {
 type StoreHashData {
 	message: String
 	transactionHash: String
-	dataHash: String
+	hash: String
 	metaData: String
-	transactionDetails: AWSJSON
+        blockHash:String,
+        type:String,
+        blockNumber:String,
+        confirmations:String,
+        from:String,
+        to:String,
+        nonce:String,
+        chainId:String,
 }
 
 input StoreHashInput {
 	chainType: String!
-	dataHash: String!
+	hash: String!
 	metaData:String!
+}
+
+input GetTransactionInput {
+	transactionHash: String!
+	
 }
 
 type TransactionData {
@@ -900,6 +912,8 @@ type Mutation {
 	AddProductToCollection(input: AddProductToCollectionInput): ProductToCollectionUniqueResponse
 	RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
 	StoreHash(input: StoreHashInput): StoreHash
+	
+
 }
 
 type Query {
@@ -947,6 +961,8 @@ type Query {
 	GetReviewsByProductId(input: GetReviewsByProductIdInput): ReviewResponse
 	GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
 	GetCollectionByCustomerId(input: GetCollectionByCustomerIdInput): ProductToCollectionResponse
+			GetHashTransaction(input: GetTransactionInput): StoreHash
+
 }
 
 schema {

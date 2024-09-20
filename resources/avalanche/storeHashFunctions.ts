@@ -83,7 +83,7 @@ const CONTRACT_ABI :any[] =[
       "type": "function"
     }
   ];
-export async function storeHash(dataHash: string,metaData: string) {
+export async function storeHash(hash: string,metaData: string) {
   try {
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
@@ -91,13 +91,13 @@ export async function storeHash(dataHash: string,metaData: string) {
     // Format the data hash to bytes32
    // const _dataHash = ethers.utils.formatBytes32String(dataHash);
 
-    console.log("Data Hash (bytes32):", dataHash);
+    console.log("Data Hash (bytes32):", hash);
     // Connect to the smart contract
     const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
-   const _dataHash = "0x" + dataHash;
+   const _hash = "0x" + hash;
    const _metadata="0x" + metaData;
 
-    const tx = await contract.storeHash(_dataHash,_metadata);
+    const tx = await contract.storeHash(_hash,_metadata);
     console.log("Transaction sent:", tx.hash);
 
     const receipt = await tx.wait();
@@ -119,7 +119,7 @@ export async function storeHash(dataHash: string,metaData: string) {
       data: {
         message: "Transaction successful!",
         transactionHash: receipt.transactionHash,
-        dataHash:parsedTransaction.args._hash,
+        hash:parsedTransaction.args._hash,
         metaData: parsedTransaction.args._metadata,
         transactionDetails: transaction,
         error: null
