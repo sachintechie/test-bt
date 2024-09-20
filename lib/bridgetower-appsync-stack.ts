@@ -46,7 +46,8 @@ const MUTATIONS=[
   'addSubAdmin',
   'addReview',
   'addProductToCollection',
-  'removeProductFromCollection'
+  'removeProductFromCollection',
+  'storeHash'
 ]
 
 interface AppSyncStackProps extends cdk.StackProps {
