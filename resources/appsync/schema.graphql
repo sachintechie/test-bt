@@ -359,6 +359,11 @@ input GetReviewsByProductIdInput {
 	productId: String!
 }
 
+input GetTransactionInput {
+	transactionHash: String!
+	chainType: String!
+}
+
 type GetWallet {
 	status: Int
 	data: GetWalletData
@@ -726,25 +731,20 @@ type StoreHashData {
 	transactionHash: String
 	hash: String
 	metaData: String
-        blockHash:String,
-        type:String,
-        blockNumber:String,
-        confirmations:String,
-        from:String,
-        to:String,
-        nonce:String,
-        chainId:String,
+	blockHash: String
+	type: String
+	blockNumber: String
+	confirmations: String
+	from: String
+	to: String
+	nonce: String
+	chainId: String
 }
 
 input StoreHashInput {
 	chainType: String!
 	hash: String!
-	metaData:String!
-}
-
-input GetTransactionInput {
-	transactionHash: String!
-	
+	metaData: String!
 }
 
 type TransactionData {
@@ -912,8 +912,6 @@ type Mutation {
 	AddProductToCollection(input: AddProductToCollectionInput): ProductToCollectionUniqueResponse
 	RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
 	StoreHash(input: StoreHashInput): StoreHash
-	
-
 }
 
 type Query {
@@ -961,8 +959,7 @@ type Query {
 	GetReviewsByProductId(input: GetReviewsByProductIdInput): ReviewResponse
 	GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
 	GetCollectionByCustomerId(input: GetCollectionByCustomerIdInput): ProductToCollectionResponse
-			GetHashTransaction(input: GetTransactionInput): StoreHash
-
+	GetHashTransaction(input: GetTransactionInput): StoreHash
 }
 
 schema {
