@@ -29,7 +29,8 @@ export const handler = async (event: any) => {
 
       // Handle tenant with active Cognito
       if (tenant.iscognitoactive === true) {
-        let idToken = event?.requestHeaders?.identity;
+        let idToken  = event?.requestHeaders?.identity;
+
         if (idToken == null) return { isAuthorized: false };
 
         // Check if user has admin-like privileges
@@ -113,10 +114,8 @@ async function isUserAdminLike(idToken: string) {
     console.log("Cognito Roles:", cognitoRoles);
 
     // Return true if user belongs to the admin group or role
-    return {
-      ADMIN_GROUP: cognitoGroups.includes(ADMIN_GROUP) || cognitoRoles.includes(ADMIN_ROLE),
-      email: decodedToken["email"]
-    };
+    return cognitoGroups.includes(ADMIN_GROUP) || cognitoRoles.includes(ADMIN_ROLE);
+    
   } catch (error) {
     console.error("Error decoding ID token:", error);
     return false;

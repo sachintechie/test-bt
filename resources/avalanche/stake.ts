@@ -1,7 +1,9 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
-import { getCubistConfig, getFirstWallet, insertStakeAccount, insertStakingTransaction } from "../db/dbFunctions";
-import { avm, pvm, evm, Context, utils, networkIDs } from "@avalabs/avalanchejs";
+import { StakeType, tenant, TransactionStatus } from "../db/models";
+import { getCubistConfig, getFirstWallet, insertStakingTransaction } from "../db/dbFunctions";
+import * as ava from "@avalabs/avalanchejs";
+import {  Context, networkIDs } from "@avalabs/avalanchejs";
+import { delay } from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 import { getAvaxBalance, getAvaxConnection, verifyAvalancheTransaction } from "./commonFunctions";
@@ -70,7 +72,7 @@ export async function AvalancheStaking(
     process.env["AVALANCHE_NETWORK"] ?? "",
     txStatus,
     tenantTransactionId,
-    tx?.stakeAccountPubKey?.toString() || "",
+    "",
     "",
     StakeType.STAKE
   );
@@ -124,6 +126,32 @@ async function getValidatorDelegationFee(pchain: PVMApi, validatorNodeKey: strin
   }
 }
 
+async function getValidatorUptime(pchain: PVMApi, validatorNodeKey: string) {
+  try {
+    // Fetch current validators information
+    const validatorInfo: GetValidatorsAtResponse = (await pchain.getCurrentValidators()) as GetValidatorsAtResponse;
+
+    // Check if the 'validators' field exists
+    if (!validatorInfo || !validatorInfo.validators) {
+      throw new Error("No validators found in the response");
+    }
+
+    const validators = Object.values(validatorInfo.validators);
+
+    const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
+
+    if (!validator) {
+      throw new Error(`Validator with node key ${validatorNodeKey} not found`);
+    }
+
+    // Return the weighted uptime (which is already a percentage)
+    return parseFloat(validator.uptime);
+  } catch (error) {
+    console.error("Error fetching validator uptime: ", error);
+    throw error;
+  }
+}
+
 export async function stakeAvax(
   senderWalletAddress: string,
   amount: number,
@@ -138,11 +166,46 @@ export async function stakeAvax(
     // Validate staking parameters
     const amountToStake = parseFloat(amount.toString());
     const currentTime = Math.floor(Date.now() / 1000);
+    const networkID = 1;
+    const MIN_VALIDATOR_STAKE = networkID === 1 ? 2000 : 1; // Mainnet or Fuji Testnet
+    const MIN_DELEGATOR_STAKE = networkID === 1 ? 1 : 1;
+    const MIN_VALIDATION_TIME = networkID === 1 ? 2 * 7 * 24 * 60 * 60 : 24 * 60 * 60; // 2 weeks or 24 hours
+    const MAX_VALIDATION_TIME = networkID === 1 ? 365 * 24 * 60 * 60 : 365 * 24 * 60 * 60; // 1 year
+    const MIN_DELEGATION_FEE_RATE = 2; // Minimum delegation fee rate (in percentage)
+    const MAX_VALIDATOR_WEIGHT = 3000000; // Maximum 3 million AVAX or 5x validator stake
     const stakingDuration = lockupExpirationTimestamp - currentTime;
+    if (amountToStake < MIN_VALIDATOR_STAKE && amountToStake < MIN_DELEGATOR_STAKE) {
+      return {
+        trxHash: null,
+        error: "Stake amount does not meet the minimum requirement."
+      };
+    }
+
+    if (stakingDuration < MIN_VALIDATION_TIME || stakingDuration > MAX_VALIDATION_TIME) {
+      return {
+        trxHash: null,
+        error: "Staking duration does not meet the allowed range."
+      };
+    }
 
     // Fetch validator fee rate and check if it meets the minimum requirement
     const delegationFeeRate = await getValidatorDelegationFee(pvmapi, validatorNodeKey);
     if (delegationFeeRate < 2) return { trxHash: null, error: "Delegation fee rate does not meet the minimum required rate of 2%" };
+
+    // Check maximum weight of validator
+    const validatorStake = await getValidatorStake(pvmapi, validatorNodeKey); // Placeholder function
+    const totalWeight = validatorStake.totalDelegated + validatorStake.selfStaked;
+    const maxWeight = Math.min(MAX_VALIDATOR_WEIGHT, 5 * validatorStake.selfStaked);
+
+    if (totalWeight > maxWeight) {
+      return {
+        trxHash: null,
+        error: `Validator weight exceeds the limit. Total delegated + self-stake must not exceed ${maxWeight} AVAX.`
+      };
+    }
+
+    //  can integrate the uptime check from your validator
+    const validatorUptime = await getValidatorUptime(pvmapi, validatorNodeKey); // Placeholder function
 
     // OIDC login and session management
     const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
@@ -159,14 +222,12 @@ export async function stakeAvax(
       senderKey,
       amountToStake,
       validatorNodeKey,
-      lockupExpirationTimestamp,
-      oidcClient
+      lockupExpirationTimestamp
     );
 
     // Return transaction hash or error
     if (!staketransaction.txHash) return { trxHash: null, error: staketransaction.error };
-    return { trxHash: staketransaction.txHash, stakeAccountPubKey: staketransaction.stakeAccountPubKey, error: null };
-
+    return { trxHash: staketransaction.txHash, error: null };
   } catch (err: any) {
     console.error("Error staking AVAX:", err);
     return { trxHash: null, error: err.message || "Failed to stake AVAX" };
@@ -178,41 +239,53 @@ export async function createStakeAccountWithStakeProgram(
   senderKey: Key,
   amount: number,
   validatorNodeKey: string,
-  lockupExpirationTimestamp: number,
-  oidcClient: any
+  lockupExpirationTimestamp: number
 ) {
   try {
-    const stakeAmount = BigInt(1 * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
+    const stakeAmount = BigInt(amount * 1e9); // Convert amount to nAVAX (1 AVAX = 10^9 nAVAX)
+
     console.log("Stake Amount:", stakeAmount);
     const start = BigInt(Math.floor(Date.now() / 1000) + 60); // Stake starts in 60 seconds
     const end = BigInt(lockupExpirationTimestamp); // Stake ends at expiration timestamp
-    const pAddressStrings: string = "P-" + senderKey.materialId;
-    const context = await Context.getContextFromURI(process.env.AVAX_PUBLIC_URL);
+    const pAddress: string = "P-" + senderKey.materialId;
+    const context = await Context.getContextFromURI(process.env.AVAX_URL);
     console.log("context", context);
     // Get UTXOs and create staking transaction
-    const { utxos } = await pvmapi.getUTXOs({ addresses: [pAddressStrings] });
+    const { utxos } = await pvmapi.getUTXOs({ addresses: [pAddress] });
     console.log("utxos", utxos);
-    const stakeTx = pvm.newAddPermissionlessDelegatorTx(
+    const addressBytes = [ava.utils.bech32ToBytes(pAddress)];
+    const networkID: string = networkIDs.PrimaryNetworkID.toString();
+
+    const stakeTx = ava.pvm.newAddPermissionlessDelegatorTx(
       context,
       utxos,
-      [utils.bech32ToBytes(pAddressStrings)],
+      addressBytes,
       validatorNodeKey,
-      networkIDs.PrimaryNetworkID.toString(),
+      networkID,
       start,
       end,
       stakeAmount,
-      [utils.bech32ToBytes(pAddressStrings)]
+      [ava.utils.bech32ToBytes(pAddress)]
     );
-    console.log("stakeTx", stakeTx);
-    // Sign the transaction using Cubist Signer
-    const signedTx = await oidcClient.signTransaction(oidcClient, stakeTx);
-    console.log("Stake signedTx:", signedTx);
-    const result = await pvmapi.issueSignedTx(signedTx.getSignedTx());
-    console.log("Stake Transaction Result:", result);
-    // Update and return signed transaction
-    return { txHash: signedTx.toString(), stakeAccountPubKey: senderKey.publicKey.toString() };
-    } catch (err: any) {
+    const setStakeTx = ava.utils.bufferToHex(stakeTx.toBytes());
+    const stakeTxSig = await senderKey.signSerializedAva("P", setStakeTx);
+    console.log(stakeTxSig);
+    stakeTx.addSignature(ava.utils.hexToBuffer(stakeTxSig.data().signature));
+    console.log("Submitting P-chain import transaction");
+    const stakeTxRes = await pvmapi.issueSignedTx(stakeTx.getSignedTx());
+    await waitForPvmTxCommitted(stakeTxRes.txID);
+    console.log(stakeTxRes);
+    return { txHash: stakeTxRes.txID.toString() };
+  } catch (err: any) {
     console.error("Error creating staking transaction:", err);
-    return { txHash: null, error: err.message};
+    return { txHash: null, error: err.message };
   }
+}
+async function waitForPvmTxCommitted(txId: string) {
+  let status;
+  const { avmapi, pvmapi } = await getAvaxConnection();
+  do {
+    status = (await pvmapi.getTxStatus({ txID: txId })).status;
+    await delay(100);
+  } while (status !== "Committed");
 }
