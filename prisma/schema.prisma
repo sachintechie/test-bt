@@ -61,6 +61,7 @@ model customer {
   buyerorders       orders[]            @relation("BuyerOrders")
   productreviews    productreview[]
   collections       productcollection[] 
+  productownerships productownership[]
 }
 
 model adminuser {
