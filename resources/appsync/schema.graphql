@@ -360,8 +360,8 @@ input GetReviewsByProductIdInput {
 }
 
 input GetTransactionInput {
-	transactionHash: String!
 	chainType: String!
+	transactionHash: String!
 }
 
 type GetWallet {
