@@ -1,0 +1,136 @@
+import { ethers } from "ethers";
+// Environment variables (set in AWS Lambda or using dotenv)
+const AVAX_RPC_URL = process.env.AVAX_RPC_URL; // Infura or any RPC provider URL
+const PRIVATE_KEY = process.env.AVAX_PRIVATE_KEY; // Private key of the wallet making the transaction
+const CONTRACT_ADDRESS = process.env.STORE_AVAX_CONTRACT_ADDRESS; // Deployed contract address
+const CONTRACT_ABI :any[] =[
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "hash",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "bytes32",
+          "name": "metadata",
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "HashStored",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getHashData",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "dataHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "metadata",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "_dataHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_metaData",
+          "type": "bytes32"
+        }
+      ],
+      "name": "storeHash",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ];
+export async function storeHash(hash: string,metaData: string) {
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
+    const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
+
+    // Format the data hash to bytes32
+   // const _dataHash = ethers.utils.formatBytes32String(dataHash);
+
+    console.log("Data Hash (bytes32):", hash);
+    // Connect to the smart contract
+    const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
+   const _hash = "0x" + hash;
+   const _metadata="0x" + metaData;
+
+    const tx = await contract.storeHash(_hash,_metadata);
+    console.log("Transaction sent:", tx.hash);
+
+    const receipt = await tx.wait();
+
+    console.log("Transaction confirmed in block:", receipt.blockNumber);
+    const transaction = await provider.getTransaction(receipt.transactionHash);
+
+    if (transaction) {
+      console.log("Transaction Details:", transaction.data);
+    } else {
+      console.log("Transaction not found.");
+    }
+    const iface = new ethers.utils.Interface(CONTRACT_ABI);
+    // Decode the input data
+    const parsedTransaction = iface.parseTransaction({ data: transaction.data });
+    console.log("parsedTransaction Arguments:", parsedTransaction);
+
+    return {
+      data: {
+        message: "Transaction successful!",
+        transactionHash: receipt.transactionHash,
+        hash:parsedTransaction.args._hash,
+        metaData: parsedTransaction.args._metadata,
+        transactionDetails: transaction,
+        error: null
+      }
+    };
+  } catch (error) {
+    // Handle any errors
+    console.log("Error: ", error);
+    return {
+      data: null,
+      error: error
+    };
+  }
+}
