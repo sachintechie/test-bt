@@ -5,53 +5,55 @@ const PRIVATE_KEY = process.env.AVAX_PRIVATE_KEY; // Private key of the wallet m
 const CONTRACT_ADDRESS = process.env.STORE_AVAX_CONTRACT_ADDRESS; // Deployed contract address
 const CONTRACT_ABI :any[] =[
     {
+      "anonymous": false,
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "index",
-          "type": "uint256"
-        }
-      ],
-      "name": "getInteraction",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
+          "indexed": true,
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
         },
         {
-          "internalType": "string",
-          "name": "",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "name": "interactions",
-      "outputs": [
-        {
+          "indexed": false,
           "internalType": "bytes32",
           "name": "hash",
           "type": "bytes32"
         },
         {
-          "internalType": "string",
+          "indexed": false,
+          "internalType": "bytes32",
           "name": "metadata",
-          "type": "string"
+          "type": "bytes32"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "timestamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "HashStored",
+      "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "user",
+          "type": "address"
+        }
+      ],
+      "name": "getHashData",
+      "outputs": [
+        {
+          "internalType": "bytes32",
+          "name": "dataHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "metadata",
+          "type": "bytes32"
         },
         {
           "internalType": "uint256",
@@ -66,13 +68,13 @@ const CONTRACT_ABI :any[] =[
       "inputs": [
         {
           "internalType": "bytes32",
-          "name": "_hash",
+          "name": "_dataHash",
           "type": "bytes32"
         },
         {
-          "internalType": "string",
-          "name": "_metadata",
-          "type": "string"
+          "internalType": "bytes32",
+          "name": "_metaData",
+          "type": "bytes32"
         }
       ],
       "name": "storeHash",
@@ -93,7 +95,7 @@ export async function storeHash(dataHash: string,metaData: string) {
     // Connect to the smart contract
     const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
    const _dataHash = "0x" + dataHash;
-   const _metadata=metaData.toString();
+   const _metadata="0x" + metaData;
 
     const tx = await contract.storeHash(_dataHash,_metadata);
     console.log("Transaction sent:", tx.hash);
