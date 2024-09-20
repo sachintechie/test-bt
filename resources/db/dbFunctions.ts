@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient,Prisma } from "@prisma/client";
 import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productfilter, orders, orderstatus, productreview, createcollection, addtocollection, productRarity } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -2144,4 +2144,101 @@ export async function getCollectionByCustomerId(customerId: string) {
     }
   }
 }
+
+
+export async function transferProductOwnership(
+  productId: string, 
+  sellerId: string, 
+  buyerId: string, 
+  fractional: boolean = false, 
+  fraction: number = 1
+) {
+	 const prisma = await getPrismaClient();
+  // Check if the product is already owned by the seller
+  const sellerOwnership = await prisma.productownership.findFirst({
+    where: {
+      productId: productId,
+      customerId: sellerId,
+      fractional: fractional,
+    },
+  });
+
+  if (!sellerOwnership) {
+    throw new Error('Seller does not own this product.');
+  }
+
+  try {
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      if (fractional && fraction < 1) {
+        // Fractional ownership transfer
+        const remainingFraction = sellerOwnership.fraction! - fraction;
+
+        if (remainingFraction > 0) {
+          // Update seller's ownership fraction
+          await tx.productownership.update({
+            where: { id: sellerOwnership.id },
+            data: { fraction: remainingFraction },
+          });
+
+          // Create new ownership record for buyer
+          await tx.productownership.create({
+            data: {
+              customerId: buyerId,
+              productId: productId,
+              fractional: true,
+              fraction: fraction,
+            },
+          });
+        } else if (remainingFraction === 0) {
+          // If transferring full ownership, remove seller's record
+          await tx.productownership.delete({
+            where: { id: sellerOwnership.id },
+          });
+
+          // Create new ownership record for buyer
+          await tx.productownership.create({
+            data: {
+              customerId: buyerId,
+              productId: productId,
+              fractional: true,
+              fraction: fraction,
+            },
+          });
+        } else {
+          throw new Error('Fraction transfer exceeds seller ownership.');
+        }
+      } else {
+        // Full ownership transfer
+        await tx.productownership.delete({
+          where: { id: sellerOwnership.id },
+        });
+
+        await tx.productownership.create({
+          data: {
+            customerId: buyerId,
+            productId: productId,
+            fractional: false,
+            fraction: null,
+          },
+        });
+      }
+    });
+
+    return {
+      message: 'Ownership transferred successfully',
+      productId,
+      sellerId,
+      buyerId,
+      fractional,
+      fraction,
+    };
+  } catch (error) {
+     if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while transferring ownership.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
 

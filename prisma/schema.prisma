@@ -256,6 +256,7 @@ model product {
   orders            orders[]
   productreviews    productreview[]
   collections            productcollectionproducts[] @relation("productcollectionproductsproduct")
+  productownerships productownership[]
 
   @@unique([categoryid, name])
 }
@@ -447,4 +448,14 @@ model productcollectionproducts {
   product                 product                    @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
 
   @@id([productcollectionid, productid])
+}
+
+model productownership {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   customer @relation(fields: [customerId], references: [id])
+  productId  String
+  product    product  @relation(fields: [productId], references: [id])
+  fractional Boolean
+  fraction   Float?
 }

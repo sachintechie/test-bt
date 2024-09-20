@@ -134,6 +134,15 @@ customerid:string;
 productid:string;
 }
 
+export interface ProductOwnership {
+  id?: string;
+  customerId?: string;
+  productId?: string;
+  fractional?: boolean;
+  fraction?: number;
+}
+
+
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
   FAILED = "FAILED",
