@@ -1,20 +1,14 @@
 input AddProductToCollectionInput {
 	customerId: String
-	productId: String 
+	productId: String
 	title: String
 	description: String
 }
 
-type ProductToCollectionUniqueResponse {
-	status: Int
-	data: CollectionData
-	error: AWSJSON
-}
-
 input AddReviewInput {
 	customerId: String
-	productId: String 
-	orderId: String 
+	productId: String
+	orderId: String
 	comment: String
 	rating: Float
 }
@@ -49,10 +43,10 @@ type CategoryResponse {
 	error: AWSJSON
 }
 
-type CollectionData{
+type CollectionData {
 	id: String
 	title: String
-	description : String
+	description: String
 	customerid: String
 	productid: String
 	createdat: AWSDateTime
@@ -73,7 +67,6 @@ type CreateOrderResponse {
 	data: OrderData
 	error: AWSJSON
 }
-
 
 input CreateWalletInput {
 	tenantUserId: String!
@@ -114,17 +107,6 @@ type CustomerKycData {
 	kyctype: String
 }
 
-type ReviewData{
-	id: String
-	comment: String
-	rating : Float
-	customerid: String
-	productid: String
-	orderid: String
-	createdat: AWSDateTime
-	updatedat: AWSDateTime
-}
-
 input CustomerKycInput {
 	customerId: String!
 }
@@ -142,8 +124,28 @@ enum FilterOperator {
 	eq
 }
 
+type FilterProductData {
+	id: String!
+	name: String!
+	categoryid: String
+	rarity: ProductRarity
+	price: Float
+	purchasedpercentage: Float
+	availablepercentage: Float
+	category: CategoryData
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+	productattributes: [ProductAttributeData!]!
+}
+
 input FilterProductInput {
 	filters: [ProductFilter]
+}
+
+type FilterProductResponse {
+	status: Int
+	data: [FilterProductData]
+	error: AWSJSON
 }
 
 input GetCategoriesByTenantIdInput {
@@ -160,12 +162,12 @@ input GetCategoryByIdInput {
 	categoryId: String
 }
 
-input GetCollectionByIdInput {
-	collectionId: String!
-}
-
 input GetCollectionByCustomerIdInput {
 	customerId: String!
+}
+
+input GetCollectionByIdInput {
+	collectionId: String!
 }
 
 type GetCubistOrg {
@@ -525,15 +527,6 @@ input MintNFTInput {
 	metadata: AWSJSON
 }
 
-enum OrderStatus {
-  CREATED
-  CONFIRMED
-  SHIPPED
-  DELIVERED
-  CANCELLED
-  DISPUTED
-}
-
 type OrderData {
 	sellerid: String
 	buyerid: String
@@ -543,6 +536,15 @@ type OrderData {
 	status: OrderStatus
 	createdat: AWSDateTime
 	updatedat: AWSDateTime
+}
+
+enum OrderStatus {
+	CREATED
+	CONFIRMED
+	SHIPPED
+	DELIVERED
+	CANCELLED
+	DISPUTED
 }
 
 type ProductAttributeData {
@@ -569,30 +571,10 @@ type ProductData {
 	productattributes: [ProductAttributeData!]!
 }
 
-type FilterProductData {
-	id: String!
-	name: String!
-	categoryid: String
-	rarity: ProductRarity
-	price: Float
-	purchasedpercentage: Float
-	availablepercentage: Float
-	category: CategoryData
-	createdat: AWSDateTime
-	updatedat: AWSDateTime
-	productattributes: [ProductAttributeData!]!
-}
-
 input ProductFilter {
 	key: String
 	operator: FilterOperator
 	value: String
-}
-
-type FilterProductResponse {
-	status: Int
-	data: [FilterProductData]
-	error: AWSJSON
 }
 
 enum ProductRarity {
@@ -615,9 +597,26 @@ type ProductToCollectionResponse {
 	error: AWSJSON
 }
 
+type ProductToCollectionUniqueResponse {
+	status: Int
+	data: CollectionData
+	error: AWSJSON
+}
+
 input RemoveProductFromCollectionInput {
 	collectionId: String
-	productId: String 
+	productId: String
+}
+
+type ReviewData {
+	id: String
+	comment: String
+	rating: Float
+	customerid: String
+	productid: String
+	orderid: String
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 type ReviewResponse {
@@ -714,6 +713,24 @@ input StakingInput {
 	tenantUserId: String!
 	tenantTransactionId: String!
 	lockupExpirationTimestamp: String
+}
+
+type StoreHash {
+	status: Int
+	data: StoreHashData
+	error: AWSJSON
+}
+
+type StoreHashData {
+	message: String
+	transactionHash: String
+	dataHash: String
+	transactionDetails: AWSJSON
+}
+
+input StoreHashInput {
+	chainType: String!
+	dataHash: String!
 }
 
 type TransactionData {
@@ -867,7 +884,6 @@ input WithdrawStakeInput {
 	accountPublicKey: String!
 }
 
-
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
@@ -881,6 +897,7 @@ type Mutation {
 	AddReview(input: AddReviewInput): AddReviewResponse
 	AddProductToCollection(input: AddProductToCollectionInput): ProductToCollectionUniqueResponse
 	RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
+	StoreHash(input: StoreHashInput): StoreHash
 }
 
 type Query {
