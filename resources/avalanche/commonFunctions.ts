@@ -146,8 +146,8 @@ export async function getHashTransactionDetails(txID: string) {
       data: {
         message: "Transaction successful!",
         transactionHash: transaction.hash,
-        hash:parsedTransaction.args._hash,
-        metaData: parsedTransaction.args._metadata,
+        hash:parsedTransaction.args._dataHash,
+        metaData: parsedTransaction.args._metaData,
         blockHash:transaction.blockHash,
         type:transaction.type,
         blockNumber:transaction.blockNumber,
