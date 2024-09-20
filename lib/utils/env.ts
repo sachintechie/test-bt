@@ -30,7 +30,7 @@ export const getEnvConfig = (databaseInfo:DatabaseInfo) => {
     ETH_RPC_URL:'https://api.avax-test.network/ext/bc/C/rpc',
     PRIVATE_KEY:'0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e',
     AVAX_PRIVATE_KEY:'68ff1b25786aec4108dd91e974528cb8035b9f2f5315de90a7a5e429a7ae36d2',
-    STORE_AVAX_CONTRACT_ADDRESS:'0x3F42c4d82b665697fb17ab50f2220a2162056d09',
+    STORE_AVAX_CONTRACT_ADDRESS:'0x7b72b77b930656591D0281DEC0532cA6a4a55AB4',
     METADATA_TABLE:'METADATA_TABLE'
   }
   const iamInfo={
