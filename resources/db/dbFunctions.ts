@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, product, productattribute, productcategory, productfilter, orders, orderstatus, updateproductattribute, productreview, productcollection } from "./models";
+import { AuthType, CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer, productfilter, orders, orderstatus, productreview, createcollection, addtocollection, productRarity } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
@@ -1509,7 +1509,16 @@ export async function filterProducts(filters: productfilter[]) {
     filters.forEach((filter) => {
       const condition: any = {};
 
-      if (filter.key === "price" || filter.key === "categoryid" || filter.key === "rarity") {
+	 
+      if (filter.key === "rarity") {
+        // Check if the value is not one of the allowed product rarities
+        const rarityValue = filter.value as productRarity;
+        if (!Object.values(productRarity).includes(rarityValue)) {
+          throw new Error(`Invalid rarity value: ${filter.value}. Allowed values are ${Object.values(productRarity).join(", ")}.`);
+        }
+	}
+
+      if (filter.key === "price" || filter.key === "rarity") {
         if (filter.key === "price") {
           const priceValue = typeof filter.value === 'string' ? parseFloat(filter.value) : filter.value;
           if (filter.operator === "eq") {
@@ -1539,15 +1548,15 @@ export async function filterProducts(filters: productfilter[]) {
 
         if (["gte", "gt", "lte", "lt"].includes(filter.operator)) {
           attrCondition[filter.operator] = String(filter.value);
-        } else {
-          attrCondition[filter.operator] = filter.value;
+        } else if (filter.operator === "eq") {
+          attrCondition.value = filter.value; 
         }
 
         whereClause.AND.push({
           productattributes: {
             some: {
               key: filter.key,
-              value: attrCondition
+              value: attrCondition.value ? attrCondition.value : attrCondition
             }
           }
         });
@@ -1562,10 +1571,15 @@ export async function filterProducts(filters: productfilter[]) {
     });
 
     return products;
-  } catch (err) {
-    throw err;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while removing the product from wishlist.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
+
 
 
 export async function addToWishlist(customerId: string, productId: string) {
@@ -1940,9 +1954,44 @@ export async function getReviewsByProductId(productId: string) {
   }
 }
 
-export async function addProductToCollection(productcollection:productcollection) {
+export async function createCollection(createcollection:createcollection) {
   const prisma = await getPrismaClient();
-  const {customerid,description,productid,title } = productcollection
+  const {customerid,description,title } = createcollection
+  try {
+    const collection = await prisma.productcollection.findFirst({
+      where: {
+        customerid,
+        title,
+        description
+      }
+    });
+    if(collection) 
+    {
+      throw new Error("Collection is already present");
+    }
+
+     const newCollection = await prisma.productcollection.create({
+        data: {
+          customerid,
+          title,
+          description,
+          updatedat: new Date().toISOString()
+        }
+      });
+
+    return newCollection;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product to the collection.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function addProductToCollection(productcollection:addtocollection) {
+  const prisma = await getPrismaClient();
+  const {customerid,productid,collectionid } = productcollection
   try {
     const owned = await prisma.orders.findFirst({
       where: {
@@ -1954,27 +2003,10 @@ export async function addProductToCollection(productcollection:productcollection
     if(!owned){
       throw new Error("This product is not owned by this customer");
     }
-    let collection = await prisma.productcollection.findFirst({
-      where: {
-        customerid,
-        title
-      }
-    });
-
-    if (!collection) {
-      collection = await prisma.productcollection.create({
-        data: {
-          customerid,
-          title,
-          description,
-          updatedat: new Date().toISOString()
-        }
-      });
-    }
 
     const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
       where: {
-        productcollectionid: collection.id,
+        productcollectionid: collectionid,
         productid
       }
     });
@@ -1983,14 +2015,23 @@ export async function addProductToCollection(productcollection:productcollection
       throw new Error("This product is already in the collection.");
     }
 
-    const newProductInCollection = await prisma.productcollectionproducts.create({
+    await prisma.productcollectionproducts.create({
       data: {
-        productcollectionid: collection.id,
+        productcollectionid: collectionid,
         productid
       }
     });
 
-    return newProductInCollection;
+    const updatedCollection = await prisma.productcollection.findFirst({
+      where: {
+        id: collectionid
+      },
+      include: {
+        products: true, 
+      }
+    });
+
+    return updatedCollection;
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the product to the collection.");
@@ -2009,10 +2050,10 @@ export async function removeProductFromCollection(collectionId: string, productI
     // Check if the product exists in the collection
     const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
       where: {
-        
-          productcollectionid: collectionId,
-          productid: productId
-        
+        AND: [
+          { productcollectionid: collectionId },
+          { productid: productId }
+        ]
       }
     });
 
@@ -2021,16 +2062,26 @@ export async function removeProductFromCollection(collectionId: string, productI
     }
 
     // Remove the product from the collection
-    const removedProduct = await prisma.productcollectionproducts.delete({
-     where: {
-      productcollectionid_productid:{
-      productcollectionid: collectionId,
-      productid: productId
+  await prisma.productcollectionproducts.delete({
+      where: {
+        productcollectionid_productid: {
+          productcollectionid: collectionId,
+          productid: productId
+        }
       }
      }
+    );
+
+    const updatedCollection = await prisma.productcollection.findFirst({
+      where: {
+        id: collectionId
+      },
+      include: {
+        products: true,  // Include the updated products list
+      }
     });
 
-    return removedProduct;
+    return updatedCollection;
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while removing the product from the collection.");
