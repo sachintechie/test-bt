@@ -1,5 +1,6 @@
 import { avm, pvm, evm } from "@avalabs/avalanchejs";
 import { ethers } from "ethers";
+import { AvalancheTransactionStatus } from "../db/models";
 const CONTRACT_ABI :any[] =[
   {
     "anonymous": false,
@@ -118,6 +119,7 @@ export async function getAvaxConnection() {
 export async function verifyAvalancheTransaction(txID: string) {
   try {
     const { pvmapi } = await getAvaxConnection();
+
     const status = await pvmapi.getTxStatus({ txID });
     console.log(`Transaction Status: ${status.status}`);
     return status;
@@ -133,6 +135,12 @@ export async function getHashTransactionDetails(txID: string) {
 
     const transaction = await provider.getTransaction(txID);
 
+    const transactionReceipt = await provider.getTransactionReceipt(txID);
+    const status = AvalancheTransactionStatus[transactionReceipt.status!];
+
+    const blockDetails = await provider.getBlock(transactionReceipt.blockHash);
+    const transactionTimestamp = new Date(blockDetails.timestamp * 1000);
+
     if (transaction) {
       console.log("Transaction Details:", transaction.data);
     } else {
@@ -142,20 +150,27 @@ export async function getHashTransactionDetails(txID: string) {
     // Decode the input data
     const parsedTransaction = iface.parseTransaction({ data: transaction.data });
     console.log("parsedTransaction Arguments:", parsedTransaction);
+    const gas = ((Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!))/1e9;
+
     return {
       data: {
         message: "Transaction successful!",
-        transactionHash: transaction.hash,
-        hash:parsedTransaction.args._dataHash,
+        transactionHash: transactionReceipt.transactionHash,
+        status: status,
+        hash: parsedTransaction.args._dataHash,
         metaData: parsedTransaction.args._metaData,
-        blockHash:transaction.blockHash,
-        type:transaction.type,
-        blockNumber:transaction.blockNumber,
-        confirmations:transaction.confirmations,
-        from:transaction.from,
-        to:transaction.to,
-        nonce:transaction.nonce,
-        chainId:transaction.chainId,
+        blockHash: transaction.blockHash,
+        type: transaction.type,
+        blockNumber: transaction.blockNumber,
+        timestamp:transactionTimestamp,
+        confirmations: transaction.confirmations,
+        gasLimit: transaction.gasLimit.toString(),
+        gasPrice: transaction.gasPrice?.toString(),
+        from: transaction.from,
+        to: transaction.to,
+        gas: gas.toString(),
+        nonce: transaction.nonce,
+        chainId: transaction.chainId
       },error:null
     };
   } catch (error) {
