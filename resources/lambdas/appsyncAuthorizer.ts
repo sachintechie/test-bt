@@ -15,6 +15,7 @@
           console.log(tenant, " tenant");
         if(tenant.iscognitoactive === true){
           let idToken  = event?.requestHeaders?.identity;
+          console.log(idToken, " idToken")
           if (!idToken) {
             return {
               isAuthorized: false
