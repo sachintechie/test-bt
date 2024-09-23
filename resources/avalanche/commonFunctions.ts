@@ -119,6 +119,7 @@ export async function getAvaxConnection() {
 export async function verifyAvalancheTransaction(txID: string) {
   try {
     const { pvmapi } = await getAvaxConnection();
+
     const status = await pvmapi.getTxStatus({ txID });
     console.log(`Transaction Status: ${status.status}`);
     return status;
@@ -137,6 +138,8 @@ export async function getHashTransactionDetails(txID: string) {
     const transactionReceipt = await provider.getTransactionReceipt(txID);
     const status = AvalancheTransactionStatus[transactionReceipt.status!];
 
+    const blockDetails = await provider.getBlock(transactionReceipt.blockHash);
+    const transactionTimestamp = new Date(blockDetails.timestamp * 1000);
 
     if (transaction) {
       console.log("Transaction Details:", transaction.data);
@@ -159,6 +162,7 @@ export async function getHashTransactionDetails(txID: string) {
         blockHash: transaction.blockHash,
         type: transaction.type,
         blockNumber: transaction.blockNumber,
+        timestamp:transactionTimestamp,
         confirmations: transaction.confirmations,
         gasLimit: transaction.gasLimit.toString(),
         gasPrice: transaction.gasPrice?.toString(),

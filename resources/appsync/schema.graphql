@@ -748,6 +748,7 @@ type StoreHashData {
 	chainId: String
 	gasLimit: String
 	gasPrice: String
+	timestamp: String
 }
 
 input StoreHashInput {
