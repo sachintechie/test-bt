@@ -150,7 +150,7 @@ export async function getHashTransactionDetails(txID: string) {
     // Decode the input data
     const parsedTransaction = iface.parseTransaction({ data: transaction.data });
     console.log("parsedTransaction Arguments:", parsedTransaction);
-    const gas = (Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!);
+    const gas = ((Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!))/1e9;
 
     return {
       data: {
