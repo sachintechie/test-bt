@@ -115,15 +115,23 @@ export async function storeHash(hash: string,metaData: string) {
     const parsedTransaction = iface.parseTransaction({ data: transaction.data });
     console.log("parsedTransaction Arguments:", parsedTransaction);
 
-    return {
-      data: {
-        message: "Transaction successful!",
-        transactionHash: receipt.transactionHash,
-        hash:parsedTransaction.args._hash,
-        metaData: parsedTransaction.args._metadata,
-        transactionDetails: transaction,
-        error: null
-      }
+    
+        return {
+            data: {
+              message: "Transaction successful!",
+              transactionHash: transaction.hash,
+              hash:parsedTransaction.args._dataHash,
+              metaData: parsedTransaction.args._metaData,
+              blockHash:transaction.blockHash,
+              type:transaction.type,
+              blockNumber:transaction.blockNumber,
+              confirmations:transaction.confirmations,
+              from:transaction.from,
+              to:transaction.to,
+              nonce:transaction.nonce,
+              chainId:transaction.chainId,
+            },error:null
+          
     };
   } catch (error) {
     // Handle any errors
