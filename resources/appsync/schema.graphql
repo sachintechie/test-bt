@@ -1,6 +1,11 @@
 input AddProductToCollectionInput {
 	customerId: String
-	productId: String
+	productId: String 
+	collectionId:String
+}
+
+input CreateCollectionInput {
+	customerId: String
 	title: String
 	description: String
 }
@@ -914,6 +919,7 @@ type Mutation {
 	CreateOrder(input: CreateOrderInput): CreateOrderResponse
 	UpdateOrderStatus(input: UpdateOrderStatusInput): UpdateOrderStatusResponse
 	AddReview(input: AddReviewInput): AddReviewResponse
+	CreateCollection(input: CreateCollectionInput): ProductToCollectionUniqueResponse
 	AddProductToCollection(input: AddProductToCollectionInput): ProductToCollectionUniqueResponse
 	RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
 	StoreHash(input: StoreHashInput): StoreHash

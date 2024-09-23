@@ -1,24 +1,24 @@
-import { addProductToCollection } from "../db/dbFunctions";
+import { createCollection } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
-    const { customerId, productId, collectionId } = event.arguments?.input;
+    const { customerId, title, description } = event.arguments?.input;
 
-    if (!customerId || !productId  || !collectionId) {
+    if (!customerId || !title || !description) {
       return {
         status: 400,
         data: null,
-        error: "Customer ID, Product ID and Collection ID must be provided."
+        error: "Customer ID, Title and Description must be provided."
       };
     }
 
     const data = {
       customerid:customerId,
-      productid:productId,
-      collectionid:collectionId
+      title,
+      description
     }
     
-    const collection = await addProductToCollection(data);
+    const collection = await createCollection(data);
 
     return {
       status: 200,
