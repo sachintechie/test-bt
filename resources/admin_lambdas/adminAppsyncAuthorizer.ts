@@ -22,7 +22,7 @@ export const handler = async (event: any) => {
     // Query to check if the token exists in the tenant table
     let query = `SELECT * FROM tenant where apikey = '${token}';`;
     const res = await executeQuery(query);
-
+    console.log(res.rows)
     // If the token matches a tenant's API key, process further
     if (res.rows.length > 0 && res.rows[0].apikey === token) {
       const tenant = res.rows[0];
