@@ -141,7 +141,7 @@ export async function storeHash(hash: string, metaData: string) {
         to: transaction.to,
         gasLimit: transaction.gasLimit.toString(),
         gasPrice: transaction.gasPrice?.toString(),
-        gas: gas,
+        gas: gas.toString(),
         nonce: transaction.nonce,
         chainId: transaction.chainId
       },

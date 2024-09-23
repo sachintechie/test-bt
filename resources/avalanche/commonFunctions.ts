@@ -168,7 +168,7 @@ export async function getHashTransactionDetails(txID: string) {
         gasPrice: transaction.gasPrice?.toString(),
         from: transaction.from,
         to: transaction.to,
-        gas: gas,
+        gas: gas.toString(),
         nonce: transaction.nonce,
         chainId: transaction.chainId
       },error:null
