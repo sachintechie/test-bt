@@ -175,3 +175,8 @@ export enum orderstatus {
   CANCELLED = "CANCELLED",
   DISPUTED = "DISPUTED"
 }
+export enum AvalancheTransactionStatus {
+  SUCCESS = 1,
+  FAILED = 2,
+  PENDING = 0
+}
