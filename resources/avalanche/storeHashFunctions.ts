@@ -104,9 +104,13 @@ export async function storeHash(hash: string, metaData: string) {
     const receipt = await tx.wait();
 
     console.log("Transaction confirmed in block:", receipt);
-    const transaction = await provider.getTransaction(receipt.transactionHash);
+    const transaction = (await provider.getTransaction(receipt.transactionHash))
 
     const transactionReceipt = await provider.getTransactionReceipt(receipt.transactionHash);
+    const blockDetails = await provider.getBlock(receipt.blockHash);
+    const transactionTimestamp = new Date(blockDetails.timestamp * 1000);
+
+
     const status = AvalancheTransactionStatus[transactionReceipt.status!];
 
     if (transaction) {
@@ -130,6 +134,7 @@ export async function storeHash(hash: string, metaData: string) {
         metaData: parsedTransaction.args._metaData,
         blockHash: transaction.blockHash,
         type: transaction.type,
+        timestamp:transactionTimestamp,
         blockNumber: transaction.blockNumber,
         confirmations: transaction.confirmations,
         from: transaction.from,
