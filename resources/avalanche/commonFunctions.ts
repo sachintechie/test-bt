@@ -1,5 +1,6 @@
 import { avm, pvm, evm } from "@avalabs/avalanchejs";
 import { ethers } from "ethers";
+import { AvalancheTransactionStatus } from "../db/models";
 const CONTRACT_ABI :any[] =[
   {
     "anonymous": false,
@@ -133,6 +134,10 @@ export async function getHashTransactionDetails(txID: string) {
 
     const transaction = await provider.getTransaction(txID);
 
+    const transactionReceipt = await provider.getTransactionReceipt(txID);
+    const status = AvalancheTransactionStatus[transactionReceipt.status!];
+
+
     if (transaction) {
       console.log("Transaction Details:", transaction.data);
     } else {
@@ -142,20 +147,26 @@ export async function getHashTransactionDetails(txID: string) {
     // Decode the input data
     const parsedTransaction = iface.parseTransaction({ data: transaction.data });
     console.log("parsedTransaction Arguments:", parsedTransaction);
+    const gas = (Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!);
+
     return {
       data: {
         message: "Transaction successful!",
-        transactionHash: transaction.hash,
-        hash:parsedTransaction.args._dataHash,
+        transactionHash: transactionReceipt.transactionHash,
+        status: status,
+        hash: parsedTransaction.args._dataHash,
         metaData: parsedTransaction.args._metaData,
-        blockHash:transaction.blockHash,
-        type:transaction.type,
-        blockNumber:transaction.blockNumber,
-        confirmations:transaction.confirmations,
-        from:transaction.from,
-        to:transaction.to,
-        nonce:transaction.nonce,
-        chainId:transaction.chainId,
+        blockHash: transaction.blockHash,
+        type: transaction.type,
+        blockNumber: transaction.blockNumber,
+        confirmations: transaction.confirmations,
+        gasLimit: transaction.gasLimit.toString(),
+        gasPrice: transaction.gasPrice?.toString(),
+        from: transaction.from,
+        to: transaction.to,
+        gas: gas,
+        nonce: transaction.nonce,
+        chainId: transaction.chainId
       },error:null
     };
   } catch (error) {
