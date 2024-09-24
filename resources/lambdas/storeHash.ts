@@ -5,7 +5,7 @@ export const handler = async (event: any) => {
     console.log(event);
 
     if (event.arguments?.input?.chainType === "Avalanche") {
-      const hash = await storeHash(event.arguments?.input?.hash, event.arguments?.input?.metaData);
+      const hash = await storeHash(event.arguments?.input?.hash);
 
       const response = {
         status: hash?.data != null ? 200 : 400,
