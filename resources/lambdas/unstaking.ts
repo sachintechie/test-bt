@@ -28,7 +28,31 @@ export const handler = async (event: any) => {
         };
         console.log("Wallet", response);
         return response;
-      } else {
+      } 
+      else if (event.arguments?.input?.chainType === "Avalanche") {
+        console.log("Inside Solana", isTransactionAlreadyExist);
+        const data = await solanaUnStaking(
+          event.identity.resolverContext as tenant,
+          event.arguments?.input?.stakeAccountId,
+          isTransactionAlreadyExist.walletaddress,
+          isTransactionAlreadyExist.stakeaccountpubkey,
+          event.arguments?.input?.amount,
+          isTransactionAlreadyExist.symbol,
+          event.headers?.identity,
+          isTransactionAlreadyExist.tenantuserid,
+          event.arguments?.input?.chainType,
+          isTransactionAlreadyExist.tenanttransactionid
+        );
+
+        const response = {
+          status: data?.transaction != null ? 200 : 400,
+          data: data?.transaction,
+          error: data?.error
+        };
+        console.log("Wallet", response);
+        return response;
+      } 
+      else {
         return {
           status: 400,
           data: null,

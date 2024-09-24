@@ -754,7 +754,6 @@ type StoreHashData {
 input StoreHashInput {
 	chainType: String!
 	hash: String!
-	metaData: String!
 }
 
 type TransactionData {
