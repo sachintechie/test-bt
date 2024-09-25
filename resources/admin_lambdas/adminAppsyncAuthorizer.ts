@@ -14,9 +14,7 @@ export const handler = async (event: any) => {
     let token = event.authorizationToken;
 
     // If no token is provided, return unauthorized
-    if (token != null) {
-      console.log("No token provided");
-    
+    if (token != null) {    
 
     // Query to check if the token exists in the tenant table
     let query = `SELECT * FROM tenant where apikey = '${token}';`;
@@ -37,6 +35,7 @@ export const handler = async (event: any) => {
             console.log("Decoded token:", decodedToken);
 
             if (decodedToken == null || decodedToken["email"] == null) {
+              console.log("Invalid ID token");
               return {
                 isAuthorized: false
               };
@@ -125,6 +124,7 @@ export const handler = async (event: any) => {
     console.log("No token provided");
     return { isAuthorized: false };
   }
+   
   } catch (err) {
     console.error("Error occurred", err);
     return { isAuthorized: false };
