@@ -80,6 +80,58 @@ export async function AvalancheStaking(
   return { transaction, error: null };
 }
 
+// Unstaking AVAX
+export async function AvalancheUnstaking(
+  tenant: tenant,
+  senderWalletAddress: string,
+  amount: number,
+  symbol: string,
+  oidcToken: string,
+  tenantUserId: string,
+  chainType: string,
+  tenantTransactionId: string
+) {
+  if (!oidcToken) return { wallet: null, error: "Please send a valid identity token for verification" };
+
+  const cubistConfig = await getCubistConfig(tenant.id);
+  if (!cubistConfig) return { transaction: null, error: "Cubist Configuration not found for the given tenant" };
+
+  const wallet = await getFirstWallet(senderWalletAddress, tenant, symbol);
+  if (!wallet) return { transaction: null, error: "Wallet not found for the given wallet address" };
+
+  if (symbol !== "AVAX") return { transaction: null, error: "Symbol not Supported" };
+
+  const balance = await getAvaxBalance(senderWalletAddress);
+  if (balance !== null && balance < amount) return { transaction: null, error: "Insufficient AVAX balance" };
+
+  const tx = await unstakeAvax(senderWalletAddress, amount, oidcToken, cubistConfig.orgid);
+  if (tx.error) return { transaction: null, error: tx.error };
+
+  const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
+  const txStatus = transactionStatus?.status === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+
+  const transaction = await insertStakingTransaction(
+    senderWalletAddress,
+    senderWalletAddress,
+    amount,
+    chainType,
+    symbol,
+    tx?.trxHash || "",
+    tenant.id,
+    wallet.customerid,
+    wallet.tokenid,
+    tenantUserId,
+    process.env["AVALANCHE_NETWORK"] ?? "",
+    txStatus,
+    tenantTransactionId,
+    "",
+    "",
+    StakeType.UNSTAKE
+  );
+
+  return { transaction, error: null };
+}
+
 async function getValidatorStake(pchain: PVMApi, validatorNodeKey: string) {
   try {
     // Fetch and validate validators information from P-chain
@@ -90,7 +142,7 @@ async function getValidatorStake(pchain: PVMApi, validatorNodeKey: string) {
     }
 
     // Find the specific validator's stake details
-    const validators = Object.values(validatorInfo.validators);
+    const validators: any[] = Object.values(validatorInfo.validators);
     const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
 
     if (!validator) throw new Error(`Validator with node key ${validatorNodeKey} not found`);
@@ -113,7 +165,7 @@ async function getValidatorDelegationFee(pchain: PVMApi, validatorNodeKey: strin
 
     if (!validatorInfo || !validatorInfo.validators) throw new Error("No validators found in the response");
 
-    const validators = Object.values(validatorInfo.validators);
+    const validators: any[] = Object.values(validatorInfo.validators);
     const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
 
     if (!validator) throw new Error(`Validator with node key ${validatorNodeKey} not found`);
@@ -136,7 +188,7 @@ async function getValidatorUptime(pchain: PVMApi, validatorNodeKey: string) {
       throw new Error("No validators found in the response");
     }
 
-    const validators = Object.values(validatorInfo.validators);
+    const validators: any[] = Object.values(validatorInfo.validators);
 
     const validator = validators.find((val: any) => val.nodeID === validatorNodeKey);
 
@@ -281,9 +333,59 @@ export async function createStakeAccountWithStakeProgram(
     return { txHash: null, error: err.message };
   }
 }
+
+
+export async function unstakeAvax(
+  senderWalletAddress: string,
+  amount: number,
+  oidcToken: string,
+  cubistOrgId: string
+) {
+  try {
+    const { pvmapi } = await getAvaxConnection();
+
+    const amountToUnstake = BigInt(amount * 1e9); // Convert amount to nAVAX
+
+    const pAddress: string = "P-" + senderWalletAddress;
+    const context = await Context.getContextFromURI(process.env.AVAX_URL);
+
+    const { utxos } = await pvmapi.getUTXOs({ addresses: [pAddress] });
+    const addressBytes = [ava.utils.bech32ToBytes(pAddress)];
+    const networkID: string = networkIDs.PrimaryNetworkID.toString();
+
+    // OIDC login and session management
+    const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
+    if (!oidcClient) return { trxHash: null, error: "Invalid identity token" };
+
+    const keys = await oidcClient.sessionKeys();
+    const senderKey = keys.find((key: cs.Key) => key.materialId === senderWalletAddress);
+    if (!senderKey) return { trxHash: null, error: "Identity token does not match the sender's wallet address" };
+
+    // Create unstaking transaction
+    const unstakeTx = ava.pvm.newRemoveValidatorTx(
+      context,
+      utxos,
+      addressBytes,
+      networkID,
+      [ava.utils.bech32ToBytes(pAddress)]
+    );
+    const setUnstakeTx = ava.utils.bufferToHex(unstakeTx.toBytes());
+    const unstakeTxSig = await senderKey.signSerializedAva("P", setUnstakeTx);
+    unstakeTx.addSignature(ava.utils.hexToBuffer(unstakeTxSig.data().signature));
+
+    const unstakeTxRes = await pvmapi.issueSignedTx(unstakeTx.getSignedTx());
+    await waitForPvmTxCommitted(unstakeTxRes.txID);
+
+    return { trxHash: unstakeTxRes.txID.toString() };
+  } catch (err: any) {
+    console.error("Error unstaking AVAX:", err);
+    return { trxHash: null, error: err.message };
+  }
+}
+
 async function waitForPvmTxCommitted(txId: string) {
   let status;
-  const { avmapi, pvmapi } = await getAvaxConnection();
+  const { pvmapi } = await getAvaxConnection();
   do {
     status = (await pvmapi.getTxStatus({ txID: txId })).status;
     await delay(100);

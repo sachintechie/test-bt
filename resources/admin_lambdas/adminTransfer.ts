@@ -68,11 +68,11 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
 
 
     if (recipients.length > 0 && tenant != null && token != null) {
-      if(recipients.length <= 10){
+      if(recipients.length > 10){
         return {
           status: 400,
           data: null,
-          error: "Recipients should be more than 10"
+          error: "You can not transfer to more than 10 recipients"
         };
       }
       const blockchainTransaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);

@@ -733,7 +733,7 @@ type StoreHash {
 
 type StoreHashData {
 	message: String
-	transactionHash: String
+	transactionId: String
 	hash: String
 	metaData: String
 	blockHash: String
@@ -742,14 +742,18 @@ type StoreHashData {
 	confirmations: String
 	from: String
 	to: String
+	status: String
+	gas:String
 	nonce: String
 	chainId: String
+	gasLimit: String
+	gasPrice: String
+	timestamp: String
 }
 
 input StoreHashInput {
 	chainType: String!
 	hash: String!
-	metaData: String!
 }
 
 type TransactionData {
