@@ -958,6 +958,7 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+	GetProductsByTenantId: GetProductsResponse
 	FilterProducts(input: FilterProductInput): FilterProductResponse
 	GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
 	GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
