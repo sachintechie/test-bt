@@ -1487,18 +1487,6 @@ export async function getProductsByCategoryId(categoryId: string) {
   }
 }
 
-export async function getProductsByTenantId(tenant: tenant) {
-  try {
-    const prisma = await getPrismaClient();
-    const product = await prisma.product.findMany({
-      where: { tenantid: tenant.id }
-    });
-    return product;
-  } catch (err) {
-    throw err;
-  }
-}
-
 export async function GetProductAttributesByProductId(productId: string) {
   try {
     const prisma = await getPrismaClient();
