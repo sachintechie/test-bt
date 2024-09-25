@@ -18,54 +18,58 @@ export const handler = async (event: any) => {
         const tenant = res.rows[0];
         console.log(tenant);
         if (tenant.iscognitoactive === true) {
-
           let idToken = event?.requestHeaders?.identity;
-          if (idToken == null) {
-            return {
-              isAuthorized: false
-            };
-          }
-          const decodedToken: any = jwt_decode.decode(idToken);
-          console.log("Decoded token:", decodedToken);
+          if (idToken != null) {
+            const decodedToken: any = jwt_decode.decode(idToken);
+            console.log("Decoded token:", decodedToken);
 
-          if (decodedToken == null || decodedToken["email"] == null) {
-            return {
-              isAuthorized: false
-            };
-          }
-          const expireTime = decodedToken["exp"];
+            if (decodedToken == null || decodedToken["email"] == null) {
+              const expireTime = decodedToken["exp"];
 
-          // Convert the expiration timestamp to milliseconds
-          const expireTimeInMs = expireTime * 1000;
+              // Convert the expiration timestamp to milliseconds
+              const expireTimeInMs = expireTime * 1000;
 
-          // Get the current time in milliseconds
-          const currentTime = Date.now();
-          // Check if the expiration time has passed
-          if (currentTime > expireTimeInMs) {
-            return {
-              isAuthorized: false
-            };
-          }
-          const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
-          if (customer == null) {
-            return {
-              isAuthorized: false
-            };
-          } else {
-            return {
-              isAuthorized: true,
-              resolverContext: {
-                id: tenant.id,
-                name: tenant.name,
-                apikey: tenant.apikey,
-                logo: tenant.logo,
-                isactive: tenant.isactive,
-                createdat: tenant.createdat,
-                userpoolid: tenant.userpoolid,
-                cognitoclientid: tenant.cognitoclientid,
-                usertype: "CUSTOMER",
-                customerid: customer.id
+              // Get the current time in milliseconds
+              const currentTime = Date.now();
+              // Check if the expiration time has passed
+              if (currentTime > expireTimeInMs) {
+                console.log("Token expired");
+                return {
+                  isAuthorized: false
+                };
+              } else {
+                const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
+                if (customer == null) {
+                  console.log("Customer not found");
+                  return {
+                    isAuthorized: false
+                  };
+                } else {
+                  return {
+                    isAuthorized: true,
+                    resolverContext: {
+                      id: tenant.id,
+                      name: tenant.name,
+                      apikey: tenant.apikey,
+                      logo: tenant.logo,
+                      isactive: tenant.isactive,
+                      createdat: tenant.createdat,
+                      userpoolid: tenant.userpoolid,
+                      cognitoclientid: tenant.cognitoclientid,
+                      usertype: "CUSTOMER",
+                      customerid: customer.id
+                    }
+                  };
+                }
               }
+            } else {
+              console.log("decoded token null");
+              return { isAuthorized: false };
+            }
+          } else {
+            console.log("id token null");
+            return {
+              isAuthorized: false
             };
           }
         } else {
@@ -83,10 +87,10 @@ export const handler = async (event: any) => {
             }
           };
         }
+      } else {
+        console.log("Api token not matched");
+        return { isAuthorized: false };
       }
-      return {
-        isAuthorized: false
-      };
     } else {
       console.log("No token provided");
       return {
