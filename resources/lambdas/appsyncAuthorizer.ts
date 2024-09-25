@@ -25,6 +25,11 @@ export const handler = async (event: any) => {
           };
         }
         const decodedToken:any = jwt_decode.decode(idToken);
+        if(decodedToken == null || decodedToken["email"] == null){
+          return {
+            isAuthorized: false
+          };
+        }
         const customer = await getCustomerIdByTenant(decodedToken["email"],tenant.id);
         if(customer == null){
           return {

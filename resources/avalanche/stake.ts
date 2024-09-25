@@ -2,7 +2,8 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeType, tenant, TransactionStatus } from "../db/models";
 import { getCubistConfig, getFirstWallet, insertStakingTransaction } from "../db/dbFunctions";
 import * as ava from "@avalabs/avalanchejs";
-import {  Context, networkIDs } from "@avalabs/avalanchejs";
+import {  Context, networkIDs,Avalanche } from "@avalabs/avalanchejs";
+import { Avalanche } from "@avalabs/avalanchejs";
 import { delay } from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
@@ -339,6 +340,7 @@ export async function unstakeAvax(
   senderWalletAddress: string,
   amount: number,
   oidcToken: string,
+  validatorNodeKey: string,
   cubistOrgId: string
 ) {
   try {
@@ -360,14 +362,26 @@ export async function unstakeAvax(
     const keys = await oidcClient.sessionKeys();
     const senderKey = keys.find((key: cs.Key) => key.materialId === senderWalletAddress);
     if (!senderKey) return { trxHash: null, error: "Identity token does not match the sender's wallet address" };
-
+    const avalanche = new Avalanche("api.avax.network", 443, "https");
+        const pchain: PlatformVMAPI = ava.PChain(); // P-Chain for staking
     // Create unstaking transaction
-    const unstakeTx = ava.pvm.newRemoveValidatorTx(
+    const unstakeTx = ava.pvm.newRemoveSubnetValidatorTx(
       context,
       utxos,
       addressBytes,
+      validatorNodeKey,
       networkID,
-      [ava.utils.bech32ToBytes(pAddress)]
+      amountToUnstake,
+    );
+
+    
+    // Create an unsigned transaction for removing the validator (unstaking)
+    const unsignedTx: ava.UnsignedTx = await pvmapi.(
+      utxoSet,
+      [address],    // Address controlling the validator
+      [rewardAddress],  // Address to send rewards
+      nodeID,       // Node ID to unstake from
+      [address]     // Address to receive AVAX after unstaking
     );
     const setUnstakeTx = ava.utils.bufferToHex(unstakeTx.toBytes());
     const unstakeTxSig = await senderKey.signSerializedAva("P", setUnstakeTx);
