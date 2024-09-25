@@ -19,7 +19,10 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   'createKycApplicant',
   'deleteKeyAndUserFromCubistAndDB',
   'migrateDB',
-  'createOrganizationUnitAndAwsAccount'
+  'createOrganizationUnitAndAwsAccount',
+  'moonpayNftLiteAsset',
+  'moonpayNftLiteDelivery',
+  'moonpayNftLiteStatus'
 ]
 
 const GET_METADATA="getMetadata";
