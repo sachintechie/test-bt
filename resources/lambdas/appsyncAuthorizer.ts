@@ -18,6 +18,7 @@ export const handler = async (event: any) => {
         const tenant = res.rows[0];
         console.log(tenant);
         if (tenant.iscognitoactive === true) {
+
           let idToken = event?.requestHeaders?.identity;
           if (idToken == null) {
             return {
@@ -93,7 +94,7 @@ export const handler = async (event: any) => {
       };
     }
   } catch (err) {
-    console.log("Disconnected from database.", err);
+    console.log("Error", err);
     return {
       isAuthorized: false
     };
