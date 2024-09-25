@@ -1,3 +1,4 @@
+import { AvalancheUnstaking } from "../avalanche/stake";
 import { getStakeAccountById } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import { solanaUnStaking } from "../solana/solanaUnstake";
@@ -31,11 +32,9 @@ export const handler = async (event: any) => {
       } 
       else if (event.arguments?.input?.chainType === "Avalanche") {
         console.log("Inside Solana", isTransactionAlreadyExist);
-        const data = await solanaUnStaking(
+        const data = await AvalancheUnstaking(
           event.identity.resolverContext as tenant,
-          event.arguments?.input?.stakeAccountId,
           isTransactionAlreadyExist.walletaddress,
-          isTransactionAlreadyExist.stakeaccountpubkey,
           event.arguments?.input?.amount,
           isTransactionAlreadyExist.symbol,
           event.headers?.identity,

@@ -36,6 +36,11 @@ export const handler = async (event: any) => {
         // Check if user has admin-like privileges
         if (await isUserAdminLike(idToken)) {
           const decodedToken: any = jwt_decode.decode(idToken);
+          if(decodedToken == null || decodedToken["email"] == null){
+            return {
+              isAuthorized: false
+            };
+          }
           const adminUser = await getAdminUserByTenant(decodedToken["email"], tenant.id);
 
           // If no admin user is found, return unauthorized
