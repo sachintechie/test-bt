@@ -10,7 +10,7 @@ const ADMIN_ROLE = process.env["ADMIN_ROLE"];
 export const handler = async (event: any) => {
   try {
     console.log("Event received", event);
-    
+
     let token = event.authorizationToken;
 
     // If no token is provided, return unauthorized
@@ -29,14 +29,29 @@ export const handler = async (event: any) => {
 
       // Handle tenant with active Cognito
       if (tenant.iscognitoactive === true) {
-        let idToken  = event?.requestHeaders?.identity;
+        let idToken = event?.requestHeaders?.identity;
 
         if (idToken == null) return { isAuthorized: false };
 
         // Check if user has admin-like privileges
         if (await isUserAdminLike(idToken)) {
           const decodedToken: any = jwt_decode.decode(idToken);
-          if(decodedToken == null || decodedToken["email"] == null){
+
+          if (decodedToken == null || decodedToken["email"] == null) {
+            return {
+              isAuthorized: false
+            };
+          }
+          // Expiration timestamp (in seconds)
+          const expireTime = decodedToken["exp"];
+
+          // Convert the expiration timestamp to milliseconds
+          const expireTimeInMs = expireTime * 1000;
+
+          // Get the current time in milliseconds
+          const currentTime = Date.now();
+          // Check if the expiration time has passed
+          if (currentTime > expireTimeInMs) {
             return {
               isAuthorized: false
             };
@@ -66,7 +81,7 @@ export const handler = async (event: any) => {
         }
         // If user is not admin-like, return unauthorized
         return { isAuthorized: false };
-      } 
+      }
 
       // Handle "OnDemand" tenant
       if (tenant.name === "OnDemand") {
@@ -93,7 +108,6 @@ export const handler = async (event: any) => {
 
     // If no tenant matches the token, return unauthorized
     return { isAuthorized: false };
-    
   } catch (err) {
     console.error("Error occurred", err);
     return { isAuthorized: false };
@@ -120,7 +134,6 @@ async function isUserAdminLike(idToken: string) {
 
     // Return true if user belongs to the admin group or role
     return cognitoGroups.includes(ADMIN_GROUP) || cognitoRoles.includes(ADMIN_ROLE);
-    
   } catch (error) {
     console.error("Error decoding ID token:", error);
     return false;
