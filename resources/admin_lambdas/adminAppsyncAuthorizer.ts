@@ -36,6 +36,7 @@ export const handler = async (event: any) => {
         // Check if user has admin-like privileges
         if (await isUserAdminLike(idToken)) {
           const decodedToken: any = jwt_decode.decode(idToken);
+          console.log("Decoded token:", decodedToken);
 
           if (decodedToken == null || decodedToken["email"] == null) {
             return {
