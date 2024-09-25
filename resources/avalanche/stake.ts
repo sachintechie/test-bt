@@ -2,8 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeType, tenant, TransactionStatus } from "../db/models";
 import { getCubistConfig, getFirstWallet, insertStakingTransaction } from "../db/dbFunctions";
 import * as ava from "@avalabs/avalanchejs";
-import {  Context, networkIDs,Avalanche } from "@avalabs/avalanchejs";
-import { Avalanche } from "@avalabs/avalanchejs";
+import {  Context, networkIDs } from "@avalabs/avalanchejs";
 import { delay } from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
@@ -16,7 +15,7 @@ const env: any = {
 export async function AvalancheStaking(
   tenant: tenant,
   senderWalletAddress: string,
-  receiverWalletAddress: string,
+  validatornodeaddress: string,
   amount: number,
   symbol: string,
   oidcToken: string,
@@ -52,7 +51,7 @@ export async function AvalancheStaking(
   }
 
   // 8. Perform staking transaction
-  const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
+  const tx = await stakeAvax(senderWalletAddress, amount, validatornodeaddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
   if (tx.error) return { transaction: null, error: tx.error };
 
   // 9. Verify the transaction status and log the transaction
@@ -61,7 +60,7 @@ export async function AvalancheStaking(
 
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
-    receiverWalletAddress,
+    validatornodeaddress,
     amount,
     chainType,
     symbol,
@@ -90,7 +89,8 @@ export async function AvalancheUnstaking(
   oidcToken: string,
   tenantUserId: string,
   chainType: string,
-  tenantTransactionId: string
+  tenantTransactionId: string,
+  validatornodeaddress: string
 ) {
   if (!oidcToken) return { wallet: null, error: "Please send a valid identity token for verification" };
 
@@ -105,7 +105,7 @@ export async function AvalancheUnstaking(
   const balance = await getAvaxBalance(senderWalletAddress);
   if (balance !== null && balance < amount) return { transaction: null, error: "Insufficient AVAX balance" };
 
-  const tx = await unstakeAvax(senderWalletAddress, amount, oidcToken, cubistConfig.orgid);
+  const tx = await unstakeAvax(senderWalletAddress, amount, oidcToken, cubistConfig.orgid,validatornodeaddress);
   if (tx.error) return { transaction: null, error: tx.error };
 
   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
@@ -340,8 +340,8 @@ export async function unstakeAvax(
   senderWalletAddress: string,
   amount: number,
   oidcToken: string,
-  validatorNodeKey: string,
-  cubistOrgId: string
+  cubistOrgId: string,
+  validatornodeaddress: string
 ) {
   try {
     const { pvmapi } = await getAvaxConnection();
@@ -354,6 +354,7 @@ export async function unstakeAvax(
     const { utxos } = await pvmapi.getUTXOs({ addresses: [pAddress] });
     const addressBytes = [ava.utils.bech32ToBytes(pAddress)];
     const networkID: string = networkIDs.PrimaryNetworkID.toString();
+    const subnets: number = Number(networkIDs.PrimaryNetworkID);
 
     // OIDC login and session management
     const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
@@ -362,26 +363,22 @@ export async function unstakeAvax(
     const keys = await oidcClient.sessionKeys();
     const senderKey = keys.find((key: cs.Key) => key.materialId === senderWalletAddress);
     if (!senderKey) return { trxHash: null, error: "Identity token does not match the sender's wallet address" };
-    const avalanche = new Avalanche("api.avax.network", 443, "https");
-        const pchain: PlatformVMAPI = ava.PChain(); // P-Chain for staking
+
     // Create unstaking transaction
+    // const unstakeTx = ava.pvm.newRemoveSubnetValidatorTx(
+    //   context,
+    //   utxos,
+    //   addressBytes,
+    //   networkID,
+    //   [ava.utils.bech32ToBytes(pAddress)]
+    // );
     const unstakeTx = ava.pvm.newRemoveSubnetValidatorTx(
       context,
       utxos,
       addressBytes,
-      validatorNodeKey,
+      validatornodeaddress,
       networkID,
-      amountToUnstake,
-    );
-
-    
-    // Create an unsigned transaction for removing the validator (unstaking)
-    const unsignedTx: ava.UnsignedTx = await pvmapi.(
-      utxoSet,
-      [address],    // Address controlling the validator
-      [rewardAddress],  // Address to send rewards
-      nodeID,       // Node ID to unstake from
-      [address]     // Address to receive AVAX after unstaking
+      [subnets]
     );
     const setUnstakeTx = ava.utils.bufferToHex(unstakeTx.toBytes());
     const unstakeTxSig = await senderKey.signSerializedAva("P", setUnstakeTx);
