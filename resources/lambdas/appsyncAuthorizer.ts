@@ -23,7 +23,7 @@ export const handler = async (event: any) => {
             const decodedToken: any = jwt_decode.decode(idToken);
             console.log("Decoded token:", decodedToken);
 
-            if (decodedToken == null || decodedToken["email"] == null) {
+            if (decodedToken != null && decodedToken["email"] != null) {
               const expireTime = decodedToken["exp"];
 
               // Convert the expiration timestamp to milliseconds
