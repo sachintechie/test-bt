@@ -15,7 +15,7 @@ const env: any = {
 export async function AvalancheStaking(
   tenant: tenant,
   senderWalletAddress: string,
-  receiverWalletAddress: string,
+  validatornodeaddress: string,
   amount: number,
   symbol: string,
   oidcToken: string,
@@ -51,7 +51,7 @@ export async function AvalancheStaking(
   }
 
   // 8. Perform staking transaction
-  const tx = await stakeAvax(senderWalletAddress, amount, receiverWalletAddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
+  const tx = await stakeAvax(senderWalletAddress, amount, validatornodeaddress, oidcToken, lockupExpirationTimestamp, cubistConfig.orgid);
   if (tx.error) return { transaction: null, error: tx.error };
 
   // 9. Verify the transaction status and log the transaction
@@ -60,7 +60,7 @@ export async function AvalancheStaking(
 
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
-    receiverWalletAddress,
+    validatornodeaddress,
     amount,
     chainType,
     symbol,
@@ -89,7 +89,8 @@ export async function AvalancheUnstaking(
   oidcToken: string,
   tenantUserId: string,
   chainType: string,
-  tenantTransactionId: string
+  tenantTransactionId: string,
+  validatornodeaddress: string
 ) {
   if (!oidcToken) return { wallet: null, error: "Please send a valid identity token for verification" };
 
@@ -104,7 +105,7 @@ export async function AvalancheUnstaking(
   const balance = await getAvaxBalance(senderWalletAddress);
   if (balance !== null && balance < amount) return { transaction: null, error: "Insufficient AVAX balance" };
 
-  const tx = await unstakeAvax(senderWalletAddress, amount, oidcToken, cubistConfig.orgid);
+  const tx = await unstakeAvax(senderWalletAddress, amount, oidcToken, cubistConfig.orgid,validatornodeaddress);
   if (tx.error) return { transaction: null, error: tx.error };
 
   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
@@ -339,7 +340,8 @@ export async function unstakeAvax(
   senderWalletAddress: string,
   amount: number,
   oidcToken: string,
-  cubistOrgId: string
+  cubistOrgId: string,
+  validatornodeaddress: string
 ) {
   try {
     const { pvmapi } = await getAvaxConnection();
@@ -352,6 +354,7 @@ export async function unstakeAvax(
     const { utxos } = await pvmapi.getUTXOs({ addresses: [pAddress] });
     const addressBytes = [ava.utils.bech32ToBytes(pAddress)];
     const networkID: string = networkIDs.PrimaryNetworkID.toString();
+    const subnets: number = Number(networkIDs.PrimaryNetworkID);
 
     // OIDC login and session management
     const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
@@ -362,12 +365,20 @@ export async function unstakeAvax(
     if (!senderKey) return { trxHash: null, error: "Identity token does not match the sender's wallet address" };
 
     // Create unstaking transaction
-    const unstakeTx = ava.pvm.newRemoveValidatorTx(
+    // const unstakeTx = ava.pvm.newRemoveSubnetValidatorTx(
+    //   context,
+    //   utxos,
+    //   addressBytes,
+    //   networkID,
+    //   [ava.utils.bech32ToBytes(pAddress)]
+    // );
+    const unstakeTx = ava.pvm.newRemoveSubnetValidatorTx(
       context,
       utxos,
       addressBytes,
+      validatornodeaddress,
       networkID,
-      [ava.utils.bech32ToBytes(pAddress)]
+      [subnets]
     );
     const setUnstakeTx = ava.utils.bufferToHex(unstakeTx.toBytes());
     const unstakeTxSig = await senderKey.signSerializedAva("P", setUnstakeTx);

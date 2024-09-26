@@ -24,8 +24,8 @@ export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaMa
       defaultAuthorization: {
         authorizationType: appsync.AuthorizationType.LAMBDA,
         lambdaAuthorizerConfig: {
-          handler: lambdaMap.get(authorizerLambda)!,
-          resultsCacheTtl: cdk.Duration.minutes(5), // Optional cache TTL
+          handler: lambdaMap.get(authorizerLambda)!
+          //resultsCacheTtl: cdk.Duration.minutes(5), // Optional cache TTL
         },
       },
     },

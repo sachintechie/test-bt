@@ -17,21 +17,62 @@ export const handler = async (event: any) => {
 
         const tenant = res.rows[0];
         console.log(tenant);
-      if(tenant.iscognitoactive === true){
-        let idToken  = event?.requestHeaders?.identity;
-        if (idToken == null) {
-          return {
-            isAuthorized: false
-          };
-        }
-        const decodedToken:any = jwt_decode.decode(idToken);
-        const customer = await getCustomerIdByTenant(decodedToken["email"],tenant.id);
-        if(customer == null){
-          return {
-            isAuthorized: false
-          };
-        }
-        else{
+        if (tenant.iscognitoactive === true) {
+          let idToken = event?.requestHeaders?.identity;
+          if (idToken != null) {
+            const decodedToken: any = jwt_decode.decode(idToken);
+            console.log("Decoded token:", decodedToken);
+
+            if (decodedToken != null && decodedToken["email"] != null) {
+              const expireTime = decodedToken["exp"];
+
+              // Convert the expiration timestamp to milliseconds
+              const expireTimeInMs = expireTime * 1000;
+
+              // Get the current time in milliseconds
+              const currentTime = Date.now();
+              // Check if the expiration time has passed
+              if (currentTime > expireTimeInMs) {
+                console.log("Token expired");
+                return {
+                  isAuthorized: false
+                };
+              } else {
+                const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
+                if (customer == null) {
+                  console.log("Customer not found");
+                  return {
+                    isAuthorized: false
+                  };
+                } else {
+                  return {
+                    isAuthorized: true,
+                    resolverContext: {
+                      id: tenant.id,
+                      name: tenant.name,
+                      apikey: tenant.apikey,
+                      logo: tenant.logo,
+                      isactive: tenant.isactive,
+                      createdat: tenant.createdat,
+                      userpoolid: tenant.userpoolid,
+                      cognitoclientid: tenant.cognitoclientid,
+                      usertype: "CUSTOMER",
+                      customerid: customer.id
+                    }
+                  };
+                }
+              }
+            } else {
+              console.log("decoded token null");
+              return { isAuthorized: false };
+            }
+          } else {
+            console.log("id token null");
+            return {
+              isAuthorized: false
+            };
+          }
+        } else {
           return {
             isAuthorized: true,
             resolverContext: {
@@ -42,33 +83,14 @@ export const handler = async (event: any) => {
               isactive: tenant.isactive,
               createdat: tenant.createdat,
               userpoolid: tenant.userpoolid,
-              cognitoclientid: tenant.cognitoclientid,
-              usertype : "CUSTOMER",
-              customerid: customer.id
+              cognitoclientid: tenant.cognitoclientid
             }
           };
         }
-
-      }else{
-
-        return {
-          isAuthorized: true,
-          resolverContext: {
-            id: tenant.id,
-            name: tenant.name,
-            apikey: tenant.apikey,
-            logo: tenant.logo,
-            isactive: tenant.isactive,
-            createdat: tenant.createdat,
-            userpoolid: tenant.userpoolid,
-            cognitoclientid: tenant.cognitoclientid
-          }
-        };
+      } else {
+        console.log("Api token not matched");
+        return { isAuthorized: false };
       }
-      }
-      return {
-        isAuthorized: false
-      };
     } else {
       console.log("No token provided");
       return {
@@ -76,7 +98,7 @@ export const handler = async (event: any) => {
       };
     }
   } catch (err) {
-    console.log("Disconnected from database.", err);
+    console.log("Error", err);
     return {
       isAuthorized: false
     };
