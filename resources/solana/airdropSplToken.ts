@@ -286,14 +286,18 @@ export async function batchTransferSPLToken(
    const keys = await oidcClient.sessionKeys();
    console.log("Keys", keys);
    if(keys.length === 0){
-
     return {
       trxHash: null,
       error: "Given identity token is not the owner of given wallet address"
     };
    }
    const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
-
+   if(senderKey == null){
+    return {
+      trxHash: null,
+      error: "Given identity token is not the owner of given wallet address"
+    };
+   }
    const senderPublicKey = new PublicKey(senderKey.materialId);
 
 
