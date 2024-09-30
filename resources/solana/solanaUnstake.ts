@@ -1,9 +1,13 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/models";
 import {
-   duplicateStakeAccountWithStatus,
-  getCubistConfig, getToken, getWallet,
-  insertStakingTransaction, reduceStakeAccountAmount, updateStakeAccountStatus
+  duplicateStakeAccountWithStatus,
+  getCubistConfig,
+  getToken,
+  getWallet,
+  insertStakingTransaction,
+  reduceStakeAccountAmount,
+  updateStakeAccountStatus
 } from "../db/dbFunctions";
 import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Transaction } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
@@ -40,8 +44,8 @@ export async function solanaUnStaking(
           error: "Cubist Configuration not found for the given tenant"
         };
       }
-      const wallet = await getWallet(senderWalletAddress)
-      const token = await getToken(symbol)
+      const wallet = await getWallet(senderWalletAddress);
+      const token = await getToken(symbol);
       if (!wallet) {
         return {
           transaction: null,
@@ -53,7 +57,6 @@ export async function solanaUnStaking(
           if (trx.trxHash != null && trx.stakeAccountPubKey != null) {
             const transactionStatus = await verifySolanaTransaction(trx.trxHash);
             const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-
 
             const transaction = await insertStakingTransaction(
               senderWalletAddress,
@@ -126,13 +129,13 @@ export async function unstakeSol(
     const stakeAccountInfo = await getStakeAccountInfo(stakeAccountPubKey, connection);
 
     console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
-    const currentStakeAmount = stakeAccountInfo.currentStakeAmount/ LAMPORTS_PER_SOL;
+    const currentStakeAmount = stakeAccountInfo.currentStakeAmount / LAMPORTS_PER_SOL;
     if (stakeAccountInfo.currentStakeAmount == null) {
       return { trxHash: null, error: "Failed to parse stake account data" };
     }
 
     if (amount >= currentStakeAmount) {
-      amount=currentStakeAmount;
+      amount = currentStakeAmount;
       console.log("full stake", amount);
 
       isFullyUnStake = true;
@@ -149,14 +152,7 @@ export async function unstakeSol(
       console.log("partial stake", amount);
 
       // Partially withdraw the stake
-      return await partiallyDeactivateStake(
-        connection,
-        senderKey[0],
-        stakeAccountPubkey,
-        senderWalletAddress,
-        amount ,
-        isFullyUnStake
-      );
+      return await partiallyDeactivateStake(connection, senderKey[0], stakeAccountPubkey, senderWalletAddress, amount, isFullyUnStake);
     }
   } catch (err: any) {
     console.log(err);
@@ -190,7 +186,7 @@ async function deactivateStake(
   let tx = await connection.sendRawTransaction(transaction.serialize());
   await connection.confirmTransaction(tx);
   console.log("Stake deactivated with signature:", tx);
-  await updateStakeAccountStatus(stakeAccountPubkey.toString(), StakeAccountStatus.DEACTIVATED)
+  await updateStakeAccountStatus(stakeAccountPubkey.toString(), StakeAccountStatus.DEACTIVATED);
   return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey, isFullyUnStake, error: null };
 }
 
@@ -265,7 +261,7 @@ async function partiallyDeactivateStake(
         stakePubkey: stakeAccountPubkey,
         authorizedPubkey: fromPublicKey,
         splitStakePubkey: tempStakeAccount.publicKey,
-        lamports: amount* LAMPORTS_PER_SOL
+        lamports: amount * LAMPORTS_PER_SOL
       },
       lamportsForRentExemption
     )
@@ -281,8 +277,8 @@ async function partiallyDeactivateStake(
   await connection.confirmTransaction(tx);
   console.log("Stake account split with signature:", tx);
 
-  await duplicateStakeAccountWithStatus(stakeAccountPubkey.toString(),tempStakeAccount.publicKey.toString(), amount,'DEACTIVATED');
-  await reduceStakeAccountAmount(stakeAccountPubkey.toString(),amount);
+  await duplicateStakeAccountWithStatus(stakeAccountPubkey.toString(), tempStakeAccount.publicKey.toString(), amount, "DEACTIVATED");
+  await reduceStakeAccountAmount(stakeAccountPubkey.toString(), amount);
 
   // Deactivate the split stake account
   transaction = new Transaction().add(
@@ -301,10 +297,8 @@ async function partiallyDeactivateStake(
   await connection.confirmTransaction(tx);
   console.log("Temporary stake account deactivated with signature:", tx);
 
-
   return { trxHash: tx, stakeAccountPubKey: stakeAccountPubkey, isFullyUnStake, error: null };
 }
-
 
 async function partiallyWithdrawStake(
   connection: Connection,

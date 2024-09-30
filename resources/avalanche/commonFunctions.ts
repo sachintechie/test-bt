@@ -1,84 +1,84 @@
 import { avm, pvm, evm } from "@avalabs/avalanchejs";
 import { ethers } from "ethers";
 import { AvalancheTransactionStatus } from "../db/models";
-const CONTRACT_ABI :any[] =[
+const CONTRACT_ABI: any[] = [
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
+        indexed: true,
+        internalType: "address",
+        name: "user",
+        type: "address"
       },
       {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "hash",
-        "type": "bytes32"
+        indexed: false,
+        internalType: "bytes32",
+        name: "hash",
+        type: "bytes32"
       },
       {
-        "indexed": false,
-        "internalType": "bytes32",
-        "name": "metadata",
-        "type": "bytes32"
+        indexed: false,
+        internalType: "bytes32",
+        name: "metadata",
+        type: "bytes32"
       },
       {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
+        indexed: false,
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256"
       }
     ],
-    "name": "HashStored",
-    "type": "event"
+    name: "HashStored",
+    type: "event"
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
+        internalType: "address",
+        name: "user",
+        type: "address"
       }
     ],
-    "name": "getHashData",
-    "outputs": [
+    name: "getHashData",
+    outputs: [
       {
-        "internalType": "bytes32",
-        "name": "dataHash",
-        "type": "bytes32"
+        internalType: "bytes32",
+        name: "dataHash",
+        type: "bytes32"
       },
       {
-        "internalType": "bytes32",
-        "name": "metadata",
-        "type": "bytes32"
+        internalType: "bytes32",
+        name: "metadata",
+        type: "bytes32"
       },
       {
-        "internalType": "uint256",
-        "name": "timestamp",
-        "type": "uint256"
+        internalType: "uint256",
+        name: "timestamp",
+        type: "uint256"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: "view",
+    type: "function"
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "bytes32",
-        "name": "_dataHash",
-        "type": "bytes32"
+        internalType: "bytes32",
+        name: "_dataHash",
+        type: "bytes32"
       },
       {
-        "internalType": "bytes32",
-        "name": "_metaData",
-        "type": "bytes32"
+        internalType: "bytes32",
+        name: "_metaData",
+        type: "bytes32"
       }
     ],
-    "name": "storeHash",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: "storeHash",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
   }
 ];
 // Environment variables (set in AWS Lambda or using dotenv)
@@ -102,9 +102,9 @@ export async function getAvaxBalance(address: string) {
 }
 
 export async function getAvaxConnection() {
-  const pvmapi = new pvm.PVMApi( process.env["AVAX_URL"]);
-  const avmapi = new avm.AVMApi( process.env["AVAX_URL"]);
- 
+  const pvmapi = new pvm.PVMApi(process.env["AVAX_URL"]);
+  const avmapi = new avm.AVMApi(process.env["AVAX_URL"]);
+
   // const ip: string = process.env["AVAX_URL"]! // Testnet URL
   // const port: number = 443;
   // const protocol: string = "https";
@@ -150,7 +150,7 @@ export async function getHashTransactionDetails(txID: string) {
     // Decode the input data
     const parsedTransaction = iface.parseTransaction({ data: transaction.data });
     console.log("parsedTransaction Arguments:", parsedTransaction);
-    const gas = ((Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!))/1e9;
+    const gas = ((Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!)) / 1e9;
 
     return {
       data: {
@@ -162,7 +162,7 @@ export async function getHashTransactionDetails(txID: string) {
         blockHash: transaction.blockHash,
         type: transaction.type,
         blockNumber: transaction.blockNumber,
-        timestamp:transactionTimestamp,
+        timestamp: transactionTimestamp,
         confirmations: transaction.confirmations,
         gasLimit: transaction.gasLimit.toString(),
         gasPrice: transaction.gasPrice?.toString(),
@@ -171,7 +171,8 @@ export async function getHashTransactionDetails(txID: string) {
         gas: gas.toString(),
         nonce: transaction.nonce,
         chainId: transaction.chainId
-      },error:null
+      },
+      error: null
     };
   } catch (error) {
     console.error("Error fetching transaction status:", error);
@@ -179,5 +180,5 @@ export async function getHashTransactionDetails(txID: string) {
       data: null,
       error: error
     };
-    }
+  }
 }

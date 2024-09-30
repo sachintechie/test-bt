@@ -20,7 +20,7 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
-	console.error("Error getting wishlist items:", error);
+    console.error("Error getting wishlist items:", error);
     return {
       status: 500,
       data: null,

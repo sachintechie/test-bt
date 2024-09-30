@@ -1,4 +1,4 @@
-import { updateProductAttribute } from "../db/adminDbFunctions"; 
+import { updateProductAttribute } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -17,8 +17,8 @@ export const handler = async (event: any, context: any) => {
       productId,
       key,
       newValue
-    }
-    
+    };
+
     const updatedAttribute = await updateProductAttribute(data);
 
     return {
@@ -27,7 +27,8 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
-    console.error("Error updating product attribute:", error); let errorMessage = "An unknown error occurred.";
+    console.error("Error updating product attribute:", error);
+    let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;
     }

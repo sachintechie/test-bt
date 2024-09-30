@@ -4,9 +4,7 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const category = await getCategoryById(
-      event.arguments?.input?.categoryId,
-    );
+    const category = await getCategoryById(event.arguments?.input?.categoryId);
     return {
       status: 200,
       data: category,

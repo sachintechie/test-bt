@@ -31,19 +31,19 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createCustomerWallet(tenant: tenant, chainType: string,oidcToken: string) {
+async function createCustomerWallet(tenant: tenant, chainType: string, oidcToken: string) {
   console.log("Creating user");
 
   try {
     console.log("createUser", tenant.id);
-    const userData = await verifyToken(tenant,oidcToken);
-    if(userData == null || userData.email == null){
+    const userData = await verifyToken(tenant, oidcToken);
+    if (userData == null || userData.email == null) {
       return {
         customer: null,
         error: "Please provide a valid access token for verification"
       };
     }
-    console.log("createUser", tenant.id,userData.email);
+    console.log("createUser", tenant.id, userData.email);
     const customer = await getCustomer(userData.email, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       const wallet = await getWalletByCustomer(userData.email, chainType, tenant);

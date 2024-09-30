@@ -3,36 +3,23 @@ import { StakeAccountStatus, StakeType, tenant, TransactionStatus } from "../db/
 import {
   createWithdrawTransaction,
   getCubistConfig,
-   getStakeAccounData,
-   getToken, getWallet,
+  getStakeAccounData,
+  getToken,
+  getWallet,
   insertMergeStakeAccountsTransaction,
   insertStakeAccount,
-  insertStakingTransaction, mergeDbStakeAccounts,
-  updateStakeAccount,
+  insertStakingTransaction,
+  mergeDbStakeAccounts,
+  updateStakeAccount
 } from "../db/dbFunctions";
-import {
-  Connection,
-  LAMPORTS_PER_SOL,
-  PublicKey,
-  StakeProgram,
-  Keypair,
-  Authorized,
-  Transaction,
-  Lockup
-} from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL, PublicKey, StakeProgram, Keypair, Authorized, Transaction, Lockup } from "@solana/web3.js";
 import { oidcLogin, signTransaction } from "../cubist/CubeSignerClient";
-import {
-  getSolBalance,
-  getSolConnection,
-  getStakeAccountInfo,
-  verifySolanaTransaction
-} from "./solanaFunctions";
+import { getSolBalance, getSolConnection, getStakeAccountInfo, verifySolanaTransaction } from "./solanaFunctions";
 import { Key } from "@cubist-labs/cubesigner-sdk";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
-
 
 export async function solanaStaking(
   tenant: tenant,
@@ -121,8 +108,8 @@ export async function solanaStaking(
   const stakeAccountInfo = await getStakeAccountInfo(tx?.stakeAccountPubKey?.toString()!, connection);
 
   console.log("Current Stake Amount", stakeAccountInfo, stakeAccountInfo.currentStakeAmount);
-  const newAmount=stakeAccountInfo.currentStakeAmount?stakeAccountInfo.currentStakeAmount/LAMPORTS_PER_SOL:amount;
-  const token=await getToken(symbol)
+  const newAmount = stakeAccountInfo.currentStakeAmount ? stakeAccountInfo.currentStakeAmount / LAMPORTS_PER_SOL : amount;
+  const token = await getToken(symbol);
 
   const newStakeAccount = await insertStakeAccount(
     senderWalletAddress,
@@ -343,69 +330,65 @@ async function addStakeToExistingAccount(
   return { txHash: tx, stakeAccountPubKey: tempStakeAccount.publicKey };
 }
 
-
-export async function withdrawFromStakeAccounts(connection: Connection,accountPubkey: any, payerKey: Key,tenantId:string) {
-  const stakeAccountData  = await getStakeAccounData(accountPubkey,tenantId);
-stakeAccountData?.updatedat
-const unStakeDate = new Date(stakeAccountData?.updatedat || "");
-const withdrawDate = new Date();
-const diffTime = Math.abs(withdrawDate.getTime() - unStakeDate.getTime());
-const diffDays = Math.abs(diffTime / (1000 * 60 * 60 * 24));
-console.log("diffDays",diffDays,"difftime",diffTime,unStakeDate,withdrawDate);
-  if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.CLOSED){
-    return { data: null ,error:"No stake account found for this user "};
+export async function withdrawFromStakeAccounts(connection: Connection, accountPubkey: any, payerKey: Key, tenantId: string) {
+  const stakeAccountData = await getStakeAccounData(accountPubkey, tenantId);
+  stakeAccountData?.updatedat;
+  const unStakeDate = new Date(stakeAccountData?.updatedat || "");
+  const withdrawDate = new Date();
+  const diffTime = Math.abs(withdrawDate.getTime() - unStakeDate.getTime());
+  const diffDays = Math.abs(diffTime / (1000 * 60 * 60 * 24));
+  console.log("diffDays", diffDays, "difftime", diffTime, unStakeDate, withdrawDate);
+  if (stakeAccountData === null || stakeAccountData.status == StakeAccountStatus.CLOSED) {
+    return { data: null, error: "No stake account found for this user " };
   }
-    
-   if(diffDays < 1) {
+
+  if (diffDays < 1) {
     const requiredTime = 1000 * 60 * 60 * 24;
-    let remainingTimeInHours = (requiredTime - diffTime)/ (1000 * 60 * 60);
+    let remainingTimeInHours = (requiredTime - diffTime) / (1000 * 60 * 60);
     remainingTimeInHours = Math.ceil(remainingTimeInHours);
     console.log(`No stake account found for pubkey: ${accountPubkey}`);
-    return { data: null ,error:"Withdrawal is not allowed at this time. Please try again after "  +remainingTimeInHours+" hours."};
+    return { data: null, error: "Withdrawal is not allowed at this time. Please try again after " + remainingTimeInHours + " hours." };
   }
 
   const payerPublicKey = new PublicKey(payerKey.materialId);
-    const stakePubkey = new PublicKey(accountPubkey);
-    const accountInfo = await connection.getParsedAccountInfo(stakePubkey);
+  const stakePubkey = new PublicKey(accountPubkey);
+  const accountInfo = await connection.getParsedAccountInfo(stakePubkey);
 
-    if (accountInfo.value !== null && (accountInfo.value.data as any).program === 'stake') {
-      const lamports = (accountInfo.value.data as any).parsed.info.stake?.delegation?.stake;
-      const transaction = new Transaction().add(
-        StakeProgram.withdraw({
-          stakePubkey: stakePubkey,
-          authorizedPubkey: payerPublicKey,
-          toPubkey: payerPublicKey,
-          lamports: lamports,
-        })
-      );
+  if (accountInfo.value !== null && (accountInfo.value.data as any).program === "stake") {
+    const lamports = (accountInfo.value.data as any).parsed.info.stake?.delegation?.stake;
+    const transaction = new Transaction().add(
+      StakeProgram.withdraw({
+        stakePubkey: stakePubkey,
+        authorizedPubkey: payerPublicKey,
+        toPubkey: payerPublicKey,
+        lamports: lamports
+      })
+    );
 
-      transaction.feePayer = payerPublicKey;
-      const blockhash = (await connection.getLatestBlockhash()).blockhash;
-      transaction.recentBlockhash = blockhash;
+    transaction.feePayer = payerPublicKey;
+    const blockhash = (await connection.getLatestBlockhash()).blockhash;
+    transaction.recentBlockhash = blockhash;
 
-      await signTransaction(transaction, payerKey);
-      try {
-        const tx = await connection.sendRawTransaction(transaction.serialize());
-        await connection.confirmTransaction(tx);
-       const stakeTrx = await createWithdrawTransaction(accountPubkey, tx);
-        await updateStakeAccount(accountPubkey,StakeAccountStatus.CLOSED);
-        console.log(`Withdrawn ${lamports} lamports from ${accountPubkey}, transaction signature: ${tx}`);
+    await signTransaction(transaction, payerKey);
+    try {
+      const tx = await connection.sendRawTransaction(transaction.serialize());
+      await connection.confirmTransaction(tx);
+      const stakeTrx = await createWithdrawTransaction(accountPubkey, tx);
+      await updateStakeAccount(accountPubkey, StakeAccountStatus.CLOSED);
+      console.log(`Withdrawn ${lamports} lamports from ${accountPubkey}, transaction signature: ${tx}`);
 
-        return { data: stakeTrx ,error:null};
-      } catch (error) {
-        console.error(`Failed to withdraw from ${accountPubkey}:`, error);
-        return { data: null ,error:`Failed to withdraw from ${accountPubkey}:`+ error};
-
-      }
-    } else {
-      console.log(`No stake account found or invalid account for pubkey: ${accountPubkey}`);
-      return { data: null ,error:`No stake account found or invalid account for pubkey: ${accountPubkey}`};
-
+      return { data: stakeTrx, error: null };
+    } catch (error) {
+      console.error(`Failed to withdraw from ${accountPubkey}:`, error);
+      return { data: null, error: `Failed to withdraw from ${accountPubkey}:` + error };
     }
-  
+  } else {
+    console.log(`No stake account found or invalid account for pubkey: ${accountPubkey}`);
+    return { data: null, error: `No stake account found or invalid account for pubkey: ${accountPubkey}` };
+  }
 }
 
-export async function mergeStakeAccounts(connection: Connection,stakeAccounts:string[], payerKey:Key) {
+export async function mergeStakeAccounts(connection: Connection, stakeAccounts: string[], payerKey: Key) {
   const payerPublicKey = new PublicKey(payerKey.materialId);
   let mergedStakeAccounts = [];
   let remainingStakeAccounts = [];
@@ -428,11 +411,12 @@ export async function mergeStakeAccounts(connection: Connection,stakeAccounts:st
       const baseLockup = (baseAccountInfo?.value?.data as any).parsed.info.meta.lockup;
       const targetLockup = (targetAccountInfo?.value?.data as any).parsed.info.meta.lockup;
 
-      if (baseWithdrawAuthority === targetWithdrawAuthority &&
+      if (
+        baseWithdrawAuthority === targetWithdrawAuthority &&
         baseLockup.custodian === targetLockup.custodian &&
         baseLockup.epoch === targetLockup.epoch &&
-        baseLockup.unixTimestamp === targetLockup.unixTimestamp) {
-
+        baseLockup.unixTimestamp === targetLockup.unixTimestamp
+      ) {
         // Merge stake accounts
         const transaction = new Transaction().add(
           StakeProgram.merge({
@@ -450,7 +434,7 @@ export async function mergeStakeAccounts(connection: Connection,stakeAccounts:st
         const signature = await connection.sendRawTransaction(transaction.serialize());
         await connection.confirmTransaction(signature);
         console.log(`Merged ${targetAccount} into ${baseAccount}, transaction signature: ${signature}`);
-        await insertMergeStakeAccountsTransaction(targetAccount,baseAccount, signature);
+        await insertMergeStakeAccountsTransaction(targetAccount, baseAccount, signature);
         await mergeDbStakeAccounts(targetAccount, baseAccount);
         // Remove the merged account from the list
         stakeAccounts.splice(i, 1);

@@ -1,5 +1,5 @@
 import { tenant } from "../db/models";
-import { createCategory} from "../db/adminDbFunctions";
+import { createCategory } from "../db/adminDbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -36,8 +36,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createCategoryInDb(tenant: tenant, categoryName: string ) {
-      const newCategory = await createCategory({ tenantid: tenant.id, name: categoryName });
-      return newCategory;
-
+async function createCategoryInDb(tenant: tenant, categoryName: string) {
+  const newCategory = await createCategory({ tenantid: tenant.id, name: categoryName });
+  return newCategory;
 }

@@ -77,10 +77,10 @@ export interface productcategory {
   tenantid: string;
 }
 
-export interface updateproductattribute{
-  productId: string,
-  key: string, 
-  newValue: string
+export interface updateproductattribute {
+  productId: string;
+  key: string;
+  newValue: string;
 }
 export interface productattribute {
   key: string;
@@ -106,17 +106,17 @@ export interface orders {
 }
 
 export interface productwishlist {
-id?: string;
-customerid : string
-productid : string
-createdat : string
+  id?: string;
+  customerid: string;
+  productid: string;
+  createdat: string;
 }
 
 export interface productreview {
   id?: string;
   customerid: string;
   productid?: string;
-  orderid?:string;
+  orderid?: string;
   comment: string;
   rating: number;
 }
@@ -128,10 +128,10 @@ export interface createcollection {
   description?: string;
 }
 
-export interface addtocollection{
-collectionid:string;
-customerid:string;
-productid:string;
+export interface addtocollection {
+  collectionid: string;
+  customerid: string;
+  productid: string;
 }
 
 export interface ProductOwnership {
