@@ -42,10 +42,28 @@ export const handler = async (event: any) => {
               } else {
                 const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
                 if (customer == null) {
+                  if(event.requestContext.queryString.toString().includes("Signin")){
+                    return {
+                      isAuthorized: true,
+                      resolverContext: {
+                        id: tenant.id,
+                        name: tenant.name,
+                        apikey: tenant.apikey,
+                        logo: tenant.logo,
+                        isactive: tenant.isactive,
+                        createdat: tenant.createdat,
+                        userpoolid: tenant.userpoolid,
+                        cognitoclientid: tenant.cognitoclientid,
+                        usertype: "CUSTOMER"
+                      }
+                    };
+                  }
+                  else{
                   console.log("Customer not found");
                   return {
                     isAuthorized: false
                   };
+                }
                 } else {
                   return {
                     isAuthorized: true,
