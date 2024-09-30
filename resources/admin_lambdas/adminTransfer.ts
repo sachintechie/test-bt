@@ -2,7 +2,7 @@ import { getAdminTransactionByTenantTransactionId, insertAdminTransaction } from
 import {  getTokenBySymbol } from "../db/dbFunctions";
 import { tenant, TransactionStatus } from "../db/models";
 import { batchTransferSPLToken } from "../solana/airdropSplToken";
-import { verifySolanaTransaction } from "../solana/solanaFunctions";
+import { getSplTokenBalance, verifySolanaTransaction } from "../solana/solanaFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -62,8 +62,8 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
     const token = await getTokenBySymbol(symbol);
     console.log("Customer Wallets", recipients, "tenant", tenant, token, "token");
     const amount = recipients.map((item : any) => Number(item.amount)).reduce((prev : any, curr : any) => prev + curr, 0);
-    let recipientAddresses = "";
-    const recipientAddress = recipients.map((item : any) => recipientAddresses += item.walletAddress + ",");
+    let recipientAddresses : string[] = [];
+    const recipientAddress = recipients.map((item : any) => recipientAddresses.push(item.walletAddress));
     console.log("Recipient Addresses", recipientAddresses);
 
 
@@ -75,6 +75,17 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
           error: "You can not transfer to more than 10 recipients"
         };
       }
+
+        //Check sol balance on payer address
+    const senderTokenBalance = await getSplTokenBalance(senderWalletAddress,token.contractaddress);
+    if (senderTokenBalance < amount) {
+      return {
+        trxHash: null,
+        error: "Insufficient token balance in sender account"
+      };
+    }
+
+      
       const blockchainTransaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);
       if (blockchainTransaction.trxHash != null) {
         const transactionStatus = await verifySolanaTransaction(blockchainTransaction.trxHash);
@@ -82,7 +93,7 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
 
         const transaction = await insertAdminTransaction(
           senderWalletAddress,
-          recipientAddresses,
+          recipientAddresses.toString(),
           amount,
           chainType,
           symbol,
