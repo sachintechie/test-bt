@@ -63,7 +63,7 @@ async function adminTransfer(tenant : tenant, senderWalletAddress : string, reci
     console.log("Customer Wallets", recipients, "tenant", tenant, token, "token");
     const amount = recipients.map((item : any) => Number(item.amount)).reduce((prev : any, curr : any) => prev + curr, 0);
     let recipientAddresses = "";
-    const recipientAddress = recipients.map((item : any) => recipientAddresses += item.recipient + ",");
+    const recipientAddress = recipients.map((item : any) => recipientAddresses += item.walletAddress + ",");
     console.log("Recipient Addresses", recipientAddresses);
 
 
