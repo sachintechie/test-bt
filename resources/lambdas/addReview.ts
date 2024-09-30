@@ -13,13 +13,13 @@ export const handler = async (event: any, context: any) => {
     }
 
     const data = {
-      customerid:customerId,
-      productid:productId,
-      orderid:orderId,
+      customerid: customerId,
+      productid: productId,
+      orderid: orderId,
       comment,
       rating
-    }
-    
+    };
+
     const review = await addReview(data);
 
     return {
@@ -28,8 +28,8 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
-	console.error("Error adding review to product:", error);
-  let errorMessage = "An unknown error occurred.";
+    console.error("Error adding review to product:", error);
+    let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;
     }

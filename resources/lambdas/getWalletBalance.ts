@@ -1,6 +1,7 @@
 import { tenant } from "../db/models";
 import { getWalletAndTokenByWalletAddress } from "../db/dbFunctions";
 import { getSolBalance, getSplTokenBalance } from "../solana/solanaFunctions";
+import { getAvaxBalance } from "../avalanche/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -36,6 +37,9 @@ async function getBalance(tenant: tenant, walletAddress: string, symbol: string)
     for (const token of wallet) {
       if (token.symbol === "SOL") {
         balance = await getSolBalance(walletAddress);
+        token.balance = balance;
+      } else if (token.symbol === "AVAX") {
+        balance = await getAvaxBalance(walletAddress);
         token.balance = balance;
       } else {
         balance = await getSplTokenBalance(walletAddress, token.contractaddress ? token.contractaddress : "");

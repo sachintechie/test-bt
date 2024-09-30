@@ -1,12 +1,19 @@
-import { AuthType,CallbackStatus, customer, StakeAccountStatus, tenant, updatecustomer,  product, productattribute, productcategory , productfilter, updateproductattribute } from "./models";
+import {
+  AuthType,
+  CallbackStatus,
+  customer,
+  StakeAccountStatus,
+  tenant,
+  updatecustomer,
+  product,
+  productattribute,
+  productcategory,
+  productfilter,
+  updateproductattribute
+} from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
-
-
-
-
-
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -21,7 +28,7 @@ export async function createAdminUser(customer: customer) {
         cubistuserid: customer.cubistuserid?.toString(),
         isbonuscredit: customer.isBonusCredit,
         isactive: customer.isactive,
-        createdat: new Date().toISOString(),
+        createdat: new Date().toISOString()
       }
     });
     return newCustomer;
@@ -59,8 +66,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
   }
 }
 
-
-export async function createAdminWallet(org: cs.Org, cubistUserId: string, chainType: string, tenantId: string,customerId?: string) {
+export async function createAdminWallet(org: cs.Org, cubistUserId: string, chainType: string, tenantId: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
     var keyType: any;
@@ -104,7 +110,7 @@ export async function createAdminWallet(org: cs.Org, cubistUserId: string, chain
           wallettype: keyType.toString(),
           isactive: true,
           createdat: new Date().toISOString(),
-          tenantid:tenantId
+          tenantid: tenantId
         }
       });
       return { data: newWallet, error: null };
@@ -115,7 +121,6 @@ export async function createAdminWallet(org: cs.Org, cubistUserId: string, chain
     throw err;
   }
 }
-
 
 export async function insertAdminTransaction(
   senderWalletAddress: string,
@@ -160,7 +165,6 @@ export async function insertAdminTransaction(
     throw err;
   }
 }
-
 
 export async function getAdminWalletByAdmin(tenantUserId: string, chaintype: string, tenant: tenant) {
   try {
@@ -242,14 +246,21 @@ export async function getAdminWalletAndTokenByWalletAddress(walletAddress: strin
   }
 }
 
-
-export async function getAdminTransactionsByWalletAddress(walletAddress: string, tenant: tenant, limit: number,pageNo: number,symbol: string) {
+export async function getAdminTransactionsByWalletAddress(
+  walletAddress: string,
+  tenant: tenant,
+  limit: number,
+  pageNo: number,
+  symbol: string
+) {
   try {
     const prisma = await getPrismaClient();
-    const transactionCount = await prisma.admintransaction.count({where: {
-      walletaddress: walletAddress,
-      tenantid: tenant.id
-    },});
+    const transactionCount = await prisma.admintransaction.count({
+      where: {
+        walletaddress: walletAddress,
+        tenantid: tenant.id
+      }
+    });
     if (transactionCount == 0) {
       return [];
     }
@@ -260,7 +271,6 @@ export async function getAdminTransactionsByWalletAddress(walletAddress: string,
       },
       take: limit,
       skip: (pageNo - 1) * limit
-
     });
     const token = await prisma.token.findFirst({
       where: {
@@ -271,22 +281,24 @@ export async function getAdminTransactionsByWalletAddress(walletAddress: string,
       return { ...t, ...(token || {}) };
     });
     const data = {
-      "total" : transactionCount,
-      "totalPages" : Math.ceil(transactionCount/limit),
-      "transactions" : list
-    }
+      total: transactionCount,
+      totalPages: Math.ceil(transactionCount / limit),
+      transactions: list
+    };
     return data;
   } catch (err) {
     throw err;
   }
 }
 
-export async function getAdminUsers( tenant: tenant, limit: number,pageNo: number) {
+export async function getAdminUsers(tenant: tenant, limit: number, pageNo: number) {
   try {
     const prisma = await getPrismaClient();
-    const userCount = await prisma.adminuser.count({where: {
-      tenantid: tenant.id
-    },});
+    const userCount = await prisma.adminuser.count({
+      where: {
+        tenantid: tenant.id
+      }
+    });
     if (userCount == 0) {
       return [];
     }
@@ -296,15 +308,13 @@ export async function getAdminUsers( tenant: tenant, limit: number,pageNo: numbe
       },
       take: limit,
       skip: (pageNo - 1) * limit
-
     });
 
- 
     const data = {
-      "total" : userCount,
-      "totalPages" : Math.ceil(userCount/limit),
-      "users" : users
-    }
+      total: userCount,
+      totalPages: Math.ceil(userCount / limit),
+      users: users
+    };
     return data;
   } catch (err) {
     throw err;
@@ -333,8 +343,7 @@ export async function getAdminTransactionsById(tenantTransactionId: string, tena
   }
 }
 
-
-export async function getAllAdminTransactions(chainType :string) {
+export async function getAllAdminTransactions(chainType: string) {
   try {
     const prisma = await getPrismaClient();
     const stakingTransactions = await prisma.admintransaction.findMany({
@@ -413,18 +422,13 @@ export async function getAdminUserByEmail(emailId: string, tenantId: string) {
 
 export async function updateAdminCubistData(customer: updatecustomer) {
   try {
-
-
     const prisma = await getPrismaClient();
     const newCustomer = await prisma.adminuser.update({
       where: { id: customer.id },
       data: {
-
         cubistuserid: customer.cubistuserid,
         emailid: customer.emailid,
-        iss: customer.iss,
-
-
+        iss: customer.iss
       }
     });
     return newCustomer;
@@ -520,12 +524,12 @@ export async function updateCategory(categoryId: string, category: string) {
     const prisma = await getPrismaClient();
     const updated = await prisma.productcategory.update({
       where: {
-        id: categoryId,
+        id: categoryId
       },
       data: {
         name: category,
         updatedat: new Date().toISOString()
-      },
+      }
     });
 
     return updated;
@@ -540,9 +544,9 @@ export async function updateProduct(id: string, product: Partial<product>) {
 
     const updatedProduct = await prisma.product.update({
       where: {
-        id: id,
+        id: id
       },
-      data: product,
+      data: product
     });
 
     return updatedProduct;
@@ -551,10 +555,10 @@ export async function updateProduct(id: string, product: Partial<product>) {
   }
 }
 
-export async function updateProductAttribute(updateproductattribute:updateproductattribute) {
+export async function updateProductAttribute(updateproductattribute: updateproductattribute) {
   try {
     const prisma = await getPrismaClient();
-    const {productId, key, newValue} = updateproductattribute
+    const { productId, key, newValue } = updateproductattribute;
     const updatedAttribute = await prisma.productattribute.updateMany({
       where: {
         productid: productId,
@@ -563,7 +567,7 @@ export async function updateProductAttribute(updateproductattribute:updateproduc
       data: {
         value: newValue,
         updatedat: new Date().toISOString()
-      },
+      }
     });
 
     if (updatedAttribute.count === 0) {
@@ -572,8 +576,8 @@ export async function updateProductAttribute(updateproductattribute:updateproduc
     const fetchedAttribute = await prisma.productattribute.findFirst({
       where: {
         productid: productId,
-        key: key,
-      },
+        key: key
+      }
     });
 
     if (fetchedAttribute) {

@@ -1,8 +1,8 @@
 import { getAdminTransactionByTenantTransactionId, insertAdminTransaction } from "../db/adminDbFunctions";
-import {  getTokenBySymbol } from "../db/dbFunctions";
+import { getTokenBySymbol } from "../db/dbFunctions";
 import { tenant, TransactionStatus } from "../db/models";
 import { batchTransferSPLToken } from "../solana/airdropSplToken";
-import { verifySolanaTransaction } from "../solana/solanaFunctions";
+import { getSplTokenBalance, verifySolanaTransaction } from "../solana/solanaFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -55,34 +55,58 @@ export const handler = async (event: any) => {
   }
 };
 
-
-async function adminTransfer(tenant : tenant, senderWalletAddress : string, recipients : any, symbol : string, oidcToken : string, adminUserId : string, chainType : string, tenantTransactionId : string) {
+async function adminTransfer(
+  tenant: tenant,
+  senderWalletAddress: string,
+  recipients: any,
+  symbol: string,
+  oidcToken: string,
+  adminUserId: string,
+  chainType: string,
+  tenantTransactionId: string
+) {
   try {
-  
     const token = await getTokenBySymbol(symbol);
     console.log("Customer Wallets", recipients, "tenant", tenant, token, "token");
-    const amount = recipients.map((item : any) => Number(item.amount)).reduce((prev : any, curr : any) => prev + curr, 0);
-    let recipientAddresses = "";
-    const recipientAddress = recipients.map((item : any) => recipientAddresses += item.recipient + ",");
+    const amount = recipients.map((item: any) => Number(item.amount)).reduce((prev: any, curr: any) => prev + curr, 0);
+    let recipientAddresses: string[] = [];
+    const recipientAddress = recipients.map((item: any) => recipientAddresses.push(item.walletAddress));
     console.log("Recipient Addresses", recipientAddresses);
 
-
     if (recipients.length > 0 && tenant != null && token != null) {
-      if(recipients.length > 10){
+      if (recipients.length > 10) {
         return {
           status: 400,
           data: null,
           error: "You can not transfer to more than 10 recipients"
         };
       }
-      const blockchainTransaction = await batchTransferSPLToken(recipients, token?.decimalprecision ?? 0, chainType, token.contractaddress, oidcToken,senderWalletAddress,tenant);
+
+      //Check sol balance on payer address
+      const senderTokenBalance = await getSplTokenBalance(senderWalletAddress, token.contractaddress);
+      if (senderTokenBalance < amount) {
+        return {
+          trxHash: null,
+          error: "Insufficient token balance in sender account"
+        };
+      }
+
+      const blockchainTransaction = await batchTransferSPLToken(
+        recipients,
+        token?.decimalprecision ?? 0,
+        chainType,
+        token.contractaddress,
+        oidcToken,
+        senderWalletAddress,
+        tenant
+      );
       if (blockchainTransaction.trxHash != null) {
         const transactionStatus = await verifySolanaTransaction(blockchainTransaction.trxHash);
         const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
 
         const transaction = await insertAdminTransaction(
           senderWalletAddress,
-          recipientAddresses,
+          recipientAddresses.toString(),
           amount,
           chainType,
           symbol,

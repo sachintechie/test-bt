@@ -9,7 +9,7 @@ const dbConfig: any = {
   database: process.env["DB_DATABASE"]!,
   port: parseInt(process.env["DB_PORT"]!)
 };
-const secretName =process.env["SECRET_NAME"]!;
+const secretName = process.env["SECRET_NAME"]!;
 
 export async function getDatabaseUrl() {
   const dbSecretString: any = await getSecretValue(secretName);

@@ -13,12 +13,12 @@ export const handler = async (event: any, context: any) => {
     }
 
     const orderObj = {
-      sellerid:sellerId,
-      buyerid:buyerId,
-      productid:productId,
+      sellerid: sellerId,
+      buyerid: buyerId,
+      productid: productId,
       price,
       quantity,
-      status,
+      status
     };
 
     const newOrder = await createOrder(orderObj);

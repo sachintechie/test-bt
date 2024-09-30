@@ -1,6 +1,6 @@
 import { tenant } from "../db/models";
-import { getCategoryById } from "../db/dbFunctions"; 
-import { updateCategory } from "../db/adminDbFunctions"
+import { getCategoryById } from "../db/dbFunctions";
+import { updateCategory } from "../db/adminDbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -16,9 +16,8 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-   
     const existingCategory = await getCategoryById(categoryId);
-    
+
     if (!existingCategory || existingCategory.tenantid !== tenantContext.id) {
       return {
         status: 403,
@@ -27,7 +26,7 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const updatedCategory = await updateCategoryInDb( categoryId, categoryName);
+    const updatedCategory = await updateCategoryInDb(categoryId, categoryName);
 
     return {
       status: 200,
@@ -48,9 +47,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function updateCategoryInDb( categoryId: string, categoryName: string) {
-  const updatedCategory = await updateCategory(categoryId,   categoryName );
+async function updateCategoryInDb(categoryId: string, categoryName: string) {
+  const updatedCategory = await updateCategory(categoryId, categoryName);
   return updatedCategory;
 }
-
-

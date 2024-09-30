@@ -1,4 +1,4 @@
-import { getStakingTransactionByTenantTransactionId,getMasterValidatorNode } from "../db/dbFunctions";
+import { getStakingTransactionByTenantTransactionId, getMasterValidatorNode } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import { solanaStaking } from "../solana/solanaStake";
 import { AvalancheStaking } from "../avalanche/stake";
@@ -11,13 +11,13 @@ export const handler = async (event: any) => {
       event.identity.resolverContext.id
     );
 
-    const masterValidatorNode = await getMasterValidatorNode( event.arguments?.input?.chainType);
-    if(masterValidatorNode == null || masterValidatorNode == undefined){
+    const masterValidatorNode = await getMasterValidatorNode(event.arguments?.input?.chainType);
+    if (masterValidatorNode == null || masterValidatorNode == undefined) {
       return {
         status: 400,
         data: null,
         error: "Master Validator Node not found"
-      }
+      };
     }
 
     if (isTransactionAlreadyExist == null || isTransactionAlreadyExist == undefined) {
@@ -44,7 +44,6 @@ export const handler = async (event: any) => {
         return response;
       }
 
-      
       if (event.arguments?.input?.chainType === "Avalanche") {
         const data = await AvalancheStaking(
           event.identity.resolverContext as tenant,
@@ -66,9 +65,7 @@ export const handler = async (event: any) => {
         };
         console.log("AvalancheStaking response Wallet", response);
         return response;
-      }
-      
-      else {
+      } else {
         return {
           status: 400,
           data: null,

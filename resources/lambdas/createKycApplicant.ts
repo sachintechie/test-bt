@@ -5,7 +5,7 @@ export const handler = async (event: any, context: any) => {
     console.log(event, context);
 
     const applicant = await createApplicant(event.arguments?.input?.customerId, event.arguments?.input?.levelName);
-    console.log("applicant",applicant);
+    console.log("applicant", applicant);
 
     const response = {
       status: 200,

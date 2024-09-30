@@ -12,10 +12,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const data = await createUser(
-      event.identity.resolverContext as tenant,
-      event.headers?.identity
-    );
+    const data = await createUser(event.identity.resolverContext as tenant, event.headers?.identity);
 
     const response = {
       status: data.customer != null ? 200 : 400,
@@ -39,14 +36,14 @@ async function createUser(tenant: tenant, oidcToken: string) {
   console.log("Creating user");
 
   try {
-    const userData = await verifyToken(tenant,oidcToken);
-    if(userData == null || userData.email == null){
+    const userData = await verifyToken(tenant, oidcToken);
+    if (userData == null || userData.email == null) {
       return {
         customer: null,
         error: "Please provide a valid access token for verification"
       };
     }
-    console.log("createUser", tenant.id,userData.email);
+    console.log("createUser", tenant.id, userData.email);
     const customer = await getCustomer(userData?.email, tenant.id);
     if (customer != null && customer?.cubistuserid) {
       console.log("Customer exists", customer);
@@ -84,34 +81,33 @@ async function createUser(tenant: tenant, oidcToken: string) {
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
-             cubistUserId = await org.createOidcUser({ iss, sub }, email, {
+            cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name
             });
-          }
-          else{
+          } else {
             cubistUserId = proof.user_info?.user_id;
           }
-            const customer = await createCustomer({
-              emailid: email ? email : "",
-              name: name ? name : "----",
-              tenantuserid: userData.email,
-              tenantid: tenant.id,
-              cubistuserid: cubistUserId,
-              isactive: true,
-              isBonusCredit: false,
-              createdat: new Date().toISOString()
-            });
-            console.log("Created customer", customer.id);
-            const customerData = {
-              cubistuserid: cubistUserId,
-              tenantuserid:  userData.email,
-              tenantid: tenant.id,
-              emailid: email,
-              id: customer.id,
-              createdat: new Date().toISOString()
-            };
+          const customer = await createCustomer({
+            emailid: email ? email : "",
+            name: name ? name : "----",
+            tenantuserid: userData.email,
+            tenantid: tenant.id,
+            cubistuserid: cubistUserId,
+            isactive: true,
+            isBonusCredit: false,
+            createdat: new Date().toISOString()
+          });
+          console.log("Created customer", customer.id);
+          const customerData = {
+            cubistuserid: cubistUserId,
+            tenantuserid: userData.email,
+            tenantid: tenant.id,
+            emailid: email,
+            id: customer.id,
+            createdat: new Date().toISOString()
+          };
 
-            return { customer: customerData, error: null };
+          return { customer: customerData, error: null };
         } catch (e) {
           console.log(`Not verified: ${e}`);
           return {

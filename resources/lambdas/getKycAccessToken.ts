@@ -7,8 +7,8 @@ export const handler = async (event: any, context: any) => {
     const resp = await generateAccessToken(event.arguments?.input?.customerId, event.arguments?.input?.levelName);
 
     const response = {
-      status:200,
-      data: {token : resp.token,customerId : resp.userId},
+      status: 200,
+      data: { token: resp.token, customerId: resp.userId },
       error: null
     };
     console.log("generate sumsub token", response);

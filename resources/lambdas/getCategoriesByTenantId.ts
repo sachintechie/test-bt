@@ -4,9 +4,7 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const categories = await getCategoriesByTenantId(
-      event.identity.resolverContext.id,
-    );
+    const categories = await getCategoriesByTenantId(event.identity.resolverContext.id);
     return {
       status: 200,
       data: categories,

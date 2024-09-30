@@ -7,6 +7,8 @@ export const handler = async (event: any) => {
   try {
     console.log("Event", event);
     let token = event.authorizationToken;
+    console.log("queryType:" + event.requestContext.querystring.includes("Signin"));
+
     if (token != null) {
       // console.log("Token provided", token);
       let query = `SELECT * FROM tenant where apikey = '${token}';`;

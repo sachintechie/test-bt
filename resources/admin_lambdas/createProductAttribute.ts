@@ -38,7 +38,7 @@ export const handler = async (event: any, context: any) => {
 
 async function createAttributeInDb(key: string, value: string, type: string, productId: string) {
   // Logic to create the product attribute in the database
-  const attributeData: productattribute = { key, value, type, productid:productId };
+  const attributeData: productattribute = { key, value, type, productid: productId };
   const newAttribute = await createProductAttribute(attributeData);
 
   // Save to DB
