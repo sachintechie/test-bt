@@ -1,10 +1,5 @@
-import {
-  getAllCustomerWalletForBonus,
-  getTenantCallBackUrl,
-  getTokenBySymbol,
-  updateCustomerBonusStatus,
-} from "../db/dbFunctions";
-import {  TransactionStatus } from "../db/models";
+import { getAllCustomerWalletForBonus, getTenantCallBackUrl, getTokenBySymbol, updateCustomerBonusStatus } from "../db/dbFunctions";
+import { TransactionStatus } from "../db/models";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
 import { airdropSPLToken } from "../solana/airdropSplToken";
 
@@ -38,7 +33,7 @@ async function transferBonus() {
       if (transaction.trxHash != null) {
         const transactionStatus = await verifySolanaTransaction(transaction.trxHash);
         const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-        for (const customer of customerWallets){
+        for (const customer of customerWallets) {
           const updatedCustomer = await updateCustomerBonusStatus(customer.id, "true", tenant.id);
         }
         return transaction;

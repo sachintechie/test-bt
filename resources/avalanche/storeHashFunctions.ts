@@ -104,12 +104,11 @@ export async function storeHash(hash: string) {
     const receipt = await tx.wait();
 
     console.log("Transaction confirmed in block:", receipt);
-    const transaction = (await provider.getTransaction(receipt.transactionHash))
+    const transaction = await provider.getTransaction(receipt.transactionHash);
 
     const transactionReceipt = await provider.getTransactionReceipt(receipt.transactionHash);
     const blockDetails = await provider.getBlock(receipt.blockHash);
     const transactionTimestamp = new Date(blockDetails.timestamp * 1000);
-
 
     const status = AvalancheTransactionStatus[transactionReceipt.status!];
 
@@ -123,7 +122,7 @@ export async function storeHash(hash: string) {
     const parsedTransaction = iface.parseTransaction({ data: transaction.data });
     console.log("parsedTransaction Arguments:", parsedTransaction);
 
-    const gas = ((Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!))/1e9;
+    const gas = ((Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!)) / 1e9;
 
     return {
       data: {
@@ -134,7 +133,7 @@ export async function storeHash(hash: string) {
         metaData: parsedTransaction.args._metaData,
         blockHash: transaction.blockHash,
         type: transaction.type,
-        timestamp:transactionTimestamp,
+        timestamp: transactionTimestamp,
         blockNumber: transaction.blockNumber,
         confirmations: transaction.confirmations,
         from: transaction.from,

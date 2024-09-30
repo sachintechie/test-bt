@@ -5,8 +5,12 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const tokens = await getTransactions(event.identity.resolverContext as tenant, event.arguments?.input?.walletAddress,
-      event.arguments?.input?.limit,event.arguments?.input?.pageNo);
+    const tokens = await getTransactions(
+      event.identity.resolverContext as tenant,
+      event.arguments?.input?.walletAddress,
+      event.arguments?.input?.limit,
+      event.arguments?.input?.pageNo
+    );
     return {
       status: 200,
       data: tokens,
@@ -22,11 +26,11 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getTransactions(tenant: tenant, walletAddress: string,limit: number,pageNo: number) {
+async function getTransactions(tenant: tenant, walletAddress: string, limit: number, pageNo: number) {
   console.log("Wallet Address", walletAddress);
 
   try {
-    const wallet = await getAdminTransactionsByWalletAddress(walletAddress, tenant,limit,pageNo,"");
+    const wallet = await getAdminTransactionsByWalletAddress(walletAddress, tenant, limit, pageNo, "");
     console.log(wallet, "Wallet");
     return wallet;
   } catch (err) {

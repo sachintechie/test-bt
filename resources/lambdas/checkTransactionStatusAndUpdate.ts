@@ -70,9 +70,9 @@ async function updateStakingTransactions() {
         const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
-        if (tenant != null ) {
-        //  const callback = await updateTenant(tenant, trx);
-          const callbackStatus =  CallbackStatus.PENDING;
+        if (tenant != null) {
+          //  const callback = await updateTenant(tenant, trx);
+          const callbackStatus = CallbackStatus.PENDING;
 
           const updatedTransaction = await updateStakingTransaction(trx.id, status, callbackStatus);
           updatedTransactions.push(updatedTransaction);
@@ -99,7 +99,7 @@ async function updateAdminTransactions(chainType: string) {
         const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
-        if (tenant != null ) {
+        if (tenant != null) {
           const callback = await updateAdminTenant(tenant, trx);
           const callbackStatus = callback ? CallbackStatus.SUCCESS : CallbackStatus.FAILED;
 

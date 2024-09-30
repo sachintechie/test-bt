@@ -1,9 +1,8 @@
-
 export function logWithTrace(...args: any[]): void {
   // Create an error to get the stack trace
-  const stack = new Error().stack?.split('\n');
-  let functionName = 'anonymous';
-  let location = '';
+  const stack = new Error().stack?.split("\n");
+  let functionName = "anonymous";
+  let location = "";
 
   if (stack && stack.length > 2) {
     // The third line usually contains the caller function information

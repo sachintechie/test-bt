@@ -5,7 +5,7 @@ import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { transferSPLToken } from "./solanaSPLTransferGasLess";
 import { getSolBalance, getSolConnection, getSplTokenBalance, verifySolanaTransaction } from "./solanaFunctions";
-import {logWithTrace} from "../utils/utils";
+import { logWithTrace } from "../utils/utils";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -22,7 +22,7 @@ export async function solanaTransfer(
   chainType: string,
   tenantTransactionId: string
 ) {
-  logWithTrace("Wallet Address", senderWalletAddress,symbol,"symbol");
+  logWithTrace("Wallet Address", senderWalletAddress, symbol, "symbol");
 
   try {
     if (!oidcToken) {
@@ -48,7 +48,6 @@ export async function solanaTransfer(
         };
       } else {
         for (const token of wallet) {
-
           if (token.symbol == symbol && symbol === "SOL" && token.customerid != null) {
             console.log(token, "SOL data");
             balance = await getSolBalance(senderWalletAddress);
@@ -84,12 +83,11 @@ export async function solanaTransfer(
                 error: "Insufficient SOL balance"
               };
             }
-          } 
-          else if (token.symbol == symbol && symbol !== "SOL" && token.customerid != null) {
+          } else if (token.symbol == symbol && symbol !== "SOL" && token.customerid != null) {
             console.log(token, "Token data");
 
             balance = await getSplTokenBalance(senderWalletAddress, token.contractaddress ? token.contractaddress : "");
-            console.log("Balance", balance);  
+            console.log("Balance", balance);
             token.balance = balance;
             if (balance >= amount && token.decimalprecision != undefined && token.contractaddress != null) {
               const trx = await transferSPLToken(
@@ -135,7 +133,6 @@ export async function solanaTransfer(
               };
             }
           }
-
         }
         return { transaction: null, error: "Wallet not found" };
       }
@@ -165,8 +162,8 @@ async function transferSOL(
     const keys = await oidcClient.sessionKeys();
     console.log("Keys", keys);
     const key = keys.filter((key: cs.Key) => {
-      console.log(key.materialId)
-      return key.materialId === senderWalletAddress
+      console.log(key.materialId);
+      return key.materialId === senderWalletAddress;
     });
 
     if (key.length === 0) {

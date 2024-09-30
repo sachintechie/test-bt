@@ -1,24 +1,31 @@
 import * as appsync from "aws-cdk-lib/aws-appsync";
-import {env} from "./env";
+import { env } from "./env";
 import * as path from "path";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as cdk from "aws-cdk-lib";
-import {Construct} from "constructs";
-import {GraphqlApi} from "aws-cdk-lib/aws-appsync";
-import {IFunction} from "aws-cdk-lib/aws-lambda";
+import { Construct } from "constructs";
+import { GraphqlApi } from "aws-cdk-lib/aws-appsync";
+import { IFunction } from "aws-cdk-lib/aws-lambda";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 
-export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaMap: Map<string, lambda.Function>,schemaFile:string,authorizerLambda:string) => {
-  return  new appsync.GraphqlApi(scope, env`${id}`, {
+export const newAppSyncApi = (
+  scope: Construct,
+  id: string,
+  name: string,
+  lambdaMap: Map<string, lambda.Function>,
+  schemaFile: string,
+  authorizerLambda: string
+) => {
+  return new appsync.GraphqlApi(scope, env`${id}`, {
     name: env`${name}`,
     schema: appsync.SchemaFile.fromAsset(path.join(__dirname, `../../resources/appsync/${schemaFile}`)),
     logConfig: {
       fieldLogLevel: appsync.FieldLogLevel.ALL,
       excludeVerboseContent: false,
       role: new iam.Role(scope, env`AppSyncLoggingRole`, {
-        assumedBy: new iam.ServicePrincipal('appsync.amazonaws.com'),
-        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSAppSyncPushToCloudWatchLogs')],
-      }),
+        assumedBy: new iam.ServicePrincipal("appsync.amazonaws.com"),
+        managedPolicies: [iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSAppSyncPushToCloudWatchLogs")]
+      })
     },
     authorizationConfig: {
       defaultAuthorization: {
@@ -26,14 +33,14 @@ export const newAppSyncApi = (scope: Construct, id: string,name:string, lambdaMa
         lambdaAuthorizerConfig: {
           handler: lambdaMap.get(authorizerLambda)!
           //resultsCacheTtl: cdk.Duration.minutes(5), // Optional cache TTL
-        },
-      },
-    },
+        }
+      }
+    }
   });
-}
+};
 
-export const configResolver =(api:GraphqlApi,lambda:IFunction,typeName:string,fieldName:string)=>{
-  const dataSource=api.addLambdaDataSource(env`${fieldName}LambdaDataSource`, lambda);
+export const configResolver = (api: GraphqlApi, lambda: IFunction, typeName: string, fieldName: string) => {
+  const dataSource = api.addLambdaDataSource(env`${fieldName}LambdaDataSource`, lambda);
   dataSource.createResolver(env`${fieldName}Resolver`, {
     typeName: typeName,
     fieldName: fieldName,
@@ -51,6 +58,6 @@ export const configResolver =(api:GraphqlApi,lambda:IFunction,typeName:string,fi
       `),
     responseMappingTemplate: appsync.MappingTemplate.fromString(`
       $util.toJson($ctx.result)
-      `),
+      `)
   });
-}
+};

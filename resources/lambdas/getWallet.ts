@@ -59,7 +59,6 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           console.log("Verifying identity", proof);
 
           await org.verifyIdentity(proof);
-          
 
           console.log("Verified");
 
@@ -115,65 +114,64 @@ async function createCustomerAndWallet(
   chainType: string,
   tenant: tenant
 ) {
-  try{
-  console.log(`Creating key for user ${cubistUserId}...`);
+  try {
+    console.log(`Creating key for user ${cubistUserId}...`);
 
-  const customer = await createCustomer({
-    emailid: email ? email : "",
-    name: name ? name : "----",
-    tenantuserid,
-    tenantid: tenant.id,
-    cubistuserid: cubistUserId,
-    isactive: true,
-    isBonusCredit: false,
-    iss: iss,
-    createdat: new Date().toISOString()
-  });
-  console.log("Created customer", customer.id);
+    const customer = await createCustomer({
+      emailid: email ? email : "",
+      name: name ? name : "----",
+      tenantuserid,
+      tenantid: tenant.id,
+      cubistuserid: cubistUserId,
+      isactive: true,
+      isBonusCredit: false,
+      iss: iss,
+      createdat: new Date().toISOString()
+    });
+    console.log("Created customer", customer.id);
 
-  const wallet = await createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customer);
- console.log("Created wallet", wallet);
-  return wallet;
-} catch (e) {
-  return {
-    wallet: null,
-    error: e
-  };
-}
-
+    const wallet = await createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customer);
+    console.log("Created wallet", wallet);
+    return wallet;
+  } catch (e) {
+    return {
+      wallet: null,
+      error: e
+    };
+  }
 }
 
 async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken: string, chainType: string, customer: any) {
-  try{
-  const { org, orgId } = await getCsClient(tenant.id);
-  const oidcClient = await oidcLogin(env, orgId || "", oidcToken, ["sign:*"]);
-  const cubistUser = await oidcClient?.user();
-  console.log("Created cubesigner user", oidcClient, cubistUser);
-  if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid)) {
+  try {
+    const { org, orgId } = await getCsClient(tenant.id);
+    const oidcClient = await oidcLogin(env, orgId || "", oidcToken, ["sign:*"]);
+    const cubistUser = await oidcClient?.user();
+    console.log("Created cubesigner user", oidcClient, cubistUser);
+    if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid)) {
+      return {
+        wallet: null,
+        error: "Please send a valid identity token for given tenantuserid"
+      };
+    }
+    const key = await getKey(oidcClient, chainType, customer.cubistuserid);
+    console.log("getKey cubesigner user", key, customer.cubistuserid);
+    const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType, customer.id, key);
+    const newWallet = {
+      walletaddress: wallet.data.walletaddress,
+      createdat: wallet.data.createdat,
+      chaintype: wallet.data.chaintype,
+      tenantuserid: tenantuserid,
+      tenantid: tenant.id,
+      emailid: customer.emailid,
+      customerid: customer.id
+    };
+    return { wallet: newWallet, error: null };
+  } catch (e) {
     return {
       wallet: null,
-      error: "Please send a valid identity token for given tenantuserid"
+      error: e
     };
   }
-  const key = await getKey(oidcClient, chainType, customer.cubistuserid);
-  console.log("getKey cubesigner user", key, customer.cubistuserid);
-  const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType, customer.id, key);
-  const newWallet = {
-    walletaddress: wallet.data.walletaddress,
-    createdat: wallet.data.createdat,
-    chaintype: wallet.data.chaintype,
-    tenantuserid: tenantuserid,
-    tenantid: tenant.id,
-    emailid: customer.emailid,
-    customerid: customer.id
-  };
-  return { wallet: newWallet, error: null };
-} catch (e) {
-  return {
-    wallet: null,
-    error: e
-  };
-}
 }
 
 async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chainType: string, oidcToken: string) {
@@ -182,33 +180,32 @@ async function checkCustomerAndWallet(tenantuserid: string, tenant: tenant, chai
   // if wallet exists return wallet
   // if wallet does not exist create wallet
   // return wallet
-try{
-  const customerAndWallet = await getCustomerAndWallet(tenantuserid, chainType, tenant);
-  if (customerAndWallet != null) {
-    if (
-      customerAndWallet.wallets.length > 0 &&
-      customerAndWallet?.wallets[0].walletaddress != null &&
-      customerAndWallet.wallets[0].chaintype == chainType
-    ) {
-      const newWallet = {
-        walletaddress: customerAndWallet.wallets[0].walletaddress,
-        createdat: customerAndWallet.wallets[0].createdat,
-        chaintype: customerAndWallet.wallets[0].chaintype,
-        tenantuserid: tenantuserid,
-        tenantid: tenant.id,
-        emailid: customerAndWallet.emailid,
-        customerid: customerAndWallet.id
-      };
-      return { wallet: newWallet, error: null };
+  try {
+    const customerAndWallet = await getCustomerAndWallet(tenantuserid, chainType, tenant);
+    if (customerAndWallet != null) {
+      if (
+        customerAndWallet.wallets.length > 0 &&
+        customerAndWallet?.wallets[0].walletaddress != null &&
+        customerAndWallet.wallets[0].chaintype == chainType
+      ) {
+        const newWallet = {
+          walletaddress: customerAndWallet.wallets[0].walletaddress,
+          createdat: customerAndWallet.wallets[0].createdat,
+          chaintype: customerAndWallet.wallets[0].chaintype,
+          tenantuserid: tenantuserid,
+          tenantid: tenant.id,
+          emailid: customerAndWallet.emailid,
+          customerid: customerAndWallet.id
+        };
+        return { wallet: newWallet, error: null };
+      } else {
+        const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
+        return wallet;
+      }
     } else {
-      const wallet = createWalletByKey(tenant, tenantuserid, oidcToken, chainType, customerAndWallet);
-      return wallet;
+      return null;
     }
-  } else {
+  } catch (e) {
     return null;
   }
-}
-catch (e) {
-  return null;
-}
 }

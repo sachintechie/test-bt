@@ -48,7 +48,7 @@ async function createUser(tenant: tenant, tenantuserid: string, token: string, c
       return isExist;
     } else {
       let oidcToken = "";
-      let customer  ;
+      let customer;
       if (authType == AuthType.OTP) {
         customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
         if (customer == null || customer?.id == null || customer?.partialtoken == null) {
@@ -154,7 +154,7 @@ async function createCustomerAndWallet(
 
     const updateCustomer = await updateCustomerCubistData({
       cubistuserid: cubistUserId,
-      iss:iss,
+      iss: iss,
       id: customer.id
     });
 
@@ -183,7 +183,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     }
     const key = await getKey(oidcClient, chainType, cubistUser?.user_id);
     console.log("getKey cubesigner user", key, cubistUser?.user_id);
-   
+
     const wallet = await createWalletAndKey(org, cubistUser?.user_id, chainType, customer.id, key);
     const newWallet = {
       walletaddress: wallet.data.walletaddress,

@@ -11,14 +11,12 @@ import {
   TokenInvalidOwnerError,
   Account,
   getAccount
-  
 } from "@solana/spl-token";
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin, getPayerCsSignerKey } from "../cubist/CubeSignerClient";
-import { getSolConnection, getSplTokenBalance } from "./solanaFunctions";
+import { getSolConnection } from "./solanaFunctions";
 import { getCubistConfig } from "../db/dbFunctions";
-import { amount } from "@metaplex-foundation/js";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -246,7 +244,6 @@ const createAssociatedTokenAccount = async (
   const txHash = await connection.sendRawTransaction(transaction.serialize());
   await connection.confirmTransaction(txHash);
   console.log(`txHashCreateToken: ${txHash}`);
-  
 };
 
 export async function batchTransferSPLToken(
@@ -275,32 +272,31 @@ export async function batchTransferSPLToken(
         error: "Cubist Configuration not found for the given tenant"
       };
     }
- 
-   // 2. Get the oidcClient key from oidcToken
-   const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
-   if (!oidcClient) {
-     return {
-       trxHash: null,
-       error: "Please send a valid identity token for verification"
-     };
-   }
-   const keys = await oidcClient.sessionKeys();
-   console.log("Keys", keys);
-   if(keys.length === 0){
-    return {
-      trxHash: null,
-      error: "Given identity token is not the owner of given wallet address"
-    };
-   }
-   const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
-   if(senderKey == null){
-    return {
-      trxHash: null,
-      error: "Given identity token is not the owner of given wallet address"
-    };
-   }
-   const senderPublicKey = new PublicKey(senderKey.materialId);
 
+    // 2. Get the oidcClient key from oidcToken
+    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
+    if (!oidcClient) {
+      return {
+        trxHash: null,
+        error: "Please send a valid identity token for verification"
+      };
+    }
+    const keys = await oidcClient.sessionKeys();
+    console.log("Keys", keys);
+    if (keys.length === 0) {
+      return {
+        trxHash: null,
+        error: "Given identity token is not the owner of given wallet address"
+      };
+    }
+    const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
+    if (senderKey == null) {
+      return {
+        trxHash: null,
+        error: "Given identity token is not the owner of given wallet address"
+      };
+    }
+    const senderPublicKey = new PublicKey(senderKey.materialId);
 
     //Check sol balance on payer address
     const senderSolBalance = await connection.getBalance(senderPublicKey);
@@ -310,9 +306,6 @@ export async function batchTransferSPLToken(
         error: "Insufficient balance in payer account"
       };
     }
-
-    
-  
 
     const fromTokenAccount = await getOrCreateAssociatedTokenAccountForKey(connection, senderKey, mint, senderPublicKey);
 
@@ -334,7 +327,14 @@ export async function batchTransferSPLToken(
       // console.log("To Token Account", toTokenAccount);
 
       instructions.push(
-        createTransferInstruction(fromTokenAccount.address, toTokenAccount.address, senderPublicKey, recipient.amount * LAMPORTS_PER_SPLTOKEN, [], TOKEN_PROGRAM_ID)
+        createTransferInstruction(
+          fromTokenAccount.address,
+          toTokenAccount.address,
+          senderPublicKey,
+          recipient.amount * LAMPORTS_PER_SPLTOKEN,
+          [],
+          TOKEN_PROGRAM_ID
+        )
       );
     }
 
@@ -405,28 +405,26 @@ export async function createSplTokenAccounts(
         error: "Cubist Configuration not found for the given tenant"
       };
     }
- 
-   // 2. Get the oidcClient key from oidcToken
-   const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
-   if (!oidcClient) {
-     return {
-       trxHash: null,
-       error: "Please send a valid identity token for verification"
-     };
-   }
-   const keys = await oidcClient.sessionKeys();
-   console.log("Keys", keys);
-   if(keys.length === 0){
 
-    return {
-      trxHash: null,
-      error: "Given identity token is not the owner of given wallet address"
-    };
-   }
-   const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
+    // 2. Get the oidcClient key from oidcToken
+    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
+    if (!oidcClient) {
+      return {
+        trxHash: null,
+        error: "Please send a valid identity token for verification"
+      };
+    }
+    const keys = await oidcClient.sessionKeys();
+    console.log("Keys", keys);
+    if (keys.length === 0) {
+      return {
+        trxHash: null,
+        error: "Given identity token is not the owner of given wallet address"
+      };
+    }
+    const senderKey = keys.filter((key: cs.Key) => key.materialId === senderWalletAddress)[0];
 
-   const senderPublicKey = new PublicKey(senderKey.materialId);
-
+    const senderPublicKey = new PublicKey(senderKey.materialId);
 
     //Check sol balance on payer address
     const senderSolBalance = await connection.getBalance(senderPublicKey);
@@ -442,7 +440,7 @@ export async function createSplTokenAccounts(
     // Get the wallet's associated token account for the given mint
 
     console.log("From Token Account", fromTokenAccount);
-   const tokenAccounts = [];
+    const tokenAccounts = [];
     for (const recipient of receipients) {
       // const toWallet = new PublicKey(receiverWalletAddress[0].walletaddress);
       const toWallet = new PublicKey(recipient.walletAddress);
@@ -456,11 +454,8 @@ export async function createSplTokenAccounts(
 
       // );
       // console.log("To Token Account", toTokenAccount);
-
-    
     }
 
-    
     console.log(`tokenAccounts: ${tokenAccounts}`);
     return { tokenAccounts: tokenAccounts, error: null };
   } catch (e) {

@@ -6,13 +6,13 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
     const isTransactionAlreadyExist = await getStakeAccountById(event.arguments?.input?.stakeAccountId, event.identity.resolverContext.id);
-    const masterValidatorNode = await getMasterValidatorNode( event.arguments?.input?.chainType);
-    if(masterValidatorNode == null || masterValidatorNode == undefined){
+    const masterValidatorNode = await getMasterValidatorNode(event.arguments?.input?.chainType);
+    if (masterValidatorNode == null || masterValidatorNode == undefined) {
       return {
         status: 400,
         data: null,
         error: "Master Validator Node not found"
-      }
+      };
     }
     if (isTransactionAlreadyExist != null) {
       if (event.arguments?.input?.chainType === "Solana") {
@@ -37,8 +37,7 @@ export const handler = async (event: any) => {
         };
         console.log("Wallet", response);
         return response;
-      } 
-      else if (event.arguments?.input?.chainType === "Avalanche") {
+      } else if (event.arguments?.input?.chainType === "Avalanche") {
         console.log("Inside Solana", isTransactionAlreadyExist);
         const data = await AvalancheUnstaking(
           event.identity.resolverContext as tenant,
@@ -49,8 +48,7 @@ export const handler = async (event: any) => {
           isTransactionAlreadyExist.tenantuserid,
           event.arguments?.input?.chainType,
           isTransactionAlreadyExist.tenanttransactionid,
-          masterValidatorNode.validatornodeaddress || "",
-
+          masterValidatorNode.validatornodeaddress || ""
         );
 
         const response = {
@@ -60,8 +58,7 @@ export const handler = async (event: any) => {
         };
         console.log("Wallet", response);
         return response;
-      } 
-      else {
+      } else {
         return {
           status: 400,
           data: null,

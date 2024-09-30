@@ -1,10 +1,10 @@
-import {  getCustomerKycByTenantId } from "../db/dbFunctions";
+import { getCustomerKycByTenantId } from "../db/dbFunctions";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const wallets = await getCustomerKycByTenantId( event.arguments?.input?.customerId,event.identity.resolverContext.id,);
+    const wallets = await getCustomerKycByTenantId(event.arguments?.input?.customerId, event.identity.resolverContext.id);
     return {
       status: 200,
       data: wallets,
@@ -19,4 +19,3 @@ export const handler = async (event: any) => {
     };
   }
 };
-
