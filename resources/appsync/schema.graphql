@@ -975,8 +975,7 @@ type Query {
 	GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
 	GetCollectionByCustomerId(input: GetCollectionByCustomerIdInput): ProductToCollectionResponse
 	GetHashTransaction(input: GetTransactionInput): StoreHash
-	SearchProdcutsByName(input: ProductSearchInput): GetProductsResponse
-
+	SearchProductsByName(input: ProductSearchInput): GetProductsResponse
 }
 
 schema {
