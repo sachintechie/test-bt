@@ -7,6 +7,8 @@ export const handler = async (event: any) => {
   try {
     console.log("Event", event);
     let token = event.authorizationToken;
+    console.log("queryType:" + event.requestContext.querystring.includes("Signin"));
+
     if (token != null) {
       // console.log("Token provided", token);
       let query = `SELECT * FROM tenant where apikey = '${token}';`;
@@ -39,7 +41,7 @@ export const handler = async (event: any) => {
                 };
               } else {
                 const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
-                if (customer == null) {
+                if (customer == null) { 
                   console.log("Customer not found");
                   return {
                     isAuthorized: false

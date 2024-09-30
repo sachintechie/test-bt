@@ -16,9 +16,8 @@ import {
 
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin, getPayerCsSignerKey } from "../cubist/CubeSignerClient";
-import { getSolConnection, getSplTokenBalance } from "./solanaFunctions";
+import { getSolConnection } from "./solanaFunctions";
 import { getCubistConfig } from "../db/dbFunctions";
-import { amount } from "@metaplex-foundation/js";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
