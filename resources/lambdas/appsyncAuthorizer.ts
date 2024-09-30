@@ -7,7 +7,7 @@ export const handler = async (event: any) => {
   try {
     console.log("Event", event);
     let token = event.authorizationToken;
-    console.log("queryType:" + event.requestContext.querystring.toString().includes("Signin"));
+    console.log("queryType:" + event.requestContext.queryString.toString().includes("Signin"));
 
     if (token != null) {
       // console.log("Token provided", token);
