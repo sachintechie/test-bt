@@ -907,6 +907,10 @@ input WithdrawStakeInput {
 	accountPublicKey: String!
 }
 
+input ProductSearchInput {
+  name: String!
+}
+
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
@@ -971,6 +975,8 @@ type Query {
 	GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
 	GetCollectionByCustomerId(input: GetCollectionByCustomerIdInput): ProductToCollectionResponse
 	GetHashTransaction(input: GetTransactionInput): StoreHash
+	SearchProdcutsByName(input: ProductSearchInput): GetProductsResponse
+
 }
 
 schema {

@@ -2259,3 +2259,25 @@ export async function transferProductOwnership(
 }
 
 
+export async function searchProductsByName(name?: string) {
+  try {
+    const prisma = await getPrismaClient();
+    
+    const products = await prisma.product.findMany({
+      where: {
+        name: {
+          contains: name, 
+          mode: 'insensitive' 
+        }
+      },
+      include: {
+        category: true,
+        productattributes: true
+      }
+    });
+
+    return products;
+  } catch (err) {
+    throw err;
+  }
+}
