@@ -1,10 +1,19 @@
-import { getStakeAccountById } from "../db/dbFunctions";
+import { AvalancheUnstaking } from "../avalanche/stake";
+import { getMasterValidatorNode, getStakeAccountById } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import { solanaUnStaking } from "../solana/solanaUnstake";
 export const handler = async (event: any) => {
   try {
     console.log(event);
     const isTransactionAlreadyExist = await getStakeAccountById(event.arguments?.input?.stakeAccountId, event.identity.resolverContext.id);
+    const masterValidatorNode = await getMasterValidatorNode( event.arguments?.input?.chainType);
+    if(masterValidatorNode == null || masterValidatorNode == undefined){
+      return {
+        status: 400,
+        data: null,
+        error: "Master Validator Node not found"
+      }
+    }
     if (isTransactionAlreadyExist != null) {
       if (event.arguments?.input?.chainType === "Solana") {
         console.log("Inside Solana", isTransactionAlreadyExist);
@@ -31,17 +40,17 @@ export const handler = async (event: any) => {
       } 
       else if (event.arguments?.input?.chainType === "Avalanche") {
         console.log("Inside Solana", isTransactionAlreadyExist);
-        const data = await solanaUnStaking(
+        const data = await AvalancheUnstaking(
           event.identity.resolverContext as tenant,
-          event.arguments?.input?.stakeAccountId,
           isTransactionAlreadyExist.walletaddress,
-          isTransactionAlreadyExist.stakeaccountpubkey,
           event.arguments?.input?.amount,
           isTransactionAlreadyExist.symbol,
           event.headers?.identity,
           isTransactionAlreadyExist.tenantuserid,
           event.arguments?.input?.chainType,
-          isTransactionAlreadyExist.tenanttransactionid
+          isTransactionAlreadyExist.tenanttransactionid,
+          masterValidatorNode.validatornodeaddress || "",
+
         );
 
         const response = {

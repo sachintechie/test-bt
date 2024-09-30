@@ -83,8 +83,8 @@ async function createUser(tenant: tenant, tenantuserid: string,  oidcToken: stri
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
             cubistUserId = await org.createOidcUser({ iss, sub }, email, {
-              name,
-              memberRole: "Member"
+              name
+             // memberRole: "Member"
             });
           } else {
             cubistUserId = proof.user_info?.user_id;
