@@ -2,7 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { StakeType, tenant, TransactionStatus } from "../db/models";
 import { getCubistConfig, getFirstWallet, insertStakingTransaction } from "../db/dbFunctions";
 import * as ava from "@avalabs/avalanchejs";
-import {  Context, networkIDs } from "@avalabs/avalanchejs";
+import { Context, networkIDs } from "@avalabs/avalanchejs";
 import { delay } from "@cubist-labs/cubesigner-sdk";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { Key } from "@cubist-labs/cubesigner-sdk";
@@ -105,7 +105,7 @@ export async function AvalancheUnstaking(
   const balance = await getAvaxBalance(senderWalletAddress);
   if (balance !== null && balance < amount) return { transaction: null, error: "Insufficient AVAX balance" };
 
-  const tx = await unstakeAvax(senderWalletAddress, amount, oidcToken, cubistConfig.orgid,validatornodeaddress);
+  const tx = await unstakeAvax(senderWalletAddress, amount, oidcToken, cubistConfig.orgid, validatornodeaddress);
   if (tx.error) return { transaction: null, error: tx.error };
 
   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
@@ -335,7 +335,6 @@ export async function createStakeAccountWithStakeProgram(
   }
 }
 
-
 export async function unstakeAvax(
   senderWalletAddress: string,
   amount: number,
@@ -372,14 +371,7 @@ export async function unstakeAvax(
     //   networkID,
     //   [ava.utils.bech32ToBytes(pAddress)]
     // );
-    const unstakeTx = ava.pvm.newRemoveSubnetValidatorTx(
-      context,
-      utxos,
-      addressBytes,
-      validatornodeaddress,
-      networkID,
-      [subnets]
-    );
+    const unstakeTx = ava.pvm.newRemoveSubnetValidatorTx(context, utxos, addressBytes, validatornodeaddress, networkID, [subnets]);
     const setUnstakeTx = ava.utils.bufferToHex(unstakeTx.toBytes());
     const unstakeTxSig = await senderKey.signSerializedAva("P", setUnstakeTx);
     unstakeTx.addSignature(ava.utils.hexToBuffer(unstakeTxSig.data().signature));

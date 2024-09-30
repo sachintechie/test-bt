@@ -6,7 +6,7 @@ export const handler = async (event: any, context: any) => {
     console.log("event", event);
 
     const resp = await sumsubWebhookListener(event);
-    
+
     const response = {
       status: 200,
       data: resp,

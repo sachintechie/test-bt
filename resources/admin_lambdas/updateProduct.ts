@@ -15,9 +15,8 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-   
     const updatedProductData: any = {
-      ...productData,  
+      ...productData
     };
 
     // Convert categoryId to categoryid and lowercase it if provided
@@ -57,7 +56,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error:errorMessage,
+      error: errorMessage
     };
   }
 };

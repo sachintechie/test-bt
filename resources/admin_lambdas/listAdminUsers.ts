@@ -5,8 +5,11 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const tokens = await getAdminUser(event.identity.resolverContext as tenant,
-      event.arguments?.input?.limit,event.arguments?.input?.pageNo);
+    const tokens = await getAdminUser(
+      event.identity.resolverContext as tenant,
+      event.arguments?.input?.limit,
+      event.arguments?.input?.pageNo
+    );
     return {
       status: 200,
       data: tokens,
@@ -22,10 +25,9 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getAdminUser(tenant: tenant, limit: number,pageNo: number) {
-
+async function getAdminUser(tenant: tenant, limit: number, pageNo: number) {
   try {
-    const wallet = await getAdminUsers( tenant,limit,pageNo);
+    const wallet = await getAdminUsers(tenant, limit, pageNo);
     console.log(wallet, "Wallet");
     return wallet;
   } catch (err) {

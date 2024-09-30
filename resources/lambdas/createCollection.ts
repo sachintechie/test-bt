@@ -13,11 +13,11 @@ export const handler = async (event: any, context: any) => {
     }
 
     const data = {
-      customerid:customerId,
+      customerid: customerId,
       title,
       description
-    }
-    
+    };
+
     const collection = await createCollection(data);
 
     return {
@@ -26,8 +26,8 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
-	console.error("Error adding product to collection:", error);
-  let errorMessage = "An unknown error occurred.";
+    console.error("Error adding product to collection:", error);
+    let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;
     }

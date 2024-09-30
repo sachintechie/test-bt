@@ -1,13 +1,18 @@
 import AWS from "aws-sdk";
 
-export async function storeMetadataInDynamoDB(dynamoDB: AWS.DynamoDB.DocumentClient,contractAddress: string, tokenId: number, metadata: any) {
+export async function storeMetadataInDynamoDB(
+  dynamoDB: AWS.DynamoDB.DocumentClient,
+  contractAddress: string,
+  tokenId: number,
+  metadata: any
+) {
   const params = {
     TableName: process.env.METADATA_TABLE!,
     Item: {
-      'ContractAddressTokenId': `${contractAddress}_${tokenId}`, // Composite key
-      'ContractAddress': contractAddress,
-      'TokenId': tokenId,
-      ...metadata  // Spread metadata fields into the DynamoDB item
+      ContractAddressTokenId: `${contractAddress}_${tokenId}`, // Composite key
+      ContractAddress: contractAddress,
+      TokenId: tokenId,
+      ...metadata // Spread metadata fields into the DynamoDB item
     }
   };
 
@@ -19,11 +24,15 @@ export async function storeMetadataInDynamoDB(dynamoDB: AWS.DynamoDB.DocumentCli
   }
 }
 
-export async function getMetadataFromDynamoDB(dynamoDB: AWS.DynamoDB.DocumentClient,contractAddress: string, tokenId: number): Promise<any | null> {
+export async function getMetadataFromDynamoDB(
+  dynamoDB: AWS.DynamoDB.DocumentClient,
+  contractAddress: string,
+  tokenId: number
+): Promise<any | null> {
   const params = {
     TableName: process.env.METADATA_TABLE!,
     Key: {
-      'ContractAddressTokenId': `${contractAddress}_${tokenId}`
+      ContractAddressTokenId: `${contractAddress}_${tokenId}`
     }
   };
 

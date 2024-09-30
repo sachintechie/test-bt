@@ -11,11 +11,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const data = await createUser(
-      event.identity.resolverContext as tenant,
-      event.arguments?.input?.tenantUserId,
-      event.headers?.identity
-    );
+    const data = await createUser(event.identity.resolverContext as tenant, event.arguments?.input?.tenantUserId, event.headers?.identity);
 
     const response = {
       status: data.customer != null ? 200 : 400,
@@ -35,7 +31,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createUser(tenant: tenant, tenantuserid: string,  oidcToken: string) {
+async function createUser(tenant: tenant, tenantuserid: string, oidcToken: string) {
   console.log("Creating admin user");
 
   try {
@@ -84,7 +80,7 @@ async function createUser(tenant: tenant, tenantuserid: string,  oidcToken: stri
             console.log(`Creating OIDC user ${email}`);
             cubistUserId = await org.createOidcUser({ iss, sub }, email, {
               name
-             // memberRole: "Member"
+              // memberRole: "Member"
             });
           } else {
             cubistUserId = proof.user_info?.user_id;

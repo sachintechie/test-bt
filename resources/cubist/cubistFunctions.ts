@@ -48,7 +48,7 @@ export async function sendOidcEmailOtp(emailId: string, tenantId: string) {
   const cubistConfig = await getCubistConfig(tenantId);
 
   console.log("cubistConfig", cubistConfig);
-  if (cubistConfig == null ) {
+  if (cubistConfig == null) {
     return { data: null, error: "Cubist config not found for this tenant" };
   } else {
     // const cubistToken: any = await getSecretValue(cubistConfig?.sendtokensecretname);

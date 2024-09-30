@@ -38,13 +38,10 @@ async function getBalance(tenant: tenant, walletAddress: string, symbol: string)
       if (token.symbol === "SOL") {
         balance = await getSolBalance(walletAddress);
         token.balance = balance;
-      } 
-      else if (token.symbol === "AVAX") {
+      } else if (token.symbol === "AVAX") {
         balance = await getAvaxBalance(walletAddress);
         token.balance = balance;
-      }
-      
-      else {
+      } else {
         balance = await getSplTokenBalance(walletAddress, token.contractaddress ? token.contractaddress : "");
         token.balance = balance;
       }

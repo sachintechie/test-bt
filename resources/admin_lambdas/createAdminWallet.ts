@@ -51,7 +51,7 @@ async function createAdminUserWallet(tenant: tenant, tenantuserid: string, chain
               error: "Error creating cubesigner client"
             };
           }
-          const wallet = await createAdminWallet(org, customer.cubistuserid, chainType, tenant.id,customer?.id);
+          const wallet = await createAdminWallet(org, customer.cubistuserid, chainType, tenant.id, customer?.id);
           if ((wallet != null || wallet != undefined) && wallet.data != null) {
             const newWallet = {
               walletaddress: wallet.data.walletaddress,
@@ -89,5 +89,3 @@ async function createAdminUserWallet(tenant: tenant, tenantuserid: string, chain
     throw e;
   }
 }
-
-

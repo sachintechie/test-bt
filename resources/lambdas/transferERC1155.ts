@@ -1,6 +1,5 @@
 import Web3 from "web3";
-import contractAbi from '../abi/BridgeTowerNftUpgradeable.json';
-
+import contractAbi from "../abi/BridgeTowerNftUpgradeable.json";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -11,8 +10,8 @@ const web3Avax = new Web3(AVAX_RPC_URL);
 const web3Eth = new Web3(ETH_RPC_URL);
 
 export const handler = async (event: any, context: any) => {
-  const {  toAddress, tokenId, amount, chain, contractAddress } = event.arguments?.input;
-  const web3=chain==='AVAX'?web3Avax:web3Eth;
+  const { toAddress, tokenId, amount, chain, contractAddress } = event.arguments?.input;
+  const web3 = chain === "AVAX" ? web3Avax : web3Eth;
 
   const account = web3.eth.accounts.privateKeyToAccount(PRIVATE_KEY);
   web3.eth.accounts.wallet.add(account);
@@ -23,7 +22,7 @@ export const handler = async (event: any, context: any) => {
     from: account.address,
     to: contractAddress,
     gas: 300000,
-    data:  contract.methods.safeTransferFrom(account.address, toAddress, tokenId, amount, undefined).encodeABI()
+    data: contract.methods.safeTransferFrom(account.address, toAddress, tokenId, amount, undefined).encodeABI()
   };
 
   try {

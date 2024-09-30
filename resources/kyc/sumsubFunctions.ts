@@ -4,123 +4,115 @@ import { getCustomerKyc, getMasterSumsubConfig, updateCustomerKycStatus } from "
 export const generateAccessToken = async (userId: string, levelName = "basic-kyc-level") => {
   const sumsubConfig = await getMasterSumsubConfig();
   console.log(sumsubConfig);
-  if(sumsubConfig != null) {
-  const endPoint = `/resources/accessTokens?ttlInSecs=600&userId=${userId}&levelName=${levelName}`;
-  const url = `${sumsubConfig.baseurl}${endPoint}`;
-  const options = {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "X-App-Token": sumsubConfig.sumsub_app_token 
-    },
-    url: endPoint,
-    body: ""
-  };
-   createSignature(options,sumsubConfig.sumsub_secret_key);
-  try {
-    const res = await fetch(url, options);
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    // console.log(error);
-    throw "error in getting access token";
+  if (sumsubConfig != null) {
+    const endPoint = `/resources/accessTokens?ttlInSecs=600&userId=${userId}&levelName=${levelName}`;
+    const url = `${sumsubConfig.baseurl}${endPoint}`;
+    const options = {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "X-App-Token": sumsubConfig.sumsub_app_token
+      },
+      url: endPoint,
+      body: ""
+    };
+    createSignature(options, sumsubConfig.sumsub_secret_key);
+    try {
+      const res = await fetch(url, options);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      // console.log(error);
+      throw "error in getting access token";
+    }
+  } else {
+    throw "error in getting sumsub config";
   }
-}
-else{
-  throw "error in getting sumsub config";
-
-}
 };
 export const createApplicant = async (userId: string, levelName = "basic-kyc-level") => {
   const sumsubConfig = await getMasterSumsubConfig();
-  console.log("sumsubConfig",sumsubConfig);
-  if(sumsubConfig != null) {
-  const endPoint = `/resources/applicants?levelName=${encodeURIComponent(levelName)}`;
-  const url = `${sumsubConfig.baseurl}${endPoint}`;
-  const options = {
-    url: endPoint,
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      "X-App-Token": sumsubConfig.sumsub_app_token
-    },
-    body: JSON.stringify({ externalUserId: userId })
-  };
-  createSignature(options,sumsubConfig.sumsub_secret_key);
-  // console.log(options);
-  try {
-    const res = await fetch(url, options);
-    const data = await res.json();
-    return data;
-  } catch (error) {
-    console.log(error);
-    throw "error in creating applicant";
+  console.log("sumsubConfig", sumsubConfig);
+  if (sumsubConfig != null) {
+    const endPoint = `/resources/applicants?levelName=${encodeURIComponent(levelName)}`;
+    const url = `${sumsubConfig.baseurl}${endPoint}`;
+    const options = {
+      url: endPoint,
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        "X-App-Token": sumsubConfig.sumsub_app_token
+      },
+      body: JSON.stringify({ externalUserId: userId })
+    };
+    createSignature(options, sumsubConfig.sumsub_secret_key);
+    // console.log(options);
+    try {
+      const res = await fetch(url, options);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.log(error);
+      throw "error in creating applicant";
+    }
+  } else {
+    throw "error in getting sumsub config";
   }
-}
-else{
-  throw "error in getting sumsub config";
 };
-}
 export const getApplicantDataByExternalId = async (userId: string) => {
   const sumsubConfig = await getMasterSumsubConfig();
-  if(sumsubConfig != null) {
-
-  const endPoint = `/resources/applicants/-;externalUserId=${userId}/one`;
-  const url = `${sumsubConfig.baseurl}${endPoint}`;
-  const options = {
-    url: endPoint,
-    method: "GET",
-    headers: {
-      "content-type": "application/json",
-      "X-App-Token": sumsubConfig.sumsub_app_token 
+  if (sumsubConfig != null) {
+    const endPoint = `/resources/applicants/-;externalUserId=${userId}/one`;
+    const url = `${sumsubConfig.baseurl}${endPoint}`;
+    const options = {
+      url: endPoint,
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        "X-App-Token": sumsubConfig.sumsub_app_token
+      }
+    };
+    createSignature(options, sumsubConfig.sumsub_secret_key);
+    console.log(options);
+    try {
+      const res = await fetch(url, options);
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.log(error);
+      throw "error in getting applicant data";
     }
-  };
-   createSignature(options,sumsubConfig.sumsub_secret_key);
-  console.log(options);
-  try {
-    const res = await fetch(url, options);
-    const data = await res.json();
-    return data;
-  } catch (error) {
-     console.log(error);
-    throw "error in getting applicant data";
+  } else {
+    throw "error in getting sumsub config";
   }
-}
-else{
-  throw "error in getting sumsub config";
-}
 };
 
 export const sumsubWebhookListener = async (event: any) => {
   try {
-
     const customerKyc = await getCustomerKyc(event.arguments.input.externalUserId);
-    if(customerKyc != null ){
-      const updateKyc = await updateCustomerKycStatus(event.arguments.input.externalUserId,event.arguments.input.reviewStatus);
+    if (customerKyc != null) {
+      const updateKyc = await updateCustomerKycStatus(event.arguments.input.externalUserId, event.arguments.input.reviewStatus);
       console.log(updateKyc);
       return {
         status: 200,
         data: customerKyc,
         error: null
       };
-    }
-    else{
+    } else {
       return {
         status: 400,
         data: null,
         error: "Customer Kyc not found"
       };
     }
-  
   } catch (err) {
     throw "error in webhook listener";
   }
 };
 
- function createSignature(config: any,sumsub_secret_key:string) {
+function createSignature(config: any, sumsub_secret_key: string) {
   var ts = Math.floor(Date.now() / 1000);
-  const signature =  createHmac("sha256", sumsub_secret_key);
+  const signature = createHmac("sha256", sumsub_secret_key);
   signature.update(ts + config.method.toUpperCase() + config.url);
 
   if (config.body instanceof FormData) {

@@ -4,7 +4,7 @@ export const handler = async (event: any, context: any) => {
   try {
     const { customerId, productId, collectionId } = event.arguments?.input;
 
-    if (!customerId || !productId  || !collectionId) {
+    if (!customerId || !productId || !collectionId) {
       return {
         status: 400,
         data: null,
@@ -13,11 +13,11 @@ export const handler = async (event: any, context: any) => {
     }
 
     const data = {
-      customerid:customerId,
-      productid:productId,
-      collectionid:collectionId
-    }
-    
+      customerid: customerId,
+      productid: productId,
+      collectionid: collectionId
+    };
+
     const collection = await addProductToCollection(data);
 
     return {
@@ -26,8 +26,8 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
-	console.error("Error adding product to collection:", error);
-  let errorMessage = "An unknown error occurred.";
+    console.error("Error adding product to collection:", error);
+    let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;
     }

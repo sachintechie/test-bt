@@ -2,8 +2,6 @@ import { AuthType, tenant } from "../db/models";
 import { createCustomer, getEmailOtpCustomer, updateCustomer } from "../db/dbFunctions";
 import { sendOidcEmailOtp } from "../cubist/cubistFunctions";
 
-
-
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -39,23 +37,19 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
     console.log("createUser", tenant.id, tenantuserid);
     const customer = await getEmailOtpCustomer(tenantuserid, tenant.id);
 
-    if (customer != null ) {
-      const sendMailResponse = await sendOidcEmailOtp(emailid,tenant.id);
+    if (customer != null) {
+      const sendMailResponse = await sendOidcEmailOtp(emailid, tenant.id);
 
-      if(sendMailResponse.data){
-
+      if (sendMailResponse.data) {
         const updatedCustomer = await updateCustomer({
-          id:customer.id,
+          id: customer.id,
           partialtoken: sendMailResponse.data?.partial_token,
           updatedat: new Date().toISOString()
         });
         return { customer, error: null };
-
-      }
-      else{
+      } else {
         return { customer: null, error: sendMailResponse.error };
       }
-
     } else {
       if (!emailid) {
         return {
@@ -64,19 +58,18 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
         };
       } else {
         try {
-          const sendMailResponse = await sendOidcEmailOtp(emailid,tenant.id);
+          const sendMailResponse = await sendOidcEmailOtp(emailid, tenant.id);
 
           // If user does not exist, create it
           if (sendMailResponse.data) {
-            
             const customer = await createCustomer({
               emailid: emailid ? emailid : "",
-              name:  "----",
+              name: "----",
               tenantuserid,
               tenantid: tenant.id,
               isactive: true,
               isBonusCredit: false,
-              usertype:AuthType.OTP,
+              usertype: AuthType.OTP,
               partialtoken: sendMailResponse.data?.partial_token,
               createdat: new Date().toISOString()
             });
@@ -92,12 +85,10 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
 
             return { customer: customerData, error: null };
           } else {
-            
-              return {
-                customer: null,
-                error: sendMailResponse.error
-              };
-            
+            return {
+              customer: null,
+              error: sendMailResponse.error
+            };
           }
         } catch (e) {
           console.log(`Not verified: ${e}`);
@@ -113,5 +104,3 @@ async function createUser(tenant: tenant, tenantuserid: string, emailid: string)
     throw e;
   }
 }
-
-

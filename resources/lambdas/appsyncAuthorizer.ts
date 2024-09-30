@@ -41,7 +41,7 @@ export const handler = async (event: any) => {
                 };
               } else {
                 const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
-                if (customer == null) { 
+                if (customer == null) {
                   console.log("Customer not found");
                   return {
                     isAuthorized: false
