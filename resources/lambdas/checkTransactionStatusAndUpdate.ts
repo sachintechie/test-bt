@@ -96,6 +96,7 @@ async function updateAdminTransactions(chainType: string) {
     const transactions = await getAllAdminTransactions(chainType);
     for (const trx of transactions) {
       if (trx.status === TransactionStatus.PENDING) {
+        console.log("trx", trx);  
         const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
