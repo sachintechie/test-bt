@@ -58,6 +58,10 @@ async function updateTransactions() {
 
           //call the callback url with the updated transaction status
         } else {
+          const callbackStatus =CallbackStatus.PENDING;
+         
+          const updatedTransaction = await updateTransaction(trx.id, status, callbackStatus);
+          updatedTransactions.push(updatedTransaction);
           console.log("Tenant callbackurl not found");
         }
       }
