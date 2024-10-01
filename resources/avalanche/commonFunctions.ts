@@ -122,7 +122,7 @@ export async function verifyAvalancheTransaction(txID: string) {
 
     const status = await pvmapi.getTxStatus({ txID });
     console.log(`Transaction Status: ${status.status}`);
-    return status;
+    return status == null ? null : status.status;
   } catch (error) {
     console.error("Error fetching transaction status:", error);
     return null;
