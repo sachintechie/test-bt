@@ -37,7 +37,6 @@ export async function solanaStaking(
   console.log("[solanaStaking]receiverWalletAddress:", receiverWalletAddress);
   console.log("[solanaStaking]amount:", amount);
   console.log("[solanaStaking]symbol:", symbol);
-  console.log("[solanaStaking]oidcToken:", oidcToken);
   console.log("[solanaStaking]tenantUserId:", tenantUserId);
   console.log("[solanaStaking]chainType:", chainType);
   console.log("[solanaStaking]tenantTransactionId:", tenantTransactionId);

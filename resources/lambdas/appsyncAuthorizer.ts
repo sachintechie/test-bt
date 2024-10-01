@@ -2,6 +2,7 @@ import { UserPool } from "aws-cdk-lib/aws-cognito";
 import { executeQuery } from "../db/PgClient";
 import jwt_decode from "jsonwebtoken";
 import { getCustomerIdByTenant } from "../db/dbFunctions";
+import { verifyToken } from "../cognito/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -22,7 +23,7 @@ export const handler = async (event: any) => {
         if (tenant.iscognitoactive === true) {
           let idToken = event?.requestHeaders?.identity;
           if (idToken != null) {
-            const decodedToken: any = jwt_decode.decode(idToken);
+            const decodedToken: any = await verifyToken(tenant,idToken);
             console.log("Decoded token:", decodedToken);
 
             if (decodedToken != null && decodedToken["email"] != null) {
@@ -78,7 +79,7 @@ export const handler = async (event: any) => {
                       cognitoclientid: tenant.cognitoclientid,
                       usertype: "CUSTOMER",
                       customerid: customer.id
-                      
+
                     }
                   };
                 }
