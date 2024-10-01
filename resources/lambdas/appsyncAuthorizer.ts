@@ -78,6 +78,7 @@ export const handler = async (event: any) => {
                       cognitoclientid: tenant.cognitoclientid,
                       usertype: "CUSTOMER",
                       customerid: customer.id
+                      
                     }
                   };
                 }
