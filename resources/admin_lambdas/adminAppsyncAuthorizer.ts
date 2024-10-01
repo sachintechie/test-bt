@@ -1,3 +1,4 @@
+import { verifyToken } from "../cognito/commonFunctions";
 import { getAdminUserByTenant } from "../db/adminDbFunctions";
 import { executeQuery } from "../db/PgClient";
 import jwt_decode from "jsonwebtoken";
@@ -29,7 +30,7 @@ export const handler = async (event: any) => {
 
           if (idToken != null) {
             // Check if user has admin-like privileges
-            if (await isUserAdminLike(idToken)) {
+            if (await isUserAdminLike(idToken,tenant)) {
               const decodedToken: any = jwt_decode.decode(idToken);
               console.log("Decoded token:", decodedToken);
 
@@ -131,10 +132,18 @@ export const handler = async (event: any) => {
 };
 
 // Helper function to check if a user has admin-like privileges
-async function isUserAdminLike(idToken: string) {
+async function isUserAdminLike(idToken: string,tenant: any) {
   try {
     // Decode the ID token
-    const decodedToken: any = jwt_decode.decode(idToken);
+    // const decodedToken: any = jwt_decode.decode(idToken);
+    const decodedToken: any = await verifyToken(tenant, idToken);
+    console.log("Decoded Token:", decodedToken);
+    // if (userData == null || userData.email == null) {
+    //   return {
+    //     customer: null,
+    //     error: "Please provide a valid access token for verification"
+    //   };
+    // }
 
     if (!decodedToken) throw new Error("Invalid ID token");
 
