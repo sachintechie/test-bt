@@ -23,7 +23,7 @@ export const handler = async (event: any) => {
         if (tenant.iscognitoactive === true) {
           let idToken = event?.requestHeaders?.identity;
           if (idToken != null) {
-            const decodedToken: any = await verifyToken(tenant,idToken);
+            const decodedToken: any = await verifyToken(tenant, idToken);
             console.log("Decoded token:", decodedToken);
 
             if (decodedToken != null && decodedToken["email"] != null) {
@@ -43,7 +43,7 @@ export const handler = async (event: any) => {
               } else {
                 const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
                 if (customer == null) {
-                  if(event.requestContext.queryString.toString().includes("Signin")){
+                  if (event.requestContext.queryString.toString().includes("Signin")) {
                     return {
                       isAuthorized: true,
                       resolverContext: {
@@ -58,13 +58,12 @@ export const handler = async (event: any) => {
                         usertype: "CUSTOMER"
                       }
                     };
+                  } else {
+                    console.log("Customer not found");
+                    return {
+                      isAuthorized: false
+                    };
                   }
-                  else{
-                  console.log("Customer not found");
-                  return {
-                    isAuthorized: false
-                  };
-                }
                 } else {
                   return {
                     isAuthorized: true,
@@ -79,7 +78,6 @@ export const handler = async (event: any) => {
                       cognitoclientid: tenant.cognitoclientid,
                       usertype: "CUSTOMER",
                       customerid: customer.id
-
                     }
                   };
                 }
