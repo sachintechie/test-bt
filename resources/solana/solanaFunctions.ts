@@ -12,6 +12,7 @@ export async function getSolConnection() {
 
 export async function verifySolanaTransaction(txId: string) {
   try{
+    console.log("Verifying solana transaction",txId);
   const connection = await getSolConnection();
   const result = await connection.getSignatureStatus(txId, {
     searchTransactionHistory: true
