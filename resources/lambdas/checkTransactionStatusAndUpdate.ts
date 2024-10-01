@@ -10,6 +10,7 @@ import axios from "axios";
 import * as crypto from "crypto";
 import { verifySolanaTransaction } from "../solana/solanaFunctions";
 import { getAllAdminTransactions, updateAdminTransaction } from "../db/adminDbFunctions";
+import { verifyAvalancheTransaction } from "../avalanche/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -37,7 +38,14 @@ async function updateTransactions() {
     const transactions = await getAllTransactions();
     for (const trx of transactions) {
       if (trx.status === TransactionStatus.PENDING) {
-        const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+        const status =
+          trx.chaintype == "Solana"
+            ? (await verifySolanaTransaction(trx.txhash)) === "finalized"
+              ? TransactionStatus.SUCCESS
+              : TransactionStatus.PENDING
+            : (await verifyAvalancheTransaction(trx.txhash)) === "finalized"
+              ? TransactionStatus.SUCCESS
+              : TransactionStatus.PENDING;
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
         if (tenant != null && tenant.callbackurl != null && tenant.callbackurl != undefined) {
@@ -50,6 +58,10 @@ async function updateTransactions() {
 
           //call the callback url with the updated transaction status
         } else {
+          const callbackStatus =CallbackStatus.PENDING;
+         
+          const updatedTransaction = await updateTransaction(trx.id, status, callbackStatus);
+          updatedTransactions.push(updatedTransaction);
           console.log("Tenant callbackurl not found");
         }
       }
@@ -67,7 +79,14 @@ async function updateStakingTransactions() {
     const transactions = await getAllStakingTransactions();
     for (const trx of transactions) {
       if (trx.status === TransactionStatus.PENDING) {
-        const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+        const status =
+          trx.chaintype == "Solana"
+            ? (await verifySolanaTransaction(trx.txhash)) === "finalized"
+              ? TransactionStatus.SUCCESS
+              : TransactionStatus.PENDING
+            : (await verifyAvalancheTransaction(trx.txhash)) === "finalized"
+              ? TransactionStatus.SUCCESS
+              : TransactionStatus.PENDING;
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
         if (tenant != null) {
@@ -96,7 +115,15 @@ async function updateAdminTransactions(chainType: string) {
     const transactions = await getAllAdminTransactions(chainType);
     for (const trx of transactions) {
       if (trx.status === TransactionStatus.PENDING) {
-        const status = (await verifySolanaTransaction(trx.txhash)) === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+        console.log("trx", trx);
+        const status =
+          trx.chaintype == "Solana"
+            ? (await verifySolanaTransaction(trx.txhash)) === "finalized"
+              ? TransactionStatus.SUCCESS
+              : TransactionStatus.PENDING
+            : (await verifyAvalancheTransaction(trx.txhash)) === "finalized"
+              ? TransactionStatus.SUCCESS
+              : TransactionStatus.PENDING;
         const tenant = await getTenantCallBackUrl(trx.tenantid);
         trx.status = status;
         if (tenant != null) {

@@ -44,7 +44,7 @@ async function createUser(tenant: tenant, oidcToken: string) {
       };
     }
     console.log("createUser", tenant.id, userData.email);
-    const customer = await getCustomer(userData?.email, tenant.id);
+    const customer = await getCustomer(userData?.email.toString(), tenant.id);
     if (customer != null && customer?.cubistuserid) {
       console.log("Customer exists", customer);
       return { customer, error: null };
@@ -90,7 +90,7 @@ async function createUser(tenant: tenant, oidcToken: string) {
           const customer = await createCustomer({
             emailid: email ? email : "",
             name: name ? name : "----",
-            tenantuserid: userData.email,
+            tenantuserid: userData.email.toString(),
             tenantid: tenant.id,
             cubistuserid: cubistUserId,
             isactive: true,

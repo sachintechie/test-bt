@@ -5,18 +5,24 @@ const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.dev
 export async function getSolConnection() {
   console.log(SOLANA_NETWORK_URL);
 
-  const connection = new Connection(SOLANA_NETWORK_URL, "confirmed");
+  const connection = new Connection(SOLANA_NETWORK_URL, "finalized");
   // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
   return connection;
 }
 
 export async function verifySolanaTransaction(txId: string) {
-  const connection = await getSolConnection();
-  const result = await connection.getSignatureStatus(txId, {
-    searchTransactionHistory: true
-  });
-  console.log(result);
-  return result.value?.confirmationStatus;
+  try {
+    console.log("Verifying solana transaction", txId);
+    const connection = await getSolConnection();
+    const result = await connection.getSignatureStatus(txId, {
+      searchTransactionHistory: true
+    });
+    console.log(result);
+    return result.value?.confirmationStatus;
+  } catch (err) {
+    console.log("error in verify solana transaction" + err);
+    return null;
+  }
 }
 export async function getSolBalance(address: string) {
   try {

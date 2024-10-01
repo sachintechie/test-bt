@@ -115,7 +115,7 @@ async function adminTransfer(
           adminUserId,
           token.id,
           process.env["SOLANA_NETWORK"] ?? "",
-          txStatus,
+          TransactionStatus.PENDING,
           tenantTransactionId
         );
         return { transaction, error: null };
