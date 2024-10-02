@@ -2,12 +2,13 @@ import { UserPool } from "aws-cdk-lib/aws-cognito";
 import { executeQuery } from "../db/PgClient";
 import jwt_decode from "jsonwebtoken";
 import { getCustomerIdByTenant } from "../db/dbFunctions";
+import { verifyToken } from "../cognito/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
     console.log("Event", event);
     let token = event.authorizationToken;
-    console.log("queryType:" + event.requestContext.querystring.includes("Signin"));
+    console.log("queryType:" + event.requestContext.queryString.toString().includes("Signin"));
 
     if (token != null) {
       // console.log("Token provided", token);
@@ -22,7 +23,7 @@ export const handler = async (event: any) => {
         if (tenant.iscognitoactive === true) {
           let idToken = event?.requestHeaders?.identity;
           if (idToken != null) {
-            const decodedToken: any = jwt_decode.decode(idToken);
+            const decodedToken: any = await verifyToken(tenant, idToken);
             console.log("Decoded token:", decodedToken);
 
             if (decodedToken != null && decodedToken["email"] != null) {
@@ -42,10 +43,27 @@ export const handler = async (event: any) => {
               } else {
                 const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
                 if (customer == null) {
-                  console.log("Customer not found");
-                  return {
-                    isAuthorized: false
-                  };
+                  if (event.requestContext.queryString.toString().includes("Signin")) {
+                    return {
+                      isAuthorized: true,
+                      resolverContext: {
+                        id: tenant.id,
+                        name: tenant.name,
+                        apikey: tenant.apikey,
+                        logo: tenant.logo,
+                        isactive: tenant.isactive,
+                        createdat: tenant.createdat,
+                        userpoolid: tenant.userpoolid,
+                        cognitoclientid: tenant.cognitoclientid,
+                        usertype: "CUSTOMER"
+                      }
+                    };
+                  } else {
+                    console.log("Customer not found");
+                    return {
+                      isAuthorized: false
+                    };
+                  }
                 } else {
                   return {
                     isAuthorized: true,

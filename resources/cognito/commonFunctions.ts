@@ -1,7 +1,7 @@
 import { tenant } from "../db/models";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 
-export async function verifyToken(tenant: tenant, token: string) {
+export async function verifyToken(tenant: any, token: string) {
   try {
     if (tenant.userpoolid == null || tenant.cognitoclientid == null) {
       console.log("Tenant does not have userpoolid or cognitoclientid");
@@ -11,11 +11,12 @@ export async function verifyToken(tenant: tenant, token: string) {
     const payload = await verifier.verify(
       token // the JWT as string
     );
-    const data = {
-      email: payload.email?.valueOf() == null ? null : payload.email?.valueOf().toString()
-    };
-    console.log("Token is valid. Payload:", data);
-    return data;
+    console.log("Payload:", payload);
+    // const data = {
+    //   email: payload.email?.valueOf() == null ? null : payload.email?.valueOf().toString()
+    // };
+    // console.log("Token is valid. Payload:", data);
+    return payload == null ? null : payload;
   } catch (error) {
     console.log("Token not valid!", error);
     return null;

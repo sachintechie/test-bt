@@ -1,3 +1,5 @@
+import { decode } from "bs58";
+import { verifyToken } from "../cognito/commonFunctions";
 import { getAdminUserByTenant } from "../db/adminDbFunctions";
 import { executeQuery } from "../db/PgClient";
 import jwt_decode from "jsonwebtoken";
@@ -28,9 +30,12 @@ export const handler = async (event: any) => {
           let idToken = event?.requestHeaders?.identity;
 
           if (idToken != null) {
+            const { isAdmin, decodedToken } = await isUserAdminLike(idToken, tenant);
             // Check if user has admin-like privileges
-            if (await isUserAdminLike(idToken)) {
-              const decodedToken: any = jwt_decode.decode(idToken);
+            if (isAdmin) {
+              // const decodedToken: any = await verifyToken(tenant, idToken);
+
+              // const decodedToken: any = jwt_decode.decode(idToken);
               console.log("Decoded token:", decodedToken);
 
               if (decodedToken == null || decodedToken["email"] == null) {
@@ -131,10 +136,12 @@ export const handler = async (event: any) => {
 };
 
 // Helper function to check if a user has admin-like privileges
-async function isUserAdminLike(idToken: string) {
+async function isUserAdminLike(idToken: string, tenant: any) {
   try {
     // Decode the ID token
-    const decodedToken: any = jwt_decode.decode(idToken);
+    // const decodedToken: any = jwt_decode.decode(idToken);
+    const decodedToken: any = await verifyToken(tenant, idToken);
+    console.log("Decoded Token:", decodedToken);
 
     if (!decodedToken) throw new Error("Invalid ID token");
 
@@ -145,11 +152,12 @@ async function isUserAdminLike(idToken: string) {
     console.log("Decoded Token:", decodedToken);
     console.log("Cognito Groups:", cognitoGroups);
     console.log("Cognito Roles:", cognitoRoles);
+    const isAdmin = cognitoGroups.includes(ADMIN_GROUP) || cognitoRoles.includes(ADMIN_ROLE);
 
     // Return true if user belongs to the admin group or role
-    return cognitoGroups.includes(ADMIN_GROUP) || cognitoRoles.includes(ADMIN_ROLE);
+    return { isAdmin, decodedToken };
   } catch (error) {
     console.error("Error decoding ID token:", error);
-    return false;
+    return { isAdmin: false, decodedToken: null };
   }
 }

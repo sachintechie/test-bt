@@ -56,7 +56,7 @@ export async function AvalancheStaking(
 
   // 9. Verify the transaction status and log the transaction
   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
-  const txStatus = transactionStatus?.status === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+  const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
 
   const transaction = await insertStakingTransaction(
     senderWalletAddress,
@@ -109,7 +109,7 @@ export async function AvalancheUnstaking(
   if (tx.error) return { transaction: null, error: tx.error };
 
   const transactionStatus = await verifyAvalancheTransaction(tx?.trxHash!);
-  const txStatus = transactionStatus?.status === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
+  const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
 
   const transaction = await insertStakingTransaction(
     senderWalletAddress,

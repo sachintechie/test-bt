@@ -44,9 +44,9 @@ async function createCustomerWallet(tenant: tenant, chainType: string, oidcToken
       };
     }
     console.log("createUser", tenant.id, userData.email);
-    const customer = await getCustomer(userData.email, tenant.id);
+    const customer = await getCustomer(userData.email.toString(), tenant.id);
     if (customer != null && customer?.cubistuserid) {
-      const wallet = await getWalletByCustomer(userData.email, chainType, tenant);
+      const wallet = await getWalletByCustomer(userData.email.toString(), chainType, tenant);
       if (wallet != null && wallet != undefined) {
         return { wallet, error: null };
       } else {
