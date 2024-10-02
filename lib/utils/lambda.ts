@@ -41,8 +41,7 @@ export const newNodeJsFunction = (
     layers: [prismaLayer], // Attach the Prisma layer here
     bundling: {
       minify: true, // Ensure code is minified
-      externalModules: ["aws-sdk"], // AWS SDK is available by default in Lambda runtime
-      nodeModules: [], // Prisma is handled by the layer, so no need to bundle it
+      nodeModules: [],
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
           return []; // No additional commands before bundling
