@@ -1,0 +1,462 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model chaintype {
+  id         String   @id @default(uuid())
+  symbol     String?
+  chain      String?
+  wallettype String?
+  isactive   Boolean?
+  createdat  String?
+}
+
+model cubistconfig {
+  id                  String   @id @default(uuid())
+  tenantid            String?
+  tenant              tenant?  @relation(fields: [tenantid], references: [id])
+  orgid               String
+  isactive            Boolean?
+  createdat           String?
+  updatedat           String?
+  signersecretname    String
+  gaspayersecretname  String
+  sendtokensecretname String?
+}
+
+model customer {
+  id                String             @id @default(uuid())
+  tenantuserid      String?
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  emailid           String?
+  name              String?
+  cubistuserid      String?
+  isactive          Boolean?
+  createdat         String?
+  updatedat         String?
+  iss               String?
+  isbonuscredit     Boolean?
+  usertype          String?
+  partialtoken      String?
+  customerkycs      customerkyc[]
+  wallets           wallet[]
+  transactions      transaction[]
+  staketransactions staketransaction[]
+  stakeaccounts     stakeaccount[]
+  wishlists         productwishlist[]
+  sellerorders      orders[]            @relation("SellerOrders")
+  buyerorders       orders[]            @relation("BuyerOrders")
+  productreviews    productreview[]
+  collections       productcollection[] 
+  productownerships productownership[]
+}
+
+model adminuser {
+  id                String             @id @default(uuid())
+  tenantuserid      String?
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  emailid           String?
+  name              String?
+  cubistuserid      String?
+  isactive          Boolean?
+  createdat         String?
+  iss               String?
+  isbonuscredit     Boolean?
+  adminwallets      adminwallet[]
+  admintransactions admintransaction[]
+}
+
+model customerkyc {
+  id         String    @id @default(uuid())
+  customerid String?
+  customer   customer? @relation(fields: [customerid], references: [id])
+  kyctype    String?
+  type       String?
+  kycid      String?
+  status     String?
+  error      String?
+  tenantid   String?
+  tenant     tenant?   @relation(fields: [tenantid], references: [id])
+  isactive   Boolean?
+  createdat  String?
+  updatedat  String?
+}
+
+model gaspayerwallet {
+  id             String   @id @default(uuid())
+  tenantid       String?
+  tenant         tenant?  @relation(fields: [tenantid], references: [id])
+  walletaddress  String?
+  symbol         String?
+  walletid       String?
+  wallettype     String?
+  iscubistwallet Boolean?
+  cubistuserid   String?
+  isgaspayer     Boolean?
+  isactive       Boolean?
+  createdat      String?
+  publickey      String?
+}
+
+model masterwallet {
+  id             String   @id @default(uuid())
+  tenantid       String?
+  purpose        String?
+  walletaddress  String?
+  symbol         String?
+  walletid       String?
+  wallettype     String?
+  iscubistwallet Boolean?
+  cubistuserid   String?
+  isactive       Boolean?
+  createdat      String?
+  chaintype      String?
+}
+
+model stakeaccount {
+  id                        String             @id @default(uuid())
+  customerid                String?
+  walletaddress             String
+  validatornodeaddress      String?
+  chaintype                 String?
+  symbol                    String
+  amount                    Float?
+  status                    String?
+  network                   String?
+  tokenid                   String
+  tenantid                  String
+  tenantuserid              String
+  tenanttransactionid       String
+  stakeaccountpubkey        String
+  lockupexpirationtimestamp Int?
+  isactive                  Boolean?
+  createdat                 String?
+  updatedat                 String?
+  error                     String?
+  customer                  customer?          @relation(fields: [customerid], references: [id])
+  tenant                    tenant?            @relation(fields: [tenantid], references: [id])
+  staketransaction          staketransaction[]
+}
+
+model staketransaction {
+  id                    String        @id @default(uuid())
+  customerid            String?
+  type                  String?
+  tokenid               String
+  tenanttransactionid   String
+  stakeaccountpubkey    String
+  network               String?
+  status                String?
+  callbackstatus        String?
+  error                 String?
+  tenantuserid          String?
+  walletaddress         String?
+  receiverwalletaddress String?
+  chaintype             String?
+  amount                Float?
+  symbol                String?
+  txhash                String
+  tenantid              String
+  isactive              Boolean?
+  stakeaccountid        String?
+  createdat             DateTime?     @default(now())
+  updatedat             DateTime?     @updatedAt
+  customer              customer?     @relation(fields: [customerid], references: [id])
+  token                 token?        @relation(fields: [tokenid], references: [id])
+  stakeaccount          stakeaccount? @relation(fields: [stakeaccountid], references: [id])
+  tenant                tenant?       @relation(fields: [tenantid], references: [id])
+}
+
+model sumsubconfig {
+  id                String   @id @default(uuid())
+  tenantid          String?
+  baseurl           String?
+  sumsub_app_token  String
+  sumsub_secret_key String
+  ismaster          Boolean
+  isactive          Boolean?
+  createdat         String?
+  updatedat         String?
+}
+
+model tenant {
+  id               String             @id @default(uuid())
+  name             String?
+  apikey           String?
+  logo             String?
+  isactive         Boolean?
+  createdat        String?
+  tenantsecret     String?
+  tenantheaderkey  String?
+  callbackurl      String?
+  cubistorgid      String?
+  userpoolid       String?
+  cognitoclientid  String?
+  iscognitoactive  Boolean?
+  cubistconfig     cubistconfig[]
+  customer         customer[]
+  adminuser        adminuser[]
+  customerkyc      customerkyc[]
+  gaspayerwallet   gaspayerwallet[]
+  stakeaccount     stakeaccount[]
+  staketransaction staketransaction[]
+  categories       productcategory[]
+  products         product[]
+}
+
+enum productrarity {
+  NORMAL
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHICAL
+}
+
+model productcategory {
+  id        String    @id @default(uuid())
+  name      String
+  tenantid  String
+  tenant    tenant    @relation(fields: [tenantid], references: [id])
+  createdat DateTime? @default(now())
+  updatedat DateTime? @updatedAt
+  products  product[]
+
+  @@unique([tenantid, name])
+}
+
+model product {
+  id         String     @id @default(uuid())
+  name       String
+  categoryid String 
+  category   productcategory   @relation(fields: [categoryid], references: [id])
+  rarity            productrarity?        @default(NORMAL)
+  price             Float?
+  purchasedpercentage         Float?
+  availablepercentage         Float?
+  tenantid          String?
+  tenant            tenant?              @relation(fields: [tenantid], references: [id])
+  createdat         DateTime?            @default(now())
+  updatedat         DateTime?            @updatedAt
+  transactions      transaction[]
+  productattributes productattribute[]
+  wishlists  productwishlist[]
+  orders            orders[]
+  productreviews    productreview[]
+  collections            productcollectionproducts[] @relation("productcollectionproductsproduct")
+  productownerships productownership[]
+
+  @@unique([categoryid, name])
+}
+
+model productattribute {
+  id        String    @id @default(uuid())
+  key       String
+  value     String
+  type      String
+  productid String
+  product   product   @relation(fields: [productid], references: [id])
+  createdat DateTime? @default(now())
+  updatedat DateTime? @updatedAt
+}
+
+model token {
+  id                String             @id @default(uuid())
+  name              String?
+  chaintype         String
+  contractaddress   String
+  symbol            String?
+  decimalprecision  Int
+  isactive          Boolean?
+  createdat         String?
+  transactions      transaction[]
+  admintransactions admintransaction[]
+  staketransaction  staketransaction[]
+}
+
+model transaction {
+  id                    String    @id @default(uuid())
+  tenantid              String
+  customerid            String?
+  customer              customer? @relation(fields: [customerid], references: [id])
+  tokenid               String?
+  token                 token?    @relation(fields: [tokenid], references: [id])
+  productid             String?
+  product               product?  @relation(fields: [productid], references: [id])
+  walletaddress         String?
+  symbol                String?
+  receiverwalletaddress String?
+  chaintype             String?
+  amount                Float?
+  txhash                String
+  status                String?
+  tenantuserid          String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  error                 String?
+  network               String?
+  tenanttransactionid   String?
+  callbackstatus        String?
+}
+
+model contracttransaction {
+  id              String @id @default(uuid())
+  chain           String
+  txhash          String
+  fromaddress     String
+  contractaddress String
+  methodname      String
+  params          String
+}
+
+model admintransaction {
+  id                    String     @id @default(uuid())
+  tenantid              String
+  adminuserid           String?
+  adminuser             adminuser? @relation(fields: [adminuserid], references: [id])
+  tokenid               String?
+  token                 token?     @relation(fields: [tokenid], references: [id])
+  walletaddress         String?
+  symbol                String?
+  receiverwalletaddress String?
+  chaintype             String?
+  amount                Float?
+  txhash                String
+  status                String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  error                 String?
+  network               String?
+  tenanttransactionid   String?
+  callbackstatus        String?
+}
+
+model validatornodes {
+  id                   String   @id @default(uuid())
+  tenantid             String?
+  validatornodeaddress String?
+  name                 String?
+  reward               String?
+  ismaster             Boolean?
+  isactive             Boolean?
+  createdat            String?
+  updatedat            String?
+  chaintype            String?
+}
+
+model wallet {
+  id            String    @id @default(uuid())
+  customerid    String?
+  customer      customer? @relation(fields: [customerid], references: [id])
+  walletaddress String?
+  chaintype     String?
+  wallettype    String?
+  walletid      String?
+  isactive      Boolean?
+  createdat     String?
+}
+
+model adminwallet {
+  id            String     @id @default(uuid())
+  adminuserid   String?
+  adminuser     adminuser? @relation(fields: [adminuserid], references: [id])
+  walletaddress String?
+  chaintype     String?
+  wallettype    String?
+  walletid      String?
+  isactive      Boolean?
+  tenantid      String?
+  createdat     String?
+}
+
+model productwishlist {
+  id         String   @id @default(uuid())
+  customerid String
+  customer   customer @relation(fields: [customerid], references: [id], onDelete: Cascade)
+  productid  String
+  product    product  @relation(fields: [productid], references: [id], onDelete: Cascade)
+  createdat  DateTime @default(now())
+}
+
+enum orderstatus {
+  CREATED
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  DISPUTED
+}
+
+model orders {
+  id         String       @id @default(uuid())
+  sellerid   String?
+  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
+  buyerid    String?
+  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
+  productid  String?
+  product    product?     @relation(fields: [productid], references: [id])
+  price      Float?
+  quantity   Int?
+  status     orderstatus
+  productreviews productreview[]
+  createdat  DateTime   @default(now())
+  updatedat  DateTime   @updatedAt
+}
+
+model productreview {
+  id          String       @id @default(uuid())
+  comment     String?
+  rating      Float?
+  customerid String
+  customer   customer?    @relation(fields: [customerid], references: [id])
+  productid   String?
+  product     product?     @relation(fields: [productid], references: [id])
+  orderid     String?
+  orders      orders?     @relation(fields: [orderid], references: [id])
+  createdat   DateTime     @default(now())
+  updatedat   DateTime    @updatedAt
+}
+
+model productcollection {
+  id          String       @id @default(uuid())
+  customerid String?
+  customer   customer?    @relation(fields: [customerid], references: [id])
+  products               productcollectionproducts[] @relation("productcollectionproductscollection")
+  title       String?
+  description String?
+  createdat   DateTime     @default(now())
+  updatedat   DateTime    @updatedAt
+}
+model productcollectionproducts {
+  productcollectionid     String
+  productcollection       productcollection          @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
+  productid               String
+  product                 product                    @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
+
+  @@id([productcollectionid, productid])
+}
+
+model productownership {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   customer @relation(fields: [customerId], references: [id])
+  productId  String
+  product    product  @relation(fields: [productId], references: [id])
+  fractional Boolean
+  fraction   Float?
+}
