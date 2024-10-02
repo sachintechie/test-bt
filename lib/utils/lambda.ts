@@ -23,6 +23,7 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
     role: getLambdaRole(scope),
     bundling: {
       nodeModules: ["@prisma/client", "prisma"],
+      minify: true,
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
           return [];
