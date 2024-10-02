@@ -9,7 +9,8 @@ import {
   productattribute,
   productcategory,
   productfilter,
-  updateproductattribute
+  updateproductattribute,
+  productstatus
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -587,6 +588,20 @@ export async function updateProductAttribute(updateproductattribute: updateprodu
     }
   } catch (err) {
     console.error("Error in updateProductAttribute:", err);
+    throw err;
+  }
+}
+export async function updateProductStatus(productId: string, status:productstatus) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const updatedProduct = await prisma.product.update({
+      where: { id: productId },
+      data: { status },
+    });
+
+    return updatedProduct;
+  } catch (err) {
     throw err;
   }
 }
