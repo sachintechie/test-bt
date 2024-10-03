@@ -138,6 +138,7 @@ type FilterProductData {
   purchasedpercentage: Float
   availablepercentage: Float
   status: ProductStatus
+  isdeleted: Boolean
   category: CategoryData
   createdat: AWSDateTime
   updatedat: AWSDateTime
@@ -575,6 +576,7 @@ type ProductData {
   rarity: ProductRarity
   price: Float
   status: ProductStatus
+  isdeleted: Boolean
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!

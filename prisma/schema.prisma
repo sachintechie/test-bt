@@ -250,6 +250,7 @@ model product {
   tenantid          String?
   tenant            tenant?              @relation(fields: [tenantid], references: [id])
   status            productstatus?              @default(ACTIVE)
+  isdeleted         Boolean?
   createdat         DateTime?            @default(now())
   updatedat         DateTime?            @updatedAt
   transactions      transaction[]
