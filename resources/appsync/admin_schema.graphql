@@ -237,6 +237,7 @@ type ProductData {
   categoryid: String!
   rarity: ProductRarity
   price: Float
+  status: ProductStatus
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!

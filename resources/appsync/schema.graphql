@@ -137,6 +137,7 @@ type FilterProductData {
   price: Float
   purchasedpercentage: Float
   availablepercentage: Float
+  status: ProductStatus
   category: CategoryData
   createdat: AWSDateTime
   updatedat: AWSDateTime
@@ -573,6 +574,7 @@ type ProductData {
   categoryid: String!
   rarity: ProductRarity
   price: Float
+  status: ProductStatus
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!
@@ -909,6 +911,10 @@ input WithdrawStakeInput {
 
 input ProductSearchInput {
   name: String!
+}
+enum ProductStatus {
+	ACTIVE
+	INACTIVE
 }
 
 type Mutation {
