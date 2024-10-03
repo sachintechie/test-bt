@@ -5,7 +5,7 @@ const SOLANA_NETWORK_URL = process.env["SOLANA_NETWORK_URL"] ?? "https://api.dev
 export async function getSolConnection() {
   console.log(SOLANA_NETWORK_URL);
 
-  const connection = new Connection(SOLANA_NETWORK_URL, "finalized");
+  const connection = new Connection(SOLANA_NETWORK_URL, "confirmed");
   // const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
   return connection;
 }
