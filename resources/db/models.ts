@@ -194,3 +194,8 @@ export enum AvalancheTransactionStatus {
   FAILED = 2,
   PENDING = 0
 }
+
+export enum productstatus {
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE"
+}

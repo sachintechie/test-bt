@@ -343,6 +343,16 @@ type UpdateProductResponse {
   error: AWSJSON
 }
 
+input UpdateProductStatusInput{
+	productId: String
+	status: ProductStatus
+}
+
+enum ProductStatus {
+	ACTIVE
+	INACTIVE
+}
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AdminTransfer(input: AdminTransferInput): AdminTransfer
@@ -353,6 +363,7 @@ type Mutation {
   UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
   UpdateProduct(input: UpdateProductInput): UpdateProductResponse
   UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
+	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 }
 
 type Query {
