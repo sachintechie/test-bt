@@ -53,7 +53,7 @@ const MUTATIONS = [
   "removeProductFromCollection",
   "storeHash",
   "updateProductStatus",
-  "deleteProduct"
+  "deleteProduct",
   "addRefToKnowledgeBase"
 ];
 
