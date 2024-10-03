@@ -21,7 +21,7 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
-    console.error("Error updating product status:", error);
+    console.error("Error deleting product", error);
     let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;

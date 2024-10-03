@@ -597,7 +597,10 @@ export async function updateProductStatus(productId: string, status:productstatu
 
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
-      data: { status },
+      data: {
+        status: status,
+        updatedat: new Date().toISOString()
+      }
     });
 
     return updatedProduct;
