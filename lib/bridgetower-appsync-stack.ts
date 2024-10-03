@@ -52,7 +52,8 @@ const MUTATIONS = [
   "addProductToCollection",
   "removeProductFromCollection",
   "storeHash",
-  "updateProductStatus"
+  "updateProductStatus",
+  "deleteProduct"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {
