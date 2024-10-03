@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib";
-import { env, envConfig, isDevOrProd, isOnDemandProd } from "../lib/utils/env";
+import { env, envConfig, isDevOrProd, isOnDemandProd, isPlaygroundDev } from "../lib/utils/env";
 import { BridgeTowerAppSyncStack } from "../lib/bridgetower-appsync-stack";
 import { AuroraStack } from "../lib/bridgetower-aurora-stack";
 import { getDatabaseInfo, getDevOrProdDatabaseInfo } from "../lib/utils/aurora";
@@ -9,7 +9,7 @@ const app = new cdk.App();
 
 let auroraStack: AuroraStack | undefined;
 
-if (!isDevOrProd() && !isOnDemandProd()) {
+if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
   // Import the Aurora stack
   auroraStack = new AuroraStack(app, env`BTAuroraStack`, {
     env: envConfig

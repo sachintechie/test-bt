@@ -1,11 +1,11 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { env, envConfig, isDevOrProd, isOnDemandProd } from "./utils/env";
+import { env, envConfig, isDevOrProd, isOnDemandProd, isPlaygroundDev } from "./utils/env";
 import { configResolver, newAppSyncApi } from "./utils/appsync";
 import { capitalize, readFilesFromFolder } from "./utils/utils";
 import { newApiGateway } from "./utils/apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo } from "./utils/aurora";
+import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo, getPlaygrounDevDatabaseInfo } from "./utils/aurora";
 import { AuroraStack } from "./bridgetower-aurora-stack";
 import { newNodeJsFunction } from "./utils/lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
@@ -74,10 +74,16 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     let databaseInfo: DatabaseInfo;
     if (isOnDemandProd()) {
       databaseInfo = getOnDemandProdDatabaseInfo(this);
-    } else if (!isDevOrProd()) {
+    }  else if (isPlaygroundDev()) {
+      // Fetch the database credentials from Secrets Manager
+      databaseInfo = getPlaygrounDevDatabaseInfo(this);
+    } 
+    
+    else if (!isDevOrProd()) {
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getDatabaseInfo(this, props.auroraStack!);
-    } else {
+    } 
+    else {
       databaseInfo = getDevOrProdDatabaseInfo(this);
     }
     console.log(databaseInfo);

@@ -84,3 +84,28 @@ export const getOnDemandProdDatabaseInfo = (scope: Construct): DatabaseInfo => {
     secretName: "rds!cluster-13c2e436-ec01-4daa-ab51-0763d97fb0c9"
   };
 };
+
+export const getPlaygrounDevDatabaseInfo = (scope: Construct): DatabaseInfo => {
+  const secret = secretsmanager.Secret.fromSecretCompleteArn(
+    scope,
+    env`${AURORA_CREDENTIALS_SECRET_NAME}`,
+    "arn:aws:secretsmanager:us-east-1:222634369325:secret:rds!cluster-2b84579f-e4f3-42b0-b1ff-cc284c51fabb-kpmzlH"
+  );
+  // Construct the DATABASE_URL environment variable for Prisma
+  return {
+    databaseUrl: cdk.Fn.join("", [
+      "postgresql://",
+      secret.secretValueFromJson("username").unsafeUnwrap(),
+      ":",
+      secret.secretValueFromJson("password").unsafeUnwrap(),
+      "@",
+      "auroracluster-playground-dev.cluster-cvgkm26ccq9p.us-east-1.rds.amazonaws.com",
+      ":5432/",
+      DB_NAME
+    ]),
+    host: "auroracluster-playground-dev.cluster-cvgkm26ccq9p.us-east-1.rds.amazonaws.com",
+    port: "5432",
+    dbName: DB_NAME,
+    secretName: "rds!cluster-2b84579f-e4f3-42b0-b1ff-cc284c51fabb"
+  };
+};

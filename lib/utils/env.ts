@@ -13,6 +13,10 @@ export const isOnDemandProd = () => {
   return environment === "ondemand-prod";
 };
 
+export const isPlaygroundDev = () => {
+  return environment === "playground-dev";
+};
+
 export const isDev = () => {
   return environment === "dev";
 };
