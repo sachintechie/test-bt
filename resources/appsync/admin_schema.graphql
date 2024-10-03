@@ -356,6 +356,7 @@ enum ProductStatus {
 
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
+  AddRefToKnowledgeBase(input: AddSubAdminInput): AddSubAdmin
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
   CreateCategory(input: CreateCategoryInput): CategoryResponse
