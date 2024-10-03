@@ -608,3 +608,18 @@ export async function updateProductStatus(productId: string, status:productstatu
     throw err;
   }
 }
+
+export async function deleteProduct(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const deletedProduct = await prisma.product.update({
+      where: { id: productId },
+      data: { isdeleted:true },
+    });
+
+    return deletedProduct;
+  } catch (err) {
+    throw err;
+  }
+}

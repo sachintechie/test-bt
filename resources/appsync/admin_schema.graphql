@@ -237,6 +237,8 @@ type ProductData {
   categoryid: String!
   rarity: ProductRarity
   price: Float
+  status: ProductStatus
+  isdeleted: Boolean
   purchasedpercentage: Float
   availablepercentage: Float
   category: CategoryData!
@@ -353,6 +355,10 @@ enum ProductStatus {
 	INACTIVE
 }
 
+input DeleteProductInput{
+	productId: String
+}
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddSubAdminInput): AddSubAdmin
@@ -365,6 +371,7 @@ type Mutation {
   UpdateProduct(input: UpdateProductInput): UpdateProductResponse
   UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
+  DeleteProduct(input: DeleteProductInput): ProductResponse
 }
 
 type Query {
