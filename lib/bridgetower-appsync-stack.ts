@@ -78,10 +78,10 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     if (isOnDemandProd()) {
       databaseInfo = getOnDemandProdDatabaseInfo(this);
     }  
-    else if (isPlaygroundDev()) {
-      // Fetch the database credentials from Secrets Manager
-      databaseInfo = getPlaygrounDevDatabaseInfo(this);
-    } 
+    // else if (isPlaygroundDev()) {
+    //   // Fetch the database credentials from Secrets Manager
+    //   databaseInfo = getPlaygrounDevDatabaseInfo(this);
+    // } 
     
     else if (!isDevOrProd()) {
       // Fetch the database credentials from Secrets Manager

@@ -9,8 +9,8 @@ const app = new cdk.App();
 
 let auroraStack: AuroraStack | undefined;
 
-if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
-  // if (!isDevOrProd() && !isOnDemandProd() ) {
+//if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
+   if (!isDevOrProd() && !isOnDemandProd() ) {
 
   // Import the Aurora stack
   auroraStack = new AuroraStack(app, env`BTAuroraStack`, {
