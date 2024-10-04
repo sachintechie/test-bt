@@ -8,7 +8,7 @@ const dbConfig: any = {
   host: process.env["DB_HOST"]!,
   database: process.env["DB_DATABASE"]!,
   port: parseInt(process.env["DB_PORT"]!),
-  connectionTimeoutMillis: 5000
+  connectionTimeoutMillis: 50000
 };
 const secretName = process.env["SECRET_NAME"]!;
 
