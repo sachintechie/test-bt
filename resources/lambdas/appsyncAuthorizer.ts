@@ -8,13 +8,13 @@ export const handler = async (event: any) => {
   try {
     console.log("Event", event);
     let token = event.authorizationToken;
-    console.log("queryType:" + event.requestContext.queryString.toString().includes("Signin"));
+    console.log("queryType:" + event?.requestContext?.queryString.toString().includes("Signin"));
 
     if (token != null) {
       // console.log("Token provided", token);
       let query = `SELECT * FROM tenant where apikey = '${token}';`;
       const res = await executeQuery(query);
-      // console.log(res.rows);
+      console.log(res.rows);
       if (res.rows.length > 0 && res.rows[0].apikey === token) {
         console.log("tenant-inside-if");
 
@@ -43,7 +43,7 @@ export const handler = async (event: any) => {
               } else {
                 const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
                 if (customer == null) {
-                  if (event.requestContext.queryString.toString().includes("Signin")) {
+                  if (event?.requestContext?.queryString.toString().includes("Signin")) {
                     return {
                       isAuthorized: true,
                       resolverContext: {
