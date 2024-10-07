@@ -37,10 +37,14 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
     ADMIN_GROUP: "Admin",
     ADMIN_ROLE: "arn:aws:iam::339712796998:role/service-role/admin"
   };
+  const thirdPartyInfo = {
+    STRIPE_SECRET: "sk_test_51Q5WSYRoB3vP63ZcG0446nZxieFZHLftc9TywVGeXSzDBwkO1YnyMxg4cuBBkGN8kPTjYYYUHtyF7eytbduUVrJ5005U9k0Jxi"
+  }
   const commonEnvs = {
     ...databaseInfoEnv,
     ...web3InfoEnv,
-    ...iamInfo
+    ...iamInfo,
+    ...thirdPartyInfo
   };
   switch (environment) {
     case "dev":

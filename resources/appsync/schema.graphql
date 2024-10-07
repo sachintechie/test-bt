@@ -876,6 +876,18 @@ type Web3TransactionResponse {
   error: String
 }
 
+type GetStripeProductsResponse {
+  status: Int
+  data: AWSJSON
+  error: AWSJSON
+}
+
+type GetStripeCheckoutResponse {
+  status: Int
+  url: String
+  error: AWSJSON
+}
+
 input WishlistByCustomerIdInput {
   customerId: String!
 }
@@ -906,6 +918,19 @@ input WithdrawStakeInput {
   senderWalletAddress: String!
   accountPublicKey: String!
 }
+
+input GetStripeProductsInput {
+  limit: Int!,
+  offset: Int!
+}
+
+input GetStripeCheckoutLinkInput {
+  successLink: String!,
+  failedLink: String!,
+  items: AWSJSON,
+  walletAddress: String!
+}
+
 
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
@@ -970,6 +995,8 @@ type Query {
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
   GetCollectionByCustomerId(input: GetCollectionByCustomerIdInput): ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
+  GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
+  GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
 }
 
 schema {
