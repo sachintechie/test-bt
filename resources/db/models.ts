@@ -199,3 +199,8 @@ export enum productstatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE"
 }
+
+export enum RefType{
+  DOCUMENT = "DOCUMENT",
+  WEBSITE = "WEBSITE"
+}
