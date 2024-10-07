@@ -81,7 +81,7 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
   };
     // Prepare the S3 upload parameters
 
-   const s3Details = s3.getObject(s3Params).promise();
+   const s3Details =await s3.getObject(s3Params).promise();
  
    console.log('File uploaded to S3', s3Details);
 
