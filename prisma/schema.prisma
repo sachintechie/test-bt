@@ -36,12 +36,12 @@ model cubistconfig {
   sendtokensecretname String?
 }
 
-model KnowledgeBaseReference{
+model knowledgebasereference{
   id                String             @id @default(uuid())
   tenantid          String?
   tenant            tenant?            @relation(fields: [tenantid], references: [id])
   name              String?
-  refType           String?
+  reftype           String?
   url               String?
   isactive          Boolean
   createdat         String?
@@ -227,7 +227,7 @@ model tenant {
   staketransaction staketransaction[]
   categories       productcategory[]
   products         product[]
-  KnowledgeBaseReferences KnowledgeBaseReference[]
+  knowledgebasereferences knowledgebasereference[]
 }
 
 enum productrarity {
