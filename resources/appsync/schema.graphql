@@ -5,7 +5,6 @@ input AddProductToCollectionInput {
 }
 
 input CreateCollectionInput {
-  customerId: String
   title: String
   description: String
 }
