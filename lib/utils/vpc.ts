@@ -27,6 +27,15 @@ export const getVpcConfig = (scope: Construct) => {
         });
       }
       return vpcSingleton;
+    case "playground-dev":
+        if (!vpcSingleton) {
+          vpcSingleton = Vpc.fromVpcAttributes(scope, env`vpc`, {
+            vpcId: "vpc-007707577db050ceb",
+            availabilityZones: cdk.Fn.getAzs(),
+            privateSubnetIds: ["subnet-00fd233dcfa0fdcdd", "subnet-010f0bac84ffc03c5", "subnet-06e90e1463690fe61"]
+          });
+        }
+        return vpcSingleton;  
     default:
       if (!vpcSingleton) {
         vpcSingleton = new ec2.Vpc(scope, env`vpc`, {
