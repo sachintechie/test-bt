@@ -16,6 +16,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 
+
 export async function createAdminUser(customer: customer) {
   try {
     const prisma = await getPrismaClient();
@@ -619,6 +620,25 @@ export async function deleteProduct(productId: string) {
     });
 
     return deletedProduct;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function addReferenceToDb(tenantId: string,file : any,refType: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const newRef = await prisma.knowledgeBaseReference.create({
+      data: {
+        tenantid: tenantId as string,
+        refType: refType,
+        name:file.fileName,
+        url:file.url,
+        isactive: true,
+        createdat: new Date().toISOString()
+      }
+    });
+    return newRef;
   } catch (err) {
     throw err;
   }

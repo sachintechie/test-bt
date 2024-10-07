@@ -103,7 +103,8 @@ export const getPlaygrounDevDatabaseInfo = (scope: Construct): DatabaseInfo => {
       ":5432/",
       DB_NAME
     ]),
-    host: "auroracluster-playground-dev.cluster-cvgkm26ccq9p.us-east-1.rds.amazonaws.com",
+    host: "auroracluster-playground-dev.cluster-cvgkm26ccq9p.us-east-1.rds.amazonaws.com",    
+    
     port: "5432",
     dbName: DB_NAME,
     secretName: "rds!cluster-2b84579f-e4f3-42b0-b1ff-cc284c51fabb"
