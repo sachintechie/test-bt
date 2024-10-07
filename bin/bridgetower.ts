@@ -31,14 +31,14 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   auroraStack: auroraStack
 });
 
-new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
-  env: envConfig,
-  lambdaFolder: "../../resources/admin_lambdas",
-  schemaFile: "admin_schema.graphql",
-  name: "AdminGraphQLAPI",
-  authorizerLambda: "adminAppsyncAuthorizer",
-  hasApiGateway: false,
-  apiName: "AdminApi",
-  needMigrate: false,
-  auroraStack: auroraStack
-});
+// new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
+//   env: envConfig,
+//   lambdaFolder: "../../resources/admin_lambdas",
+//   schemaFile: "admin_schema.graphql",
+//   name: "AdminGraphQLAPI",
+//   authorizerLambda: "adminAppsyncAuthorizer",
+//   hasApiGateway: false,
+//   apiName: "AdminApi",
+//   needMigrate: false,
+//   auroraStack: auroraStack
+// });
