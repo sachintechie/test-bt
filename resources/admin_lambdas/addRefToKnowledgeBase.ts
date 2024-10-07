@@ -75,9 +75,14 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
 
   // Upload the file to S3
    const s3Data = await s3.putObject(params).promise();
+   const s3Params = {
+    Bucket: bucketName,
+    Key: fileName,
+    Body: Buffer.from(fileContent, 'base64'), // Assuming fileContent is base64 encoded
+  };
     // Prepare the S3 upload parameters
 
-   const s3Details = s3.getObject(params).promise();
+   const s3Details = s3.getObject(s3Params).promise();
  
    console.log('File uploaded to S3', s3Details);
 
