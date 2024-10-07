@@ -41,7 +41,7 @@ model knowledgebasereference{
   tenantid          String?
   tenant            tenant?            @relation(fields: [tenantid], references: [id])
   name              String?
-  refType           String?
+  reftype           String?
   url               String?
   isactive          Boolean
   createdat         String?

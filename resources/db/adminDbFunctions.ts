@@ -631,7 +631,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
     const newRef = await prisma.knowledgebasereference.create({
       data: {
         tenantid: tenantId as string,
-        refType: refType,
+        reftype: refType,
         name:file.fileName,
         url:file.url,
         isactive: true,

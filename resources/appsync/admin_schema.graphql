@@ -231,7 +231,7 @@ type ListReference {
 type ListReferenceData {
 	total: Int
 	totalPages: Int
-	users: [ListRefData]
+	refs: [ListRefData]
 }
 
 input ListWalletTokenInput {
