@@ -4,9 +4,9 @@ import { tenant } from "../db/models";
 export const handler = async (event: any) => {
   try {
     const tenant = event.identity.resolverContext as tenant;
-    console.log(event, tenant, event.identity);
+    console.log(tenant, tenant?.customerid);
 
-    const customerId = event.arguments?.input?.customerId;
+    const customerId = tenant?.customerid;
     const collection = await getCollectionByCustomerId(customerId);
     return {
       status: 200,
@@ -15,10 +15,14 @@ export const handler = async (event: any) => {
     };
   } catch (err) {
     console.log("In catch Block Error", err);
+    let errorMessage = "An unknown error occurred.";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
     return {
       status: 400,
       data: null,
-      error: err
+      error: errorMessage
     };
   }
 };

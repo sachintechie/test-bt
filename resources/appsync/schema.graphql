@@ -5,7 +5,6 @@ input AddProductToCollectionInput {
 }
 
 input CreateCollectionInput {
-  customerId: String
   title: String
   description: String
 }
@@ -167,10 +166,6 @@ type GetCategoriesResponse {
 
 input GetCategoryByIdInput {
   categoryId: String
-}
-
-input GetCollectionByCustomerIdInput {
-  customerId: String!
 }
 
 input GetCollectionByIdInput {
@@ -915,8 +910,8 @@ input ProductSearchInput {
   name: String!
 }
 enum ProductStatus {
-	ACTIVE
-	INACTIVE
+  ACTIVE
+  INACTIVE
 }
 
 type Mutation {
@@ -980,7 +975,7 @@ type Query {
   GetReviewsByCustomerId(input: GetReviewsByCustomerIdInput): ReviewResponse
   GetReviewsByProductId(input: GetReviewsByProductIdInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
-  GetCollectionByCustomerId(input: GetCollectionByCustomerIdInput): ProductToCollectionResponse
+  GetCollectionByCustomerId: ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
   GetProductsByTenantId: GetProductsResponse
   SearchProductsByName(input: ProductSearchInput): GetProductsResponse

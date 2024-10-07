@@ -1,9 +1,10 @@
 import { createCollection } from "../db/dbFunctions";
-
+import { tenant } from "../db/models";
 export const handler = async (event: any, context: any) => {
   try {
-    const { customerId, title, description } = event.arguments?.input;
-
+    const { title, description } = event.arguments?.input;
+    const tenant = event.identity.resolverContext as tenant;
+    const customerId = tenant?.customerid;
     if (!customerId || !title || !description) {
       return {
         status: 400,
