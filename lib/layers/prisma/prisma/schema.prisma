@@ -227,7 +227,7 @@ model tenant {
   staketransaction staketransaction[]
   categories       productcategory[]
   products         product[]
-  KnowledgeBaseReferences KnowledgeBaseReference[]
+  knowledgebasereferences knowledgebasereference[]
 }
 
 enum productrarity {
