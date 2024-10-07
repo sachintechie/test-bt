@@ -1,8 +1,10 @@
 import { getCollectionByCustomerId } from "../db/dbFunctions";
+import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
-    console.log(event);
+    const tenant = event.identity.resolverContext as tenant;
+    console.log(event, tenant, event.identity);
 
     const customerId = event.arguments?.input?.customerId;
     const collection = await getCollectionByCustomerId(customerId);

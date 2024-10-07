@@ -3,6 +3,11 @@ export const handler = async (event: any, context: any) => {
   console.log("Retrieving metadata for contractAddress:", contractAddress, "and tokenId:", tokenId);
   console.log("Retrieving metadata for walletAddress:", walletAddress);
 
+  let network = "avalanche_c_chain";
+  if(contractAddress !== "0x698ca34160962dd9826E25ecb1b1b73d756b71b5") {
+    network='ethereum'
+  }
+
   return {
     status: 200,
     message: "retrieved successfully",
@@ -20,7 +25,7 @@ export const handler = async (event: any, context: any) => {
       sellerAddress: "0x77a038d87fd230F39dF6A29707428606C4DF625C",
       sellType: "Primary",
       flow: "Lite",
-      network: "avalanche_c_chain"
+      network: network
     }
   };
 };
