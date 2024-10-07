@@ -15,10 +15,14 @@ export const handler = async (event: any) => {
     };
   } catch (err) {
     console.log("In catch Block Error", err);
+    let errorMessage = "An unknown error occurred.";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    }
     return {
       status: 400,
       data: null,
-      error: err
+      error: errorMessage
     };
   }
 };
