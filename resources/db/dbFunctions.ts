@@ -12,7 +12,9 @@ import {
   productreview,
   createcollection,
   addtocollection,
-  productRarity
+  productRarity,
+  productstatus,
+  ProductFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1434,10 +1436,28 @@ export async function getCategoriesByTenantId(tenant: tenant) {
   }
 }
 
-export async function getProducts() {
+export async function getProducts(value: string, searchBy?: ProductFindBy, status?: string) {
   try {
     const prisma = await getPrismaClient();
+
+    let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
+
+    if (status === 'ACTIVE') {
+      whereClause = { ...whereClause, status: productstatus.ACTIVE };
+    } else if (status === 'INACTIVE') {
+      whereClause = { ...whereClause, status: productstatus.INACTIVE };
+    }
+    
+    if (searchBy === ProductFindBy.Product && value) {
+      whereClause.id = value; 
+    } else if (searchBy === ProductFindBy.Category && value) {
+      whereClause.categoryid = value;  
+    } else if (searchBy === ProductFindBy.Tenant && value) {
+      whereClause.tenantid = value; 
+    }
+
     const products = await prisma.product.findMany({
+      where: whereClause,
       include: {
         category: true,
         productattributes: true
@@ -1446,56 +1466,6 @@ export async function getProducts() {
     return products;
   } catch (err) {
     throw err;
-  }
-}
-
-export async function getProductById(productId: string) {
-  try {
-    const prisma = await getPrismaClient();
-    const product = await prisma.product.findUnique({
-      where: {
-        id: productId
-      },
-      include: {
-        category: true,
-        productattributes: true
-      }
-    });
-    return product;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getProductsByCategoryId(categoryId: string) {
-  try {
-    const prisma = await getPrismaClient();
-    const products = await prisma.product.findMany({
-      where: { categoryid: categoryId },
-      include: {
-        category: true,
-        productattributes: true
-      }
-    });
-    return products;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getProductsByTenantId(tenant: tenant) {
-  try {
-    const prisma = await getPrismaClient();
-    const products = await prisma.product.findMany({
-      where: { tenantid: tenant.id },
-      include: {
-        productattributes: true
-      }
-    });
-    return products;
-  } catch (err) {
-    throw err;
- 
   }
 }
 

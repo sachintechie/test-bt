@@ -339,14 +339,6 @@ type GetProductAttributesResponse {
   error: AWSJSON
 }
 
-input GetProductByIdInput {
-  productId: String
-}
-
-input GetProductsByCategoryIdInput {
-  categoryId: String
-}
-
 type GetProductsResponse {
   status: Int
   data: [ProductData]
@@ -592,12 +584,6 @@ enum ProductRarity {
   EPIC
   LEGENDARY
   MYTHICAL
-}
-
-type ProductResponse {
-  status: Int
-  data: ProductData
-  error: AWSJSON
 }
 
 type ProductToCollectionResponse {
@@ -914,6 +900,18 @@ enum ProductStatus {
   INACTIVE
 }
 
+enum ProductFindBy {
+  Product
+  Category
+  Tenant
+}
+
+input GetProductsInput {
+  value: String         
+  searchBy: ProductFindBy
+  status: ProductStatus 
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -961,9 +959,7 @@ type Query {
   GetCategories: GetCategoriesResponse
   GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
   GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-  GetProducts: GetProductsResponse
-  GetProductById(input: GetProductByIdInput): ProductResponse
-  GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
+  GetProducts(input: GetProductsInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
   GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
@@ -977,7 +973,6 @@ type Query {
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
   GetCollectionByCustomerId: ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
-  GetProductsByTenantId: GetProductsResponse
   SearchProductsByName(input: ProductSearchInput): GetProductsResponse
 }
 

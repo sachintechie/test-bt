@@ -204,3 +204,9 @@ export enum RefType{
   DOCUMENT = "DOCUMENT",
   WEBSITE = "WEBSITE"
 }
+
+export enum ProductFindBy {
+  Product = 'Product',
+  Category = 'Category',
+  Tenant = 'Tenant'
+}
