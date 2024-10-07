@@ -16,6 +16,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 
+
 export async function createAdminUser(customer: customer) {
   try {
     const prisma = await getPrismaClient();
@@ -623,3 +624,58 @@ export async function deleteProduct(productId: string) {
     throw err;
   }
 }
+
+export async function addReferenceToDb(tenantId: string,file : any,refType: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const newRef = await prisma.knowledgebasereference.create({
+      data: {
+        tenantid: tenantId as string,
+        reftype: refType,
+        name:file.fileName,
+        url:file.url,
+        isactive: true,
+        createdat: new Date().toISOString()
+      }
+    });
+    return newRef;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getReferenceList(
+  tenant: tenant,
+  limit: number,
+  pageNo: number
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const refCount = await prisma.knowledgebasereference.count({
+      where: {
+        tenantid: tenant.id
+      }
+    });
+    if (refCount == 0) {
+      return [];
+    }
+    const refs = await prisma.knowledgebasereference.findMany({
+      where: {
+        tenantid: tenant.id
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: refCount,
+      totalPages: Math.ceil(refCount / limit),
+      refs: refs
+    };
+   
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+

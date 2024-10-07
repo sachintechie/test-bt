@@ -54,7 +54,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
-        AVAX_NETWORK_ID: "43113"
+        AVAX_NETWORK_ID: "43113",
+        BUCKET_NAME:"knowledgebasedocument"
       };
     case "staging":
       return {

@@ -22,6 +22,11 @@ export const getSecurityGroups = (scope: Construct) => {
         securityGroupsSingleton = [SecurityGroup.fromSecurityGroupId(scope, env`lambda-rds-6`, "sg-0f661eeab7d58bee8")];
       }
       return securityGroupsSingleton;
+    case "playground-dev":
+      if (!securityGroupsSingleton) {
+          securityGroupsSingleton = [SecurityGroup.fromSecurityGroupId(scope, env`lambda-rds-6`, "sg-05ddd1b0128d3ffa0")];
+        }
+        return securityGroupsSingleton;  
     default:
       if (!securityGroupsSingleton) {
         // Create a security group for the Aurora DB Cluster

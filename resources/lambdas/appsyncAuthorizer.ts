@@ -92,7 +92,7 @@ export const handler = async (event: any) => {
               isAuthorized: false
             };
           }
-        } else {
+        } else if(tenant.name === "AI") {
           return {
             isAuthorized: true,
             resolverContext: {
@@ -107,6 +107,23 @@ export const handler = async (event: any) => {
             }
           };
         }
+        
+        else {
+          return {
+            isAuthorized: true,
+            resolverContext: {
+              id: tenant.id,
+              name: tenant.name,
+              apikey: tenant.apikey,
+              logo: tenant.logo,
+              isactive: tenant.isactive,
+              createdat: tenant.createdat,
+              userpoolid: tenant.userpoolid,
+              cognitoclientid: tenant.cognitoclientid
+            }
+          };
+        }
+
       } else {
         console.log("Api token not matched");
         return { isAuthorized: false };
