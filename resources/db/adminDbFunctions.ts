@@ -488,6 +488,7 @@ export async function createProduct(product: product) {
       data: {
         name: product.name,
         categoryid: product.categoryid,
+        tenantid:product.tenantid,
         rarity: product.rarity,
         price: product.price,
         purchasedpercentage: product.purchasedpercentage,

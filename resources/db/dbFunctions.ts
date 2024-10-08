@@ -1436,7 +1436,7 @@ export async function getCategoriesByTenantId(tenant: tenant) {
   }
 }
 
-export async function getProducts(value: string, searchBy?: ProductFindBy, status?: string) {
+export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string) {
   try {
     const prisma = await getPrismaClient();
 

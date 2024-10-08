@@ -70,6 +70,7 @@ export interface product {
   rarity: productRarity;
   price: number;
   purchasedpercentage: number;
+  tenantid:string;
 }
 
 export interface productcategory {

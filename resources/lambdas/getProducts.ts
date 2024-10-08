@@ -23,7 +23,10 @@ export const handler = async (event: any) => {
       searchValue = event.identity?.resolverContext?.id;
       if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
     }
-    if (!searchValue) throw new Error("Value is required for the selected searchBy option.");
+    if (!searchBy && !value) {
+      searchByEnum = undefined;
+      searchValue = undefined;
+    }
 
     const products = await getProducts(searchValue, searchByEnum, productStatus);
 
