@@ -1,5 +1,4 @@
 input AddProductToCollectionInput {
-  customerId: String
   productId: String
   collectionId: String
 }
@@ -907,9 +906,9 @@ enum ProductFindBy {
 }
 
 input GetProductsInput {
-  value: String         
+  value: String
   searchBy: ProductFindBy
-  status: ProductStatus 
+  status: ProductStatus
 }
 
 type Mutation {
