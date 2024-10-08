@@ -880,6 +880,25 @@ type Web3TransactionResponse {
   error: String
 }
 
+type GetStripeProductsResponse {
+  status: Int
+  data: AWSJSON
+  error: AWSJSON
+}
+
+type GetStripeCheckoutResponse {
+  status: Int
+  url: String
+  error: AWSJSON
+}
+
+type GetStripePaymentIntentClientSecretResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
+
 input WishlistByCustomerIdInput {
   customerId: String!
 }
@@ -918,6 +937,25 @@ enum ProductStatus {
 	ACTIVE
 	INACTIVE
 }
+
+input GetStripeProductsInput {
+  limit: Int!,
+  offset: Int!
+}
+
+input GetStripeCheckoutLinkInput {
+  successLink: String!,
+  failedLink: String!,
+  items: AWSJSON,
+  walletAddress: String!
+}
+
+input GetStripePaymentIntentClientSecretInput {
+  cart: AWSJSON,
+  address: String!
+}
+
+
 
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
@@ -984,6 +1022,9 @@ type Query {
   GetHashTransaction(input: GetTransactionInput): StoreHash
   GetProductsByTenantId: GetProductsResponse
   SearchProductsByName(input: ProductSearchInput): GetProductsResponse
+  GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
+  GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
+  GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
 }
 
 schema {
