@@ -1,20 +1,21 @@
 import { createOrder } from "../db/dbFunctions";
-
+import { tenant } from "../db/models";
 export const handler = async (event: any, context: any) => {
   try {
-    const { sellerId, buyerId, productId, price, quantity, status } = event.arguments?.input;
-
-    if (!sellerId || !buyerId || !productId || !price || !quantity || !status) {
+    const { sellerId, productId, price, quantity, status } = event.arguments?.input;
+    const tenant = event.identity.resolverContext as tenant;
+    const customerId = tenant?.customerid;
+    if (!sellerId || !customerId || !productId || !price || !quantity || !status) {
       return {
         status: 400,
         data: null,
-        error: "All required fields (sellerid, buyerid, productid, price, quantity, status) must be provided."
+        error: "All required fields (sellerid, customerId, productid, price, quantity, status) must be provided."
       };
     }
 
     const orderObj = {
       sellerid: sellerId,
-      buyerid: buyerId,
+      buyerid: customerId,
       productid: productId,
       price,
       quantity,

@@ -9,7 +9,7 @@ export const handler = async (event: any, context: any) => {
       return {
         status: 400,
         data: null,
-        error: "Collection ID and Product ID must be provided."
+        error: " Customer ID, Collection ID and Product ID must be provided."
       };
     }
     const data = {
