@@ -27,7 +27,9 @@ export interface updatecustomer {
 
 export interface tenant {
   id: string;
-  customerid: string;
+  customerid?: string;
+  adminuserid?: string;
+  usertype?: string;
   name: string;
   apikey: string;
   logo: string;
