@@ -1,4 +1,4 @@
-import { PrismaClient,Prisma } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import {
   AuthType,
   CallbackStatus,
@@ -12,7 +12,9 @@ import {
   productreview,
   createcollection,
   addtocollection,
-  productRarity
+  productRarity,
+  ProductStatus,
+  ProductFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1434,10 +1436,28 @@ export async function getCategoriesByTenantId(tenant: tenant) {
   }
 }
 
-export async function getProducts() {
+export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string) {
   try {
     const prisma = await getPrismaClient();
+
+    let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
+
+    if (status === "ACTIVE") {
+      whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
+    } else if (status === "INACTIVE") {
+      whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
+    }
+
+    if (searchBy === ProductFindBy.PRODUCT && value) {
+      whereClause.id = value;
+    } else if (searchBy === ProductFindBy.CATEGORY && value) {
+      whereClause.categoryid = value;
+    } else if (searchBy === ProductFindBy.TENANT && value) {
+      whereClause.tenantid = value;
+    }
+
     const products = await prisma.product.findMany({
+      where: whereClause,
       include: {
         category: true,
         productattributes: true
@@ -1446,56 +1466,6 @@ export async function getProducts() {
     return products;
   } catch (err) {
     throw err;
-  }
-}
-
-export async function getProductById(productId: string) {
-  try {
-    const prisma = await getPrismaClient();
-    const product = await prisma.product.findUnique({
-      where: {
-        id: productId
-      },
-      include: {
-        category: true,
-        productattributes: true
-      }
-    });
-    return product;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getProductsByCategoryId(categoryId: string) {
-  try {
-    const prisma = await getPrismaClient();
-    const products = await prisma.product.findMany({
-      where: { categoryid: categoryId },
-      include: {
-        category: true,
-        productattributes: true
-      }
-    });
-    return products;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getProductsByTenantId(tenant: tenant) {
-  try {
-    const prisma = await getPrismaClient();
-    const products = await prisma.product.findMany({
-      where: { tenantid: tenant.id },
-      include: {
-        productattributes: true
-      }
-    });
-    return products;
-  } catch (err) {
-    throw err;
- 
   }
 }
 
@@ -1510,7 +1480,6 @@ export async function GetProductAttributesByProductId(productId: string) {
     throw err;
   }
 }
-
 
 export async function filterProducts(filters: productfilter[]) {
   const prisma = await getPrismaClient();
@@ -2012,6 +1981,17 @@ export async function addProductToCollection(productcollection: addtocollection)
       throw new Error("This product is not owned by this customer");
     }
 
+    const isCustomerCollection = await prisma.productcollection.findFirst({
+      where: {
+        customerid,
+        id: collectionid
+      }
+    });
+
+    if (!isCustomerCollection) {
+      throw new Error("This collection is not owned by this customer");
+    }
+
     const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
       where: {
         productcollectionid: collectionid,
@@ -2149,26 +2129,25 @@ export async function getCollectionByCustomerId(customerId: string) {
   }
 }
 
-
 export async function transferProductOwnership(
-  productId: string, 
-  sellerId: string, 
-  buyerId: string, 
-  fractional: boolean = false, 
+  productId: string,
+  sellerId: string,
+  buyerId: string,
+  fractional: boolean = false,
   fraction: number = 1
 ) {
-	 const prisma = await getPrismaClient();
+  const prisma = await getPrismaClient();
   // Check if the product is already owned by the seller
   const sellerOwnership = await prisma.productownership.findFirst({
     where: {
       productId: productId,
       customerId: sellerId,
-      fractional: fractional,
-    },
+      fractional: fractional
+    }
   });
 
   if (!sellerOwnership) {
-    throw new Error('Seller does not own this product.');
+    throw new Error("Seller does not own this product.");
   }
 
   try {
@@ -2181,7 +2160,7 @@ export async function transferProductOwnership(
           // Update seller's ownership fraction
           await tx.productownership.update({
             where: { id: sellerOwnership.id },
-            data: { fraction: remainingFraction },
+            data: { fraction: remainingFraction }
           });
 
           // Create new ownership record for buyer
@@ -2190,13 +2169,13 @@ export async function transferProductOwnership(
               customerId: buyerId,
               productId: productId,
               fractional: true,
-              fraction: fraction,
-            },
+              fraction: fraction
+            }
           });
         } else if (remainingFraction === 0) {
           // If transferring full ownership, remove seller's record
           await tx.productownership.delete({
-            where: { id: sellerOwnership.id },
+            where: { id: sellerOwnership.id }
           });
 
           // Create new ownership record for buyer
@@ -2205,16 +2184,16 @@ export async function transferProductOwnership(
               customerId: buyerId,
               productId: productId,
               fractional: true,
-              fraction: fraction,
-            },
+              fraction: fraction
+            }
           });
         } else {
-          throw new Error('Fraction transfer exceeds seller ownership.');
+          throw new Error("Fraction transfer exceeds seller ownership.");
         }
       } else {
         // Full ownership transfer
         await tx.productownership.delete({
-          where: { id: sellerOwnership.id },
+          where: { id: sellerOwnership.id }
         });
 
         await tx.productownership.create({
@@ -2222,22 +2201,22 @@ export async function transferProductOwnership(
             customerId: buyerId,
             productId: productId,
             fractional: false,
-            fraction: null,
-          },
+            fraction: null
+          }
         });
       }
     });
 
     return {
-      message: 'Ownership transferred successfully',
+      message: "Ownership transferred successfully",
       productId,
       sellerId,
       buyerId,
       fractional,
-      fraction,
+      fraction
     };
   } catch (error) {
-     if (error instanceof Error) {
+    if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while transferring ownership.");
     } else {
       throw new Error("An unexpected error occurred.");
@@ -2245,16 +2224,15 @@ export async function transferProductOwnership(
   }
 }
 
-
 export async function searchProductsByName(name?: string) {
   try {
     const prisma = await getPrismaClient();
-    
+
     const products = await prisma.product.findMany({
       where: {
         name: {
-          contains: name, 
-          mode: 'insensitive' 
+          contains: name,
+          mode: "insensitive"
         }
       },
       include: {
