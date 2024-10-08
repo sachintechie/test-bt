@@ -888,7 +888,6 @@ type WishlistData {
 }
 
 input WishlistInput {
-  customerId: String!
   productId: String!
 }
 
