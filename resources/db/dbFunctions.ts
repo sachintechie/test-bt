@@ -2029,16 +2029,27 @@ export async function addProductToCollection(productcollection: addtocollection)
   }
 }
 
-export async function removeProductFromCollection(collectionId: string, productId: string) {
+export async function removeProductFromCollection(productcollection: addtocollection) {
   const prisma = await getPrismaClient();
+  const { customerid, productid, collectionid } = productcollection;
 
-  //WHEN IDENTITY DONE MATCH THAT PERSON CALLING FUNCTION IS OWNER OR NOT
+  // Check if the collection is owned by the customer
+  const isCustomerCollection = await prisma.productcollection.findFirst({
+    where: {
+      customerid,
+      id: collectionid
+    }
+  });
+
+  if (!isCustomerCollection) {
+    throw new Error("This collection is not owned by this customer");
+  }
 
   try {
     // Check if the product exists in the collection
     const existingProductInCollection = await prisma.productcollectionproducts.findFirst({
       where: {
-        AND: [{ productcollectionid: collectionId }, { productid: productId }]
+        AND: [{ productcollectionid: collectionid }, { productid: productid }]
       }
     });
 
@@ -2050,15 +2061,15 @@ export async function removeProductFromCollection(collectionId: string, productI
     await prisma.productcollectionproducts.delete({
       where: {
         productcollectionid_productid: {
-          productcollectionid: collectionId,
-          productid: productId
+          productcollectionid: collectionid,
+          productid: productid
         }
       }
     });
 
     const updatedCollection = await prisma.productcollection.findFirst({
       where: {
-        id: collectionId
+        id: collectionid
       },
       include: {
         products: true // Include the updated products list
