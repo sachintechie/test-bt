@@ -900,9 +900,9 @@ enum ProductStatus {
 }
 
 enum ProductFindBy {
-  Product
-  Category
-  Tenant
+  PRODUCT
+  CATEGORY
+  TENANT
 }
 
 input GetProductsInput {

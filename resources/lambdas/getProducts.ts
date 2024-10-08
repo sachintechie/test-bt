@@ -12,14 +12,14 @@ export const handler = async (event: any) => {
     let searchValue: string | undefined = value;  // Default to the input value
 
 
-    if (searchBy === 'Product') {
-      searchByEnum = ProductFindBy.Product;
+    if (searchBy === 'PRODUCT') {
+      searchByEnum = ProductFindBy.PRODUCT;
       if (!value) throw new Error("Product ID is required when searchBy is 'Product'");
-    } else if (searchBy === 'Category') {
-      searchByEnum = ProductFindBy.Category;
+    } else if (searchBy === 'CATEGORY') {
+      searchByEnum = ProductFindBy.CATEGORY;
       if (!value) throw new Error("Category ID is required when searchBy is 'Category'");
-    } else if (searchBy === 'Tenant') {
-      searchByEnum = ProductFindBy.Tenant;
+    } else if (searchBy === 'TENANT') {
+      searchByEnum = ProductFindBy.TENANT;
       searchValue = event.identity?.resolverContext?.id;
       if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
     }
