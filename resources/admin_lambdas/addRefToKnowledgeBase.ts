@@ -11,8 +11,6 @@ export const handler = async (event: any, context: any) => {
       event.identity.resolverContext as tenant,
       event.arguments?.input?.refType,
       event.arguments?.input?.file,
-      event.arguments?.input?.websiteName,
-      event.arguments?.input?.websiteUrl
     );
 
     const response = {
@@ -33,17 +31,16 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addReference(tenant: tenant, refType: string, file: any,websiteName: string,websiteUrl: string) {  
+async function addReference(tenant: tenant, refType: string, file: any) {
   console.log("Creating admin user");
 
   try {
     console.log("createUser", tenant.id, refType);
     if(refType === RefType.DOCUMENT){
       const data = await addToS3Bucket(file.fileName, file.fileContent);
-    
       console.log("data", data);  
     }
-    const ref = await addReferenceToDb(tenant.id, file,refType, websiteName,websiteUrl);
+    const ref = await addReferenceToDb(tenant.id, file,refType);
     return {
       document: ref,
       error: null
@@ -75,15 +72,7 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
 
   // Upload the file to S3
    const s3Data = await s3.putObject(params).promise();
-   const s3Params = {
-    Bucket: bucketName,
-    Key: fileName
-  };
-    // Prepare the S3 upload parameters
-
-   const s3Details =await s3.getObject(s3Params).promise();
- 
-   console.log('File uploaded to S3', s3Details);
+   console.log('File uploaded to S3', s3Data);
 
   return {
     data : s3Data,

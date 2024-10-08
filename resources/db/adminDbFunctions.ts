@@ -10,8 +10,7 @@ import {
   productcategory,
   productfilter,
   updateproductattribute,
-  productstatus,
-  RefType
+  ProductStatus
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -489,6 +488,7 @@ export async function createProduct(product: product) {
       data: {
         name: product.name,
         categoryid: product.categoryid,
+        tenantid:product.tenantid,
         rarity: product.rarity,
         price: product.price,
         purchasedpercentage: product.purchasedpercentage,
@@ -593,7 +593,7 @@ export async function updateProductAttribute(updateproductattribute: updateprodu
     throw err;
   }
 }
-export async function updateProductStatus(productId: string, status:productstatus) {
+export async function updateProductStatus(productId: string, status:ProductStatus) {
   try {
     const prisma = await getPrismaClient();
 
@@ -626,15 +626,15 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string) {
+export async function addReferenceToDb(tenantId: string,file : any,refType: string) {
   try {
     const prisma = await getPrismaClient();
     const newRef = await prisma.knowledgebasereference.create({
       data: {
         tenantid: tenantId as string,
         reftype: refType,
-        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url:refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
+        name:file.fileName,
+        url:file.url,
         isactive: true,
         createdat: new Date().toISOString()
       }

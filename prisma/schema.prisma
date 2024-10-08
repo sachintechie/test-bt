@@ -261,7 +261,7 @@ model product {
   availablepercentage         Float?
   tenantid          String?
   tenant            tenant?              @relation(fields: [tenantid], references: [id])
-  status            productstatus?              @default(ACTIVE)
+  status            ProductStatus?              @default(ACTIVE)
   isdeleted         Boolean?
   createdat         DateTime?            @default(now())
   updatedat         DateTime?            @updatedAt
@@ -475,7 +475,7 @@ model productownership {
   fraction   Float?
 }
 
-enum productstatus {
+enum ProductStatus {
 ACTIVE
 INACTIVE
 }

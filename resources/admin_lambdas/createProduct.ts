@@ -26,7 +26,6 @@ export const handler = async (event: any, context: any) => {
 
     const input: CreateProductInput = event.arguments?.input;
     const tenant = event.identity?.resolverContext as tenant;
-
     if (
       !input ||
       !input.name ||
@@ -48,7 +47,8 @@ export const handler = async (event: any, context: any) => {
       categoryid: input.categoryId,
       rarity: input.rarity,
       price: input.price,
-      purchasedpercentage: input.purchasedPercentage
+      purchasedpercentage: input.purchasedPercentage,
+      tenantid:tenant.id
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -84,6 +84,7 @@ async function createProductInDb(input: {
   rarity: productRarity;
   price: number;
   purchasedpercentage: number;
+  tenantid:string
 }) {
   const newProduct = await createProduct(input);
 

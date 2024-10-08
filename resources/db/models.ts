@@ -70,6 +70,7 @@ export interface product {
   rarity: productRarity;
   price: number;
   purchasedpercentage: number;
+  tenantid:string;
 }
 
 export interface productcategory {
@@ -195,7 +196,7 @@ export enum AvalancheTransactionStatus {
   PENDING = 0
 }
 
-export enum productstatus {
+export enum ProductStatus {
   ACTIVE = "ACTIVE",
   INACTIVE = "INACTIVE"
 }
@@ -203,4 +204,10 @@ export enum productstatus {
 export enum RefType{
   DOCUMENT = "DOCUMENT",
   WEBSITE = "WEBSITE"
+}
+
+export enum ProductFindBy {
+  PRODUCT = 'PRODUCT',
+  CATEGORY = 'CATEGORY',
+  TENANT = 'TENANT'
 }
