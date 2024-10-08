@@ -1442,9 +1442,9 @@ export async function getProducts(value?: string, searchBy?: ProductFindBy, stat
 
     let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
 
-    if (status === ProductStatus.ACTIVE) {
+    if (status === "ACTIVE") {
       whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
-    } else if (ProductStatus.INACTIVE) {
+    } else if (status === "INACTIVE") {
       whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
     }
 
