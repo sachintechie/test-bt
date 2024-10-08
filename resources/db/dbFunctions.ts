@@ -1874,6 +1874,16 @@ export async function addReview(productReview: productreview) {
     }
 
     // check if user has bought this product
+    const order = await prisma.orders.findFirst({
+      where: {
+        buyerid: customerid,
+        productid
+      }
+    });
+
+    if (!order) {
+      throw new Error("Only buyer can give review to product");
+    }
 
     const newReview = await prisma.productreview.create({
       data: {
