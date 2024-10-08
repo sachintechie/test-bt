@@ -9,7 +9,6 @@ input CreateCollectionInput {
 }
 
 input AddReviewInput {
-  customerId: String
   productId: String
   orderId: String
   comment: String
@@ -877,10 +876,6 @@ type GetStripePaymentIntentClientSecretResponse {
   error: AWSJSON
 }
 
-input WishlistByCustomerIdInput {
-  customerId: String!
-}
-
 type WishlistData {
   customerid: String!
   productid: String!
@@ -993,7 +988,7 @@ type Query {
   GetProducts(input: GetProductsInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
-  GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
+  GetWishlistByCustomerId: GetWishlistByCusotmerIdResponse
   GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
   GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
   GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse

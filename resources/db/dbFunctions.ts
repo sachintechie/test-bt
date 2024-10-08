@@ -1873,6 +1873,8 @@ export async function addReview(productReview: productreview) {
       throw new Error("Already reviewed this product against this order");
     }
 
+    // check if user has bought this product
+
     const newReview = await prisma.productreview.create({
       data: {
         customerid,
