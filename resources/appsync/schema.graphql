@@ -1,11 +1,9 @@
 input AddProductToCollectionInput {
-  customerId: String
   productId: String
   collectionId: String
 }
 
 input CreateCollectionInput {
-  customerId: String
   title: String
   description: String
 }
@@ -167,10 +165,6 @@ type GetCategoriesResponse {
 
 input GetCategoryByIdInput {
   categoryId: String
-}
-
-input GetCollectionByCustomerIdInput {
-  customerId: String!
 }
 
 input GetCollectionByIdInput {
@@ -342,14 +336,6 @@ type GetProductAttributesResponse {
   status: Int
   data: [ProductAttributeData]
   error: AWSJSON
-}
-
-input GetProductByIdInput {
-  productId: String
-}
-
-input GetProductsByCategoryIdInput {
-  categoryId: String
 }
 
 type GetProductsResponse {
@@ -597,12 +583,6 @@ enum ProductRarity {
   EPIC
   LEGENDARY
   MYTHICAL
-}
-
-type ProductResponse {
-  status: Int
-  data: ProductData
-  error: AWSJSON
 }
 
 type ProductToCollectionResponse {
@@ -934,8 +914,20 @@ input ProductSearchInput {
   name: String!
 }
 enum ProductStatus {
-	ACTIVE
-	INACTIVE
+  ACTIVE
+  INACTIVE
+}
+
+enum ProductFindBy {
+  PRODUCT
+  CATEGORY
+  TENANT
+}
+
+input GetProductsInput {
+  value: String
+  searchBy: ProductFindBy
+  status: ProductStatus
 }
 
 input GetStripeProductsInput {
@@ -1004,9 +996,7 @@ type Query {
   GetCategories: GetCategoriesResponse
   GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
   GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-  GetProducts: GetProductsResponse
-  GetProductById(input: GetProductByIdInput): ProductResponse
-  GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
+  GetProducts(input: GetProductsInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
   GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
@@ -1018,9 +1008,8 @@ type Query {
   GetReviewsByCustomerId(input: GetReviewsByCustomerIdInput): ReviewResponse
   GetReviewsByProductId(input: GetReviewsByProductIdInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
-  GetCollectionByCustomerId(input: GetCollectionByCustomerIdInput): ProductToCollectionResponse
+  GetCollectionByCustomerId: ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
-  GetProductsByTenantId: GetProductsResponse
   SearchProductsByName(input: ProductSearchInput): GetProductsResponse
   GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
   GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
