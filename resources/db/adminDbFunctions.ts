@@ -10,7 +10,7 @@ import {
   productcategory,
   productfilter,
   updateproductattribute,
-  productstatus
+  ProductStatus
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -488,6 +488,7 @@ export async function createProduct(product: product) {
       data: {
         name: product.name,
         categoryid: product.categoryid,
+        tenantid:product.tenantid,
         rarity: product.rarity,
         price: product.price,
         purchasedpercentage: product.purchasedpercentage,
@@ -592,7 +593,7 @@ export async function updateProductAttribute(updateproductattribute: updateprodu
     throw err;
   }
 }
-export async function updateProductStatus(productId: string, status:productstatus) {
+export async function updateProductStatus(productId: string, status:ProductStatus) {
   try {
     const prisma = await getPrismaClient();
 

@@ -13,7 +13,7 @@ import {
   createcollection,
   addtocollection,
   productRarity,
-  productstatus,
+  ProductStatus,
   ProductFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
@@ -1436,23 +1436,23 @@ export async function getCategoriesByTenantId(tenant: tenant) {
   }
 }
 
-export async function getProducts(value: string, searchBy?: ProductFindBy, status?: string) {
+export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string) {
   try {
     const prisma = await getPrismaClient();
 
     let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
 
     if (status === "ACTIVE") {
-      whereClause = { ...whereClause, status: productstatus.ACTIVE };
+      whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
     } else if (status === "INACTIVE") {
-      whereClause = { ...whereClause, status: productstatus.INACTIVE };
+      whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
     }
 
-    if (searchBy === ProductFindBy.Product && value) {
+    if (searchBy === ProductFindBy.PRODUCT && value) {
       whereClause.id = value;
-    } else if (searchBy === ProductFindBy.Category && value) {
+    } else if (searchBy === ProductFindBy.CATEGORY && value) {
       whereClause.categoryid = value;
-    } else if (searchBy === ProductFindBy.Tenant && value) {
+    } else if (searchBy === ProductFindBy.TENANT && value) {
       whereClause.tenantid = value;
     }
 
