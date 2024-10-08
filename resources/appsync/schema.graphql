@@ -930,7 +930,6 @@ input GetProductsInput {
 
 input GetStripeProductsInput {
   limit: Int!
-  offset: Int!
 }
 
 input GetStripeCheckoutLinkInput {
