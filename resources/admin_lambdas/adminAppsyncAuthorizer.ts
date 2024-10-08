@@ -63,8 +63,27 @@ export const handler = async (event: any) => {
 
                   // If no admin user is found, return unauthorized
                   if (adminUser == null) {
+                    if (event?.requestContext?.queryString.toString().includes("AdminSignin")) {
+                      return {
+                        isAuthorized: true,
+                        resolverContext: {
+                          id: tenant.id,
+                          name: tenant.name,
+                          apikey: tenant.apikey,
+                          logo: tenant.logo,
+                          isactive: tenant.isactive,
+                          createdat: tenant.createdat,
+                          userpoolid: tenant.userpoolid,
+                          iscognitoactive: tenant.iscognitoactive,
+                          cognitoclientid: tenant.cognitoclientid,
+                          userType: "ADMIN"
+                        }
+                      };
+                    }
+                    else{
                     console.log("Admin user not found");
                     return { isAuthorized: false };
+                    }
                   } else {
                     // Return authorized response with tenant and user info
                     return {
