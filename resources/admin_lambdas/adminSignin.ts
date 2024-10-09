@@ -51,48 +51,47 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           let iss;
           let email;
           let name;
-          if (tenant != null && tenant.iscubistactive) {
-          const { client, org, orgId } = await getCsClient(tenant.id);
-          if (client == null || org == null) {
-            return {
-              customer: null,
-              error: "Error creating cubesigner client"
-            };
-          }
-          console.log("Created cubesigner client", client);
-          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
+          if (tenant != null && tenant.iscubistactive === true) {
+            const { client, org, orgId } = await getCsClient(tenant.id);
+            if (client == null || org == null) {
+              return {
+                customer: null,
+                error: "Error creating cubesigner client"
+              };
+            }
+            console.log("Created cubesigner client", client);
+            const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
 
-          console.log("Verifying identity", proof);
+            console.log("Verifying identity", proof);
 
-          await org.verifyIdentity(proof);
+            await org.verifyIdentity(proof);
 
-          console.log("Verified");
+            console.log("Verified");
 
-          //assert(proof.identity, "Identity should be set when proof is obtained using OIDC token");
-          const iss = proof.identity!.iss;
-          const sub = proof.identity!.sub;
-          const email = proof.email;
-          const name = proof.preferred_username;
-          if (customer != null && customer?.emailid != email) {
-            return {
-              customer: null,
-              error: "Email id does not match with the provided token"
-            };
-          }
-          // If user does not exist, create it
-          if (!proof.user_info?.user_id) {
-            console.log(`Creating OIDC user ${email}`);
-            cubistUserId = await org.createOidcUser({ iss, sub }, email, {
-              name
-              // memberRole: "Member"
-            });
+            //assert(proof.identity, "Identity should be set when proof is obtained using OIDC token");
+            const iss = proof.identity!.iss;
+            const sub = proof.identity!.sub;
+            const email = proof.email;
+            const name = proof.preferred_username;
+            if (customer != null && customer?.emailid != email) {
+              return {
+                customer: null,
+                error: "Email id does not match with the provided token"
+              };
+            }
+            // If user does not exist, create it
+            if (!proof.user_info?.user_id) {
+              console.log(`Creating OIDC user ${email}`);
+              cubistUserId = await org.createOidcUser({ iss, sub }, email, {
+                name
+                // memberRole: "Member"
+              });
+            } else {
+              cubistUserId = proof.user_info?.user_id;
+            }
           } else {
-            cubistUserId = proof.user_info?.user_id;
+            cubistUserId = "";
           }
-        }
-        else{
-          cubistUserId = "";
-        }
 
           if (customer != null) {
             customer = await updateAdminCubistData({

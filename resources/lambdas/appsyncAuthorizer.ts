@@ -55,6 +55,7 @@ export const handler = async (event: any) => {
                         createdat: tenant.createdat,
                         userpoolid: tenant.userpoolid,
                         cognitoclientid: tenant.cognitoclientid,
+                        iscubistactive: tenant.iscubistactive,
                         usertype: "CUSTOMER"
                       }
                     };
@@ -76,6 +77,7 @@ export const handler = async (event: any) => {
                       createdat: tenant.createdat,
                       userpoolid: tenant.userpoolid,
                       cognitoclientid: tenant.cognitoclientid,
+                      iscubistactive: tenant.iscubistactive,
                       usertype: "CUSTOMER",
                       customerid: customer.id
                     }
@@ -103,7 +105,9 @@ export const handler = async (event: any) => {
               isactive: tenant.isactive,
               createdat: tenant.createdat,
               userpoolid: tenant.userpoolid,
-              cognitoclientid: tenant.cognitoclientid
+              cognitoclientid: tenant.cognitoclientid,
+              iscubistactive: tenant.iscubistactive
+
             }
           };
         }
