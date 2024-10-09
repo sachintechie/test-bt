@@ -10,7 +10,8 @@ import {
   productcategory,
   productfilter,
   updateproductattribute,
-  ProductStatus
+  ProductStatus,
+  RefType
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -626,15 +627,15 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string) {
-  try {
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string) {
+    try {
     const prisma = await getPrismaClient();
     const newRef = await prisma.knowledgebasereference.create({
       data: {
         tenantid: tenantId as string,
         reftype: refType,
-        name:file.fileName,
-        url:file.url,
+        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        url:refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
         isactive: true,
         createdat: new Date().toISOString()
       }
