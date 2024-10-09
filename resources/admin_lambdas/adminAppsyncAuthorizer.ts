@@ -1,8 +1,6 @@
-import { decode } from "bs58";
 import { verifyToken } from "../cognito/commonFunctions";
 import { getAdminUserByTenant } from "../db/adminDbFunctions";
 import { executeQuery } from "../db/PgClient";
-import jwt_decode from "jsonwebtoken";
 
 // Constants for environment variables
 const ADMIN_GROUP = process.env["ADMIN_GROUP"];
@@ -76,6 +74,7 @@ export const handler = async (event: any) => {
                           userpoolid: tenant.userpoolid,
                           iscognitoactive: tenant.iscognitoactive,
                           cognitoclientid: tenant.cognitoclientid,
+                          iscubistactive: tenant.iscubistactive,
                           userType: "ADMIN"
                         }
                       };
@@ -98,6 +97,7 @@ export const handler = async (event: any) => {
                         userpoolid: tenant.userpoolid,
                         iscognitoactive: tenant.iscognitoactive,
                         cognitoclientid: tenant.cognitoclientid,
+                        iscubistactive: tenant.iscubistactive,
                         userType: "ADMIN",
                         adminUserId: adminUser.id
                       }
@@ -130,6 +130,7 @@ export const handler = async (event: any) => {
               userpoolid: tenant.userpoolid,
               iscognitoactive: tenant.iscognitoactive,
               cognitoclientid: tenant.cognitoclientid,
+              iscubistactive: tenant.iscubistactive,
               userType: "ADMIN"
             }
           };

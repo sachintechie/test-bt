@@ -1,19 +1,24 @@
 import { removeProductFromCollection } from "../db/dbFunctions";
-
+import { tenant } from "../db/models";
 export const handler = async (event: any, context: any) => {
   try {
     const { collectionId, productId } = event.arguments?.input;
-
-    if (!collectionId || !productId) {
+    const tenant = event.identity.resolverContext as tenant;
+    const customerId = tenant?.customerid;
+    if (!collectionId || !productId || !customerId) {
       return {
         status: 400,
         data: null,
-        error: "Collection ID and Product ID must be provided."
+        error: " Customer ID, Collection ID and Product ID must be provided."
       };
     }
-
+    const data = {
+      customerid: customerId,
+      productid: productId,
+      collectionid: collectionId
+    };
     // Remove product from collection
-    const removedItem = await removeProductFromCollection(collectionId, productId);
+    const removedItem = await removeProductFromCollection(data);
 
     return {
       status: 200,

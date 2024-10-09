@@ -218,6 +218,7 @@ model tenant {
   userpoolid       String?
   cognitoclientid  String?
   iscognitoactive  Boolean?
+  iscubistactive  Boolean?
   cubistconfig     cubistconfig[]
   customer         customer[]
   adminuser        adminuser[]

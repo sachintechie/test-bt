@@ -47,6 +47,11 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
         };
       } else {
         try {
+          let cubistUserId;
+          let iss;
+          let email;
+          let name;
+          if (tenant != null && tenant.iscubistactive) {
           const { client, org, orgId } = await getCsClient(tenant.id);
           if (client == null || org == null) {
             return {
@@ -74,7 +79,6 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               error: "Email id does not match with the provided token"
             };
           }
-          let cubistUserId;
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
@@ -85,6 +89,10 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           } else {
             cubistUserId = proof.user_info?.user_id;
           }
+        }
+        else{
+          cubistUserId = "";
+        }
 
           if (customer != null) {
             customer = await updateAdminCubistData({
@@ -94,7 +102,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             });
           } else {
             customer = await createAdminUser({
-              emailid: email ? email : "",
+              emailid: email ? email : tenantuserid,
               name: name ? name : "",
               tenantuserid,
               tenantid: tenant.id,
