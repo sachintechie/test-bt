@@ -342,14 +342,6 @@ type GetProductsResponse {
   error: AWSJSON
 }
 
-input GetReviewsByCustomerIdInput {
-  customerId: String!
-}
-
-input GetReviewsByProductIdInput {
-  productId: String!
-}
-
 input GetTransactionInput {
   chainType: String!
   transactionHash: String!
@@ -938,6 +930,16 @@ input GetStripePaymentIntentClientSecretInput {
   address: String!
 }
 
+enum ReviewsFindBy {
+  PRODUCT
+  CUSTOMER
+}
+
+input GetReviewsInput {
+  value: String
+  searchBy: ReviewsFindBy
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -996,8 +998,7 @@ type Query {
   GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
   GetOrdersByTenantId(input: GetOrdersByTenantIdInput): GetOrdersByTenantIdResponse
   GetOrdersByProductId(input: GetOrdersByProductIdInput): GetOrdersByProductIdResponse
-  GetReviewsByCustomerId(input: GetReviewsByCustomerIdInput): ReviewResponse
-  GetReviewsByProductId(input: GetReviewsByProductIdInput): ReviewResponse
+  GetReviews(input: GetReviewsInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
   GetCollectionByCustomerId: ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
