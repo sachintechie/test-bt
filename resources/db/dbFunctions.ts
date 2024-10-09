@@ -1424,6 +1424,18 @@ export async function getCategories(value?: string, searchBy?: CategoryFindBy) {
   }
 }
 
+export async function getCategoryById(categoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const category = await prisma.productcategory.findUnique({
+      where: { id: categoryId }
+    });
+    return category;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string) {
   try {
     const prisma = await getPrismaClient();
