@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { AvalancheTransactionStatus } from "../db/models";
 // Environment variables (set in AWS Lambda or using dotenv)
-const AVAX_RPC_URL = process.env.AVAX_RPC_URL; // Infura or any RPC provider URL
+const AVAX_RPC_SUBNET_URL = process.env.AVAX_RPC_SUBNET_URL; // Infura or any RPC provider URL
 const PRIVATE_KEY = process.env.AVAX_PRIVATE_KEY; // Private key of the wallet making the transaction
 const CONTRACT_ADDRESS = process.env.STORE_AVAX_CONTRACT_ADDRESS; // Deployed contract address
 const CONTRACT_ABI: any[] = [
@@ -86,7 +86,7 @@ const CONTRACT_ABI: any[] = [
 ];
 export async function storeHash(hash: string) {
   try {
-    const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
+    const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_SUBNET_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
 
     // Format the data hash to bytes32

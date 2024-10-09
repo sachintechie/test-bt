@@ -7,14 +7,16 @@ type AddRefToKnowledgeBase {
 type AddRefToKnowledgeBaseData {
 	id: String
 	createdat: String
-	refType: String
+	reftype: String
 	name: String
 	url: String
 }
 
 input AddRefToKnowledgeBaseInput {
 	refType: String!
-	file: RefFileInput!
+	file: RefFileInput
+	websiteName: String
+	websiteUrl: String
 }
 
 type AddSubAdmin {
