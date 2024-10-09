@@ -40,11 +40,14 @@ model knowledgebasereference{
   id                String             @id @default(uuid())
   tenantid          String?
   tenant            tenant?            @relation(fields: [tenantid], references: [id])
-  name              String?
+  name              String?            @unique
   reftype           String?
-  url               String?
+  url               String?            @unique
   isactive          Boolean
   createdat         String?
+    
+    @@unique([name, url])
+
 }
 
 model customer {
