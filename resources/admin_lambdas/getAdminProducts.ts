@@ -12,6 +12,8 @@ export const handler = async (event: any, context: any) => {
         error: "Tenant ID must be provided."
       };
     }
+
+    console.log("tenant id", tenant.id);
     const products = await getAdminProductsByTenantId(tenant.id);
 
     return {

@@ -538,6 +538,7 @@ type ProductData {
   rarity: ProductRarity
   price: Float
   status: ProductStatus
+  tenantid: String
   isdeleted: Boolean
   purchasedpercentage: Float
   availablepercentage: Float
@@ -952,7 +953,6 @@ type Mutation {
   RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
   StoreHash(input: StoreHashInput): StoreHash
   StoreHashOnSubnet(input: StoreHashInput): StoreHash
-
 }
 
 type Query {

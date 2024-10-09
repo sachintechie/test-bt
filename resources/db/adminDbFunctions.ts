@@ -470,6 +470,7 @@ export async function createCategory(category: productcategory) {
 
 export async function createProduct(product: product) {
   try {
+    console.log(product.tenantid);
     if (product.purchasedpercentage > 100) {
       throw new Error("purchasedpercentage cannot exceed 100.");
     }
