@@ -1,8 +1,9 @@
 import { getWishlistByCustomerId } from "../db/dbFunctions";
-
+import { tenant } from "../db/models";
 export const handler = async (event: any, context: any) => {
   try {
-    const { customerId } = event.arguments?.input;
+    const tenant = event.identity.resolverContext as tenant;
+    const customerId = tenant?.customerid;
 
     if (!customerId) {
       return {

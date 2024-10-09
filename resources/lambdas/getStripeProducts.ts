@@ -3,9 +3,9 @@ const stripe = new Stripe(process.env.STRIPE_SECRET!);
 
 export const handler = async (event: any) => {
   try {
-    const { limit,offset } = event.arguments?.input;
+    const { limit } = event.arguments?.input;
     // Fetch all products from Stripe
-    const products = await stripe.products.list({ limit,starting_after:offset }); // Adjust limit as needed
+    const products = await stripe.products.list({ limit }); // Adjust limit as needed
 
     // Array to hold structured product data
     const structuredProducts = [];

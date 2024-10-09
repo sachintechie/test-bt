@@ -9,7 +9,6 @@ input CreateCollectionInput {
 }
 
 input AddReviewInput {
-  customerId: String
   productId: String
   orderId: String
   comment: String
@@ -58,7 +57,6 @@ type CollectionData {
 
 input CreateOrderInput {
   sellerId: String!
-  buyerId: String!
   productId: String!
   price: Float!
   quantity: Int!
@@ -878,11 +876,6 @@ type GetStripePaymentIntentClientSecretResponse {
   error: AWSJSON
 }
 
-
-input WishlistByCustomerIdInput {
-  customerId: String!
-}
-
 type WishlistData {
   customerid: String!
   productid: String!
@@ -890,7 +883,6 @@ type WishlistData {
 }
 
 input WishlistInput {
-  customerId: String!
   productId: String!
 }
 
@@ -931,23 +923,20 @@ input GetProductsInput {
 }
 
 input GetStripeProductsInput {
-  limit: Int!,
-  offset: Int!
+  limit: Int!
 }
 
 input GetStripeCheckoutLinkInput {
-  successLink: String!,
-  failedLink: String!,
-  items: AWSJSON,
+  successLink: String!
+  failedLink: String!
+  items: AWSJSON
   walletAddress: String!
 }
 
 input GetStripePaymentIntentClientSecretInput {
-  cart: AWSJSON,
+  cart: AWSJSON
   address: String!
 }
-
-
 
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
@@ -999,7 +988,7 @@ type Query {
   GetProducts(input: GetProductsInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
-  GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
+  GetWishlistByCustomerId: GetWishlistByCusotmerIdResponse
   GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
   GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
   GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
