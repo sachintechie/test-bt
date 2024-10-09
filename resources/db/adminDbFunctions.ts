@@ -17,7 +17,6 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 
-
 export async function createAdminUser(customer: customer) {
   try {
     const prisma = await getPrismaClient();
@@ -489,7 +488,7 @@ export async function createProduct(product: product) {
       data: {
         name: product.name,
         categoryid: product.categoryid,
-        tenantid:product.tenantid,
+        tenantid: product.tenantid,
         rarity: product.rarity,
         price: product.price,
         purchasedpercentage: product.purchasedpercentage,
@@ -594,7 +593,7 @@ export async function updateProductAttribute(updateproductattribute: updateprodu
     throw err;
   }
 }
-export async function updateProductStatus(productId: string, status:ProductStatus) {
+export async function updateProductStatus(productId: string, status: ProductStatus) {
   try {
     const prisma = await getPrismaClient();
 
@@ -618,7 +617,7 @@ export async function deleteProduct(productId: string) {
 
     const deletedProduct = await prisma.product.update({
       where: { id: productId },
-      data: { isdeleted:true },
+      data: { isdeleted: true }
     });
 
     return deletedProduct;
@@ -627,15 +626,15 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string) {
-    try {
+export async function addReferenceToDb(tenantId: string, file: any, refType: string, websiteName?: string, websiteUrl?: string) {
+  try {
     const prisma = await getPrismaClient();
     const newRef = await prisma.knowledgebasereference.create({
       data: {
         tenantid: tenantId as string,
         reftype: refType,
-        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url:refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
+        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        url: refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
         isactive: true,
         createdat: new Date().toISOString()
       }
@@ -646,11 +645,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
   }
 }
 
-export async function getReferenceList(
-  tenant: tenant,
-  limit: number,
-  pageNo: number
-) {
+export async function getReferenceList(tenant: tenant, limit: number, pageNo: number) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.knowledgebasereference.count({
@@ -674,10 +669,23 @@ export async function getReferenceList(
       totalPages: Math.ceil(refCount / limit),
       refs: refs
     };
-   
+
     return data;
   } catch (err) {
     throw err;
   }
 }
 
+export async function getAdminProductsByTenantId(tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const products = await prisma.product.findMany({
+      where: {
+        tenantid: tenantId
+      }
+    });
+    return products;
+  } catch (err) {
+    throw err;
+  }
+}
