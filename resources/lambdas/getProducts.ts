@@ -14,10 +14,10 @@ export const handler = async (event: any) => {
 
     if (searchBy === 'PRODUCT') {
       searchByEnum = ProductFindBy.PRODUCT;
-      if (!value) throw new Error("Product ID is required when searchBy is 'Product'");
+      if (!value) throw new Error("Product ID is required when searchBy is 'PRODUCT'");
     } else if (searchBy === 'CATEGORY') {
       searchByEnum = ProductFindBy.CATEGORY;
-      if (!value) throw new Error("Category ID is required when searchBy is 'Category'");
+      if (!value) throw new Error("Category ID is required when searchBy is 'CATEGORY'");
     } else if (searchBy === 'TENANT') {
       searchByEnum = ProductFindBy.TENANT;
       searchValue = event.identity?.resolverContext?.id;
