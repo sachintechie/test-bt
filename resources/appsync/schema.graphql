@@ -9,7 +9,6 @@ input CreateCollectionInput {
 }
 
 input AddReviewInput {
-  customerId: String
   productId: String
   orderId: String
   comment: String
@@ -58,7 +57,6 @@ type CollectionData {
 
 input CreateOrderInput {
   sellerId: String!
-  buyerId: String!
   productId: String!
   price: Float!
   quantity: Int!
@@ -860,8 +858,22 @@ type Web3TransactionResponse {
   error: String
 }
 
-input WishlistByCustomerIdInput {
-  customerId: String!
+type GetStripeProductsResponse {
+  status: Int
+  data: AWSJSON
+  error: AWSJSON
+}
+
+type GetStripeCheckoutResponse {
+  status: Int
+  url: String
+  error: AWSJSON
+}
+
+type GetStripePaymentIntentClientSecretResponse {
+  status: Int
+  data: String
+  error: AWSJSON
 }
 
 type WishlistData {
@@ -871,7 +883,6 @@ type WishlistData {
 }
 
 input WishlistInput {
-  customerId: String!
   productId: String!
 }
 
@@ -909,6 +920,22 @@ input GetProductsInput {
   value: String
   searchBy: ProductFindBy
   status: ProductStatus
+}
+
+input GetStripeProductsInput {
+  limit: Int!
+}
+
+input GetStripeCheckoutLinkInput {
+  successLink: String!
+  failedLink: String!
+  items: AWSJSON
+  walletAddress: String!
+}
+
+input GetStripePaymentIntentClientSecretInput {
+  cart: AWSJSON
+  address: String!
 }
 
 type Mutation {
@@ -961,7 +988,7 @@ type Query {
   GetProducts(input: GetProductsInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
-  GetWishlistByCustomerId(input: WishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
+  GetWishlistByCustomerId: GetWishlistByCusotmerIdResponse
   GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
   GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
   GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
@@ -973,6 +1000,9 @@ type Query {
   GetCollectionByCustomerId: ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
   SearchProductsByName(input: ProductSearchInput): GetProductsResponse
+  GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
+  GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
+  GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
 }
 
 schema {
