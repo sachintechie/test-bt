@@ -14,7 +14,8 @@ import {
   addtocollection,
   productRarity,
   ProductStatus,
-  ProductFindBy
+  ProductFindBy,
+  ReviewsFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1906,41 +1907,28 @@ export async function addReview(productReview: productreview) {
   }
 }
 
-export async function getReviewsByCustomerId(customerId: string) {
-  const prisma = await getPrismaClient();
+export async function getReviews(value?: string, searchBy?: ReviewsFindBy) {
   try {
+    const prisma = await getPrismaClient();
+
+    let whereClause: { productid?: string; customerid?: string } = {};
+
+    if (searchBy === ReviewsFindBy.PRODUCT && value) {
+      whereClause.productid = value;
+    } else if (searchBy === ReviewsFindBy.CUSTOMER && value) {
+      whereClause.customerid = value;
+    } 
+
     const reviews = await prisma.productreview.findMany({
-      where: {
-        customerid: customerId
-      },
+      where: whereClause,
       include: {
         product: true,
         customer: true
       }
     });
-
     return reviews;
-  } catch (error) {
-    throw error;
-  }
-}
-
-export async function getReviewsByProductId(productId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const reviews = await prisma.productreview.findMany({
-      where: {
-        productid: productId
-      },
-      include: {
-        product: true,
-        customer: true
-      }
-    });
-
-    return reviews;
-  } catch (error) {
-    throw error;
+  } catch (err) {
+    throw err;
   }
 }
 
