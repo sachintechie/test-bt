@@ -630,6 +630,15 @@ export async function deleteProduct(productId: string) {
 export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string) {
     try {
     const prisma = await getPrismaClient();
+    const existingReference = await prisma.knowledgebasereference.findFirst({
+      where: {
+        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        url:refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
+      }
+    });
+    if (existingReference) {
+      throw new Error("Reference is already added with this name");
+    }
     const newRef = await prisma.knowledgebasereference.create({
       data: {
         tenantid: tenantId as string,
