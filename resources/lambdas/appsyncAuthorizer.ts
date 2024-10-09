@@ -20,7 +20,22 @@ export const handler = async (event: any) => {
 
         const tenant = res.rows[0];
         console.log(tenant);
-        if (tenant.iscognitoactive === true) {
+        if (tenant.name === "AI") {
+          return {
+            isAuthorized: true,
+            resolverContext: {
+              id: tenant.id,
+              name: tenant.name,
+              apikey: tenant.apikey,
+              logo: tenant.logo,
+              isactive: tenant.isactive,
+              createdat: tenant.createdat,
+              userpoolid: tenant.userpoolid,
+              cognitoclientid: tenant.cognitoclientid,
+              iscubistactive: tenant.iscubistactive
+            }
+          };
+        } else if (tenant.iscognitoactive === true) {
           let idToken = event?.requestHeaders?.identity;
           if (idToken != null) {
             const decodedToken: any = await verifyToken(tenant, idToken);
@@ -55,6 +70,7 @@ export const handler = async (event: any) => {
                         createdat: tenant.createdat,
                         userpoolid: tenant.userpoolid,
                         cognitoclientid: tenant.cognitoclientid,
+                        iscubistactive: tenant.iscubistactive,
                         usertype: "CUSTOMER"
                       }
                     };
@@ -76,6 +92,7 @@ export const handler = async (event: any) => {
                       createdat: tenant.createdat,
                       userpoolid: tenant.userpoolid,
                       cognitoclientid: tenant.cognitoclientid,
+                      iscubistactive: tenant.iscubistactive,
                       usertype: "CUSTOMER",
                       customerid: customer.id
                     }
@@ -92,7 +109,7 @@ export const handler = async (event: any) => {
               isAuthorized: false
             };
           }
-        } else if(tenant.name === "AI") {
+        } else {
           return {
             isAuthorized: true,
             resolverContext: {
@@ -107,23 +124,6 @@ export const handler = async (event: any) => {
             }
           };
         }
-        
-        else {
-          return {
-            isAuthorized: true,
-            resolverContext: {
-              id: tenant.id,
-              name: tenant.name,
-              apikey: tenant.apikey,
-              logo: tenant.logo,
-              isactive: tenant.isactive,
-              createdat: tenant.createdat,
-              userpoolid: tenant.userpoolid,
-              cognitoclientid: tenant.cognitoclientid
-            }
-          };
-        }
-
       } else {
         console.log("Api token not matched");
         return { isAuthorized: false };

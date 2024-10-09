@@ -1,8 +1,6 @@
-import { decode } from "bs58";
 import { verifyToken } from "../cognito/commonFunctions";
 import { getAdminUserByTenant } from "../db/adminDbFunctions";
 import { executeQuery } from "../db/PgClient";
-import jwt_decode from "jsonwebtoken";
 
 // Constants for environment variables
 const ADMIN_GROUP = process.env["ADMIN_GROUP"];
@@ -63,8 +61,28 @@ export const handler = async (event: any) => {
 
                   // If no admin user is found, return unauthorized
                   if (adminUser == null) {
+                    if (event?.requestContext?.queryString.toString().includes("AdminSignin")) {
+                      return {
+                        isAuthorized: true,
+                        resolverContext: {
+                          id: tenant.id,
+                          name: tenant.name,
+                          apikey: tenant.apikey,
+                          logo: tenant.logo,
+                          isactive: tenant.isactive,
+                          createdat: tenant.createdat,
+                          userpoolid: tenant.userpoolid,
+                          iscognitoactive: tenant.iscognitoactive,
+                          cognitoclientid: tenant.cognitoclientid,
+                          iscubistactive: tenant.iscubistactive,
+                          userType: "ADMIN"
+                        }
+                      };
+                    }
+                    else{
                     console.log("Admin user not found");
                     return { isAuthorized: false };
+                    }
                   } else {
                     // Return authorized response with tenant and user info
                     return {
@@ -79,6 +97,7 @@ export const handler = async (event: any) => {
                         userpoolid: tenant.userpoolid,
                         iscognitoactive: tenant.iscognitoactive,
                         cognitoclientid: tenant.cognitoclientid,
+                        iscubistactive: tenant.iscubistactive,
                         userType: "ADMIN",
                         adminUserId: adminUser.id
                       }
@@ -111,6 +130,7 @@ export const handler = async (event: any) => {
               userpoolid: tenant.userpoolid,
               iscognitoactive: tenant.iscognitoactive,
               cognitoclientid: tenant.cognitoclientid,
+              iscubistactive: tenant.iscubistactive,
               userType: "ADMIN"
             }
           };

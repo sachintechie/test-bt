@@ -955,6 +955,8 @@ type Mutation {
   AddProductToCollection(input: AddProductToCollectionInput): ProductToCollectionUniqueResponse
   RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
   StoreHash(input: StoreHashInput): StoreHash
+  StoreHashOnSubnet(input: StoreHashInput): StoreHash
+
 }
 
 type Query {
