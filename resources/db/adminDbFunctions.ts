@@ -627,7 +627,9 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string) {
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string,
+  depth?: number,data?: any
+) {
     try {
     const prisma = await getPrismaClient();
     const existingReference = await prisma.knowledgebasereference.findFirst({
@@ -644,7 +646,10 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         tenantid: tenantId as string,
         reftype: refType,
         name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url:refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
+        url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+        size: refType == RefType.DOCUMENT ? data.size : 0,       
+        ingested: false,
+        depth: depth,
         isactive: true,
         createdat: new Date().toISOString()
       }
