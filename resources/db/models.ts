@@ -35,7 +35,7 @@ export interface tenant {
   logo: string;
   isactive: boolean;
   iscognitoactive: boolean;
-  iscubistactive: boolean;
+  iscubistactive: any;
   createdat: string;
   userpoolid: string;
   cognitoclientid: string;
