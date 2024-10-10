@@ -36,15 +36,21 @@ model cubistconfig {
   sendtokensecretname String?
 }
 
-model KnowledgeBaseReference{
+model knowledgebasereference{
   id                String             @id @default(uuid())
   tenantid          String?
   tenant            tenant?            @relation(fields: [tenantid], references: [id])
-  name              String?
+  name              String?            
   reftype           String?
-  url               String?
+  url               String?    
+  size              String?
+  depth             Int?
+  ingested          Boolean?       
   isactive          Boolean
   createdat         String?
+    
+    @@unique([name, url])
+
 }
 
 model customer {

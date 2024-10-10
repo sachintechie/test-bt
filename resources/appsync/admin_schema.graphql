@@ -7,6 +7,9 @@ type AddRefToKnowledgeBase {
 type AddRefToKnowledgeBaseData {
 	id: String
 	createdat: String
+	depth: Int
+	size: String
+	ingested: Boolean
 	reftype: String
 	name: String
 	url: String
@@ -15,6 +18,7 @@ type AddRefToKnowledgeBaseData {
 input AddRefToKnowledgeBaseInput {
 	refType: String!
 	file: RefFileInput
+	depth: Int
 	websiteName: String
 	websiteUrl: String
 }
@@ -219,9 +223,18 @@ type ListAdminUsers {
 type ListRefData {
 	id: String
 	createdat: String
-	refType: String
+	depth: Int
+	size: String
+	ingested: Boolean
+	reftype: String
 	name: String
 	url: String
+}
+
+input ListRefInput {
+	limit: Int!
+	pageNo: Int!
+	refType: String
 }
 
 type ListReference {
@@ -427,7 +440,7 @@ type Query {
 	CreateAdminWallet(input: CreateWalletInput): GetWallet
 	ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
 	ListAdminUsers(input: PaginationInput): ListAdminUsers
-	ListReference(input: PaginationInput): ListReference
+	ListReference(input: ListRefInput): ListReference
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
 	GetCategories: GetCategoriesResponse
