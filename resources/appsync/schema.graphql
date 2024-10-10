@@ -151,10 +151,6 @@ type GetCategoriesResponse {
   error: AWSJSON
 }
 
-input GetCollectionByIdInput {
-  collectionId: String!
-}
-
 type GetCubistOrg {
   wallets: Int
   users: Int
@@ -936,6 +932,16 @@ enum CategoryFindBy {
   TENANT
 }
 
+enum CollectionFindBy {
+  COLLECTION
+  CUSTOMER
+}
+
+input GetCollectionByIdInput {
+  value: String
+  searchBy: CollectionFindBy
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -993,8 +999,7 @@ type Query {
   GetOrdersByTenantId(input: GetOrdersByTenantIdInput): GetOrdersByTenantIdResponse
   GetOrdersByProductId(input: GetOrdersByProductIdInput): GetOrdersByProductIdResponse
   GetReviews(input: GetReviewsInput): ReviewResponse
-  GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionUniqueResponse
-  GetCollectionByCustomerId: ProductToCollectionResponse
+  GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
   SearchProductsByName(input: ProductSearchInput): GetProductsResponse
   GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse

@@ -16,7 +16,8 @@ import {
   ProductStatus,
   ProductFindBy,
   ReviewsFindBy,
-  CategoryFindBy
+  CategoryFindBy,
+  CollectionFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -2085,59 +2086,30 @@ export async function removeProductFromCollection(productcollection: addtocollec
   }
 }
 
-export async function getCollectionById(collectionId: string) {
-  const prisma = await getPrismaClient();
-
+export async function getCollectionById(value: string, searchBy: CollectionFindBy) {
   try {
-    const collection = await prisma.productcollection.findUnique({
-      where: {
-        id: collectionId
-      },
-      include: {
-        products: true
-      }
-    });
+    const prisma = await getPrismaClient();
 
-    if (!collection) {
-      throw new Error("Collection not found.");
+    let whereClause: { id?: string; customerid?: string } = {};
+
+    if (searchBy === CollectionFindBy.COLLECTION && value) {
+      whereClause.id = value;
+    } else if (searchBy === CollectionFindBy.CUSTOMER && value) {
+      whereClause.customerid = value;
     }
-
-    return collection;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while retrieving the collection.");
-    } else {
-      throw new Error("An unexpected error occurred.");
-    }
-  }
-}
-
-export async function getCollectionByCustomerId(customerId: string) {
-  const prisma = await getPrismaClient();
-
-  try {
+    
     const collections = await prisma.productcollection.findMany({
-      where: {
-        customerid: customerId
-      },
+      where: whereClause,
       include: {
         products: true
       }
     });
-
-    if (collections.length === 0) {
-      throw new Error("No collections found for this customer.");
-    }
-
     return collections;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while retrieving collections.");
-    } else {
-      throw new Error("An unexpected error occurred.");
-    }
+  } catch (err) {
+    throw err;
   }
 }
+
 
 export async function transferProductOwnership(
   productId: string,
