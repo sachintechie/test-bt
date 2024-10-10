@@ -51,7 +51,8 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           let iss;
           let email;
           let name;
-          if (tenant != null && tenant.iscubistactive === true) {
+          if (tenant != null && tenant.iscubistactive == true) {
+
             const { client, org, orgId } = await getCsClient(tenant.id);
             if (client == null || org == null) {
               return {
