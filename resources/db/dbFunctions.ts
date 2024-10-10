@@ -1437,7 +1437,7 @@ export async function getCategoryById(categoryId: string) {
   }
 }
 
-export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string) {
+export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string, offset: number = 0, limit: number = 10) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1449,6 +1449,7 @@ export async function getProducts(value?: string, searchBy?: ProductFindBy, stat
       whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
     }
 
+    // Add filters based on searchBy
     if (searchBy === ProductFindBy.PRODUCT && value) {
       whereClause.id = value;
     } else if (searchBy === ProductFindBy.CATEGORY && value) {
@@ -1457,14 +1458,21 @@ export async function getProducts(value?: string, searchBy?: ProductFindBy, stat
       whereClause.tenantid = value;
     }
 
+    const totalCount = await prisma.product.count({
+      where: whereClause
+    });
+
     const products = await prisma.product.findMany({
       where: whereClause,
       include: {
         category: true,
         productattributes: true
-      }
+      },
+      skip: offset,
+      take: limit
     });
-    return products;
+
+    return { products, totalCount };
   } catch (err) {
     throw err;
   }
@@ -1623,7 +1631,7 @@ export async function removeFromWishlist(customerId: string, productId: string) 
   }
 }
 
-export async function getWishlistByCustomerId(customerId: string) {
+export async function getWishlistByCustomerId(customerId: string, offset: number = 0, limit: number = 10) {
   const prisma = await getPrismaClient();
   try {
     const wishlistItems = await prisma.productwishlist.findMany({
@@ -1632,10 +1640,18 @@ export async function getWishlistByCustomerId(customerId: string) {
       },
       include: {
         product: true
+      },
+      skip: offset,
+      take: limit
+    });
+
+    const totalCount = await prisma.productwishlist.count({
+      where: {
+        customerid: customerId
       }
     });
 
-    return wishlistItems;
+    return { wishlistItems, totalCount };
   } catch (error) {
     throw error;
   }
@@ -1907,7 +1923,7 @@ export async function addReview(productReview: productreview) {
   }
 }
 
-export async function getReviews(value?: string, searchBy?: ReviewsFindBy) {
+export async function getReviews(value?: string, searchBy?: ReviewsFindBy, offset: number = 0, limit: number = 10) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1917,16 +1933,23 @@ export async function getReviews(value?: string, searchBy?: ReviewsFindBy) {
       whereClause.productid = value;
     } else if (searchBy === ReviewsFindBy.CUSTOMER && value) {
       whereClause.customerid = value;
-    } 
+    }
 
     const reviews = await prisma.productreview.findMany({
       where: whereClause,
       include: {
         product: true,
         customer: true
-      }
+      },
+      skip: offset,
+      take: limit
     });
-    return reviews;
+
+    const totalCount = await prisma.productreview.count({
+      where: whereClause
+    });
+
+    return { reviews, totalCount };
   } catch (err) {
     throw err;
   }
@@ -2097,7 +2120,7 @@ export async function getCollectionById(value: string, searchBy: CollectionFindB
     } else if (searchBy === CollectionFindBy.CUSTOMER && value) {
       whereClause.customerid = value;
     }
-    
+
     const collections = await prisma.productcollection.findMany({
       where: whereClause,
       include: {
@@ -2109,7 +2132,6 @@ export async function getCollectionById(value: string, searchBy: CollectionFindB
     throw err;
   }
 }
-
 
 export async function transferProductOwnership(
   productId: string,

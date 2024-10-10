@@ -1,33 +1,40 @@
 import { getReviews } from "../db/dbFunctions";
 import { ReviewsFindBy } from "../db/models";
- 
+
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    
-    const { value, searchBy } = event.arguments?.input || {};
-    
+
+    const { value, searchBy, page = 1, perPage = 10 } = event.arguments?.input || {};
+
     let searchByEnum: ReviewsFindBy | undefined;
-    let searchValue: string | undefined = value;  // Default to the input value
+    let searchValue: string | undefined = value;
 
-
-    if (searchBy === 'PRODUCT') {
+    if (searchBy === "PRODUCT") {
       searchByEnum = ReviewsFindBy.PRODUCT;
       if (!value) throw new Error("Product ID is required when searchBy is 'PRODUCT'");
-    } else if (searchBy === 'CUSTOMER') {
+    } else if (searchBy === "CUSTOMER") {
       searchByEnum = ReviewsFindBy.CUSTOMER;
       if (!value) throw new Error("Customer ID is required when searchBy is 'CUSTOMER'");
-    } 
+    }
     if (!searchBy && !value) {
       searchByEnum = undefined;
       searchValue = undefined;
     }
 
-    const reviews = await getReviews(searchValue, searchByEnum);
+    const offset = (page - 1) * perPage;
+
+    const { reviews, totalCount } = await getReviews(searchValue, searchByEnum, offset, perPage);
+
+    const totalPages = Math.ceil(totalCount / perPage);
 
     return {
-      status: 200,
       data: reviews,
+      page,
+      perPage,
+      totalRecordsCount: totalCount,
+      totalPageCount: totalPages,
+      status: 200,
       error: null
     };
   } catch (err) {

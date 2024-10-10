@@ -263,6 +263,7 @@ model product {
   tenantid          String?
   tenant            tenant?              @relation(fields: [tenantid], references: [id])
   status            ProductStatus?              @default(ACTIVE)
+  tags              String[] 
   isdeleted         Boolean?
   createdat         DateTime?            @default(now())
   updatedat         DateTime?            @updatedAt
@@ -273,7 +274,6 @@ model product {
   productreviews    productreview[]
   collections       productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships productownership[]
-  inventories       inventory[] 
 
   @@unique([categoryid, name])
 }
@@ -301,7 +301,6 @@ model token {
   transactions      transaction[]
   admintransactions admintransaction[]
   staketransaction  staketransaction[]
-  inventory         inventory?           @relation(fields: [id], references: [tokenid])
 }
 
 model transaction {
@@ -483,19 +482,3 @@ ACTIVE
 INACTIVE
 }
 
-model inventory {
-  id                    String    @id @default(uuid())
-  productid             String
-  product               product   @relation(fields: [productid], references: [id])
-  inventoryid           String   
-  inventorycategory     String   
-  price                 Float   
-  tags                  String[] 
-  quantity              Int      
-  ownershipnft          Boolean  
-  smartcontractaddress  String?  
-  tokenid               String?
-  token                 token?     @relation(fields: [tokenid], references: [id])
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
-}
