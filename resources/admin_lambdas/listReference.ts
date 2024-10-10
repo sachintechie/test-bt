@@ -8,7 +8,9 @@ export const handler = async (event: any) => {
     const tokens = await getRefs(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.limit,
-      event.arguments?.input?.pageNo
+      event.arguments?.input?.pageNo,
+      event.arguments?.input?.refType,
+
     );
     return {
       status: 200,
@@ -25,9 +27,9 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getRefs(tenant: tenant, limit: number, pageNo: number) {
+async function getRefs(tenant: tenant, limit: number, pageNo: number,refType: string) {
   try {
-    const refs = await getReferenceList(tenant, limit, pageNo);
+    const refs = await getReferenceList(limit, pageNo,tenant.id, refType);
     console.log(refs, "refs");
     return refs;
   } catch (err) {
