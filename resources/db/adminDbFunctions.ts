@@ -685,6 +685,10 @@ export async function getReferenceList(
         tenantid: tenantId,
         reftype: refType
       },
+      
+      orderBy:{
+        createdat: 'desc'
+      },
       take: limit,
       skip: (pageNo - 1) * limit
     });
