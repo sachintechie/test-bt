@@ -52,8 +52,8 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           let email;
           let name;
           console.log("Creating tenant",tenant);
-          console.log("Creating tenant",(tenant.iscubistactive == true));
-          if ( tenant.iscubistactive == true) {
+          console.log("Creating tenant",(tenant.iscubistactive == 'true'));
+          if ( tenant.iscubistactive == 'true') {
 
             const { client, org, orgId } = await getCsClient(tenant.id);
             if (client == null || org == null) {
