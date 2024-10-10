@@ -17,7 +17,6 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 
-
 export async function createAdminUser(customer: customer) {
   try {
     const prisma = await getPrismaClient();
@@ -471,6 +470,7 @@ export async function createCategory(category: productcategory) {
 
 export async function createProduct(product: product) {
   try {
+    console.log(product.tenantid);
     if (product.purchasedpercentage > 100) {
       throw new Error("purchasedpercentage cannot exceed 100.");
     }
@@ -489,7 +489,7 @@ export async function createProduct(product: product) {
       data: {
         name: product.name,
         categoryid: product.categoryid,
-        tenantid:product.tenantid,
+        tenantid: product.tenantid,
         rarity: product.rarity,
         price: product.price,
         purchasedpercentage: product.purchasedpercentage,
@@ -594,7 +594,7 @@ export async function updateProductAttribute(updateproductattribute: updateprodu
     throw err;
   }
 }
-export async function updateProductStatus(productId: string, status:ProductStatus) {
+export async function updateProductStatus(productId: string, status: ProductStatus) {
   try {
     const prisma = await getPrismaClient();
 
@@ -618,7 +618,7 @@ export async function deleteProduct(productId: string) {
 
     const deletedProduct = await prisma.product.update({
       where: { id: productId },
-      data: { isdeleted:true },
+      data: { isdeleted: true }
     });
 
     return deletedProduct;
@@ -632,8 +632,8 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
     const prisma = await getPrismaClient();
     const existingReference = await prisma.knowledgebasereference.findFirst({
       where: {
-        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url:refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
+        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        url: refType == RefType.DOCUMENT ? file.fileName : websiteUrl
       }
     });
     if (existingReference) {
@@ -656,15 +656,17 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
 }
 
 export async function getReferenceList(
-  tenant: tenant,
   limit: number,
-  pageNo: number
+  pageNo: number,
+  tenantId: string,
+  refType: string
 ) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.knowledgebasereference.count({
       where: {
-        tenantid: tenant.id
+        tenantid: tenantId,
+        reftype: refType
       }
     });
     if (refCount == 0) {
@@ -672,7 +674,8 @@ export async function getReferenceList(
     }
     const refs = await prisma.knowledgebasereference.findMany({
       where: {
-        tenantid: tenant.id
+        tenantid: tenantId,
+        reftype: refType
       },
       take: limit,
       skip: (pageNo - 1) * limit
@@ -683,7 +686,7 @@ export async function getReferenceList(
       totalPages: Math.ceil(refCount / limit),
       refs: refs
     };
-   
+
     return data;
   } catch (err) {
     throw err;

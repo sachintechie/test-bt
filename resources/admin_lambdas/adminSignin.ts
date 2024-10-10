@@ -60,6 +60,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               };
             }
             console.log("Created cubesigner client", client);
+            console.log("Created cubesigner org", env,orgId);
             const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
 
             console.log("Verifying identity", proof);

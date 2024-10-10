@@ -2,10 +2,12 @@ import { tenant } from "../db/models";
 import { createCategory } from "../db/adminDbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
-    console.log(event, context);
+    console.log("event", event, "context", context);
 
     const { categoryName } = event.arguments?.input;
     const tenantContext = event.identity.resolverContext as tenant;
+
+    console.log("tenantContext", tenantContext);
 
     if (!categoryName) {
       return {
