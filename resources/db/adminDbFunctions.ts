@@ -627,15 +627,29 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string, file: any, refType: string, websiteName?: string, websiteUrl?: string) {
-  try {
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string,
+  depth?: number,data?: any
+) {
+    try {
     const prisma = await getPrismaClient();
+    const existingReference = await prisma.knowledgebasereference.findFirst({
+      where: {
+        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        url: refType == RefType.DOCUMENT ? file.fileName : websiteUrl
+      }
+    });
+    if (existingReference) {
+      throw new Error("Reference is already added with this name");
+    }
     const newRef = await prisma.knowledgebasereference.create({
       data: {
         tenantid: tenantId as string,
         reftype: refType,
-        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url: refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
+        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+        size: refType == RefType.DOCUMENT ? data.size : null,       
+        ingested: false,
+        depth: depth,
         isactive: true,
         createdat: new Date().toISOString()
       }
@@ -646,12 +660,21 @@ export async function addReferenceToDb(tenantId: string, file: any, refType: str
   }
 }
 
-export async function getReferenceList(tenant: tenant, limit: number, pageNo: number) {
+export async function getReferenceList(
+  limit: number,
+  pageNo: number,
+  tenantId: string,
+  refType: string
+) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.knowledgebasereference.count({
       where: {
-        tenantid: tenant.id
+        tenantid: tenantId,
+        reftype: refType
+      },
+      orderBy:{
+        createdat: 'desc'
       }
     });
     if (refCount == 0) {
@@ -659,7 +682,12 @@ export async function getReferenceList(tenant: tenant, limit: number, pageNo: nu
     }
     const refs = await prisma.knowledgebasereference.findMany({
       where: {
-        tenantid: tenant.id
+        tenantid: tenantId,
+        reftype: refType
+      },
+      
+      orderBy:{
+        createdat: 'desc'
       },
       take: limit,
       skip: (pageNo - 1) * limit
@@ -690,3 +718,4 @@ export async function getAdminProductsByTenantId(tenantId: string) {
     throw err;
   }
 }
+

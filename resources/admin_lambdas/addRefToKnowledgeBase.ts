@@ -12,7 +12,8 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.refType,
       event.arguments?.input?.file,
       event.arguments?.input?.websiteName,
-      event.arguments?.input?.websiteUrl
+      event.arguments?.input?.websiteUrl,
+      event.arguments?.input?.depth
     );
 
     const response = {
@@ -33,15 +34,17 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addReference(tenant: tenant, refType: string, file: any,websiteName: string,websiteUrl: string) {    console.log("Creating admin user");
+async function addReference(tenant: tenant, refType: string, file: any,websiteName: string,websiteUrl: string,depth: number) {   
+   console.log("Creating admin user");
 
   try {
     console.log("createUser", tenant.id, refType);
+    let data;
     if(refType === RefType.DOCUMENT){
-      const data = await addToS3Bucket(file.fileName, file.fileContent);
+       data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
     }
-    const ref = await addReferenceToDb(tenant.id, file,refType, websiteName,websiteUrl);
+    const ref = await addReferenceToDb(tenant.id, file,refType, websiteName,websiteUrl,depth,data?.data);
         return {
       document: ref,
       error: null
@@ -80,10 +83,17 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
     Key: fileName,
   };
    const s3Details =await s3.getObject(s3Params).promise();
-   console.log('File uploaded to s3Details', s3Details);
+   const size = await formatBytes(s3Details.ContentLength || 0);
 
+   console.log('File uploaded to s3Details', s3Details,size);
+  const data ={
+    fileName: fileName,
+    size: size,
+    url:s3Details.ETag
+    
+  }
   return {
-    data : s3Data,
+    data : data,
     error: null
   };
 }
@@ -95,4 +105,16 @@ catch (e) {
   };
 }
 
+}
+
+
+async function formatBytes(bytes: number, decimals = 2) {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return  parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }

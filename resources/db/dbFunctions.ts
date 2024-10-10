@@ -1449,7 +1449,6 @@ export async function getProducts(value?: string, searchBy?: ProductFindBy, stat
       whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
     }
 
-    // Add filters based on searchBy
     if (searchBy === ProductFindBy.PRODUCT && value) {
       whereClause.id = value;
     } else if (searchBy === ProductFindBy.CATEGORY && value) {
