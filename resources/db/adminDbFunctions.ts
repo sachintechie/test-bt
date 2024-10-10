@@ -667,6 +667,9 @@ export async function getReferenceList(
       where: {
         tenantid: tenantId,
         reftype: refType
+      },
+      orderBy:{
+        createdat: 'desc'
       }
     });
     if (refCount == 0) {
@@ -688,6 +691,20 @@ export async function getReferenceList(
     };
 
     return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getAdminProductsByTenantId(tenantId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const products = await prisma.product.findMany({
+      where: {
+        tenantid: tenantId
+      }
+    });
+    return products;
   } catch (err) {
     throw err;
   }

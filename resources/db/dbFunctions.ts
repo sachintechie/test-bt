@@ -1437,36 +1437,37 @@ export async function getCategoryById(categoryId: string) {
 }
 
 export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string) {
+
   try {
     const prisma = await getPrismaClient();
 
     let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
 
-    if (status === "ACTIVE") {
-      whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
-    } else if (status === "INACTIVE") {
-      whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
-    }
-
-    if (searchBy === ProductFindBy.PRODUCT && value) {
-      whereClause.id = value;
-    } else if (searchBy === ProductFindBy.CATEGORY && value) {
-      whereClause.categoryid = value;
-    } else if (searchBy === ProductFindBy.TENANT && value) {
-      whereClause.tenantid = value;
-    }
-
-    const products = await prisma.product.findMany({
-      where: whereClause,
-      include: {
-        category: true,
-        productattributes: true
-      }
-    });
-    return products;
-  } catch (err) {
-    throw err;
+  if (status === "ACTIVE") {
+    whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
+  } else if (status === "INACTIVE") {
+    whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
   }
+
+  if (searchBy === ProductFindBy.PRODUCT && value) {
+    whereClause.id = value;
+  } else if (searchBy === ProductFindBy.CATEGORY && value) {
+    whereClause.categoryid = value;
+  } else if (searchBy === ProductFindBy.TENANT && value) {
+    whereClause.tenantid = value;
+  }
+
+  const products = await prisma.product.findMany({
+    where: whereClause,
+    include: {
+      category: true,
+      productattributes: true
+    }
+  });
+  return products;
+} catch (err) {
+  throw err;
+}
 }
 
 export async function GetProductAttributesByProductId(productId: string) {
