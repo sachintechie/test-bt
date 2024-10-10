@@ -647,7 +647,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         reftype: refType,
         name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : 0,       
+        size: refType == RefType.DOCUMENT ? data.size : null,       
         ingested: false,
         depth: depth,
         isactive: true,
