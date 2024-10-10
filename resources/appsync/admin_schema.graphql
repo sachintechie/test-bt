@@ -296,6 +296,7 @@ type ProductData {
 	rarity: ProductRarity
 	price: Float
 	status: ProductStatus
+        tenantid: String
 	isdeleted: Boolean
 	purchasedpercentage: Float
 	availablepercentage: Float
@@ -449,6 +450,7 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+        GetAdminProducts: GetProductsResponse
 }
 
 schema {

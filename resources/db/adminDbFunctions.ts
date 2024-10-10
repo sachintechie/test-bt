@@ -470,6 +470,7 @@ export async function createCategory(category: productcategory) {
 
 export async function createProduct(product: product) {
   try {
+    console.log(product.tenantid);
     if (product.purchasedpercentage > 100) {
       throw new Error("purchasedpercentage cannot exceed 100.");
     }
@@ -626,16 +627,8 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(
-  tenantId: string,
-  file: any,
-  refType: string,
-  websiteName?: string,
-  websiteUrl?: string,
-  depth?: number,
-  data?: any
-) {
-  try {
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string) {
+    try {
     const prisma = await getPrismaClient();
     const existingReference = await prisma.knowledgebasereference.findFirst({
       where: {
@@ -650,12 +643,8 @@ export async function addReferenceToDb(
       data: {
         tenantid: tenantId as string,
         reftype: refType,
-        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : 0,
-
-        ingested: false,
-        depth: depth,
+        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        url:refType == RefType.DOCUMENT ? file.fileName : websiteUrl,
         isactive: true,
         createdat: new Date().toISOString()
       }
@@ -666,7 +655,12 @@ export async function addReferenceToDb(
   }
 }
 
-export async function getReferenceList( limit: number, pageNo: number, tenantId: string, refType: string) {
+export async function getReferenceList(
+  limit: number,
+  pageNo: number,
+  tenantId: string,
+  refType: string
+) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.knowledgebasereference.count({
@@ -698,3 +692,4 @@ export async function getReferenceList( limit: number, pageNo: number, tenantId:
     throw err;
   }
 }
+

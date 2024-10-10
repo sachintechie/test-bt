@@ -39,12 +39,6 @@ type CategoryData {
   updatedat: AWSDateTime
 }
 
-type CategoryResponse {
-  status: Int
-  data: CategoryData
-  error: AWSJSON
-}
-
 type CollectionData {
   id: String
   title: String
@@ -151,18 +145,10 @@ type FilterProductResponse {
   error: AWSJSON
 }
 
-input GetCategoriesByTenantIdInput {
-  tenantId: String
-}
-
 type GetCategoriesResponse {
   status: Int
   data: [CategoryData]
   error: AWSJSON
-}
-
-input GetCategoryByIdInput {
-  categoryId: String
 }
 
 input GetCollectionByIdInput {
@@ -552,6 +538,7 @@ type ProductData {
   rarity: ProductRarity
   price: Float
   status: ProductStatus
+  tenantid: String
   isdeleted: Boolean
   purchasedpercentage: Float
   availablepercentage: Float
@@ -940,6 +927,16 @@ input GetReviewsInput {
   searchBy: ReviewsFindBy
 }
 
+input GetCategoriesInput {
+  value: String
+  searchBy: CategoryFindBy
+}
+
+enum CategoryFindBy {
+  CATEGORY
+  TENANT
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -956,7 +953,6 @@ type Mutation {
   RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
   StoreHash(input: StoreHashInput): StoreHash
   StoreHashOnSubnet(input: StoreHashInput): StoreHash
-
 }
 
 type Query {
@@ -986,9 +982,7 @@ type Query {
   TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
   UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
   GetMetadata(input: GetMetadataInput): GetMetadataResponse
-  GetCategories: GetCategoriesResponse
-  GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
-  GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
+  GetCategories(input: GetCategoriesInput): GetCategoriesResponse
   GetProducts(input: GetProductsInput): GetProductsResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse

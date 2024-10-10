@@ -219,3 +219,8 @@ export enum ReviewsFindBy {
   PRODUCT = 'PRODUCT',
   CUSTOMER = 'CUSTOMER'
 }
+
+export enum CategoryFindBy {
+  CATEGORY = 'CATEGORY',
+  TENANT = 'TENANT'
+}

@@ -15,7 +15,8 @@ import {
   productRarity,
   ProductStatus,
   ProductFindBy,
-  ReviewsFindBy
+  ReviewsFindBy,
+  CategoryFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1399,10 +1400,20 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
 }
 
-export async function getCategories() {
+export async function getCategories(value?: string, searchBy?: CategoryFindBy) {
   try {
     const prisma = await getPrismaClient();
+
+    let whereClause: { id?: string; tenantid?: string } = {};
+
+    if (searchBy === CategoryFindBy.CATEGORY && value) {
+      whereClause.id = value;
+    } else if (searchBy === CategoryFindBy.TENANT && value) {
+      whereClause.tenantid = value;
+    }
+
     const categories = await prisma.productcategory.findMany({
+      where: whereClause,
       include: {
         tenant: true
       }
@@ -1418,18 +1429,6 @@ export async function getCategoryById(categoryId: string) {
     const prisma = await getPrismaClient();
     const category = await prisma.productcategory.findUnique({
       where: { id: categoryId }
-    });
-    return category;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getCategoriesByTenantId(tenant: tenant) {
-  try {
-    const prisma = await getPrismaClient();
-    const category = await prisma.productcategory.findMany({
-      where: { tenantid: tenant.id }
     });
     return category;
   } catch (err) {
