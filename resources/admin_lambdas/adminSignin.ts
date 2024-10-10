@@ -118,7 +118,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
             cubistuserid: cubistUserId,
             tenantuserid: tenantuserid,
             tenantid: tenant.id,
-            emailid: email,
+            emailid: email == null ? tenantuserid : email,
             id: customer.id,
             createdat: new Date().toISOString()
           };
