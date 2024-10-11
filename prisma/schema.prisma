@@ -269,7 +269,6 @@ model product {
   tenantid          String?
   tenant            tenant?              @relation(fields: [tenantid], references: [id])
   status            ProductStatus?              @default(ACTIVE)
-  tags              String[] 
   isdeleted         Boolean?
   createdat         DateTime?            @default(now())
   updatedat         DateTime?            @updatedAt
