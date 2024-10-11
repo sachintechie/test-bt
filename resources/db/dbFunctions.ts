@@ -2021,7 +2021,7 @@ export async function removeProductFromCollection(productcollection: addtocollec
   }
 }
 
-export async function getCollectionById(value: string, searchBy: CollectionFindBy) {
+export async function getCollectionById(offset: number, itemsPerPage: number, value: string, searchBy: CollectionFindBy) {
   try {
     const prisma = await getPrismaClient();
 
@@ -2037,9 +2037,16 @@ export async function getCollectionById(value: string, searchBy: CollectionFindB
       where: whereClause,
       include: {
         products: true
-      }
+      },
+      skip: offset,
+      take: itemsPerPage
     });
-    return collections;
+
+    const totalCount = await prisma.productcollection.count({
+      where: whereClause
+    });
+
+    return { collections, totalCount };
   } catch (err) {
     throw err;
   }

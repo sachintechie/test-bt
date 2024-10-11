@@ -473,6 +473,10 @@ type ProductToCollectionResponse {
   status: Int
   data: [CollectionData]
   error: AWSJSON
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
 }
 
 type ProductToCollectionUniqueResponse {
@@ -868,6 +872,8 @@ enum OrderFindBy {
 input GetCollectionByIdInput {
   value: String
   searchBy: CollectionFindBy
+  page: Int
+  perPage: Int
 }
 
 input GetWishlistByCustomerIdInput {
