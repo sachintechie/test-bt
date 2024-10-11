@@ -17,7 +17,8 @@ import {
   ProductFindBy,
   ReviewsFindBy,
   CategoryFindBy,
-  CollectionFindBy
+  CollectionFindBy,
+  OrderFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1436,39 +1437,44 @@ export async function getCategoryById(categoryId: string) {
     throw err;
   }
 }
-
-export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string) {
-
+export async function getProducts(offset: number, limit: number, value?: string, searchBy?: ProductFindBy, status?: string) {
   try {
     const prisma = await getPrismaClient();
 
     let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
 
-  if (status === "ACTIVE") {
-    whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
-  } else if (status === "INACTIVE") {
-    whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
-  }
-
-  if (searchBy === ProductFindBy.PRODUCT && value) {
-    whereClause.id = value;
-  } else if (searchBy === ProductFindBy.CATEGORY && value) {
-    whereClause.categoryid = value;
-  } else if (searchBy === ProductFindBy.TENANT && value) {
-    whereClause.tenantid = value;
-  }
-
-  const products = await prisma.product.findMany({
-    where: whereClause,
-    include: {
-      category: true,
-      productattributes: true
+    if (status === "ACTIVE") {
+      whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
+    } else if (status === "INACTIVE") {
+      whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
     }
-  });
-  return products;
-} catch (err) {
-  throw err;
-}
+
+    if (searchBy === ProductFindBy.PRODUCT && value) {
+      whereClause.id = value;
+    } else if (searchBy === ProductFindBy.CATEGORY && value) {
+      whereClause.categoryid = value;
+    } else if (searchBy === ProductFindBy.TENANT && value) {
+      whereClause.tenantid = value;
+    }
+
+    const totalCount = await prisma.product.count({
+      where: whereClause
+    });
+
+    const products = await prisma.product.findMany({
+      where: whereClause,
+      include: {
+        category: true,
+        productattributes: true
+      },
+      skip: offset,
+      take: limit
+    });
+
+    return { products, totalCount };
+  } catch (err) {
+    throw err;
+  }
 }
 
 export async function GetProductAttributesByProductId(productId: string) {
@@ -1624,7 +1630,7 @@ export async function removeFromWishlist(customerId: string, productId: string) 
   }
 }
 
-export async function getWishlistByCustomerId(customerId: string) {
+export async function getWishlistByCustomerId(customerId: string, offset: number = 0, limit: number = 10) {
   const prisma = await getPrismaClient();
   try {
     const wishlistItems = await prisma.productwishlist.findMany({
@@ -1633,10 +1639,18 @@ export async function getWishlistByCustomerId(customerId: string) {
       },
       include: {
         product: true
+      },
+      skip: offset,
+      take: limit
+    });
+
+    const totalCount = await prisma.productwishlist.count({
+      where: {
+        customerid: customerId
       }
     });
 
-    return wishlistItems;
+    return { wishlistItems, totalCount };
   } catch (error) {
     throw error;
   }
@@ -1664,101 +1678,39 @@ export async function createOrder(order: orders) {
   }
 }
 
-export async function getOrdersBySeller(sellerId: string) {
+export async function getOrders(value?: string, searchBy?: OrderFindBy, status?: string) {
   const prisma = await getPrismaClient();
   try {
+    let whereClause: { status?: string; id?: string; sellerid?: string; buyerid?: string; productid?: string; tenantid?: string } = {};
+
+    if (status === "CREATED") {
+      whereClause = { ...whereClause, status: orderstatus.CREATED };
+    } else if (status === "CONFIRMED") {
+      whereClause = { ...whereClause, status: orderstatus.CONFIRMED };
+    } else if (status === "SHIPPED") {
+      whereClause = { ...whereClause, status: orderstatus.SHIPPED };
+    } else if (status === "DELIVERED") {
+      whereClause = { ...whereClause, status: orderstatus.DELIVERED };
+    } else if (status === "CANCELLED") {
+      whereClause = { ...whereClause, status: orderstatus.CANCELLED };
+    } else if (status === "DISPUTED") {
+      whereClause = { ...whereClause, status: orderstatus.DISPUTED };
+    }
+
+    if (searchBy === OrderFindBy.ORDER && value) {
+      whereClause.id = value;
+    } else if (searchBy === OrderFindBy.PRODUCT && value) {
+      whereClause.productid = value;
+    } else if (searchBy === OrderFindBy.BUYER && value) {
+      whereClause.buyerid = value;
+    } else if (searchBy === OrderFindBy.SELLER && value) {
+      whereClause.sellerid = value;
+    }
+
     const orders = await prisma.orders.findMany({
       where: {
-        sellerid: sellerId
-      },
-      include: {
-        buyer: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return orders;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getOrdersByBuyer(buyerId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const orders = await prisma.orders.findMany({
-      where: {
-        buyerid: buyerId
-      },
-      include: {
-        seller: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return orders;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getOrderById(orderId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const order = await prisma.orders.findUnique({
-      where: {
-        id: orderId
-      },
-      include: {
-        buyer: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        seller: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return order;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getOrdersByTenant(tenantId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const orders = await prisma.orders.findMany({
-      where: {
-        product: {
-          tenantid: tenantId
-        }
+        ...whereClause,
+        ...(searchBy === OrderFindBy.TENANT && value ? { product: { tenantid: value } } : {})
       },
       include: {
         buyer: {
@@ -1824,41 +1776,6 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
   }
 }
 
-export async function getOrdersByProductId(productId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const orders = await prisma.orders.findMany({
-      where: {
-        productid: productId
-      },
-      include: {
-        buyer: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        seller: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return orders;
-  } catch (err) {
-    throw err;
-  }
-}
-
 export async function addReview(productReview: productreview) {
   const prisma = await getPrismaClient();
   try {
@@ -1908,7 +1825,7 @@ export async function addReview(productReview: productreview) {
   }
 }
 
-export async function getReviews(value?: string, searchBy?: ReviewsFindBy) {
+export async function getReviews(value?: string, searchBy?: ReviewsFindBy, offset: number = 0, limit: number = 10) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1918,16 +1835,23 @@ export async function getReviews(value?: string, searchBy?: ReviewsFindBy) {
       whereClause.productid = value;
     } else if (searchBy === ReviewsFindBy.CUSTOMER && value) {
       whereClause.customerid = value;
-    } 
+    }
 
     const reviews = await prisma.productreview.findMany({
       where: whereClause,
       include: {
         product: true,
         customer: true
-      }
+      },
+      skip: offset,
+      take: limit
     });
-    return reviews;
+
+    const totalCount = await prisma.productreview.count({
+      where: whereClause
+    });
+
+    return { reviews, totalCount };
   } catch (err) {
     throw err;
   }
@@ -2098,7 +2022,7 @@ export async function getCollectionById(value: string, searchBy: CollectionFindB
     } else if (searchBy === CollectionFindBy.CUSTOMER && value) {
       whereClause.customerid = value;
     }
-    
+
     const collections = await prisma.productcollection.findMany({
       where: whereClause,
       include: {
@@ -2110,7 +2034,6 @@ export async function getCollectionById(value: string, searchBy: CollectionFindB
     throw err;
   }
 }
-
 
 export async function transferProductOwnership(
   productId: string,
