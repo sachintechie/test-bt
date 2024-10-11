@@ -1402,7 +1402,7 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
 }
 
-export async function getCategories(value?: string, searchBy?: CategoryFindBy) {
+export async function getCategories(offset: number, itemsPerPage: number, value?: string, searchBy?: CategoryFindBy) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1418,9 +1418,16 @@ export async function getCategories(value?: string, searchBy?: CategoryFindBy) {
       where: whereClause,
       include: {
         tenant: true
-      }
+      },
+      skip: offset,
+      take: itemsPerPage
     });
-    return categories;
+
+    const totalCount = await prisma.productcategory.count({
+      where: whereClause
+    });
+
+    return { categories, totalCount };
   } catch (err) {
     throw err;
   }

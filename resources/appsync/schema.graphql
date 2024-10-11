@@ -148,6 +148,10 @@ type FilterProductResponse {
 type GetCategoriesResponse {
   status: Int
   data: [CategoryData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
   error: AWSJSON
 }
 
@@ -849,6 +853,8 @@ input GetReviewsInput {
 input GetCategoriesInput {
   value: String
   searchBy: CategoryFindBy
+  page: Int
+  perPage: Int
 }
 
 enum CategoryFindBy {
