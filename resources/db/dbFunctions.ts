@@ -1437,8 +1437,7 @@ export async function getCategoryById(categoryId: string) {
     throw err;
   }
 }
-
-export async function getProducts(value?: string, searchBy?: ProductFindBy, status?: string, offset: number = 0, limit: number = 10) {
+export async function getProducts(offset: number, limit: number, value?: string, searchBy?: ProductFindBy, status?: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1679,7 +1678,7 @@ export async function createOrder(order: orders) {
   }
 }
 
-export async function getOrders(value?: string, searchBy?: OrderFindBy, status?: string){
+export async function getOrders(value?: string, searchBy?: OrderFindBy, status?: string) {
   const prisma = await getPrismaClient();
   try {
     let whereClause: { status?: string; id?: string; sellerid?: string; buyerid?: string; productid?: string; tenantid?: string } = {};
@@ -1688,13 +1687,13 @@ export async function getOrders(value?: string, searchBy?: OrderFindBy, status?:
       whereClause = { ...whereClause, status: orderstatus.CREATED };
     } else if (status === "CONFIRMED") {
       whereClause = { ...whereClause, status: orderstatus.CONFIRMED };
-    }else if (status === "SHIPPED") {
+    } else if (status === "SHIPPED") {
       whereClause = { ...whereClause, status: orderstatus.SHIPPED };
-    }else if (status === "DELIVERED") {
+    } else if (status === "DELIVERED") {
       whereClause = { ...whereClause, status: orderstatus.DELIVERED };
-    }else if (status === "CANCELLED") {
+    } else if (status === "CANCELLED") {
       whereClause = { ...whereClause, status: orderstatus.CANCELLED };
-    }else if (status === "DISPUTED") {
+    } else if (status === "DISPUTED") {
       whereClause = { ...whereClause, status: orderstatus.DISPUTED };
     }
 
@@ -1702,18 +1701,16 @@ export async function getOrders(value?: string, searchBy?: OrderFindBy, status?:
       whereClause.id = value;
     } else if (searchBy === OrderFindBy.PRODUCT && value) {
       whereClause.productid = value;
-    }else if (searchBy === OrderFindBy.BUYER && value) {
+    } else if (searchBy === OrderFindBy.BUYER && value) {
       whereClause.buyerid = value;
-    }else if (searchBy === OrderFindBy.SELLER && value) {
+    } else if (searchBy === OrderFindBy.SELLER && value) {
       whereClause.sellerid = value;
     }
 
     const orders = await prisma.orders.findMany({
       where: {
         ...whereClause,
-        ...(searchBy === OrderFindBy.TENANT && value
-          ? { product: { tenantid: value } }
-          : {}),
+        ...(searchBy === OrderFindBy.TENANT && value ? { product: { tenantid: value } } : {})
       },
       include: {
         buyer: {
@@ -1731,8 +1728,9 @@ export async function getOrders(value?: string, searchBy?: OrderFindBy, status?:
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true,
-          }},
+            usertype: true
+          }
+        },
         product: true
       }
     });

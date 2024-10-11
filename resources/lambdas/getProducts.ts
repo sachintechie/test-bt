@@ -3,12 +3,14 @@ import { ProductFindBy } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
-    console.log(event);
+    console.log("Event input:", event.arguments?.input);
 
-    const { status, value, searchBy, page = 1, perPage = 10 } = event.arguments?.input || {};
+    const { status, value, searchBy, page, perPage } = event.arguments?.input || {};
     const productStatus = status || "ALL";
 
-    // Default searchByEnum and searchValue
+    const currentPage = page && page > 0 ? page : 1;
+    const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
+
     let searchByEnum: ProductFindBy | undefined;
     let searchValue: string | undefined = value;
 
@@ -25,15 +27,16 @@ export const handler = async (event: any) => {
       if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
     }
 
-    const offset = (page - 1) * perPage;
+    const offset = (currentPage - 1) * itemsPerPage;
 
-    const { products, totalCount } = await getProducts(searchValue, searchByEnum, productStatus, offset, perPage);
+    const { products, totalCount } = await getProducts(offset, itemsPerPage, searchValue, searchByEnum, productStatus);
 
-    const totalPages = Math.ceil(totalCount / perPage);
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
+
     return {
       data: products,
-      page,
-      perPage,
+      page: currentPage,
+      perPage: itemsPerPage,
       totalRecordsCount: totalCount,
       totalPageCount: totalPages,
       status: 200,
