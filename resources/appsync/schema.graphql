@@ -205,109 +205,6 @@ type GetMetadataResponse {
   metadata: AWSJSON
 }
 
-type GetOrderByIdData {
-  seller: CustomerData
-  buyer: CustomerData
-  product: ProductData
-  price: Float
-  quantity: Int
-  status: OrderStatus
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
-input GetOrderByIdInput {
-  orderId: String!
-}
-
-type GetOrderByIdResponse {
-  status: Int
-  data: GetOrderByIdData
-  error: AWSJSON
-}
-
-type GetOrdersByBuyerIdData {
-  seller: CustomerData
-  product: ProductData
-  price: Float
-  quantity: Int
-  status: OrderStatus
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
-input GetOrdersByBuyerIdInput {
-  buyerId: String!
-}
-
-type GetOrdersByBuyerIdResponse {
-  status: Int
-  data: [GetOrdersByBuyerIdData]
-  error: AWSJSON
-}
-
-type GetOrdersByProductIdData {
-  buyer: CustomerData
-  seller: CustomerData
-  product: ProductData
-  price: Float
-  quantity: Int
-  status: OrderStatus
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
-input GetOrdersByProductIdInput {
-  productId: String!
-}
-
-type GetOrdersByProductIdResponse {
-  status: Int
-  data: [GetOrdersByProductIdData]
-  error: AWSJSON
-}
-
-type GetOrdersBySellerIdData {
-  buyer: CustomerData
-  product: ProductData
-  price: Float
-  quantity: Int
-  status: OrderStatus
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
-input GetOrdersBySellerIdInput {
-  sellerId: String!
-}
-
-type GetOrdersBySellerIdResponse {
-  status: Int
-  data: [GetOrdersBySellerIdData]
-  error: AWSJSON
-}
-
-type GetOrdersByTenantIdData {
-  seller: CustomerData
-  buyer: CustomerData
-  product: ProductData
-  price: Float
-  quantity: Int
-  status: OrderStatus
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
-input GetOrdersByTenantIdInput {
-  tenantId: String!
-}
-
-type GetOrdersByTenantIdResponse {
-  status: Int
-  data: [GetOrdersByTenantIdData]
-  error: AWSJSON
-}
-
 input GetProductAttributesByProductIdInput {
   productId: String!
 }
@@ -938,11 +835,41 @@ enum CollectionFindBy {
   CUSTOMER
 }
 
+enum OrderFindBy {
+  ORDER
+  TENANT
+  BUYER 
+  SELLER
+  PRODUCT
+}
+
 input GetCollectionByIdInput {
   value: String
   searchBy: CollectionFindBy
 }
 
+input GetOrdersInput {
+  value: String
+  searchBy: OrderFindBy
+  status: OrderStatus
+}
+
+type GetOrdersResponse {
+  status: Int
+  data: [GetOrdersData]
+  error: AWSJSON
+}
+
+type GetOrdersData {
+  seller: CustomerData
+  buyer: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: OrderStatus
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -993,11 +920,7 @@ type Query {
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
   GetWishlistByCustomerId: GetWishlistByCusotmerIdResponse
-  GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
-  GetOrdersByBuyerId(input: GetOrdersByBuyerIdInput): GetOrdersByBuyerIdResponse
-  GetOrderById(input: GetOrderByIdInput): GetOrderByIdResponse
-  GetOrdersByTenantId(input: GetOrdersByTenantIdInput): GetOrdersByTenantIdResponse
-  GetOrdersByProductId(input: GetOrdersByProductIdInput): GetOrdersByProductIdResponse
+  GetOrders(input: GetOrdersInput) : GetOrdersResponse
   GetReviews(input: GetReviewsInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash

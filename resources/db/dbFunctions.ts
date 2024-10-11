@@ -17,7 +17,8 @@ import {
   ProductFindBy,
   ReviewsFindBy,
   CategoryFindBy,
-  CollectionFindBy
+  CollectionFindBy,
+  OrderFindBy
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1663,64 +1664,41 @@ export async function createOrder(order: orders) {
   }
 }
 
-export async function getOrdersBySeller(sellerId: string) {
+export async function getOrders(value?: string, searchBy?: OrderFindBy, status?: string){
   const prisma = await getPrismaClient();
   try {
+    let whereClause: { status?: string; id?: string; sellerid?: string; buyerid?: string; productid?: string; tenantid?: string } = {};
+
+    if (status === "CREATED") {
+      whereClause = { ...whereClause, status: orderstatus.CREATED };
+    } else if (status === "CONFIRMED") {
+      whereClause = { ...whereClause, status: orderstatus.CONFIRMED };
+    }else if (status === "SHIPPED") {
+      whereClause = { ...whereClause, status: orderstatus.SHIPPED };
+    }else if (status === "DELIVERED") {
+      whereClause = { ...whereClause, status: orderstatus.DELIVERED };
+    }else if (status === "CANCELLED") {
+      whereClause = { ...whereClause, status: orderstatus.CANCELLED };
+    }else if (status === "DISPUTED") {
+      whereClause = { ...whereClause, status: orderstatus.DISPUTED };
+    }
+
+    if (searchBy === OrderFindBy.ORDER && value) {
+      whereClause.id = value;
+    } else if (searchBy === OrderFindBy.PRODUCT && value) {
+      whereClause.productid = value;
+    }else if (searchBy === OrderFindBy.BUYER && value) {
+      whereClause.buyerid = value;
+    }else if (searchBy === OrderFindBy.SELLER && value) {
+      whereClause.sellerid = value;
+    }
+
     const orders = await prisma.orders.findMany({
       where: {
-        sellerid: sellerId
-      },
-      include: {
-        buyer: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return orders;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getOrdersByBuyer(buyerId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const orders = await prisma.orders.findMany({
-      where: {
-        buyerid: buyerId
-      },
-      include: {
-        seller: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return orders;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getOrderById(orderId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const order = await prisma.orders.findUnique({
-      where: {
-        id: orderId
+        ...whereClause,
+        ...(searchBy === OrderFindBy.TENANT && value
+          ? { product: { tenantid: value } }
+          : {}),
       },
       include: {
         buyer: {
@@ -1738,46 +1716,8 @@ export async function getOrderById(orderId: string) {
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return order;
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getOrdersByTenant(tenantId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const orders = await prisma.orders.findMany({
-      where: {
-        product: {
-          tenantid: tenantId
-        }
-      },
-      include: {
-        buyer: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        seller: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
+            usertype: true,
+          }},
         product: true
       }
     });
@@ -1818,41 +1758,6 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
         updatedat: updatedOrder.updatedat
       }
     };
-  } catch (err) {
-    throw err;
-  }
-}
-
-export async function getOrdersByProductId(productId: string) {
-  const prisma = await getPrismaClient();
-  try {
-    const orders = await prisma.orders.findMany({
-      where: {
-        productid: productId
-      },
-      include: {
-        buyer: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        seller: {
-          select: {
-            name: true,
-            emailid: true,
-            isactive: true,
-            iss: true,
-            usertype: true
-          }
-        },
-        product: true
-      }
-    });
-    return orders;
   } catch (err) {
     throw err;
   }
