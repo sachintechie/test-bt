@@ -879,11 +879,17 @@ input GetOrdersInput {
   value: String
   searchBy: OrderFindBy
   status: OrderStatus
+  page: Int
+  perPage: Int
 }
 
 type GetOrdersResponse {
   status: Int
   data: [GetOrdersData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
   error: AWSJSON
 }
 

@@ -25,7 +25,7 @@ export const handler = async (event: any) => {
       searchValue = undefined;
     }
 
-    const offset = (page - 1) * itemsPerPage;
+    const offset = (currentPage - 1) * itemsPerPage;
 
     const { reviews, totalCount } = await getReviews(offset, itemsPerPage, searchValue, searchByEnum);
 

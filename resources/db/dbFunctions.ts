@@ -1678,7 +1678,7 @@ export async function createOrder(order: orders) {
   }
 }
 
-export async function getOrders(value?: string, searchBy?: OrderFindBy, status?: string) {
+export async function getOrders(offset: number, itemsPerPage: number, value?: string, searchBy?: OrderFindBy, status?: string) {
   const prisma = await getPrismaClient();
   try {
     let whereClause: { status?: string; id?: string; sellerid?: string; buyerid?: string; productid?: string; tenantid?: string } = {};
@@ -1732,9 +1732,19 @@ export async function getOrders(value?: string, searchBy?: OrderFindBy, status?:
           }
         },
         product: true
+      },
+      skip: offset,
+      take: itemsPerPage
+    });
+
+    const totalCount = await prisma.orders.count({
+      where: {
+        ...whereClause,
+        ...(searchBy === OrderFindBy.TENANT && value ? { product: { tenantid: value } } : {})
       }
     });
-    return orders;
+
+    return { orders, totalCount };
   } catch (err) {
     throw err;
   }
