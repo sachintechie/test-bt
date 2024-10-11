@@ -221,6 +221,16 @@ type GetProductsResponse {
   error: AWSJSON
 }
 
+type GetProductsPaginationResponse {
+  status: Int
+  data: [ProductData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
+
 input GetTransactionInput {
   chainType: String!
   transactionHash: String!
@@ -285,6 +295,10 @@ type GetWishlistByCusotmerIdData {
 type GetWishlistByCusotmerIdResponse {
   status: Int
   data: [GetWishlistByCusotmerIdData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
   error: AWSJSON
 }
 
@@ -486,6 +500,10 @@ type ReviewData {
 type ReviewResponse {
   status: Int
   data: [ReviewData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
   error: AWSJSON
 }
 
@@ -792,6 +810,8 @@ input GetProductsInput {
   value: String
   searchBy: ProductFindBy
   status: ProductStatus
+  page: Int
+  perPage: Int
 }
 
 input GetStripeProductsInput {
@@ -818,6 +838,8 @@ enum ReviewsFindBy {
 input GetReviewsInput {
   value: String
   searchBy: ReviewsFindBy
+  page: Int
+  perPage: Int
 }
 
 input GetCategoriesInput {
@@ -848,6 +870,11 @@ input GetCollectionByIdInput {
   searchBy: CollectionFindBy
 }
 
+input GetWishlistByCustomerIdInput {
+  page: Int
+  perPage: Int
+}
+
 input GetOrdersInput {
   value: String
   searchBy: OrderFindBy
@@ -870,6 +897,7 @@ type GetOrdersData {
   createdat: AWSDateTime
   updatedat: AWSDateTime
 }
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -916,10 +944,11 @@ type Query {
   UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
   GetMetadata(input: GetMetadataInput): GetMetadataResponse
   GetCategories(input: GetCategoriesInput): GetCategoriesResponse
-  GetProducts(input: GetProductsInput): GetProductsResponse
+  GetProducts(input: GetProductsInput): GetProductsPaginationResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
-  GetWishlistByCustomerId: GetWishlistByCusotmerIdResponse
+  GetWishlistByCustomerId(input: GetWishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
+  GetOrdersBySellerId(input: GetOrdersBySellerIdInput): GetOrdersBySellerIdResponse
   GetOrders(input: GetOrdersInput) : GetOrdersResponse
   GetReviews(input: GetReviewsInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
