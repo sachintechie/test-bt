@@ -1,7 +1,7 @@
 import { getWishlistByCustomerId } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 
-export const handler = async (event: any, context: any) => {
+export const handler = async (event: any) => {
   try {
     const tenant = event.identity.resolverContext as tenant;
     const customerId = tenant?.customerid;
@@ -14,18 +14,22 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const { page = 1, perPage = 10 } = event.arguments?.input || {};
-    const offset = (page - 1) * perPage;
+    const { page, perPage } = event.arguments?.input || {};
 
-    const { wishlistItems, totalCount } = await getWishlistByCustomerId(customerId, offset, perPage);
+    const currentPage = page && page > 0 ? page : 1;
+    const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
 
-    const totalPages = Math.ceil(totalCount / perPage);
+    const offset = (currentPage - 1) * itemsPerPage;
+
+    const { wishlistItems, totalCount } = await getWishlistByCustomerId(customerId, offset, itemsPerPage);
+
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     return {
       status: 200,
       data: wishlistItems,
-      page,
-      perPage,
+      page: currentPage,
+      perPage: itemsPerPage,
       totalRecordsCount: totalCount,
       totalPageCount: totalPages,
       error: null

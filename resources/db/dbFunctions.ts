@@ -1630,7 +1630,7 @@ export async function removeFromWishlist(customerId: string, productId: string) 
   }
 }
 
-export async function getWishlistByCustomerId(customerId: string, offset: number = 0, limit: number = 10) {
+export async function getWishlistByCustomerId(customerId: string, offset: number, limit: number) {
   const prisma = await getPrismaClient();
   try {
     const wishlistItems = await prisma.productwishlist.findMany({
@@ -1825,7 +1825,7 @@ export async function addReview(productReview: productreview) {
   }
 }
 
-export async function getReviews(value?: string, searchBy?: ReviewsFindBy, offset: number = 0, limit: number = 10) {
+export async function getReviews(offset: number, limit: number, value?: string, searchBy?: ReviewsFindBy) {
   try {
     const prisma = await getPrismaClient();
 

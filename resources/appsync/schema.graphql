@@ -860,7 +860,7 @@ enum CollectionFindBy {
 enum OrderFindBy {
   ORDER
   TENANT
-  BUYER 
+  BUYER
   SELLER
   PRODUCT
 }
@@ -888,6 +888,7 @@ type GetOrdersResponse {
 }
 
 type GetOrdersData {
+  id: String
   seller: CustomerData
   buyer: CustomerData
   product: ProductData
@@ -948,7 +949,7 @@ type Query {
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
   GetWishlistByCustomerId(input: GetWishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
-  GetOrders(input: GetOrdersInput) : GetOrdersResponse
+  GetOrders(input: GetOrdersInput): GetOrdersResponse
   GetReviews(input: GetReviewsInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash

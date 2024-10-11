@@ -5,10 +5,13 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const { value, searchBy, page = 1, perPage = 10 } = event.arguments?.input || {};
+    const { value, searchBy, page, perPage } = event.arguments?.input || {};
 
     let searchByEnum: ReviewsFindBy | undefined;
     let searchValue: string | undefined = value;
+
+    const currentPage = page && page > 0 ? page : 1;
+    const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
 
     if (searchBy === "PRODUCT") {
       searchByEnum = ReviewsFindBy.PRODUCT;
@@ -22,16 +25,16 @@ export const handler = async (event: any) => {
       searchValue = undefined;
     }
 
-    const offset = (page - 1) * perPage;
+    const offset = (page - 1) * itemsPerPage;
 
-    const { reviews, totalCount } = await getReviews(searchValue, searchByEnum, offset, perPage);
+    const { reviews, totalCount } = await getReviews(offset, itemsPerPage, searchValue, searchByEnum);
 
-    const totalPages = Math.ceil(totalCount / perPage);
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     return {
       data: reviews,
-      page,
-      perPage,
+      page: currentPage,
+      perPage: itemsPerPage,
       totalRecordsCount: totalCount,
       totalPageCount: totalPages,
       status: 200,
