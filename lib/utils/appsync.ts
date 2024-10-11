@@ -40,7 +40,7 @@ export const newAppSyncApi = (
 };
 
 export const configResolver = (api: GraphqlApi, lambda: IFunction, typeName: string, fieldName: string) => {
-  const dataSource = api.addLambdaDataSource(env`${fieldName}LambdaDataSource`, lambda);
+  const dataSource = api.addLambdaDataSource(env`${fieldName}LambdaFuncDataSource`, lambda);
   dataSource.createResolver(env`${fieldName}Resolver`, {
     typeName: typeName,
     fieldName: fieldName,
