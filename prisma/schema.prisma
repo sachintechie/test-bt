@@ -307,7 +307,7 @@ model token {
   transactions      transaction[]
   admintransactions admintransaction[]
   staketransaction  staketransaction[]
-  inventory         inventory?           @relation(fields: [id], references: [tokenid])
+  inventory         inventory?
 }
 
 model transaction {
@@ -499,8 +499,8 @@ model inventory {
   quantity              Int      
   ownershipnft          Boolean  
   smartcontractaddress  String?  
-  tokenid               String?
-  token                 token?     @relation(fields: [tokenid], references: [id])
-  createdAt             DateTime   @default(now())
-  updatedAt             DateTime   @updatedAt
+  tokenid               String?   @unique 
+  token                 token?    @relation(fields: [tokenid], references: [id])
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
