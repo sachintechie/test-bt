@@ -1363,6 +1363,7 @@ export async function getCustomerIdByTenant(email: string, tenantId: string) {
     console.log("customer", customer);
     return customer ? customer : null;
   } catch (err) {
+    console.log(err);
     return null;
   }
 }
