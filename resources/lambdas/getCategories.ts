@@ -13,13 +13,18 @@ export const handler = async (event: any) => {
     const currentPage = page && page > 0 ? page : 1;
     const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
 
-    if (searchBy === "CATEGORY") {
-      searchByEnum = CategoryFindBy.CATEGORY;
-      if (!value) throw new Error("Category ID is required when searchBy is 'CATEGORY'");
-    } else if (searchBy === "TENANT") {
-      searchByEnum = CategoryFindBy.TENANT;
-      searchValue = event.identity?.resolverContext?.id;
-      if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
+    const searchByEnumMapping: Record<string, CategoryFindBy | undefined> = {
+      CATEGORY: CategoryFindBy.CATEGORY,
+      TENANT: CategoryFindBy.TENANT
+    };
+    searchByEnum = searchByEnumMapping[searchBy];
+    if (searchByEnum) {
+      if (searchByEnum === CategoryFindBy.TENANT) {
+        searchValue = event.identity?.resolverContext?.id;
+        if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
+      } else if (!value) {
+        throw new Error(`${searchBy} ID is required when searchBy is '${searchBy}'`);
+      }
     }
 
     if (!searchBy && !value) {

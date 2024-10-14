@@ -17,14 +17,13 @@ export const handler = async (event: any) => {
     const currentPage = page && page > 0 ? page : 1;
     const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
 
-    if (searchBy === "COLLECTION") {
-      searchByEnum = CollectionFindBy.COLLECTION;
-    } else if (searchBy === "CUSTOMER") {
-      searchByEnum = CollectionFindBy.CUSTOMER;
-    } else {
-      throw new Error("Invalid searchBy value");
-    }
 
+    const searchByEnumMapping: Record<string, CollectionFindBy> = {
+      COLLECTION: CollectionFindBy.COLLECTION,
+      CUSTOMER: CollectionFindBy.CUSTOMER
+    };
+    searchByEnum = searchByEnumMapping[searchBy];
+    
     const offset = (currentPage - 1) * itemsPerPage;
 
     const { collections, totalCount } = await getCollectionById(offset, itemsPerPage, searchValue, searchByEnum);
