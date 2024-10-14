@@ -14,8 +14,8 @@ export const handler = async (event: any) => {
 
     const searchByEnumMapping: Record<string, ProductFindBy | undefined> = {
       PRODUCT: ProductFindBy.PRODUCT,
-      BUYER: ProductFindBy.CATEGORY,
-      SELLER: ProductFindBy.TENANT
+      CATEGORY: ProductFindBy.CATEGORY,
+      TENANT: ProductFindBy.TENANT
     };
 
     searchByEnum = searchByEnumMapping[searchBy];
@@ -33,7 +33,7 @@ export const handler = async (event: any) => {
       searchByEnum = undefined;
       searchValue = undefined;
     }
-    
+
     const offset = (currentPage - 1) * itemsPerPage;
 
     const { products, totalCount } = await getProducts(offset, itemsPerPage, searchValue, searchByEnum, productStatus);
