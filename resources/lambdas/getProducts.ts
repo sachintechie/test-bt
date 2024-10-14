@@ -12,17 +12,26 @@ export const handler = async (event: any) => {
     let searchByEnum: ProductFindBy | undefined;
     let searchValue: string | undefined = value;
 
-    // Handle searchBy logic
-    if (searchBy === "PRODUCT") {
-      searchByEnum = ProductFindBy.PRODUCT;
-      if (!value) throw new Error("Product ID is required when searchBy is 'PRODUCT'");
-    } else if (searchBy === "CATEGORY") {
-      searchByEnum = ProductFindBy.CATEGORY;
-      if (!value) throw new Error("Category ID is required when searchBy is 'CATEGORY'");
-    } else if (searchBy === "TENANT") {
-      searchByEnum = ProductFindBy.TENANT;
-      searchValue = event.identity?.resolverContext?.id;
-      if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
+    const searchByEnumMapping: Record<string, ProductFindBy | undefined> = {
+      PRODUCT: ProductFindBy.PRODUCT,
+      CATEGORY: ProductFindBy.CATEGORY,
+      TENANT: ProductFindBy.TENANT
+    };
+
+    searchByEnum = searchByEnumMapping[searchBy];
+
+    if (searchByEnum) {
+      if (searchByEnum === ProductFindBy.TENANT) {
+        searchValue = event.identity?.resolverContext?.id;
+        if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
+      } else if (!value) {
+        throw new Error(`${searchBy} ID is required when searchBy is '${searchBy}'`);
+      }
+    }
+
+    if (!searchBy && !value) {
+      searchByEnum = undefined;
+      searchValue = undefined;
     }
 
     const offset = (currentPage - 1) * itemsPerPage;
