@@ -1,5 +1,6 @@
 import { getAdminProductsByTenantId } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
+
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -13,12 +14,24 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    console.log("tenant id", tenant.id);
-    const products = await getAdminProductsByTenantId(tenant.id);
+    const { page, perPage } = event.arguments?.input || {};
+
+    const currentPage = page && page > 0 ? page : 1;
+    const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
+
+    const offset = (currentPage - 1) * itemsPerPage;
+
+    const { products, totalCount } = await getAdminProductsByTenantId(offset, itemsPerPage, tenant.id);
+
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     return {
       status: 200,
       data: products,
+      page: currentPage,
+      perPage: itemsPerPage,
+      totalRecordsCount: totalCount,
+      totalPageCount: totalPages,
       error: null
     };
   } catch (error) {

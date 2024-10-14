@@ -627,10 +627,16 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,websiteName?: string,websiteUrl?: string,
-  depth?: number,data?: any
+export async function addReferenceToDb(
+  tenantId: string,
+  file: any,
+  refType: string,
+  websiteName?: string,
+  websiteUrl?: string,
+  depth?: number,
+  data?: any
 ) {
-    try {
+  try {
     const prisma = await getPrismaClient();
     const existingReference = await prisma.knowledgebasereference.findFirst({
       where: {
@@ -645,9 +651,9 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
       data: {
         tenantid: tenantId as string,
         reftype: refType,
-        name:refType == RefType.DOCUMENT ? file.fileName : websiteName,
+        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,       
+        size: refType == RefType.DOCUMENT ? data.size : null,
         ingested: false,
         depth: depth,
         isactive: true,
@@ -660,12 +666,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
   }
 }
 
-export async function getReferenceList(
-  limit: number,
-  pageNo: number,
-  tenantId: string,
-  refType: string
-) {
+export async function getReferenceList(limit: number, pageNo: number, tenantId: string, refType: string) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.knowledgebasereference.count({
@@ -673,8 +674,8 @@ export async function getReferenceList(
         tenantid: tenantId,
         reftype: refType
       },
-      orderBy:{
-        createdat: 'desc'
+      orderBy: {
+        createdat: "desc"
       }
     });
     if (refCount == 0) {
@@ -685,9 +686,9 @@ export async function getReferenceList(
         tenantid: tenantId,
         reftype: refType
       },
-      
-      orderBy:{
-        createdat: 'desc'
+
+      orderBy: {
+        createdat: "desc"
       },
       take: limit,
       skip: (pageNo - 1) * limit
@@ -705,17 +706,26 @@ export async function getReferenceList(
   }
 }
 
-export async function getAdminProductsByTenantId(tenantId: string) {
+export async function getAdminProductsByTenantId(offset: number, limit: number, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
+
     const products = await prisma.product.findMany({
+      where: {
+        tenantid: tenantId
+      },
+      skip: offset,
+      take: limit
+    });
+
+    const totalCount = await prisma.product.count({
       where: {
         tenantid: tenantId
       }
     });
-    return products;
+
+    return { products, totalCount };
   } catch (err) {
     throw err;
   }
 }
-

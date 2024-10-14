@@ -193,9 +193,13 @@ input GetProductsByCategoryIdInput {
 }
 
 type GetProductsResponse {
-	status: Int
-	data: [ProductData]
-	error: AWSJSON
+    status: Int
+    data: [ProductData]
+    error: AWSJSON
+    page: Int
+    perPage: Int
+    totalRecordsCount: Int
+    totalPageCount: Int
 }
 
 type GetWallet {
@@ -420,6 +424,11 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
+input GetAdminProductsInput {
+    page: Int
+    perPage: Int
+} 
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -450,7 +459,8 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-        GetAdminProducts: GetProductsResponse
+    GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+
 }
 
 schema {
