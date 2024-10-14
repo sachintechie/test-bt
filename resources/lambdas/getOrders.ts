@@ -14,22 +14,23 @@ export const handler = async (event: any) => {
     const currentPage = page && page > 0 ? page : 1;
     const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
 
-    if (searchBy === "PRODUCT") {
-      searchByEnum = OrderFindBy.PRODUCT;
-      if (!value) throw new Error("Product ID is required when searchBy is 'PRODUCT'");
-    } else if (searchBy === "BUYER") {
-      searchByEnum = OrderFindBy.BUYER;
-      if (!value) throw new Error("Buyer ID is required when searchBy is 'BUYER'");
-    } else if (searchBy === "SELLER") {
-      searchByEnum = OrderFindBy.SELLER;
-      if (!value) throw new Error("Seller ID is required when searchBy is 'SELLER'");
-    } else if (searchBy === "ORDER") {
-      searchByEnum = OrderFindBy.ORDER;
-      if (!value) throw new Error("Order ID is required when searchBy is 'ORDER'");
-    } else if (searchBy === "TENANT") {
-      searchByEnum = OrderFindBy.TENANT;
-      searchValue = event.identity?.resolverContext?.id;
-      if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
+    const searchByEnumMapping: Record<string, OrderFindBy | undefined> = {
+      PRODUCT: OrderFindBy.PRODUCT,
+      BUYER: OrderFindBy.BUYER,
+      SELLER: OrderFindBy.SELLER,
+      ORDER: OrderFindBy.ORDER,
+      TENANT: OrderFindBy.TENANT,
+    };
+
+    searchByEnum = searchByEnumMapping[searchBy];
+
+    if (searchByEnum) {
+      if (searchByEnum === OrderFindBy.TENANT) {
+        searchValue = event.identity?.resolverContext?.id;
+        if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
+      } else if (!value) {
+        throw new Error(`${searchBy} ID is required when searchBy is '${searchBy}'`);
+      }
     }
 
     if (!searchBy && !value) {
