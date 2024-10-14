@@ -148,6 +148,10 @@ type FilterProductResponse {
 type GetCategoriesResponse {
   status: Int
   data: [CategoryData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
   error: AWSJSON
 }
 
@@ -473,6 +477,10 @@ type ProductToCollectionResponse {
   status: Int
   data: [CollectionData]
   error: AWSJSON
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
 }
 
 type ProductToCollectionUniqueResponse {
@@ -845,6 +853,8 @@ input GetReviewsInput {
 input GetCategoriesInput {
   value: String
   searchBy: CategoryFindBy
+  page: Int
+  perPage: Int
 }
 
 enum CategoryFindBy {
@@ -860,7 +870,7 @@ enum CollectionFindBy {
 enum OrderFindBy {
   ORDER
   TENANT
-  BUYER 
+  BUYER
   SELLER
   PRODUCT
 }
@@ -868,6 +878,8 @@ enum OrderFindBy {
 input GetCollectionByIdInput {
   value: String
   searchBy: CollectionFindBy
+  page: Int
+  perPage: Int
 }
 
 input GetWishlistByCustomerIdInput {
@@ -879,15 +891,22 @@ input GetOrdersInput {
   value: String
   searchBy: OrderFindBy
   status: OrderStatus
+  page: Int
+  perPage: Int
 }
 
 type GetOrdersResponse {
   status: Int
   data: [GetOrdersData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
   error: AWSJSON
 }
 
 type GetOrdersData {
+  id: String
   seller: CustomerData
   buyer: CustomerData
   product: ProductData
@@ -948,7 +967,7 @@ type Query {
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
   GetWishlistByCustomerId(input: GetWishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
-  GetOrders(input: GetOrdersInput) : GetOrdersResponse
+  GetOrders(input: GetOrdersInput): GetOrdersResponse
   GetReviews(input: GetReviewsInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash

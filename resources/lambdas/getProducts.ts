@@ -3,8 +3,6 @@ import { ProductFindBy } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
-    console.log("Event input:", event.arguments?.input);
-
     const { status, value, searchBy, page, perPage } = event.arguments?.input || {};
     const productStatus = status || "ALL";
 
