@@ -196,6 +196,10 @@ type GetProductsResponse {
   status: Int
   data: [ProductData]
   error: AWSJSON
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
 }
 
 type GetWallet {
