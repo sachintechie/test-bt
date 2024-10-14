@@ -13,13 +13,12 @@ export const handler = async (event: any) => {
     const currentPage = page && page > 0 ? page : 1;
     const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
 
-    if (searchBy === "PRODUCT") {
-      searchByEnum = ReviewsFindBy.PRODUCT;
-      if (!value) throw new Error("Product ID is required when searchBy is 'PRODUCT'");
-    } else if (searchBy === "CUSTOMER") {
-      searchByEnum = ReviewsFindBy.CUSTOMER;
-      if (!value) throw new Error("Customer ID is required when searchBy is 'CUSTOMER'");
-    }
+    const searchByEnumMapping: Record<string, ReviewsFindBy | undefined> = {
+      PRODUCT: ReviewsFindBy.PRODUCT,
+      CUSTOMER: ReviewsFindBy.CUSTOMER
+    };
+    searchByEnum = searchByEnumMapping[searchBy];
+
     if (!searchBy && !value) {
       searchByEnum = undefined;
       searchValue = undefined;
