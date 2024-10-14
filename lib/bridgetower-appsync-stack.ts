@@ -55,7 +55,8 @@ const MUTATIONS = [
   "updateProductStatus",
   "deleteProduct",
   "addRefToKnowledgeBase",
-  "storeHashOnSubnet"
+  "storeHashOnSubnet",
+  "createInventory"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {
