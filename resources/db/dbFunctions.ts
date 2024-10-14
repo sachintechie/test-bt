@@ -1363,6 +1363,7 @@ export async function getCustomerIdByTenant(email: string, tenantId: string) {
     console.log("customer", customer);
     return customer ? customer : null;
   } catch (err) {
+    console.log(err);
     return null;
   }
 }
@@ -1445,25 +1446,32 @@ export async function getCategoryById(categoryId: string) {
   }
 }
 export async function getProducts(offset: number, limit: number, value?: string, searchBy?: ProductFindBy, status?: string) {
+  const prisma = await getPrismaClient();
+
+  const statusMapping: Record<string, string> = {
+    ACTIVE: ProductStatus.ACTIVE,
+    INACTIVE: ProductStatus.INACTIVE,
+  };
+
+  const searchByMapping: Record<ProductFindBy, string | null> = {
+    [ProductFindBy.PRODUCT]: 'id',
+    [ProductFindBy.CATEGORY]: 'categoryid',
+    [ProductFindBy.TENANT]: 'tenantid',
+  };
+
+  let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
+
+  if (status && statusMapping[status]) {
+    whereClause.status = statusMapping[status];
+  }
+
+  if (value && searchBy && searchByMapping[searchBy]) {
+    const field = searchByMapping[searchBy];
+    if (field) {
+      (whereClause as any)[field] = value;
+    }
+  }
   try {
-    const prisma = await getPrismaClient();
-
-    let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
-
-    if (status === "ACTIVE") {
-      whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
-    } else if (status === "INACTIVE") {
-      whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
-    }
-
-    if (searchBy === ProductFindBy.PRODUCT && value) {
-      whereClause.id = value;
-    } else if (searchBy === ProductFindBy.CATEGORY && value) {
-      whereClause.categoryid = value;
-    } else if (searchBy === ProductFindBy.TENANT && value) {
-      whereClause.tenantid = value;
-    }
-
     const totalCount = await prisma.product.count({
       where: whereClause
     });
@@ -1685,39 +1693,61 @@ export async function createOrder(order: orders) {
   }
 }
 
-export async function getOrders(offset: number, itemsPerPage: number, value?: string, searchBy?: OrderFindBy, status?: string) {
+export async function getOrders(
+  offset: number, 
+  itemsPerPage: number, 
+  value?: string, 
+  searchBy?: OrderFindBy, 
+  status?: string
+) {
   const prisma = await getPrismaClient();
+
+  const statusMapping: Record<string, string> = {
+    CREATED: orderstatus.CREATED,
+    CONFIRMED: orderstatus.CONFIRMED,
+    SHIPPED: orderstatus.SHIPPED,
+    DELIVERED: orderstatus.DELIVERED,
+    CANCELLED: orderstatus.CANCELLED,
+    DISPUTED: orderstatus.DISPUTED,
+  };
+
+  const searchByMapping: Record<OrderFindBy, string | null> = {
+    [OrderFindBy.ORDER]: 'id',
+    [OrderFindBy.PRODUCT]: 'productid',
+    [OrderFindBy.BUYER]: 'buyerid',
+    [OrderFindBy.SELLER]: 'sellerid',
+    [OrderFindBy.TENANT]: null,
+  };
+
+  let whereClause: { 
+    status?: string; 
+    id?: string; 
+    sellerid?: string; 
+    buyerid?: string; 
+    productid?: string; 
+    tenantid?: string 
+  } = {};
+
+  if (status && statusMapping[status]) {
+    whereClause.status = statusMapping[status];
+  }
+
+  if (value && searchBy && searchByMapping[searchBy]) {
+    const field = searchByMapping[searchBy];
+    if (field) {
+      (whereClause as any)[field] = value;
+    }
+  }
+
+  const tenantFilter = searchBy === OrderFindBy.TENANT && value 
+    ? { product: { tenantid: value } } 
+    : {};
+
   try {
-    let whereClause: { status?: string; id?: string; sellerid?: string; buyerid?: string; productid?: string; tenantid?: string } = {};
-
-    if (status === "CREATED") {
-      whereClause = { ...whereClause, status: orderstatus.CREATED };
-    } else if (status === "CONFIRMED") {
-      whereClause = { ...whereClause, status: orderstatus.CONFIRMED };
-    } else if (status === "SHIPPED") {
-      whereClause = { ...whereClause, status: orderstatus.SHIPPED };
-    } else if (status === "DELIVERED") {
-      whereClause = { ...whereClause, status: orderstatus.DELIVERED };
-    } else if (status === "CANCELLED") {
-      whereClause = { ...whereClause, status: orderstatus.CANCELLED };
-    } else if (status === "DISPUTED") {
-      whereClause = { ...whereClause, status: orderstatus.DISPUTED };
-    }
-
-    if (searchBy === OrderFindBy.ORDER && value) {
-      whereClause.id = value;
-    } else if (searchBy === OrderFindBy.PRODUCT && value) {
-      whereClause.productid = value;
-    } else if (searchBy === OrderFindBy.BUYER && value) {
-      whereClause.buyerid = value;
-    } else if (searchBy === OrderFindBy.SELLER && value) {
-      whereClause.sellerid = value;
-    }
-
     const orders = await prisma.orders.findMany({
       where: {
         ...whereClause,
-        ...(searchBy === OrderFindBy.TENANT && value ? { product: { tenantid: value } } : {})
+        ...tenantFilter,
       },
       include: {
         buyer: {
@@ -1726,8 +1756,8 @@ export async function getOrders(offset: number, itemsPerPage: number, value?: st
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true
-          }
+            usertype: true,
+          },
         },
         seller: {
           select: {
@@ -1735,20 +1765,20 @@ export async function getOrders(offset: number, itemsPerPage: number, value?: st
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true
-          }
+            usertype: true,
+          },
         },
-        product: true
+        product: true,
       },
       skip: offset,
-      take: itemsPerPage
+      take: itemsPerPage,
     });
 
     const totalCount = await prisma.orders.count({
       where: {
         ...whereClause,
-        ...(searchBy === OrderFindBy.TENANT && value ? { product: { tenantid: value } } : {})
-      }
+        ...tenantFilter,
+      },
     });
 
     return { orders, totalCount };
