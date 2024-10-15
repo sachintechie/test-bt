@@ -459,14 +459,20 @@ type InventoryData {
   updatedat: AWSDateTime
 }
 
-input GetInventoryByProductIdInput {
+input GetInventoriesByProductIdInput {
 	productId: String!
+	page: Int
+    perPage: Int
 }
 
-type GetInventoryByProductIdResponse {
+type GetInventoriesByProductIdIdResponse {
   status: Int
   data: [InventoryData]
   error: AWSJSON
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
 }
 
 
@@ -495,7 +501,7 @@ type Query {
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
-	GetInventoryByProduct(input: GetInventoryByProductIdInput): GetInventoryByProductIdResponse
+	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
 }
 
 schema {

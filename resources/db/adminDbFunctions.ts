@@ -760,20 +760,19 @@ export async function createInventory(inventoryData: inventory) {
 }
 
 
-import { PrismaClient } from "@prisma/client";
 
-export async function getInventoryByProductId(tenantId: string, productId: string) {
-  const prisma = new PrismaClient();
 
+export async function getInventoriesByProductId(offset: number, limit: number, tenantId: string, productId: string) {
   try {
-    
+    const prisma = await getPrismaClient();
+
+  
     const product = await prisma.product.findUnique({
       where: {
         id: productId,
       },
     });
 
-    
     if (!product) {
       throw new Error("Product not found.");
     }
@@ -782,17 +781,26 @@ export async function getInventoryByProductId(tenantId: string, productId: strin
       throw new Error("Unauthorized: Tenant does not own the product.");
     }
 
-    
+   
     const inventory = await prisma.inventory.findMany({
+      where: {
+        productid: productId,
+      },
+      skip: offset, 
+      take: limit,  
+    });
+
+    
+    const totalCount = await prisma.inventory.count({
       where: {
         productid: productId,
       },
     });
 
-    return inventory;
+    
+    return { inventory, totalCount };
   } catch (error) {
-    console.error("Error in getInventoryByProductId:", error);
-	if (error instanceof Error) {
+    if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the inventory");
     } else {
       throw new Error("An unexpected error occurred.");
