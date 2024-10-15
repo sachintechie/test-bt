@@ -63,7 +63,7 @@ export const newNodeJsFunction = (
   lambdaFunction.addPermission('ApiGatewayInvokePermission', {
     principal: new iam.ServicePrincipal('apigateway.amazonaws.com'),
     action: 'lambda:InvokeFunction',
-    sourceArn: 'arn:aws:execute-api:*:*:*', // Wildcard to allow all API Gateway resources
+    sourceArn: `arn:aws:execute-api:*:${cdk.Aws.ACCOUNT_ID}:*/*/*/*`, // Wildcard to allow all API Gateway resources
   });
   return lambdaFunction
 };
