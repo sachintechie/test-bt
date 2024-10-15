@@ -807,3 +807,25 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
     }
   }
 }
+
+export async function updateInventory(inventoryId: string, updateData: inventory) {
+  const prisma = await getPrismaClient();
+
+  try {
+    const updatedInventory = await prisma.inventory.update({
+      where: {
+        id: inventoryId,
+      },
+      data: updateData,
+    });
+
+    return updatedInventory;
+  } catch (error) {
+    console.error("Error in updateInventory:", error);
+     if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}

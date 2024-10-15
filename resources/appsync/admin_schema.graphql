@@ -447,6 +447,7 @@ type CreateInventoryResponse {
 }
 
 type InventoryData {
+  id: String
   inventoryid: String
   productid: String
   inventorycategory: String
@@ -475,6 +476,20 @@ type GetInventoriesByProductIdIdResponse {
   totalPageCount: Int
 }
 
+input UpdateInventoryInput {
+  inventoryId: String!
+  inventoryData: UpdateInventoryData!
+}
+
+input UpdateInventoryData {
+  inventoryCategory: String
+  price: Float
+  quantity: Int
+  ownershipNft: Boolean
+  smartContractAddress: String
+  tokenId: String
+}
+
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -490,6 +505,7 @@ type Mutation {
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
+	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
 }
 
 type Query {
