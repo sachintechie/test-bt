@@ -459,6 +459,22 @@ type InventoryData {
   updatedat: AWSDateTime
 }
 
+input GetInventoriesByProductIdInput {
+	productId: String!
+	page: Int
+    perPage: Int
+}
+
+type GetInventoriesByProductIdIdResponse {
+  status: Int
+  data: [InventoryData]
+  error: AWSJSON
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+}
+
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -484,14 +500,8 @@ type Query {
 	ListReference(input: ListRefInput): ListReference
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-	GetCategories: GetCategoriesResponse
-	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
-	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-	GetProducts: GetProductsResponse
-	GetProductById(input: GetProductByIdInput): ProductResponse
-	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
-	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
 }
 
 schema {
