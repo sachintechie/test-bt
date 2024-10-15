@@ -22,12 +22,5 @@ export const getLambdaRole = (scope: Construct) => {
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaVPCAccessExecutionRole"));
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"));
   }
-  const apiGatewayInvokePolicy = new iam.PolicyStatement({
-    effect: iam.Effect.ALLOW,
-    actions: ['lambda:InvokeFunction'],
-    principals: [new iam.ServicePrincipal('apigateway.amazonaws.com')],
-    resources: ['*'], // Allows all API Gateway resources to invoke the Lambda
-  });
-  lambdaRoleSingleton.addToPolicy(apiGatewayInvokePolicy);
   return lambdaRoleSingleton;
 };
