@@ -5,30 +5,39 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const { value, searchBy } = event.arguments?.input || {};
+    const { value, searchBy, page, perPage } = event.arguments?.input || {};
 
     if (!searchBy && !value) {
-      throw new Error("Input is required")
-      }
-     
+      throw new Error("Input is required");
+    }
+
     let searchByEnum: CollectionFindBy;
     let searchValue: string = value;
 
-    if (searchBy === 'COLLECTION') {
+    const currentPage = page && page > 0 ? page : 1;
+    const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
+
+    if (searchBy === "COLLECTION") {
       searchByEnum = CollectionFindBy.COLLECTION;
-    } else if (searchBy === 'CUSTOMER') {
+    } else if (searchBy === "CUSTOMER") {
       searchByEnum = CollectionFindBy.CUSTOMER;
-    }
-    else {
+    } else {
       throw new Error("Invalid searchBy value");
     }
 
-   
+    const offset = (currentPage - 1) * itemsPerPage;
 
-    const collection = await getCollectionById(searchValue, searchByEnum);
+    const { collections, totalCount } = await getCollectionById(offset, itemsPerPage, searchValue, searchByEnum);
+
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
+
     return {
       status: 200,
-      data: collection,
+      data: collections,
+      page: currentPage,
+      perPage: itemsPerPage,
+      totalRecordsCount: totalCount,
+      totalPageCount: totalPages,
       error: null
     };
   } catch (err) {

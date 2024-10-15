@@ -1403,7 +1403,7 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
   return stakeAccounts.map((stakeAccount: any) => stakeAccount.stakeaccountpubkey);
 }
 
-export async function getCategories(value?: string, searchBy?: CategoryFindBy) {
+export async function getCategories(offset: number, itemsPerPage: number, value?: string, searchBy?: CategoryFindBy) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1419,9 +1419,16 @@ export async function getCategories(value?: string, searchBy?: CategoryFindBy) {
       where: whereClause,
       include: {
         tenant: true
-      }
+      },
+      skip: offset,
+      take: itemsPerPage
     });
-    return categories;
+
+    const totalCount = await prisma.productcategory.count({
+      where: whereClause
+    });
+
+    return { categories, totalCount };
   } catch (err) {
     throw err;
   }
@@ -1439,25 +1446,32 @@ export async function getCategoryById(categoryId: string) {
   }
 }
 export async function getProducts(offset: number, limit: number, value?: string, searchBy?: ProductFindBy, status?: string) {
+  const prisma = await getPrismaClient();
+
+  const statusMapping: Record<string, string> = {
+    ACTIVE: ProductStatus.ACTIVE,
+    INACTIVE: ProductStatus.INACTIVE,
+  };
+
+  const searchByMapping: Record<ProductFindBy, string | null> = {
+    [ProductFindBy.PRODUCT]: 'id',
+    [ProductFindBy.CATEGORY]: 'categoryid',
+    [ProductFindBy.TENANT]: 'tenantid',
+  };
+
+  let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
+
+  if (status && statusMapping[status]) {
+    whereClause.status = statusMapping[status];
+  }
+
+  if (value && searchBy && searchByMapping[searchBy]) {
+    const field = searchByMapping[searchBy];
+    if (field) {
+      (whereClause as any)[field] = value;
+    }
+  }
   try {
-    const prisma = await getPrismaClient();
-
-    let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
-
-    if (status === "ACTIVE") {
-      whereClause = { ...whereClause, status: ProductStatus.ACTIVE };
-    } else if (status === "INACTIVE") {
-      whereClause = { ...whereClause, status: ProductStatus.INACTIVE };
-    }
-
-    if (searchBy === ProductFindBy.PRODUCT && value) {
-      whereClause.id = value;
-    } else if (searchBy === ProductFindBy.CATEGORY && value) {
-      whereClause.categoryid = value;
-    } else if (searchBy === ProductFindBy.TENANT && value) {
-      whereClause.tenantid = value;
-    }
-
     const totalCount = await prisma.product.count({
       where: whereClause
     });
@@ -1631,7 +1645,7 @@ export async function removeFromWishlist(customerId: string, productId: string) 
   }
 }
 
-export async function getWishlistByCustomerId(customerId: string, offset: number = 0, limit: number = 10) {
+export async function getWishlistByCustomerId(customerId: string, offset: number, limit: number) {
   const prisma = await getPrismaClient();
   try {
     const wishlistItems = await prisma.productwishlist.findMany({
@@ -1679,39 +1693,61 @@ export async function createOrder(order: orders) {
   }
 }
 
-export async function getOrders(value?: string, searchBy?: OrderFindBy, status?: string) {
+export async function getOrders(
+  offset: number, 
+  itemsPerPage: number, 
+  value?: string, 
+  searchBy?: OrderFindBy, 
+  status?: string
+) {
   const prisma = await getPrismaClient();
+
+  const statusMapping: Record<string, string> = {
+    CREATED: orderstatus.CREATED,
+    CONFIRMED: orderstatus.CONFIRMED,
+    SHIPPED: orderstatus.SHIPPED,
+    DELIVERED: orderstatus.DELIVERED,
+    CANCELLED: orderstatus.CANCELLED,
+    DISPUTED: orderstatus.DISPUTED,
+  };
+
+  const searchByMapping: Record<OrderFindBy, string | null> = {
+    [OrderFindBy.ORDER]: 'id',
+    [OrderFindBy.PRODUCT]: 'productid',
+    [OrderFindBy.BUYER]: 'buyerid',
+    [OrderFindBy.SELLER]: 'sellerid',
+    [OrderFindBy.TENANT]: null,
+  };
+
+  let whereClause: { 
+    status?: string; 
+    id?: string; 
+    sellerid?: string; 
+    buyerid?: string; 
+    productid?: string; 
+    tenantid?: string 
+  } = {};
+
+  if (status && statusMapping[status]) {
+    whereClause.status = statusMapping[status];
+  }
+
+  if (value && searchBy && searchByMapping[searchBy]) {
+    const field = searchByMapping[searchBy];
+    if (field) {
+      (whereClause as any)[field] = value;
+    }
+  }
+
+  const tenantFilter = searchBy === OrderFindBy.TENANT && value 
+    ? { product: { tenantid: value } } 
+    : {};
+
   try {
-    let whereClause: { status?: string; id?: string; sellerid?: string; buyerid?: string; productid?: string; tenantid?: string } = {};
-
-    if (status === "CREATED") {
-      whereClause = { ...whereClause, status: orderstatus.CREATED };
-    } else if (status === "CONFIRMED") {
-      whereClause = { ...whereClause, status: orderstatus.CONFIRMED };
-    } else if (status === "SHIPPED") {
-      whereClause = { ...whereClause, status: orderstatus.SHIPPED };
-    } else if (status === "DELIVERED") {
-      whereClause = { ...whereClause, status: orderstatus.DELIVERED };
-    } else if (status === "CANCELLED") {
-      whereClause = { ...whereClause, status: orderstatus.CANCELLED };
-    } else if (status === "DISPUTED") {
-      whereClause = { ...whereClause, status: orderstatus.DISPUTED };
-    }
-
-    if (searchBy === OrderFindBy.ORDER && value) {
-      whereClause.id = value;
-    } else if (searchBy === OrderFindBy.PRODUCT && value) {
-      whereClause.productid = value;
-    } else if (searchBy === OrderFindBy.BUYER && value) {
-      whereClause.buyerid = value;
-    } else if (searchBy === OrderFindBy.SELLER && value) {
-      whereClause.sellerid = value;
-    }
-
     const orders = await prisma.orders.findMany({
       where: {
         ...whereClause,
-        ...(searchBy === OrderFindBy.TENANT && value ? { product: { tenantid: value } } : {})
+        ...tenantFilter,
       },
       include: {
         buyer: {
@@ -1720,8 +1756,8 @@ export async function getOrders(value?: string, searchBy?: OrderFindBy, status?:
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true
-          }
+            usertype: true,
+          },
         },
         seller: {
           select: {
@@ -1729,13 +1765,23 @@ export async function getOrders(value?: string, searchBy?: OrderFindBy, status?:
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true
-          }
+            usertype: true,
+          },
         },
-        product: true
-      }
+        product: true,
+      },
+      skip: offset,
+      take: itemsPerPage,
     });
-    return orders;
+
+    const totalCount = await prisma.orders.count({
+      where: {
+        ...whereClause,
+        ...tenantFilter,
+      },
+    });
+
+    return { orders, totalCount };
   } catch (err) {
     throw err;
   }
@@ -1826,7 +1872,7 @@ export async function addReview(productReview: productreview) {
   }
 }
 
-export async function getReviews(value?: string, searchBy?: ReviewsFindBy, offset: number = 0, limit: number = 10) {
+export async function getReviews(offset: number, limit: number, value?: string, searchBy?: ReviewsFindBy) {
   try {
     const prisma = await getPrismaClient();
 
@@ -2012,7 +2058,7 @@ export async function removeProductFromCollection(productcollection: addtocollec
   }
 }
 
-export async function getCollectionById(value: string, searchBy: CollectionFindBy) {
+export async function getCollectionById(offset: number, itemsPerPage: number, value: string, searchBy: CollectionFindBy) {
   try {
     const prisma = await getPrismaClient();
 
@@ -2028,9 +2074,16 @@ export async function getCollectionById(value: string, searchBy: CollectionFindB
       where: whereClause,
       include: {
         products: true
-      }
+      },
+      skip: offset,
+      take: itemsPerPage
     });
-    return collections;
+
+    const totalCount = await prisma.productcollection.count({
+      where: whereClause
+    });
+
+    return { collections, totalCount };
   } catch (err) {
     throw err;
   }
