@@ -146,6 +146,21 @@ export interface ProductOwnership {
   fraction?: number;
 }
 
+export interface inventory {
+  id?: string;
+  productid: string;
+  inventoryid: string;
+  inventorycategory: string;
+  price: number;
+  quantity: number;
+  ownershipnft?: boolean;
+  smartcontractaddress?: string;
+  tokenid?: string;
+  createdat?: string;
+  updatedat?: string;
+}
+
+
 
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",

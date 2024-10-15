@@ -193,9 +193,13 @@ input GetProductsByCategoryIdInput {
 }
 
 type GetProductsResponse {
-	status: Int
-	data: [ProductData]
-	error: AWSJSON
+    status: Int
+    data: [ProductData]
+    error: AWSJSON
+    page: Int
+    perPage: Int
+    totalRecordsCount: Int
+    totalPageCount: Int
 }
 
 type GetWallet {
@@ -296,7 +300,7 @@ type ProductData {
 	rarity: ProductRarity
 	price: Float
 	status: ProductStatus
-        tenantid: String
+    tenantid: String
 	isdeleted: Boolean
 	purchasedpercentage: Float
 	availablepercentage: Float
@@ -420,6 +424,42 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
+input GetAdminProductsInput {
+    page: Int
+    perPage: Int
+} 
+
+input CreateInventoryInput {
+  productId: String!
+  inventoryId: String!
+  inventoryCategory: String!
+  price: Float!
+  quantity: Int!
+  ownershipNft: Boolean
+  smartContractAddress: String
+  tokenId: String
+}
+
+type CreateInventoryResponse {
+  status: Int
+  data: InventoryData
+  error: AWSJSON
+}
+
+type InventoryData {
+  inventoryid: String
+  productid: String
+  inventorycategory: String
+  price: Float
+  quantity: Int
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -433,6 +473,7 @@ type Mutation {
 	UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 	DeleteProduct(input: DeleteProductInput): ProductResponse
+	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 }
 
 type Query {
@@ -450,7 +491,7 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-        GetAdminProducts: GetProductsResponse
+    GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 }
 
 schema {
