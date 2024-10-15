@@ -12,7 +12,7 @@ export const handler = async (event: any, context: any) => {
     status: 200,
     message: "retrieved successfully",
     asset: {
-      tokenId: "37",
+      tokenId: tokenId,
       contractAddress: "0x698ca34160962dd9826E25ecb1b1b73d756b71b5",
       name: "BridgetNFT",
       collection: "BridgetNFT",
