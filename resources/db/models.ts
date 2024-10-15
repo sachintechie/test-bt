@@ -224,3 +224,16 @@ export enum CategoryFindBy {
   CATEGORY = 'CATEGORY',
   TENANT = 'TENANT'
 }
+
+export enum CollectionFindBy {
+  COLLECTION = 'COLLECTION',
+  CUSTOMER = 'CUSTOMER'
+}
+
+export enum OrderFindBy {
+  ORDER = "ORDER",
+  TENANT = "TENANT",
+  BUYER = "BUYER",
+  SELLER = "SELLER",
+  PRODUCT = "PRODUCT"
+}

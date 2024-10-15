@@ -1,38 +1,45 @@
 import { getProducts } from "../db/dbFunctions";
 import { ProductFindBy } from "../db/models";
- 
+
 export const handler = async (event: any) => {
   try {
-    console.log(event);
-    
-    const { status, value, searchBy } = event.arguments?.input || {};
-    const productStatus = status || 'ALL';
+    console.log("Event input:", event.arguments?.input);
+
+    const { status, value, searchBy, page, perPage } = event.arguments?.input || {};
+    const productStatus = status || "ALL";
+
+    const currentPage = page && page > 0 ? page : 1;
+    const itemsPerPage = perPage && perPage > 0 ? perPage : 10;
 
     let searchByEnum: ProductFindBy | undefined;
-    let searchValue: string | undefined = value;  // Default to the input value
+    let searchValue: string | undefined = value;
 
-
-    if (searchBy === 'PRODUCT') {
+    // Handle searchBy logic
+    if (searchBy === "PRODUCT") {
       searchByEnum = ProductFindBy.PRODUCT;
       if (!value) throw new Error("Product ID is required when searchBy is 'PRODUCT'");
-    } else if (searchBy === 'CATEGORY') {
+    } else if (searchBy === "CATEGORY") {
       searchByEnum = ProductFindBy.CATEGORY;
       if (!value) throw new Error("Category ID is required when searchBy is 'CATEGORY'");
-    } else if (searchBy === 'TENANT') {
+    } else if (searchBy === "TENANT") {
       searchByEnum = ProductFindBy.TENANT;
       searchValue = event.identity?.resolverContext?.id;
       if (!searchValue) throw new Error("Tenant ID is missing in resolverContext");
     }
-    if (!searchBy && !value) {
-      searchByEnum = undefined;
-      searchValue = undefined;
-    }
 
-    const products = await getProducts(searchValue, searchByEnum, productStatus);
+    const offset = (currentPage - 1) * itemsPerPage;
+
+    const { products, totalCount } = await getProducts(offset, itemsPerPage, searchValue, searchByEnum, productStatus);
+
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     return {
-      status: 200,
       data: products,
+      page: currentPage,
+      perPage: itemsPerPage,
+      totalRecordsCount: totalCount,
+      totalPageCount: totalPages,
+      status: 200,
       error: null
     };
   } catch (err) {

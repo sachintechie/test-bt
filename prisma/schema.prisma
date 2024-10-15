@@ -277,7 +277,7 @@ model product {
   wishlists  productwishlist[]
   orders            orders[]
   productreviews    productreview[]
-  collections            productcollectionproducts[] @relation("productcollectionproductsproduct")
+  collections       productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships productownership[]
 
   @@unique([categoryid, name])
@@ -295,7 +295,7 @@ model productattribute {
 }
 
 model token {
-  id                String             @id @default(uuid())
+  id                String              @id @default(uuid())
   name              String?
   chaintype         String
   contractaddress   String
@@ -486,3 +486,4 @@ enum ProductStatus {
 ACTIVE
 INACTIVE
 }
+
