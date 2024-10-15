@@ -156,8 +156,8 @@ export interface inventory {
   ownershipnft?: boolean;
   smartcontractaddress?: string;
   tokenid?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  createdat?: string;
+  updatedat?: string;
 }
 
 

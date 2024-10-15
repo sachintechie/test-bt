@@ -743,9 +743,10 @@ export async function createInventory(inventoryData: inventory) {
         inventorycategory: inventoryData.inventorycategory,
         price: inventoryData.price,
         quantity: inventoryData.quantity,
-        ownershipnft: inventoryData.ownershipnft,
+        ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
+		// createdat: new Date().toISOString(),
       }
     });
 

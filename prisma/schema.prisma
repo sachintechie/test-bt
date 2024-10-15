@@ -501,6 +501,6 @@ model inventory {
   smartcontractaddress  String?  
   tokenid               String?   @unique 
   token                 token?    @relation(fields: [tokenid], references: [id])
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  createdat             DateTime? @default(now())
+  updatedat             DateTime? @updatedAt
 }

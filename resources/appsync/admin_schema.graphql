@@ -300,7 +300,7 @@ type ProductData {
 	rarity: ProductRarity
 	price: Float
 	status: ProductStatus
-        tenantid: String
+    tenantid: String
 	isdeleted: Boolean
 	purchasedpercentage: Float
 	availablepercentage: Float
@@ -429,7 +429,7 @@ input GetAdminProductsInput {
     perPage: Int
 } 
 
-input InventoryInput {
+input CreateInventoryInput {
   productId: String!
   inventoryId: String!
   inventoryCategory: String!
@@ -440,23 +440,23 @@ input InventoryInput {
   tokenId: String
 }
 
-type InventoryResponse {
+type CreateInventoryResponse {
   status: Int
   data: InventoryData
   error: AWSJSON
 }
 
 type InventoryData {
-  inventoryId: String
-  productId: String
-  inventoryCategory: String
+  inventoryid: String
+  productid: String
+  inventorycategory: String
   price: Float
   quantity: Int
-  ownershipNft: Boolean
-  smartContractAddress: String
-  tokenId: String
-  createdAt: AWSDateTime
-  updatedAt: AWSDateTime
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 
@@ -473,7 +473,7 @@ type Mutation {
 	UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 	DeleteProduct(input: DeleteProductInput): ProductResponse
-	CreateInventory(input: InventoryInput): InventoryResponse
+	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 }
 
 type Query {
