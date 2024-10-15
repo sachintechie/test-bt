@@ -459,6 +459,16 @@ type InventoryData {
   updatedat: AWSDateTime
 }
 
+input GetInventoryByProductIdInput {
+	productId: String!
+}
+
+type GetInventoryByProductIdResponse {
+  status: Int
+  data: [InventoryData]
+  error: AWSJSON
+}
+
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -485,6 +495,7 @@ type Query {
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+	GetInventoryByProduct(input: GetInventoryByProductIdInput): GetInventoryByProductIdResponse
 }
 
 schema {

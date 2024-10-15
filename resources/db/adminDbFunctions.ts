@@ -758,3 +758,44 @@ export async function createInventory(inventoryData: inventory) {
     }
   }
 }
+
+
+import { PrismaClient } from "@prisma/client";
+
+export async function getInventoryByProductId(tenantId: string, productId: string) {
+  const prisma = new PrismaClient();
+
+  try {
+    
+    const product = await prisma.product.findUnique({
+      where: {
+        id: productId,
+      },
+    });
+
+    
+    if (!product) {
+      throw new Error("Product not found.");
+    }
+
+    if (product.tenantid !== tenantId) {
+      throw new Error("Unauthorized: Tenant does not own the product.");
+    }
+
+    
+    const inventory = await prisma.inventory.findMany({
+      where: {
+        productid: productId,
+      },
+    });
+
+    return inventory;
+  } catch (error) {
+    console.error("Error in getInventoryByProductId:", error);
+	if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
