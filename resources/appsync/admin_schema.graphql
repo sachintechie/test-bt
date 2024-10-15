@@ -429,6 +429,37 @@ input GetAdminProductsInput {
     perPage: Int
 } 
 
+input InventoryInput {
+  productId: String!
+  inventoryId: String!
+  inventoryCategory: String!
+  price: Float!
+  quantity: Int!
+  ownershipNft: Boolean
+  smartContractAddress: String
+  tokenId: String
+}
+
+type InventoryResponse {
+  status: Int
+  data: InventoryData
+  error: AWSJSON
+}
+
+type InventoryData {
+  inventoryId: String
+  productId: String
+  inventoryCategory: String
+  price: Float
+  quantity: Int
+  ownershipNft: Boolean
+  smartContractAddress: String
+  tokenId: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -442,6 +473,7 @@ type Mutation {
 	UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 	DeleteProduct(input: DeleteProductInput): ProductResponse
+	CreateInventory(input: InventoryInput): InventoryResponse
 }
 
 type Query {
@@ -460,7 +492,6 @@ type Query {
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
-
 }
 
 schema {

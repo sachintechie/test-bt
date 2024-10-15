@@ -11,7 +11,9 @@ import {
   productfilter,
   updateproductattribute,
   ProductStatus,
-  RefType
+  RefType,
+  inventory,
+//   inventoryData
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -727,5 +729,32 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
     return { products, totalCount };
   } catch (err) {
     throw err;
+  }
+}
+
+export async function createInventory(inventoryData: inventory) {
+  try {
+    const prisma = await getPrismaClient();
+   
+    const newInventory = await prisma.inventory.create({
+      data: {
+		inventoryid: inventoryData.inventoryid,
+        productid: inventoryData.productid,
+        inventorycategory: inventoryData.inventorycategory,
+        price: inventoryData.price,
+        quantity: inventoryData.quantity,
+        ownershipnft: inventoryData.ownershipnft,
+        smartcontractaddress: inventoryData.smartcontractaddress,
+        tokenid: inventoryData.tokenid,
+      }
+    });
+
+    return newInventory;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
