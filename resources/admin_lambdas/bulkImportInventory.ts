@@ -7,7 +7,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log("event", event, "context", context);
 
-    const { fileContent, fileName, contentType } = event.arguments?.input;
+    const { fileContent, fileName, contentType } = event.arguments?.input?.file;
     const tenantContext = event.identity.resolverContext as tenant;
 
     if (!fileContent) {
