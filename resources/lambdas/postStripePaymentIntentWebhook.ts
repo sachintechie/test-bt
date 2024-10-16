@@ -1,0 +1,59 @@
+import Stripe from 'stripe';
+import {mintNFT} from "./mintNFT";
+import {mintERC1155} from "./mintERC1155";
+const stripe = new Stripe(process.env.STRIPE_SECRET!);
+const STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET = process.env.STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET!;
+
+export const handler = async (event: any) => {
+  let stripeEvent;
+
+  try {
+    // Verify the Stripe webhook signature
+    const signature = event.headers['stripe-signature'];
+    stripeEvent = stripe.webhooks.constructEvent(
+      event.body,
+      signature,
+      STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET
+    );
+  } catch (err) {
+    console.error('Webhook signature verification failed.', err);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Invalid signature' }),
+    };
+  }
+
+  // Handle the event based on its type
+  switch (stripeEvent.type) {
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      console.log('PaymentIntent was successful:', paymentIntent);
+      const metadata = paymentIntent.metadata as any;
+      console.log(metadata)
+      const {address,cart,tenant_id} = metadata;
+      for(let i=0;i<cart.length;i++){
+        const {id,quantity,product_metadata} = cart[i];
+        console.log('cart',cart[i])
+        const {id:tokenId,chain,contract,type,metadata}=product_metadata;
+        console.log('product_metadata',product_metadata)
+        if(type==='NFT'){
+          await mintNFT(address,quantity,chain,contract,metadata,tenant_id)
+        }else{
+          await mintERC1155(address,[tokenId],[quantity],chain,contract,metadata,tenant_id)
+        }
+      }
+      break;
+
+    case 'payment_intent.payment_failed':
+      console.log('PaymentIntent failed:', stripeEvent.data.object);
+      break;
+
+    default:
+      console.log(`Unhandled event type ${stripeEvent.type}`);
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({ received: true }),
+  };
+};

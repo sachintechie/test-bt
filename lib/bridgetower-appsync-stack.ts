@@ -22,7 +22,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "createOrganizationUnitAndAwsAccount",
   "moonpayNftLiteAsset",
   "moonpayNftLiteDelivery",
-  "moonpayNftLiteStatus"
+  "moonpayNftLiteStatus",
+  "postStripePaymentIntentWebhook"
 ];
 
 const GET_METADATA = "getMetadata";
@@ -116,6 +117,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     // Create a new AppSync GraphQL API
     const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, props.schemaFile, props.authorizerLambda);
+
 
     // Create resolvers for each lambda function
     for (const [key, value] of lambdaMap) {

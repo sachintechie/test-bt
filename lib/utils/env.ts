@@ -43,7 +43,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
     ADMIN_ROLE: "arn:aws:iam::339712796998:role/service-role/admin"
   };
   const thirdPartyInfo = {
-    STRIPE_SECRET: "sk_test_51Q5WSYRoB3vP63ZcG0446nZxieFZHLftc9TywVGeXSzDBwkO1YnyMxg4cuBBkGN8kPTjYYYUHtyF7eytbduUVrJ5005U9k0Jxi"
+    STRIPE_SECRET: "sk_test_51Q5WSYRoB3vP63ZcG0446nZxieFZHLftc9TywVGeXSzDBwkO1YnyMxg4cuBBkGN8kPTjYYYUHtyF7eytbduUVrJ5005U9k0Jxi",
+    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET:'whsec_ZlTQxB1biBoZQfpbZoNySun4VWSMi8gJ'
   }
   const commonEnvs = {
     ...databaseInfoEnv,

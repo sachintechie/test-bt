@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@avalabs/avalanchejs": "^4.0.5",
+    "@aws-sdk/client-bedrock": "^3.670.0",
     "@aws-sdk/client-iam": "^3.614.0",
     "@aws-sdk/client-organizations": "^3.614.0",
     "@aws-sdk/client-secrets-manager": "^3.583.0",
@@ -43,7 +44,7 @@
     "node-fetch": "^2.6.11",
     "pg": "^8.11.5",
     "prettier": "^3.3.2",
-    "stripe": "^17.0.0",
+    "stripe": "^17.2.0",
     "web3": "^4.11.1"
   },
   "devDependencies": {
