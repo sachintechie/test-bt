@@ -829,3 +829,32 @@ export async function updateInventory(inventoryId: string, updateData: inventory
     }
   }
 }
+
+export async function createBulkInventory(inventoryDataArray: inventory[]) {
+  try {
+    const prisma = await getPrismaClient();
+    
+    // Perform bulk creation using createMany
+    const createdInventories = await prisma.inventory.createMany({
+      data: inventoryDataArray.map(inventoryData => ({
+        inventoryid: inventoryData.inventoryid,
+        productid: inventoryData.productid,
+        inventorycategory: inventoryData.inventorycategory,
+        price: inventoryData.price,
+        quantity: inventoryData.quantity,
+        ownershipnft: inventoryData.ownershipnft ?? false, 
+        smartcontractaddress: inventoryData.smartcontractaddress,
+        tokenid: inventoryData.tokenid
+      })),
+      skipDuplicates: true 
+    });
+
+    return createdInventories;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}

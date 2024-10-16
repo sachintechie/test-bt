@@ -490,10 +490,15 @@ input UpdateInventoryData {
   tokenId: String
 }
 
-type TestResponse {
+type BulkImportInventoryResponse {
   status: Int
   message: String
 }
+
+ input BulkImportInventoryInput {
+   productId:String!
+   file: FileInput!
+ }
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -510,7 +515,7 @@ type Mutation {
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
-	TestFile(input: FileInput): TestResponse
+	BulkImportInventory(input: BulkImportInventoryInput): BulkImportInventoryResponse
 }
 
 type Query {
