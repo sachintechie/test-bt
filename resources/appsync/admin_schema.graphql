@@ -17,7 +17,7 @@ type AddRefToKnowledgeBaseData {
 
 input AddRefToKnowledgeBaseInput {
 	refType: String!
-	file: RefFileInput
+	file: FileInput
 	depth: Int
 	websiteName: String
 	websiteUrl: String
@@ -329,7 +329,7 @@ enum ProductStatus {
 	INACTIVE
 }
 
-input RefFileInput {
+input FileInput {
 	fileName: String!
 	fileContent: String!
 	contentType: String!
@@ -490,6 +490,10 @@ input UpdateInventoryData {
   tokenId: String
 }
 
+type TestResponse {
+  status: Int
+  message: String
+}
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -506,6 +510,7 @@ type Mutation {
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
+	TestFile(input: FileInput): TestResponse
 }
 
 type Query {

@@ -59,7 +59,8 @@ const MUTATIONS = [
   "addRefToKnowledgeBase",
   "storeHashOnSubnet",
   "createInventory",
-  "updateInventory"
+  "updateInventory",
+  "testFile"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {

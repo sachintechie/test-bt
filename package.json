@@ -44,7 +44,8 @@
     "pg": "^8.11.5",
     "prettier": "^3.3.2",
     "stripe": "^17.0.0",
-    "web3": "^4.11.1"
+    "web3": "^4.11.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.143",
