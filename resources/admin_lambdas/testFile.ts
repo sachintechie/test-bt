@@ -1,9 +1,11 @@
-import * as XLSX from 'xlsx'; // Make sure to install this: npm install xlsx
+import * as XLSX from 'xlsx';
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
-    const { fileContent, fileName } = event.arguments?.input;
+
+    const { fileContent, fileName, contentType } = event.arguments?.input;
+
     if (!fileContent) {
       return {
         status: 400,
@@ -12,26 +14,45 @@ export const handler = async (event: any, context: any) => {
     }
 
     const buffer = Buffer.from(fileContent, 'base64');
+    let parsedData: any[] = [];
 
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-    const sheetName = workbook.SheetNames[0]; // Assuming the data is in the first sheet
-    const worksheet = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
 
-    if (worksheet.length > 0) {
-      console.log("First row of the Excel file:", worksheet[0]);
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const sheetName = workbook.SheetNames[0];
+      parsedData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
+       const workbook = XLSX.read(buffer, { type: 'buffer' });
+
+       workbook.SheetNames.forEach((sheetName: string | number) => {
+        const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        parsedData.push({
+          sheetName: sheetName,
+          data: sheetData,
+        });
+      });
     } else {
-      console.log("The Excel file is empty or cannot be parsed.");
+      return {
+        status: 400,
+        message: "Unsupported file format"
+      };
     }
 
-    // Return a success response
+    parsedData.forEach(sheet => {
+      if (sheet.data.length > 0) {
+        console.log(`First row of sheet '${sheet.sheetName}':`, sheet.data[0]);
+      } else {
+        console.log(`Sheet '${sheet.sheetName}' is empty or cannot be parsed.`);
+      }
+    });
+
     return {
       status: 200,
-      message: "File processed successfully. Check logs for the first row of data."
+      message: "File processed successfully. Check logs for data from each sheet."
     };
   } catch (error) {
     console.error("Error processing the file:", error);
 
-    // Return a failure response
     return {
       status: 500,
       message: "Failed to process the file."
