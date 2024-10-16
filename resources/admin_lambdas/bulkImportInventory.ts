@@ -4,10 +4,10 @@ import { createBulkInventory } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log("event", event, "context", context);
-
-    const { fileContent, fileName, contentType } = event.arguments?.input?.file;
-    const tenantContext = event.identity.resolverContext as tenant;
+	  
+	  const { fileContent, fileName, contentType } = event.arguments?.input?.file;
+	  console.log("event", event.arguments?.input?.file,);
+  
 
     if (!fileContent) {
       return {
@@ -17,19 +17,33 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-   
-    const buffer = Buffer.from(fileContent, 'base64');
-    const workbook = XLSX.read(buffer, { type: 'buffer' });
-
     
+    const buffer = Buffer.from(fileContent, 'base64');
+    let workbook;
+
+    // Check if the file is a CSV or an XLSX file
+    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
+      
+      workbook = XLSX.read(buffer, { type: 'buffer', raw: true });
+    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
+     
+      workbook = XLSX.read(buffer, { type: 'buffer' });
+    } else {
+      return {
+        status: 400,
+        data: null,
+        error: "Unsupported file format"
+      };
+    }
+
     let inventoryDataArray: any[] = [];
 
-    // Loop through each sheet in the workbook
+   
     workbook.SheetNames.forEach((sheetName: string | number) => {
       const sheet = workbook.Sheets[sheetName];
       const sheetData = XLSX.utils.sheet_to_json(sheet);
 
-      
+    
       const transformedData = sheetData.map((row: any) => {
         const {
           productId,
@@ -40,9 +54,9 @@ export const handler = async (event: any, context: any) => {
           ownershipNft,
           smartContractAddress,
           tokenId
-        } = row; 
+        } = row;
 
-        // Check if required fields are present
+      
         if (!productId || !inventoryId || !inventoryCategory || !price || !quantity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
@@ -60,11 +74,13 @@ export const handler = async (event: any, context: any) => {
         };
       });
 
-     
+      
       inventoryDataArray = [...inventoryDataArray, ...transformedData];
     });
-	 const createdInventories = await createBulkInventory(inventoryDataArray);
-  
+
+    // Perform bulk creation of all inventory records across all sheets using Prisma's createMany
+    const createdInventories = await createBulkInventory(inventoryDataArray);
+
     console.log(`Successfully created ${createdInventories.count} inventories across all sheets`);
 
     return {

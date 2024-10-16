@@ -493,7 +493,7 @@ model inventory {
   id                    String    @id @default(uuid())
   productid             String
   product               product   @relation(fields: [productid], references: [id])
-  inventoryid           String   
+  inventoryid           String    @unique
   inventorycategory     String   
   price                 Float   
   quantity              Int      
