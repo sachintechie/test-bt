@@ -4,10 +4,10 @@ import { createBulkInventory } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
-	  
-	  const { fileContent, fileName, contentType } = event.arguments?.input?.file;
-	  console.log("event", event.arguments?.input?.file,);
-  
+    console.log("event", event, "context", context);
+
+    const { fileContent, fileName, contentType } = event.arguments?.input?.file;
+    const tenantContext = event.identity.resolverContext as tenant;
 
     if (!fileContent) {
       return {
@@ -17,16 +17,12 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    
     const buffer = Buffer.from(fileContent, 'base64');
     let workbook;
 
-    // Check if the file is a CSV or an XLSX file
     if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
-      
       workbook = XLSX.read(buffer, { type: 'buffer', raw: true });
     } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
-     
       workbook = XLSX.read(buffer, { type: 'buffer' });
     } else {
       return {
@@ -38,12 +34,10 @@ export const handler = async (event: any, context: any) => {
 
     let inventoryDataArray: any[] = [];
 
-   
     workbook.SheetNames.forEach((sheetName: string | number) => {
       const sheet = workbook.Sheets[sheetName];
       const sheetData = XLSX.utils.sheet_to_json(sheet);
 
-    
       const transformedData = sheetData.map((row: any) => {
         const {
           productId,
@@ -56,29 +50,27 @@ export const handler = async (event: any, context: any) => {
           tokenId
         } = row;
 
-      
         if (!productId || !inventoryId || !inventoryCategory || !price || !quantity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
 
-        
+        const ownershipNftBoolean = (ownershipNft && ownershipNft.toLowerCase() === 'true') ? true : false;
+
         return {
           inventoryid: inventoryId,
           productid: productId,
           inventorycategory: inventoryCategory,
-          price: parseFloat(price), 
-          quantity: parseInt(quantity), 
-          ownershipnft: ownershipNft ?? false,
+          price: parseFloat(price),
+          quantity: parseInt(quantity),
+          ownershipnft: ownershipNftBoolean,
           smartcontractaddress: smartContractAddress || null,
           tokenid: tokenId || null
         };
       });
 
-      
       inventoryDataArray = [...inventoryDataArray, ...transformedData];
     });
 
-    // Perform bulk creation of all inventory records across all sheets using Prisma's createMany
     const createdInventories = await createBulkInventory(inventoryDataArray);
 
     console.log(`Successfully created ${createdInventories.count} inventories across all sheets`);
