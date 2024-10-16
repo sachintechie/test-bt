@@ -44,7 +44,7 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
     if(refType === RefType.DOCUMENT){
        data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
-      const syncKbResponse   = await syncKb("AP97VQYRM7", "TYW4H5WAWT");
+      const syncKbResponse   = await syncKb("WIKF9ALZ52", "ZZWKIZUS20");
       console.log("syncKbResponse", syncKbResponse);
     }
     const ref = await addReferenceToDb(tenant.id, file,refType, websiteName,websiteUrl,depth,data?.data);
