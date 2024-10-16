@@ -492,11 +492,11 @@ input UpdateInventoryData {
 
 type BulkImportInventoryResponse {
   status: Int
-  message: String
+  data: String
+  error: AWSJSON
 }
 
  input BulkImportInventoryInput {
-   productId:String!
    file: FileInput!
  }
 
