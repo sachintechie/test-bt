@@ -743,7 +743,7 @@ export async function createInventory(inventoryData: inventory) {
         inventorycategory: inventoryData.inventorycategory,
         price: inventoryData.price,
         quantity: inventoryData.quantity,
-        ownershipnft: inventoryData.ownershipnft,
+        ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
       }
@@ -752,6 +752,77 @@ export async function createInventory(inventoryData: inventory) {
     return newInventory;
   } catch (error) {
     if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+
+
+
+export async function getInventoriesByProductId(offset: number, limit: number, tenantId: string, productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+  
+    const product = await prisma.product.findUnique({
+      where: {
+        id: productId,
+      },
+    });
+
+    if (!product) {
+      throw new Error("Product not found.");
+    }
+
+    if (product.tenantid !== tenantId) {
+      throw new Error("Unauthorized: Tenant does not own the product.");
+    }
+
+   
+    const inventory = await prisma.inventory.findMany({
+      where: {
+        productid: productId,
+      },
+      skip: offset, 
+      take: limit,  
+    });
+
+    
+    const totalCount = await prisma.inventory.count({
+      where: {
+        productid: productId,
+      },
+    });
+
+    
+    return { inventory, totalCount };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
+export async function updateInventory(inventoryId: string, updateData: inventory) {
+  const prisma = await getPrismaClient();
+
+  try {
+    const updatedInventory = await prisma.inventory.update({
+      where: {
+        id: inventoryId,
+      },
+      data: updateData,
+    });
+
+    return updatedInventory;
+  } catch (error) {
+    console.error("Error in updateInventory:", error);
+     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the inventory");
     } else {
       throw new Error("An unexpected error occurred.");

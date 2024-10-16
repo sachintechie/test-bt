@@ -300,7 +300,7 @@ type ProductData {
 	rarity: ProductRarity
 	price: Float
 	status: ProductStatus
-        tenantid: String
+    tenantid: String
 	isdeleted: Boolean
 	purchasedpercentage: Float
 	availablepercentage: Float
@@ -429,7 +429,7 @@ input GetAdminProductsInput {
     perPage: Int
 } 
 
-input InventoryInput {
+input CreateInventoryInput {
   productId: String!
   inventoryId: String!
   inventoryCategory: String!
@@ -440,23 +440,54 @@ input InventoryInput {
   tokenId: String
 }
 
-type InventoryResponse {
+type CreateInventoryResponse {
   status: Int
   data: InventoryData
   error: AWSJSON
 }
 
 type InventoryData {
-  inventoryId: String
-  productId: String
+  id: String
+  inventoryid: String
+  productid: String
+  inventorycategory: String
+  price: Float
+  quantity: Int
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+input GetInventoriesByProductIdInput {
+	productId: String!
+	page: Int
+    perPage: Int
+}
+
+type GetInventoriesByProductIdIdResponse {
+  status: Int
+  data: [InventoryData]
+  error: AWSJSON
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+}
+
+input UpdateInventoryInput {
+  inventoryId: String!
+  inventoryData: UpdateInventoryData!
+}
+
+input UpdateInventoryData {
   inventoryCategory: String
   price: Float
   quantity: Int
   ownershipNft: Boolean
   smartContractAddress: String
   tokenId: String
-  createdAt: AWSDateTime
-  updatedAt: AWSDateTime
 }
 
 
@@ -473,7 +504,8 @@ type Mutation {
 	UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 	DeleteProduct(input: DeleteProductInput): ProductResponse
-	CreateInventory(input: InventoryInput): InventoryResponse
+	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
+	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
 }
 
 type Query {
@@ -484,14 +516,8 @@ type Query {
 	ListReference(input: ListRefInput): ListReference
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-	GetCategories: GetCategoriesResponse
-	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
-	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-	GetProducts: GetProductsResponse
-	GetProductById(input: GetProductByIdInput): ProductResponse
-	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
-	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
 }
 
 schema {
