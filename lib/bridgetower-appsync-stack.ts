@@ -3,7 +3,7 @@ import { Construct } from "constructs";
 import { env, envConfig, isDevOrProd, isOnDemandProd, isPlaygroundDev } from "./utils/env";
 import { configResolver, newAppSyncApi } from "./utils/appsync";
 import { capitalize, readFilesFromFolder } from "./utils/utils";
-import { newApiGateway } from "./utils/apigateway";
+import {newApiGateway, newStripeWebhookApiGateway} from "./utils/apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo, getPlaygrounDevDatabaseInfo } from "./utils/aurora";
 import { AuroraStack } from "./bridgetower-aurora-stack";
@@ -22,10 +22,12 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "createOrganizationUnitAndAwsAccount",
   "moonpayNftLiteAsset",
   "moonpayNftLiteDelivery",
-  "moonpayNftLiteStatus"
+  "moonpayNftLiteStatus",
+  "postStripePaymentIntentWebhook",
 ];
 
 const GET_METADATA = "getMetadata";
+const POST_STRIPE_PAYMENT_INTENT_WEBHOOK = "postStripePaymentIntentWebhook";
 const MIGRATION_LAMBDA_NAME = "migrateDB";
 
 const MUTATIONS = [
@@ -114,6 +116,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     if (props.hasApiGateway) {
       const gateway = newApiGateway(this, lambdaMap.get(GET_METADATA)!);
+      const stripeWebhookGateway=newStripeWebhookApiGateway(this, lambdaMap.get(POST_STRIPE_PAYMENT_INTENT_WEBHOOK)!);
     }
 
     // Create a new AppSync GraphQL API

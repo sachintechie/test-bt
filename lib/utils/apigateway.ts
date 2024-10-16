@@ -69,3 +69,43 @@ export const newApiGateway = (scope: Construct, lambda: lambda.Function) => {
 
   return api;
 };
+
+export const newStripeWebhookApiGateway = (scope: Construct, lambda: lambda.Function) => {
+  // Define the API Gateway
+  const api = new apigateway.RestApi(scope, 'StripeWebhookApi', {
+    restApiName: 'Stripe Webhook API',
+    description: 'API Gateway for handling Stripe webhooks',
+  });
+
+  // Create the /webhook resource
+  const webhookResource = api.root.addResource('webhook');
+
+  // Define the mapping template to decode the Base64-encoded body
+  const requestTemplate = `{
+      "body": "$util.base64Decode($input.body)",
+      "headers": {
+        #foreach($key in $input.params().header.keySet())
+          "$key": "$input.params().header.get($key)"#if($foreach.hasNext),#end
+        #end
+      }
+    }`;
+
+  // Create a Lambda integration with the mapping template
+  const lambdaIntegration = new apigateway.LambdaIntegration(lambda, {
+    proxy: false, // Use custom integration to apply the mapping template
+    requestTemplates: {
+      'application/json': requestTemplate,
+    },
+  });
+
+  // Add POST method to /webhook resource
+  webhookResource.addMethod('POST', lambdaIntegration, {
+    methodResponses: [
+      { statusCode: '200' },
+      { statusCode: '400' },
+      { statusCode: '500' },
+    ],
+  });
+
+  return api;
+};
