@@ -17,14 +17,16 @@ export const handler = async (event: any, context: any) => {
     let parsedData: any[] = [];
 
     if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
-
+     
       const workbook = XLSX.read(buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames[0];
+      const sheetName = workbook.SheetNames[0]; 
       parsedData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
     } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
-       const workbook = XLSX.read(buffer, { type: 'buffer' });
+   
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
 
-       workbook.SheetNames.forEach((sheetName: string | number) => {
+      
+      workbook.SheetNames.forEach((sheetName: string | number) => {
         const sheetData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
         parsedData.push({
           sheetName: sheetName,
@@ -38,21 +40,20 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
+    // Log all rows from each sheet
     parsedData.forEach(sheet => {
-      if (sheet.data.length > 0) {
-        console.log(`First row of sheet '${sheet.sheetName}':`, sheet.data[0]);
-      } else {
-        console.log(`Sheet '${sheet.sheetName}' is empty or cannot be parsed.`);
-      }
+      console.log(`Data from sheet '${sheet.sheetName}':`, sheet.data);
     });
 
+ 
     return {
       status: 200,
-      message: "File processed successfully. Check logs for data from each sheet."
+      message: "File processed successfully. Check logs for data from all rows."
     };
   } catch (error) {
     console.error("Error processing the file:", error);
 
+  
     return {
       status: 500,
       message: "Failed to process the file."
