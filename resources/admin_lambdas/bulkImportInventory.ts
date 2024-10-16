@@ -1,8 +1,6 @@
 import * as XLSX from 'xlsx';
-import { PrismaClient } from '@prisma/client';
 import { tenant } from "../db/models";
 import { createBulkInventory } from "../db/adminDbFunctions";
-const prisma = new PrismaClient();
 
 export const handler = async (event: any, context: any) => {
   try {
