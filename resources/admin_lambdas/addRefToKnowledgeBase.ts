@@ -1,6 +1,7 @@
 import { RefType, tenant } from "../db/models";
 import { addReferenceToDb  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
+import { syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.BUCKET_NAME || ''; // Get bucket name from environment variables
 export const handler = async (event: any, context: any) => {
@@ -43,8 +44,11 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
     if(refType === RefType.DOCUMENT){
        data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
+      const syncKbResponse   = await syncKb("AP97VQYRM7", "TYW4H5WAWT");
+      console.log("syncKbResponse", syncKbResponse);
     }
     const ref = await addReferenceToDb(tenant.id, file,refType, websiteName,websiteUrl,depth,data?.data);
+ 
         return {
       document: ref,
       error: null
