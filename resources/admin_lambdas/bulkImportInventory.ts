@@ -3,10 +3,9 @@ import { createBulkInventory } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log("event", event, "context", context);
-
     const { fileContent, fileName, contentType } = event.arguments?.input?.file;
 
+    console.log("fileContent", fileContent, "fileName", fileName, "contentType", contentType);
     if (!fileContent) {
       return {
         status: 400,
@@ -35,6 +34,7 @@ export const handler = async (event: any, context: any) => {
       const sheetData = XLSX.utils.sheet_to_json(sheet);
 
       const transformedData = sheetData.map((row: any) => {
+        console.log("row", row);
         const {
           productId,
           inventoryId,
@@ -50,7 +50,8 @@ export const handler = async (event: any, context: any) => {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
 
-        const ownershipNftBoolean = (ownershipNft && ownershipNft.toLowerCase() === 'true') ? true : false;
+        // Check if ownershipNft is a string before applying toLowerCase()
+        const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') ? true : false;
 
         return {
           inventoryid: inventoryId,
@@ -89,3 +90,4 @@ export const handler = async (event: any, context: any) => {
     };
   }
 };
+
