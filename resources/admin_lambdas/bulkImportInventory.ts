@@ -1,6 +1,17 @@
 import * as XLSX from 'xlsx';
 import { createBulkInventory } from "../db/adminDbFunctions";
 
+
+const sanitizeString = (value: string): string => {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+    .trim(); 
+};
+
 export const handler = async (event: any, context: any) => {
   try {
     const { fileContent, fileName, contentType } = event.arguments?.input?.file;
@@ -17,7 +28,9 @@ export const handler = async (event: any, context: any) => {
     const buffer = Buffer.from(fileContent, 'base64');
     let workbook;
 
-    if (contentType === 'text/csv' || fileName.endsWith('.csv') || contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
+    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
+      workbook = XLSX.read(buffer, { type: 'buffer', raw: false });
+    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
       workbook = XLSX.read(buffer, { type: 'buffer' });
     } else {
       return {
@@ -31,52 +44,35 @@ export const handler = async (event: any, context: any) => {
 
     workbook.SheetNames.forEach((sheetName: string | number) => {
       const sheet = workbook.Sheets[sheetName];
-      const sheetData = XLSX.utils.sheet_to_json(sheet);
+      const sheetData = XLSX.utils.sheet_to_json(sheet, {
+        header: 1,
+        defval: '' 
+      });
 
-      const transformedData = sheetData.map((row: any) => {
-        console.log("row", row);
-        const {
-          productId,
-          inventoryId,
-          inventoryCategory,
-          price,
-          quantity,
-          ownershipNft,
-          smartContractAddress,
-          tokenId
-        } = row;
+      const headers = sheetData[0];
+      const dataRows = sheetData.slice(1);
 
-       
-        if (!productId || !inventoryId || !inventoryCategory || !price || !quantity) {
-          throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
-        }
+      const transformedData = dataRows.map((row: any) => {
+        const rowData: any = {};
+        headers.forEach((header: string, index: number) => {
+          let value = row[index];
 
-        // Ensure smartContractAddress is treated as a string
-        let correctedSmartContractAddress = smartContractAddress;
-        if (typeof correctedSmartContractAddress !== 'string') {
-          correctedSmartContractAddress = String(correctedSmartContractAddress);
-        }
+          
+          if (header === 'smartContractAddress') {
+            value = value ? sanitizeString(String(value)) : null;
+          } else if (header === 'productId' || header === 'inventoryId' || header === 'inventoryCategory') {
+            value = value ? sanitizeString(String(value)) : null;
+          } else if (header === 'price') {
+            value = parseFloat(value);
+          } else if (header === 'quantity') {
+            value = parseInt(value);
+          } else if (header === 'ownershipNft') {
+            value = (typeof value === 'string' && value.toLowerCase() === 'true') || value === true ? true : false;
+          }
+          rowData[header] = value;
+        });
 
-       
-        correctedSmartContractAddress = correctedSmartContractAddress.trim();
-
-        
-        const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') || ownershipNft === true ? true : false;
-
-     
-        const parsedPrice = parseFloat(price);
-        const parsedQuantity = parseInt(quantity);
-
-        return {
-          inventoryid: String(inventoryId).trim(),
-          productid: String(productId).trim(),
-          inventorycategory: String(inventoryCategory).trim(),
-          price: parsedPrice,
-          quantity: parsedQuantity,
-          ownershipnft: ownershipNftBoolean,
-          smartcontractaddress: correctedSmartContractAddress || null,
-          tokenid: tokenId ? String(tokenId).trim() : null
-        };
+        return rowData;
       });
 
       inventoryDataArray = [...inventoryDataArray, ...transformedData];
