@@ -112,6 +112,9 @@ input CreateCategoryInput {
 
 input CreateProductInput {
 	name: String!
+	description: String
+	type:String
+	sku:String
 	categoryId: String!
 	rarity: ProductRarity
 	price: Float
@@ -296,6 +299,9 @@ type ProductAttributeResponse {
 type ProductData {
 	id: String!
 	name: String!
+	description: String
+	type:String
+	sku:String
 	categoryid: String!
 	rarity: ProductRarity
 	price: Float
@@ -407,6 +413,9 @@ input UpdateProductInput {
 
 input UpdateProductInputData {
 	name: String
+	description: String
+	type: String
+	sku:String
 	categoryId: String
 	rarity: ProductRarity
 	price: Float

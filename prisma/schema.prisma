@@ -260,6 +260,9 @@ model productcategory {
 model product {
   id         String     @id @default(uuid())
   name       String
+  description String
+  type       String
+  sku        String
   categoryid String 
   category   productcategory   @relation(fields: [categoryid], references: [id])
   rarity            productrarity?        @default(NORMAL)
@@ -503,4 +506,6 @@ model inventory {
   token                 token?    @relation(fields: [tokenid], references: [id])
   createdat             DateTime? @default(now())
   updatedat             DateTime? @updatedAt
+
+  @@unique([productid, inventoryid])
 }

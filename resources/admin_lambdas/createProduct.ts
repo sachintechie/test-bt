@@ -6,6 +6,9 @@ import { tenant } from "../db/models";
 
 interface CreateProductInput {
   name: string;
+  description:string;
+  type:string;
+  sku:string;
   categoryId: string;
   rarity: productRarity;
   price: number;
@@ -44,6 +47,9 @@ export const handler = async (event: any, context: any) => {
 
     const product = await createProductInDb({
       name: input.name,
+      description:input.description,
+      type:input.type,
+      sku:input.sku,
       categoryid: input.categoryId,
       rarity: input.rarity,
       price: input.price,
@@ -80,6 +86,9 @@ export const handler = async (event: any, context: any) => {
 
 async function createProductInDb(input: {
   name: string;
+  description: string;
+  type: string;
+  sku: string;
   categoryid: string;
   rarity: productRarity;
   price: number;

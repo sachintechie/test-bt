@@ -74,6 +74,9 @@ export interface product {
   price: number;
   purchasedpercentage: number;
   tenantid:string;
+  description: string;   
+  type: string;           
+  sku: string;        
 }
 
 export interface productcategory {

@@ -490,6 +490,9 @@ export async function createProduct(product: product) {
     const newProduct = await prisma.product.create({
       data: {
         name: product.name,
+        description:product.description,
+        type:product.type,
+        sku:product.sku,
         categoryid: product.categoryid,
         tenantid: product.tenantid,
         rarity: product.rarity,
