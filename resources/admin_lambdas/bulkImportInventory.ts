@@ -39,6 +39,7 @@ export const handler = async (event: any, context: any) => {
       const sheetData = XLSX.utils.sheet_to_json(sheet);
 
       const transformedData = sheetData.map((row: any) => {
+		console.log("row", row);
         const {
           productId,
           inventoryId,
@@ -55,6 +56,8 @@ export const handler = async (event: any, context: any) => {
         }
 
           const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') ? true : false;
+
+		console.log("ownershipNftBoolean",ownershipNftBoolean);
         return {
           inventoryid: inventoryId,
           productid: productId,
