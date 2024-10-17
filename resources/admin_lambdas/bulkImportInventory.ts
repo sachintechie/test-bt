@@ -46,22 +46,36 @@ export const handler = async (event: any, context: any) => {
           tokenId
         } = row;
 
+       
         if (!productId || !inventoryId || !inventoryCategory || !price || !quantity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
 
-        // Check if ownershipNft is a string before applying toLowerCase()
-        const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') ? true : false;
+        // Ensure smartContractAddress is treated as a string
+        let correctedSmartContractAddress = smartContractAddress;
+        if (typeof correctedSmartContractAddress !== 'string') {
+          correctedSmartContractAddress = String(correctedSmartContractAddress);
+        }
+
+       
+        correctedSmartContractAddress = correctedSmartContractAddress.trim();
+
+        
+        const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') || ownershipNft === true ? true : false;
+
+     
+        const parsedPrice = parseFloat(price);
+        const parsedQuantity = parseInt(quantity);
 
         return {
-          inventoryid: inventoryId,
-          productid: productId,
-          inventorycategory: inventoryCategory,
-          price: parseFloat(price),
-          quantity: parseInt(quantity),
+          inventoryid: String(inventoryId).trim(),
+          productid: String(productId).trim(),
+          inventorycategory: String(inventoryCategory).trim(),
+          price: parsedPrice,
+          quantity: parsedQuantity,
           ownershipnft: ownershipNftBoolean,
-          smartcontractaddress: smartContractAddress || null,
-          tokenid: tokenId || null
+          smartcontractaddress: correctedSmartContractAddress || null,
+          tokenid: tokenId ? String(tokenId).trim() : null
         };
       });
 
@@ -90,4 +104,3 @@ export const handler = async (event: any, context: any) => {
     };
   }
 };
-
