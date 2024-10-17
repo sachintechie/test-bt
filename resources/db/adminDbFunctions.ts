@@ -12,7 +12,7 @@ import {
   updateproductattribute,
   ProductStatus,
   RefType,
-  inventory,
+  productinventory,
 //   inventoryData
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
@@ -735,11 +735,11 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
   }
 }
 
-export async function createInventory(inventoryData: inventory) {
+export async function createInventory(inventoryData: productinventory) {
   try {
     const prisma = await getPrismaClient();
    
-    const newInventory = await prisma.inventory.create({
+    const newInventory = await prisma.productinventory.create({
       data: {
 		inventoryid: inventoryData.inventoryid,
         productid: inventoryData.productid,
@@ -785,7 +785,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
     }
 
    
-    const inventory = await prisma.inventory.findMany({
+    const inventory = await prisma.productinventory.findMany({
       where: {
         productid: productId,
       },
@@ -794,7 +794,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
     });
 
     
-    const totalCount = await prisma.inventory.count({
+    const totalCount = await prisma.productinventory.count({
       where: {
         productid: productId,
       },
@@ -815,7 +815,7 @@ export async function updateInventory(inventoryId: string, updateData: inventory
   const prisma = await getPrismaClient();
 
   try {
-    const updatedInventory = await prisma.inventory.update({
+    const updatedInventory = await prisma.productinventory.update({
       where: {
         id: inventoryId,
       },
@@ -838,7 +838,7 @@ export async function createBulkInventory(inventoryDataArray: inventory[]) {
     const prisma = await getPrismaClient();
     
     // Perform bulk creation using createMany
-    const createdInventories = await prisma.inventory.createMany({
+    const createdInventories = await prisma.productinventory.createMany({
       data: inventoryDataArray.map(inventoryData => ({
         inventoryid: inventoryData.inventoryid,
         productid: inventoryData.productid,

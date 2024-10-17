@@ -149,7 +149,7 @@ export interface ProductOwnership {
   fraction?: number;
 }
 
-export interface inventory {
+export interface productinventory {
   id?: string;
   productid: string;
   inventoryid: string;
