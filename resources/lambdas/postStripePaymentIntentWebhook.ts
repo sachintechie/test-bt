@@ -10,11 +10,14 @@ export const handler = async (event: any) => {
   try {
     // Verify the Stripe webhook signature
     const signature = event.headers['stripe-signature'];
+    console.log('Signature:', signature)
+    console.log('Raw Body:', event.rawBody)
     stripeEvent = stripe.webhooks.constructEvent(
-      event.body,
+      event.rawBody,
       signature,
       STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET
     );
+    console.log('Stripe Event:', stripeEvent)
   } catch (err) {
     console.error('Webhook signature verification failed.', err);
     return {

@@ -82,13 +82,16 @@ export const newStripeWebhookApiGateway = (scope: Construct, lambda: lambda.Func
 
   // Define the mapping template to decode the Base64-encoded body
   const requestTemplate = `{
-      "body": "$util.base64Decode($input.body)",
-      "headers": {
-        #foreach($key in $input.params().header.keySet())
-          "$key": "$input.params().header.get($key)"#if($foreach.hasNext),#end
-        #end
-      }
-    }`;
+  "method": "$context.httpMethod",
+  "body": $input.json('$'),
+  "rawBody": "$util.escapeJavaScript($input.body).replaceAll("\\\\'", "'")",
+  "headers": {
+    #foreach($param in $input.params().header.keySet())
+    "$param": "$util.escapeJavaScript($input.params().header.get($param))"
+    #if($foreach.hasNext),#end
+    #end
+  }
+}`;
 
   // Create a Lambda integration with the mapping template
   const lambdaIntegration = new apigateway.LambdaIntegration(lambda, {
