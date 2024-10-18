@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { tenant } from "../db/models";
 import { createBulkInventory } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
@@ -6,6 +7,7 @@ export const handler = async (event: any, context: any) => {
     console.log("event", event, "context", context);
 
     const { fileContent, fileName, contentType } = event.arguments?.input?.file;
+    const tenantContext = event.identity.resolverContext as tenant;
 
     if (!fileContent) {
       return {
@@ -18,7 +20,9 @@ export const handler = async (event: any, context: any) => {
     const buffer = Buffer.from(fileContent, 'base64');
     let workbook;
 
-    if (contentType === 'text/csv' || fileName.endsWith('.csv') || contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
+    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
+      workbook = XLSX.read(buffer, { type: 'buffer', raw: true });
+    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
       workbook = XLSX.read(buffer, { type: 'buffer' });
     } else {
       return {
@@ -35,6 +39,7 @@ export const handler = async (event: any, context: any) => {
       const sheetData = XLSX.utils.sheet_to_json(sheet);
 
       const transformedData = sheetData.map((row: any) => {
+		console.log("row", row);
         const {
           productId,
           inventoryId,
@@ -50,8 +55,9 @@ export const handler = async (event: any, context: any) => {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
 
-        const ownershipNftBoolean = (ownershipNft && ownershipNft.toLowerCase() === 'true') ? true : false;
+          const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') ? true : false;
 
+		console.log("ownershipNftBoolean",ownershipNftBoolean);
         return {
           inventoryid: inventoryId,
           productid: productId,
