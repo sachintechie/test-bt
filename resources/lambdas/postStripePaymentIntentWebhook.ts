@@ -31,7 +31,7 @@ export const handler = async (event: any) => {
   // Handle the event based on its type
   switch (stripeEvent.type) {
     case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const paymentIntent = stripeEvent.data.object as Stripe.PaymentIntent;
       console.log('PaymentIntent was successful:', paymentIntent);
       const metadata = paymentIntent.metadata as any;
       console.log(metadata)
