@@ -60,7 +60,8 @@ const MUTATIONS = [
   "storeHashOnSubnet",
   "createInventory",
   "updateInventory",
-  "bulkImportInventory"
+  "bulkImportInventory",
+  "bulkImportProduct"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {
