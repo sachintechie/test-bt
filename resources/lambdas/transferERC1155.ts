@@ -36,9 +36,17 @@ export const transferERC1155 = async (toAddress: string, tokenId: number, amount
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
+  console.log('toAddress',toAddress)
+  console.log('chain',chain)
+  console.log('contractAddress',contractAddress)
+  console.log('tokenId',tokenId)
+  console.log('amount',amount)
+  console.log('payerKey',payerKey.key?.materialId)
+
 
   const contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
   const currentNonce = await web3.eth.getTransactionCount(payerKey.key?.materialId!, "pending");
+  console.log('currentNonce',currentNonce)
   const tx: any = {
     from: payerKey.key?.materialId,
     to: contractAddress,
