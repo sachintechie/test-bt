@@ -1,5 +1,5 @@
 import Web3 from "web3";
-import contractAbi from "../abi/BridgeTowerNftUpgradeable.json";
+import contractAbi from "../abi/BridgeTowerNftUpgradeableERC1155.json";
 import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
 import {getPrismaClient} from "../db/dbFunctions";
 import { tenant } from "../db/models";
