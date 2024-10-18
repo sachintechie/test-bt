@@ -284,7 +284,7 @@ model product {
   productownerships productownership[]
   inventories       productinventory[] 
 
-  @@unique([categoryid, name])
+  @@unique([categoryid, name, sku])
 }
 
 model productattribute {
