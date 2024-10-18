@@ -3,7 +3,6 @@ import contractAbi from "../abi/BridgeTowerNftUpgradeable.json";
 import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
 import {getPrismaClient} from "../db/dbFunctions";
 import { tenant } from "../db/models";
-import {transferNFT} from "./transferNFT";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
