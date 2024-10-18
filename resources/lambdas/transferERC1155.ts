@@ -57,10 +57,13 @@ export const transferERC1155 = async (toAddress: string, tokenId: number, amount
     nonce: `0x${currentNonce.toString(16)}`
   };
 
-  // Estimate gas for the transaction if needed
-  const gasEstimate = await web3.eth.estimateGas(tx);
-  tx.gas = `0x${gasEstimate.toString(16)}`;
-  // Adjust the gas limit accordingly if required
+  try{
+    const gasEstimate = await web3.eth.estimateGas(tx);
+    tx.gas = `0x${gasEstimate.toString(16)}`;
+  }catch (e) {
+    tx.gas = '0x7a1200';
+  }
+
   console.log(tx);
 
   const signedTx = await payerKey.key?.signEvm({ tx, chain_id: 43113 });
