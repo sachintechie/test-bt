@@ -510,7 +510,7 @@ type BulkImportResponse {
    file: FileInput!
  }
 
- type DeleteInventoryInput {
+ input DeleteInventoryInput {
 	inventoryId: String!
  }
 
