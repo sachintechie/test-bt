@@ -9,12 +9,17 @@ export const handler = async (event: any) => {
 
   try {
     // Verify the Stripe webhook signature
-    const signature = event.headers['stripe-signature'];
+    const signature = event.headers['Stripe-Signature'];
+    console.log('Signature:', signature)
+    console.log('Raw Body:', event.rawBody)
+    console.log('Headers:', event.headers)
+    console.log('Stripe Payment Intent Webhook Secret:', STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET)
     stripeEvent = stripe.webhooks.constructEvent(
-      event.body,
+      event.rawBody,
       signature,
       STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET
     );
+    console.log('Stripe Event:', stripeEvent)
   } catch (err) {
     console.error('Webhook signature verification failed.', err);
     return {
@@ -26,11 +31,12 @@ export const handler = async (event: any) => {
   // Handle the event based on its type
   switch (stripeEvent.type) {
     case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object as Stripe.PaymentIntent;
+      const paymentIntent = stripeEvent.data.object as Stripe.PaymentIntent;
       console.log('PaymentIntent was successful:', paymentIntent);
       const metadata = paymentIntent.metadata as any;
       console.log(metadata)
-      const {address,cart,tenant_id} = metadata;
+      let {address,cart,tenant_id} = metadata;
+      cart=JSON.parse(cart)
       for(let i=0;i<cart.length;i++){
         const {id,quantity,product_metadata} = cart[i];
         console.log('cart',cart[i])

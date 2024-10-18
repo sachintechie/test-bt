@@ -864,6 +864,36 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
   }
 }
 
+export async function createBulkProduct(productDataArray: product[]) {
+  try {
+    const prisma = await getPrismaClient();
+    
+    const createdProduct = await prisma.product.createMany({
+      data: productDataArray.map(productData => ({
+        name: productData.name,
+        description:productData.description,
+        type:productData.type,
+        sku:productData.sku,
+        rarity:productData.rarity,
+        price: productData.price,
+        categoryid: productData.categoryid,
+        tenantid: productData.tenantid,
+        purchasedpercentage:0,
+        availablepercentage: 100
+      })),
+      skipDuplicates: true 
+    });
+
+    return createdProduct;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while adding the product");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
+
 export async function deleteInventory(inventoryId: string) {
   try {
     const prisma = await getPrismaClient();

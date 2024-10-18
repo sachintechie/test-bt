@@ -500,13 +500,13 @@ input UpdateInventoryData {
   tokenId: String
 }
 
-type BulkImportInventoryResponse {
+type BulkImportResponse {
   status: Int
   data: String
   error: AWSJSON
 }
 
- input BulkImportInventoryInput {
+ input BulkImportInput {
    file: FileInput!
  }
 
@@ -529,7 +529,8 @@ type Mutation {
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
-	BulkImportInventory(input: BulkImportInventoryInput): BulkImportInventoryResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 }
 
