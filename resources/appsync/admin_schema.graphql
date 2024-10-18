@@ -465,6 +465,7 @@ type InventoryData {
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
+  isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
 }
@@ -509,6 +510,10 @@ type BulkImportInventoryResponse {
    file: FileInput!
  }
 
+ type DeleteInventoryInput {
+	inventoryId: String!
+ }
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -525,6 +530,7 @@ type Mutation {
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
 	BulkImportInventory(input: BulkImportInventoryInput): BulkImportInventoryResponse
+	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 }
 
 type Query {

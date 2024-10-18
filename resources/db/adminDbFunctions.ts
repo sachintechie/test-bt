@@ -13,7 +13,6 @@ import {
   ProductStatus,
   RefType,
   productinventory,
-//   inventoryData
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -788,6 +787,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
     const inventory = await prisma.productinventory.findMany({
       where: {
         productid: productId,
+		isdeleted: false
       },
       skip: offset, 
       take: limit,  
@@ -797,6 +797,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
     const totalCount = await prisma.productinventory.count({
       where: {
         productid: productId,
+		isdeleted: false
       },
     });
 
@@ -811,13 +812,14 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
   }
 }
 
-export async function updateInventory(inventoryId: string, updateData: inventory) {
+export async function updateInventory(inventoryId: string, updateData: productinventory) {
   const prisma = await getPrismaClient();
 
   try {
     const updatedInventory = await prisma.productinventory.update({
       where: {
         id: inventoryId,
+		
       },
       data: updateData,
     });
@@ -833,7 +835,7 @@ export async function updateInventory(inventoryId: string, updateData: inventory
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: inventory[]) {
+export async function createBulkInventory(inventoryDataArray: productinventory[]) {
   try {
     const prisma = await getPrismaClient();
     
@@ -859,5 +861,20 @@ export async function createBulkInventory(inventoryDataArray: inventory[]) {
     } else {
       throw new Error("An unexpected error occurred.");
     }
+  }
+}
+
+export async function deleteInventory(inventoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const deletedInventory = await prisma.productinventory.update({
+      where: { id: inventoryId },
+      data: { isdeleted: true }
+    });
+
+    return deletedInventory;
+  } catch (err) {
+    throw err;
   }
 }
