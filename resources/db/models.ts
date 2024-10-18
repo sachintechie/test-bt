@@ -74,6 +74,9 @@ export interface product {
   price: number;
   purchasedpercentage: number;
   tenantid:string;
+  description: string;   
+  type: string;           
+  sku: string;        
 }
 
 export interface productcategory {
@@ -146,7 +149,7 @@ export interface ProductOwnership {
   fraction?: number;
 }
 
-export interface inventory {
+export interface productinventory {
   id?: string;
   productid: string;
   inventoryid: string;
@@ -160,6 +163,18 @@ export interface inventory {
   updatedat?: string;
 }
 
+export interface inventoryfilter {
+  inventoryid?: string;
+  productname?: string;
+  price?: {
+    operator: 'lt' | 'gt' | 'eq';
+    value: number;
+  };
+  quantity?: {
+    operator: 'lt' | 'gt' | 'eq';
+    value: number;
+  };
+}
 
 
 export enum TransactionStatus {

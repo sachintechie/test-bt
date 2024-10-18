@@ -17,7 +17,7 @@ type AddRefToKnowledgeBaseData {
 
 input AddRefToKnowledgeBaseInput {
 	refType: String!
-	file: RefFileInput
+	file: FileInput
 	depth: Int
 	websiteName: String
 	websiteUrl: String
@@ -112,6 +112,9 @@ input CreateCategoryInput {
 
 input CreateProductInput {
 	name: String!
+	description: String
+	type:String
+	sku:String
 	categoryId: String!
 	rarity: ProductRarity
 	price: Float
@@ -296,6 +299,9 @@ type ProductAttributeResponse {
 type ProductData {
 	id: String!
 	name: String!
+	description: String
+	type:String
+	sku:String
 	categoryid: String!
 	rarity: ProductRarity
 	price: Float
@@ -329,7 +335,7 @@ enum ProductStatus {
 	INACTIVE
 }
 
-input RefFileInput {
+input FileInput {
 	fileName: String!
 	fileContent: String!
 	contentType: String!
@@ -407,6 +413,9 @@ input UpdateProductInput {
 
 input UpdateProductInputData {
 	name: String
+	description: String
+	type: String
+	sku:String
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
@@ -450,12 +459,14 @@ type InventoryData {
   id: String
   inventoryid: String
   productid: String
+  product: ProductData
   inventorycategory: String
   price: Float
   quantity: Int
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
+  isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
 }
@@ -490,6 +501,40 @@ input UpdateInventoryData {
   tokenId: String
 }
 
+type BulkImportResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
+ input BulkImportInput {
+   file: FileInput!
+ }
+
+ input DeleteInventoryInput {
+	inventoryId: String!
+ }
+
+ input SearchInventoryInput {
+	inventoryId: String
+	productName: String
+ }
+
+ input FilterInput {
+   operator: String! 
+   value: Float!
+ }
+
+ input FilterInventoryInputData {
+   inventoryId: String
+   productName: String
+   price: FilterInput
+   quantity: FilterInput
+ }
+
+ input FilterInventoryInput {
+   filters: FilterInventoryInputData!
+ }
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -506,6 +551,9 @@ type Mutation {
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportResponse
+	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 }
 
 type Query {
@@ -518,6 +566,8 @@ type Query {
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
+	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
+	FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
 }
 
 schema {
