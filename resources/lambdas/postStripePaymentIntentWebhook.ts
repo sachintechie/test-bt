@@ -9,9 +9,10 @@ export const handler = async (event: any) => {
 
   try {
     // Verify the Stripe webhook signature
-    const signature = event.headers['stripe-signature'];
+    const signature = event.headers['Stripe-Signature'];
     console.log('Signature:', signature)
     console.log('Raw Body:', event.rawBody)
+    console.log('Headers:', event.headers)
     stripeEvent = stripe.webhooks.constructEvent(
       event.rawBody,
       signature,
