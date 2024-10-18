@@ -35,7 +35,8 @@ export const handler = async (event: any) => {
       console.log('PaymentIntent was successful:', paymentIntent);
       const metadata = paymentIntent.metadata as any;
       console.log(metadata)
-      const {address,cart,tenant_id} = metadata;
+      let {address,cart,tenant_id} = metadata;
+      cart=JSON.parse(cart)
       for(let i=0;i<cart.length;i++){
         const {id,quantity,product_metadata} = cart[i];
         console.log('cart',cart[i])
