@@ -748,6 +748,7 @@ export async function createInventory(inventoryData: productinventory) {
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
+		isdeleted: false
       }
     });
 
@@ -849,7 +850,8 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         quantity: inventoryData.quantity,
         ownershipnft: inventoryData.ownershipnft ?? false, 
         smartcontractaddress: inventoryData.smartcontractaddress,
-        tokenid: inventoryData.tokenid
+        tokenid: inventoryData.tokenid,
+		isdeleted: false
       })),
       skipDuplicates: true 
     });
@@ -904,6 +906,29 @@ export async function deleteInventory(inventoryId: string) {
     });
 
     return deletedInventory;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function searchInventory(inventoryId: string, productName: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const searchResult = await prisma.productinventory.findMany({
+      where: {
+        OR: [
+          { inventoryid: inventoryId },
+          { product: { name: { contains: productName, mode: 'insensitive' } } }
+        ],
+        isdeleted: false 
+      },
+      include: {
+        product: true 
+      }
+    });
+
+    return searchResult;
   } catch (err) {
     throw err;
   }

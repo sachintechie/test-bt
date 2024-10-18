@@ -459,6 +459,7 @@ type InventoryData {
   id: String
   inventoryid: String
   productid: String
+  product: ProductData
   inventorycategory: String
   price: Float
   quantity: Int
@@ -514,6 +515,12 @@ type BulkImportResponse {
 	inventoryId: String!
  }
 
+ input SearchInventoryInput {
+	inventoryId: String
+	productName: String
+ }
+
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -544,6 +551,7 @@ type Query {
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
+	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
 }
 
 schema {
