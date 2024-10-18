@@ -13,6 +13,7 @@ export const handler = async (event: any) => {
     console.log('Signature:', signature)
     console.log('Raw Body:', event.rawBody)
     console.log('Headers:', event.headers)
+    console.log('Stripe Payment Intent Webhook Secret:', STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET)
     stripeEvent = stripe.webhooks.constructEvent(
       event.rawBody,
       signature,
