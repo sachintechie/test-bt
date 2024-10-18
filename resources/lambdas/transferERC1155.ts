@@ -46,7 +46,7 @@ export const transferERC1155 = async (toAddress: string, tokenId: number, amount
     type: "0x02",
     maxPriorityFeePerGas: web3.utils.toWei("1", "gwei"), // Priority fee for miners
     maxFeePerGas: web3.utils.toWei("30", "gwei"), // Maximum fee you're willing to pay
-    data: contract.methods.safeTransferFrom(payerKey.key?.materialId, toAddress, tokenId, amount,undefined).encodeABI(),
+    data: contract.methods.safeTransferFrom(payerKey.key?.materialId, toAddress, tokenId, amount,'0x').encodeABI(),
     nonce: `0x${currentNonce.toString(16)}`
   };
 
