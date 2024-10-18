@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { tenant } from "../db/models";
 import { createBulkProduct } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
@@ -6,7 +7,7 @@ export const handler = async (event: any, context: any) => {
     console.log("event", event, "context", context);
 
     const { fileContent, fileName, contentType } = event.arguments?.input?.file;
-
+    const tenantContext = event.identity.resolverContext as tenant;
     if (!fileContent) {
       return {
         status: 400,
@@ -18,7 +19,9 @@ export const handler = async (event: any, context: any) => {
     const buffer = Buffer.from(fileContent, 'base64');
     let workbook;
 
-    if (contentType === 'text/csv' || fileName.endsWith('.csv') || contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
+    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
+      workbook = XLSX.read(buffer, { type: 'buffer', raw: true });
+    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
       workbook = XLSX.read(buffer, { type: 'buffer' });
     } else {
       return {
@@ -42,11 +45,10 @@ export const handler = async (event: any, context: any) => {
           sku,
           categoryId,
           rarity,
-          price,
-          tenantId
+          price
         } = row;
 
-        if (!name || !description || !type || !price || !sku || !categoryId || !rarity || !tenantId) {
+        if (!name || !description || !type || !price || !sku || !categoryId || !rarity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
         return {
@@ -57,7 +59,7 @@ export const handler = async (event: any, context: any) => {
           categoryid:categoryId,
           rarity:rarity,
           price: parseFloat(price),
-          tenantid: tenantId
+          tenantid: tenantContext.id
         };
       });
 
