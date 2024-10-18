@@ -1404,17 +1404,25 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
 }
 
 export async function getCategories(offset: number, itemsPerPage: number, value?: string, searchBy?: CategoryFindBy) {
-  try {
-    const prisma = await getPrismaClient();
 
-    let whereClause: { id?: string; tenantid?: string } = {};
+  const prisma = await getPrismaClient();
 
-    if (searchBy === CategoryFindBy.CATEGORY && value) {
-      whereClause.id = value;
-    } else if (searchBy === CategoryFindBy.TENANT && value) {
-      whereClause.tenantid = value;
+  const searchByMapping: Record<CategoryFindBy, string | null> = {
+    [CategoryFindBy.CATEGORY]: 'categoryid',
+    [CategoryFindBy.TENANT]: 'tenantid',
+  };
+
+  let whereClause: { id?: string; tenantid?: string } = {};
+
+
+  if (value && searchBy && searchByMapping[searchBy]) {
+    const field = searchByMapping[searchBy];
+    if (field) {
+      (whereClause as any)[field] = value;
     }
+  }
 
+  try {
     const categories = await prisma.productcategory.findMany({
       where: whereClause,
       include: {
@@ -1873,17 +1881,23 @@ export async function addReview(productReview: productreview) {
 }
 
 export async function getReviews(offset: number, limit: number, value?: string, searchBy?: ReviewsFindBy) {
-  try {
-    const prisma = await getPrismaClient();
+  const prisma = await getPrismaClient();
 
-    let whereClause: { productid?: string; customerid?: string } = {};
+  let whereClause: { productid?: string; customerid?: string } = {};
 
-    if (searchBy === ReviewsFindBy.PRODUCT && value) {
-      whereClause.productid = value;
-    } else if (searchBy === ReviewsFindBy.CUSTOMER && value) {
-      whereClause.customerid = value;
+  const searchByMapping: Record<ReviewsFindBy, string | null> = {
+    [ReviewsFindBy.PRODUCT]: 'productid',
+    [ReviewsFindBy.CUSTOMER]: 'customerid',
+  };
+
+  if (value && searchBy && searchByMapping[searchBy]) {
+    const field = searchByMapping[searchBy];
+    if (field) {
+      (whereClause as any)[field] = value;
     }
+  }
 
+  try {
     const reviews = await prisma.productreview.findMany({
       where: whereClause,
       include: {
@@ -2059,17 +2073,22 @@ export async function removeProductFromCollection(productcollection: addtocollec
 }
 
 export async function getCollectionById(offset: number, itemsPerPage: number, value: string, searchBy: CollectionFindBy) {
-  try {
-    const prisma = await getPrismaClient();
+  const prisma = await getPrismaClient();
+  let whereClause: { id?: string; customerid?: string } = {};
 
-    let whereClause: { id?: string; customerid?: string } = {};
+  const searchByMapping: Record<CollectionFindBy, string | null> = {
+    [CollectionFindBy.COLLECTION]: 'id',
+    [CollectionFindBy.CUSTOMER]: 'customerid',
+  };
 
-    if (searchBy === CollectionFindBy.COLLECTION && value) {
-      whereClause.id = value;
-    } else if (searchBy === CollectionFindBy.CUSTOMER && value) {
-      whereClause.customerid = value;
+  if (value && searchBy && searchByMapping[searchBy]) {
+    const field = searchByMapping[searchBy];
+    if (field) {
+      (whereClause as any)[field] = value;
     }
+  }
 
+  try {
     const collections = await prisma.productcollection.findMany({
       where: whereClause,
       include: {

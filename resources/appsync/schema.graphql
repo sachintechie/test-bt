@@ -122,6 +122,9 @@ enum FilterOperator {
 type FilterProductData {
   id: String!
   name: String!
+  description: String
+	type:String
+	sku:String
   categoryid: String
   rarity: ProductRarity
   price: Float
@@ -445,6 +448,9 @@ type ProductAttributeData {
 type ProductData {
   id: String!
   name: String!
+  description: String
+	type:String
+	sku:String
   categoryid: String!
   rarity: ProductRarity
   price: Float

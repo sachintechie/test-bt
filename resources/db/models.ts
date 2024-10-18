@@ -74,6 +74,9 @@ export interface product {
   price: number;
   purchasedpercentage: number;
   tenantid:string;
+  description: string;   
+  type: string;           
+  sku: string;        
 }
 
 export interface productcategory {
@@ -145,6 +148,21 @@ export interface ProductOwnership {
   fractional?: boolean;
   fraction?: number;
 }
+
+export interface productinventory {
+  id?: string;
+  productid: string;
+  inventoryid: string;
+  inventorycategory: string;
+  price: number;
+  quantity: number;
+  ownershipnft?: boolean;
+  smartcontractaddress?: string;
+  tokenid?: string;
+  createdat?: string;
+  updatedat?: string;
+}
+
 
 
 export enum TransactionStatus {
