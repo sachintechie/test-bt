@@ -44,7 +44,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
   };
   const thirdPartyInfo = {
     STRIPE_SECRET: "sk_test_51Q5WSYRoB3vP63ZcG0446nZxieFZHLftc9TywVGeXSzDBwkO1YnyMxg4cuBBkGN8kPTjYYYUHtyF7eytbduUVrJ5005U9k0Jxi",
-    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET:'whsec_ZlTQxB1biBoZQfpbZoNySun4VWSMi8gJ'
+    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET:'whsec_mpDmxZjkszP88yuGFkmzv8kFvZoUhEPo'
   }
   const commonEnvs = {
     ...databaseInfoEnv,
