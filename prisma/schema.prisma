@@ -261,6 +261,9 @@ model productcategory {
 model product {
   id         String     @id @default(uuid())
   name       String
+  description String
+  type       String
+  sku        String
   categoryid String 
   category   productcategory   @relation(fields: [categoryid], references: [id])
   rarity            productrarity?        @default(NORMAL)
@@ -280,8 +283,9 @@ model product {
   productreviews    productreview[]
   collections       productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships productownership[]
+  inventories       productinventory[] 
 
-  @@unique([categoryid, name])
+  @@unique([categoryid, name, sku])
 }
 
 model productattribute {
@@ -307,6 +311,7 @@ model token {
   transactions      transaction[]
   admintransactions admintransaction[]
   staketransaction  staketransaction[]
+  inventory         productinventory?
 }
 
 model transaction {
@@ -488,3 +493,19 @@ ACTIVE
 INACTIVE
 }
 
+model productinventory {
+  id                    String    @id @default(uuid())
+  productid             String
+  product               product   @relation(fields: [productid], references: [id])
+  inventoryid           String   @unique  
+  isdeleted             Boolean?
+  inventorycategory     String   
+  price                 Float   
+  quantity              Int      
+  ownershipnft          Boolean  
+  smartcontractaddress  String?  
+  tokenid               String?   @unique 
+  token                 token?    @relation(fields: [tokenid], references: [id])
+  createdat             DateTime? @default(now())
+  updatedat             DateTime? @updatedAt
+}

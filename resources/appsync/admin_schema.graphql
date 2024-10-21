@@ -17,7 +17,7 @@ type AddRefToKnowledgeBaseData {
 
 input AddRefToKnowledgeBaseInput {
 	refType: String!
-	file: RefFileInput
+	file: FileInput
 	depth: Int
 	websiteName: String
 	websiteUrl: String
@@ -112,6 +112,9 @@ input CreateCategoryInput {
 
 input CreateProductInput {
 	name: String!
+	description: String
+	type:String
+	sku:String
 	categoryId: String!
 	rarity: ProductRarity
 	price: Float
@@ -193,9 +196,13 @@ input GetProductsByCategoryIdInput {
 }
 
 type GetProductsResponse {
-	status: Int
-	data: [ProductData]
-	error: AWSJSON
+    status: Int
+    data: [ProductData]
+    error: AWSJSON
+    page: Int
+    perPage: Int
+    totalRecordsCount: Int
+    totalPageCount: Int
 }
 
 type GetWallet {
@@ -292,11 +299,14 @@ type ProductAttributeResponse {
 type ProductData {
 	id: String!
 	name: String!
+	description: String
+	type:String
+	sku:String
 	categoryid: String!
 	rarity: ProductRarity
 	price: Float
 	status: ProductStatus
-        tenantid: String
+    tenantid: String
 	isdeleted: Boolean
 	purchasedpercentage: Float
 	availablepercentage: Float
@@ -325,7 +335,7 @@ enum ProductStatus {
 	INACTIVE
 }
 
-input RefFileInput {
+input FileInput {
 	fileName: String!
 	fileContent: String!
 	contentType: String!
@@ -403,6 +413,9 @@ input UpdateProductInput {
 
 input UpdateProductInputData {
 	name: String
+	description: String
+	type: String
+	sku:String
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
@@ -420,9 +433,97 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
-input DeleteRefToKnowledgeBaseInput{
-	refId: String!
+input GetAdminProductsInput {
+    page: Int
+    perPage: Int
+} 
+
+input CreateInventoryInput {
+  productId: String!
+  inventoryId: String!
+  inventoryCategory: String!
+  price: Float!
+  quantity: Int!
+  ownershipNft: Boolean
+  smartContractAddress: String
+  tokenId: String
 }
+
+type CreateInventoryResponse {
+  status: Int
+  data: InventoryData
+  error: AWSJSON
+}
+
+type InventoryData {
+  id: String
+  inventoryid: String
+  productid: String
+  product: ProductData
+  inventorycategory: String
+  price: Float
+  quantity: Int
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  isdeleted: Boolean
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+input GetInventoriesByProductIdInput {
+	productId: String!
+	page: Int
+    perPage: Int
+}
+
+type GetInventoriesByProductIdIdResponse {
+  status: Int
+  data: [InventoryData]
+  error: AWSJSON
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+}
+
+input UpdateInventoryInput {
+  inventoryId: String!
+  inventoryData: UpdateInventoryData!
+}
+
+input UpdateInventoryData {
+  inventoryCategory: String
+  price: Float
+  quantity: Int
+  ownershipNft: Boolean
+  smartContractAddress: String
+  tokenId: String
+}
+
+type BulkImportResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
+ input BulkImportInput {
+   file: FileInput!
+ }
+
+ input DeleteInventoryInput {
+	inventoryId: String!
+ }
+
+ input SearchInventoryInput {
+	inventoryId: String
+	productName: String
+ }
+
+ input DeleteRefToKnowledgeBaseInput{
+ refId: String!
+ }
+
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -437,7 +538,13 @@ type Mutation {
 	UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 	DeleteProduct(input: DeleteProductInput): ProductResponse
+	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
+	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportResponse
+	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+
 
 }
 
@@ -449,14 +556,9 @@ type Query {
 	ListReference(input: ListRefInput): ListReference
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-	GetCategories: GetCategoriesResponse
-	GetCategoryById(input: GetCategoryByIdInput): CategoryResponse
-	GetCategoriesByTenantId(input: GetCategoriesByTenantIdInput): GetCategoriesResponse
-	GetProducts: GetProductsResponse
-	GetProductById(input: GetProductByIdInput): ProductResponse
-	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
-	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-    GetAdminProducts: GetProductsResponse
+    GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
+	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
 }
 
 schema {
