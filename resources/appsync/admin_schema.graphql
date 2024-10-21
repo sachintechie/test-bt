@@ -516,8 +516,7 @@ type BulkImportResponse {
  }
 
  input SearchInventoryInput {
-	inventoryId: String
-	productName: String
+	searchKeyword: String!
  }
 
  input FilterInput {

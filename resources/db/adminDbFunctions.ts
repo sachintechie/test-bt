@@ -912,17 +912,22 @@ export async function deleteInventory(inventoryId: string) {
   }
 }
 
-export async function searchInventory(inventoryId: string, productName: string) {
+export async function searchInventory(searchKeyword: string) {
   try {
     const prisma = await getPrismaClient();
 
+    
+    if (!searchKeyword || searchKeyword.trim() === "") {
+      return [];
+    }
+
     const searchResult = await prisma.productinventory.findMany({
       where: {
+        isdeleted: false, 
         OR: [
-          { inventoryid: inventoryId },
-          { product: { name: { contains: productName, mode: 'insensitive' } } }
-        ],
-        isdeleted: false 
+          { inventoryid: { contains: searchKeyword.trim(), mode: 'insensitive' } }, 
+          { product: { name: { contains: searchKeyword.trim(), mode: 'insensitive' } } } 
+        ]
       },
       include: {
         product: true 
@@ -931,9 +936,11 @@ export async function searchInventory(inventoryId: string, productName: string) 
 
     return searchResult;
   } catch (err) {
+    console.error("Error in searchInventory:", err);
     throw err;
   }
 }
+
 
 export async function filterInventory(filters: inventoryfilter) {
   try {
