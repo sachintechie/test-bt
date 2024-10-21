@@ -4,6 +4,7 @@ import { S3 } from 'aws-sdk';
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.BUCKET_NAME || ''; // Get bucket name from environment variables
+const kb_id = process.env.KB_ID || ''; // Get knowledge base ID from environment variables
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -48,7 +49,7 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
        data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
       datasource_id="ZZWKIZUS20";
-      const syncKbResponse   = await syncKb("WIKF9ALZ52", datasource_id);
+      const syncKbResponse   = await syncKb(kb_id, datasource_id);
 
      syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
       console.log("syncKbResponse", syncKbResponse);
@@ -58,10 +59,10 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
       console.log("dataSource", dataSource);
       let dataSourceDetails;
       if(dataSource  == null){
-         dataSourceDetails = await addWebsiteDataSource("ADD","WIKF9ALZ52",websiteUrl);
+         dataSourceDetails = await addWebsiteDataSource("ADD",kb_id,websiteUrl);
       }
       else{
-        dataSourceDetails = await addWebsiteDataSource("UPDATE","WIKF9ALZ52",websiteUrl,"add_url",dataSource);
+        dataSourceDetails = await addWebsiteDataSource("UPDATE",kb_id,websiteUrl,"add_url",dataSource);
 
       }
       if(dataSourceDetails.error){
@@ -74,7 +75,7 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
       console.log("dataSourceDetails", dataSourceDetails);
       datasource_id = dataSourceDetails.body.datasource_id;
        ingestionJobId = dataSourceDetails.body.ingestionJobId;
-      const syncKbResponse   = await syncKb("WIKF9ALZ52", dataSourceDetails.body.datasource_id);
+      const syncKbResponse   = await syncKb(kb_id, dataSourceDetails.body.datasource_id);
       syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
        console.log("syncKbResponse", syncKbResponse);
     }
