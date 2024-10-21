@@ -54,7 +54,7 @@ export async function addWebsiteDataSource(operation : string,kbId: string,url: 
       kb_id: kbId, // Pass any data you need to the target Lambda
       operation: operation,
       url:url,
-      ds_name:"website",
+      ds_name:"website" + url,
       action: action,
       datasource_id: dataSourceId
     })),
