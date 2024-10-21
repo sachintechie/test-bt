@@ -64,11 +64,17 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
         dataSourceDetails = await addWebsiteDataSource("UPDATE","WIKF9ALZ52",websiteUrl,"add_url",dataSource);
 
       }
+      if(dataSourceDetails.error){
+        return {
+          document: null,
+          error: dataSourceDetails.error
+        };
+      }
 
       console.log("dataSourceDetails", dataSourceDetails);
-      datasource_id = dataSourceDetails.datasource_id;
-       ingestionJobId = dataSourceDetails.ingestionJobId;
-      const syncKbResponse   = await syncKb("WIKF9ALZ52", dataSourceDetails.datasource_id);
+      datasource_id = dataSourceDetails.body.datasource_id;
+       ingestionJobId = dataSourceDetails.body.ingestionJobId;
+      const syncKbResponse   = await syncKb("WIKF9ALZ52", dataSourceDetails.body.datasource_id);
       syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
        console.log("syncKbResponse", syncKbResponse);
     }
