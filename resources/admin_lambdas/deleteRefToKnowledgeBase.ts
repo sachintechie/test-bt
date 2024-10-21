@@ -1,9 +1,11 @@
 import { RefType, tenant } from "../db/models";
 import { deleteRef, getReferenceById } from "../db/adminDbFunctions";
 import { S3 } from "aws-sdk";
-import { syncKb } from "../knowledgebase/scanDataSource";
+import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.BUCKET_NAME || ""; // Get bucket name from environment variables
+const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
+
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -38,9 +40,12 @@ async function deleteReference(tenant: tenant, refId: string) {
     if (reference != null && reference.reftype == RefType.DOCUMENT) {
       data = await deleteFromS3(reference?.name ?? "");
       console.log("data", data);
-      const syncKbResponse = await syncKb("WIKF9ALZ52", "ZZWKIZUS20");
-      console.log("syncKbResponse", syncKbResponse);
+    } else if (reference != null && reference.reftype == RefType.WEBSITE) {
+      const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "", reference?.datasourceid ?? "");
+      console.log("deleted dataSourceDetails", dataSourceDetails);
     }
+    const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
+    console.log("syncKbResponse", syncKbResponse);
     const ref = await deleteRef(tenant.id, refId);
 
     return {
@@ -80,7 +85,7 @@ async function deleteFromS3(fileName: string) {
       error: null
     };
   } catch (e) {
-    console.log(`data not uploded to s3: ${e}`);
+    console.log(`data not deleted to s3: ${e}`);
     return {
       data: null,
       error: e
