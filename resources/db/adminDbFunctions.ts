@@ -640,7 +640,8 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
     const existingReference = await prisma.knowledgebasereference.findFirst({
       where: {
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url: refType == RefType.DOCUMENT ? file.fileName : websiteUrl
+        url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+        isdeleted: false
       }
     });
     if (existingReference) {
