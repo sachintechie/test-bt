@@ -65,6 +65,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_NETWORK_ID: "43113",
         BUCKET_NAME:"knowledgebasedocument",
         KB_ID:"WIKF9ALZ52",
+        BEDROCK_DATASOURCE_S3:"ZZWKIZUS20"
       };
     case "staging":
       return {
