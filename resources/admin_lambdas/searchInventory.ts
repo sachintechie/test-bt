@@ -3,7 +3,7 @@ import { searchInventory } from "../db/adminDbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
-
+	
     
     const { searchKeyword } = event.arguments?.input || {};
 
