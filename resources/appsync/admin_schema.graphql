@@ -420,6 +420,10 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
+input DeleteRefToKnowledgeBaseInput{
+	refId: String!
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -433,6 +437,8 @@ type Mutation {
 	UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
 	DeleteProduct(input: DeleteProductInput): ProductResponse
+	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+
 }
 
 type Query {
@@ -450,7 +456,7 @@ type Query {
 	GetProductById(input: GetProductByIdInput): ProductResponse
 	GetProductsByCategoryId(input: GetProductsByCategoryIdInput): GetProductsResponse
 	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-        GetAdminProducts: GetProductsResponse
+    GetAdminProducts: GetProductsResponse
 }
 
 schema {
