@@ -51,10 +51,6 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
        data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
       datasource_id=BedRockDataSourceS3;
-      const syncKbResponse   = await syncKb(kb_id, datasource_id);
-
-     syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
-      console.log("syncKbResponse", syncKbResponse);
     }
     else if(refType === RefType.WEBSITE){
       const dataSource = await getDataSourcesCount(tenant.id);
@@ -67,20 +63,21 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
         dataSourceDetails = await addWebsiteDataSource("UPDATE",kb_id,websiteUrl,"add_url",dataSource);
 
       }
-      if(dataSourceDetails.error){
+      if(dataSourceDetails.error || dataSourceDetails.errorMessage 
+      ){
         return {
           document: null,
-          error: dataSourceDetails.error
+          error: dataSourceDetails.error || dataSourceDetails.errorMessage
         };
       }
-
       console.log("dataSourceDetails", dataSourceDetails);
       datasource_id = dataSourceDetails.body.datasource_id;
-       ingestionJobId = dataSourceDetails.body.ingestionJobId;
-      const syncKbResponse   = await syncKb(kb_id, dataSourceDetails.body.datasource_id);
-      syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
-       console.log("syncKbResponse", syncKbResponse);
+      ingestionJobId = dataSourceDetails.body.ingestionJobId;
     }
+
+    const syncKbResponse   = await syncKb(kb_id,datasource_id);
+    syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
+     console.log("syncKbResponse", syncKbResponse);
     const ref = await addReferenceToDb(tenant.id, file,refType,isIngested, websiteName,websiteUrl,depth,data?.data,datasource_id,ingestionJobId);
  
         return {
@@ -91,7 +88,7 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
     console.log(`Not verified: ${e}`);
     return {
       document: null,
-      error: e
+      error: JSON.stringify(e)
     };
   }
 }
