@@ -1,8 +1,12 @@
 import { RefType, tenant } from "../db/models";
-import { addReferenceToDb  } from "../db/adminDbFunctions";
+import { addReferenceToDb, getDataSourcesCount  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
+import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
-const bucketName = process.env.BUCKET_NAME || ''; // Get bucket name from environment variables
+const bucketName = process.env.KB_BUCKET_NAME || ''; // Get bucket name from environment variables
+const kb_id = process.env.KB_ID || ''; // Get knowledge base ID from environment variables
+const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
+
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -40,11 +44,45 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
   try {
     console.log("createUser", tenant.id, refType);
     let data;
+    let isIngested = false;
+    let datasource_id;
+    let ingestionJobId;
     if(refType === RefType.DOCUMENT){
        data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
+      datasource_id=BedRockDataSourceS3;
+      const syncKbResponse   = await syncKb(kb_id, datasource_id);
+
+     syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
+      console.log("syncKbResponse", syncKbResponse);
     }
-    const ref = await addReferenceToDb(tenant.id, file,refType, websiteName,websiteUrl,depth,data?.data);
+    else if(refType === RefType.WEBSITE){
+      const dataSource = await getDataSourcesCount(tenant.id);
+      console.log("dataSource", dataSource);
+      let dataSourceDetails;
+      if(dataSource  == null){
+         dataSourceDetails = await addWebsiteDataSource("ADD",kb_id,websiteUrl);
+      }
+      else{
+        dataSourceDetails = await addWebsiteDataSource("UPDATE",kb_id,websiteUrl,"add_url",dataSource);
+
+      }
+      if(dataSourceDetails.error){
+        return {
+          document: null,
+          error: dataSourceDetails.error
+        };
+      }
+
+      console.log("dataSourceDetails", dataSourceDetails);
+      datasource_id = dataSourceDetails.body.datasource_id;
+       ingestionJobId = dataSourceDetails.body.ingestionJobId;
+      const syncKbResponse   = await syncKb(kb_id, dataSourceDetails.body.datasource_id);
+      syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
+       console.log("syncKbResponse", syncKbResponse);
+    }
+    const ref = await addReferenceToDb(tenant.id, file,refType,isIngested, websiteName,websiteUrl,depth,data?.data,datasource_id,ingestionJobId);
+ 
         return {
       document: ref,
       error: null

@@ -38,16 +38,19 @@ model cubistconfig {
 
 model knowledgebasereference{
   id                String             @id @default(uuid())
-  tenantid          String?
-  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  tenantid          String
+  tenant            tenant            @relation(fields: [tenantid], references: [id])
   name              String?            
   reftype           String?
   url               String? 
   size              String?
   depth             Int?
-  ingested          Boolean?       
+  ingested          Boolean  
+  isdeleted         Boolean          @default(false)    
   isactive          Boolean
   createdat         String?
+  datasourceid      String?
+  ingestionjobid    String?
     
     @@unique([name, url])
 

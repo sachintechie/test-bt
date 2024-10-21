@@ -520,6 +520,10 @@ type BulkImportResponse {
 	productName: String
  }
 
+ input DeleteRefToKnowledgeBaseInput{
+ refId: String!
+ }
+
  input FilterInput {
    operator: String! 
    value: Float!
@@ -554,6 +558,9 @@ type Mutation {
 	BulkImportInventory(input: BulkImportInput): BulkImportResponse
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
+	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+
+
 }
 
 type Query {

@@ -632,14 +632,8 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(
-  tenantId: string,
-  file: any,
-  refType: string,
-  websiteName?: string,
-  websiteUrl?: string,
-  depth?: number,
-  data?: any
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
+  depth?: number,data?: any,datasource_id?: string,ingestionJobId?: string
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -658,8 +652,11 @@ export async function addReferenceToDb(
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,
-        ingested: false,
+        size: refType == RefType.DOCUMENT ? data.size : null,       
+        ingested: isIngested,
+        isdeleted: false,
+        datasourceid: datasource_id,
+        ingestionjobid: ingestionJobId,
         depth: depth,
         isactive: true,
         createdat: new Date().toISOString()
@@ -671,13 +668,96 @@ export async function addReferenceToDb(
   }
 }
 
-export async function getReferenceList(limit: number, pageNo: number, tenantId: string, refType: string) {
+export async function getDataSourcesCount(tenantId:string) {
+
+  try {
+    const prisma = await getPrismaClient();
+
+    const result = await prisma.knowledgebasereference.groupBy({
+      by: ['datasourceid'],  // Group by the `datasourceId` field
+      _count: {
+        id: true,  // Count the number of rows (assuming `id` is a unique identifier)
+      },
+      where: {
+        isdeleted: false,
+        tenantid: tenantId
+      }
+    });
+ // Step 2: Filter the results where the count is less than 10
+ const filteredResults = result.filter((group) => group._count.id < 10);
+
+    // Step 3: Return only the first matched datasourceId
+    if (filteredResults.length > 0) {
+      return filteredResults[0].datasourceid;  // Return the first result
+    } else {
+      return null;  // Return null if no datasourceId has a count less than 10
+    }    
+  } catch (error) {
+    console.error('Error fetching datasource counts:', error);
+    throw error;
+  }
+}
+
+
+
+
+export async function getReferenceById(tenantId: string, refId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.knowledgebasereference.findFirst({
+      where: {
+        id: refId,
+        tenantid: tenantId,
+        isdeleted: false
+      }
+    });
+    if (reference == null) {
+      throw new Error("Reference not found");
+    }
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function deleteRef(tenantId: string, refId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.knowledgebasereference.findFirst({
+      where: {
+        id: refId,
+        tenantid: tenantId,
+        isdeleted: false
+      }
+    });
+    if (reference == null) {
+      throw new Error("Reference not found");
+    }
+    const deletedReference = await prisma.knowledgebasereference.update({
+      where: { id: refId },
+      data: { isdeleted: true }
+    });
+    return deletedReference;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+export async function getReferenceList(
+  limit: number,
+  pageNo: number,
+  tenantId: string,
+  refType: string
+) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.knowledgebasereference.count({
       where: {
         tenantid: tenantId,
-        reftype: refType
+        reftype: refType,
+        isdeleted: false
       },
       orderBy: {
         createdat: "desc"
@@ -689,7 +769,9 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
     const refs = await prisma.knowledgebasereference.findMany({
       where: {
         tenantid: tenantId,
-        reftype: refType
+        reftype: refType,
+        isdeleted: false
+
       },
 
       orderBy: {
