@@ -46,7 +46,7 @@ model knowledgebasereference{
   size              String?
   depth             Int?
   ingested          Boolean  
-  isDeleted         Boolean          @default(false)    
+  isdeleted         Boolean          @default(false)    
   isactive          Boolean
   createdat         String?
     

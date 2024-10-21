@@ -672,7 +672,7 @@ export async function getReferenceById(tenantId: string, refId: string) {
       where: {
         id: refId,
         tenantid: tenantId,
-        isDeleted: false
+        isdeleted: false
       }
     });
     if (reference == null) {
@@ -691,7 +691,7 @@ export async function deleteRef(tenantId: string, refId: string) {
       where: {
         id: refId,
         tenantid: tenantId,
-        isDeleted: false
+        isdeleted: false
       }
     });
     if (reference == null) {
@@ -699,7 +699,7 @@ export async function deleteRef(tenantId: string, refId: string) {
     }
     const deletedReference = await prisma.knowledgebasereference.update({
       where: { id: refId },
-      data: { isDeleted: true }
+      data: { isdeleted: true }
     });
     return deletedReference;
   } catch (err) {
@@ -721,7 +721,7 @@ export async function getReferenceList(
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isDeleted: false
+        isdeleted: false
       },
       orderBy: {
         createdat: "desc"
@@ -733,7 +733,9 @@ export async function getReferenceList(
     const refs = await prisma.knowledgebasereference.findMany({
       where: {
         tenantid: tenantId,
-        reftype: refType
+        reftype: refType,
+        isdeleted: false
+
       },
 
       orderBy: {
