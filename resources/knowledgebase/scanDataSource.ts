@@ -1,5 +1,6 @@
 import AWS from "aws-sdk";
 import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { op } from "@cubist-labs/cubesigner-sdk/dist/src/fetch";
 
 // Create a Lambda client
 const lambdaClient = new LambdaClient({ region: "us-east-1" });
@@ -46,13 +47,14 @@ export async function syncKb(kbId: string, dataSourceId: string) {
 
 
 export async function addWebsiteDataSource(operation : string,kbId: string,url: string,action? : string, dataSourceId? : string) {
+  console.log("Adding website data source to Bedrock",operation,kbId,url,action,dataSourceId);
   const params = {
     FunctionName: "addDataSourceToBedrock", // Name of the target Lambda function
     Payload: Buffer.from(JSON.stringify({
       kb_id: kbId, // Pass any data you need to the target Lambda
       operation: operation,
       url:url,
-      ds_name:"website",
+      ds_name:"website" + url,
       action: action,
       datasource_id: dataSourceId
     })),
