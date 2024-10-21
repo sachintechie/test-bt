@@ -524,6 +524,21 @@ type BulkImportResponse {
  refId: String!
  }
 
+ input FilterInput {
+   operator: String! 
+   value: Float!
+ }
+
+ input FilterInventoryInputData {
+   inventoryId: String
+   productName: String
+   price: FilterInput
+   quantity: FilterInput
+ }
+
+ input FilterInventoryInput {
+   filters: FilterInventoryInputData!
+ }
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -559,6 +574,7 @@ type Query {
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
 	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
+	FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
 }
 
 schema {

@@ -13,6 +13,7 @@ import {
   ProductStatus,
   RefType,
   productinventory,
+  inventoryfilter
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -1015,3 +1016,60 @@ export async function searchInventory(inventoryId: string, productName: string) 
     throw err;
   }
 }
+
+export async function filterInventory(filters: inventoryfilter) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const whereClause: any = {
+      isdeleted: false, 
+    };
+
+    if (filters.inventoryid) {
+      whereClause.inventoryid = filters.inventoryid;
+    }
+
+    if (filters.productname) {
+      whereClause.product = {
+        name: {
+          contains: filters.productname,
+          mode: 'insensitive' 
+        }
+      };
+    }
+
+    if (filters.price) {
+      const { operator, value } = filters.price;
+      if (operator === 'lt') {
+        whereClause.price = { lt: value };
+      } else if (operator === 'gt') {
+        whereClause.price = { gt: value };
+      } else if (operator === 'eq') {
+        whereClause.price = value;
+      }
+    }
+
+    if (filters.quantity) {
+      const { operator, value } = filters.quantity;
+      if (operator === 'lt') {
+        whereClause.quantity = { lt: value };
+      } else if (operator === 'gt') {
+        whereClause.quantity = { gt: value };
+      } else if (operator === 'eq') {
+        whereClause.quantity = value;
+      }
+    }
+
+    const filteredResult = await prisma.productinventory.findMany({
+      where: whereClause,
+      include: {
+        product: true 
+      }
+    });
+
+    return filteredResult;
+  } catch (err) {
+    throw err;
+  }
+}
+
