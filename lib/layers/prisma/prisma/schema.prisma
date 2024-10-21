@@ -47,7 +47,7 @@ model knowledgebasereference{
   depth             Int?
   ingested          Boolean?       
   isactive          Boolean
-  isDeleted         Boolean          @default(false)
+  isdeleted         Boolean          @default(false)
   createdat         String?
     
     @@unique([name, url])
