@@ -5,6 +5,8 @@ import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.BUCKET_NAME || ''; // Get bucket name from environment variables
 const kb_id = process.env.KB_ID || ''; // Get knowledge base ID from environment variables
+const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
+
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -48,7 +50,7 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
     if(refType === RefType.DOCUMENT){
        data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
-      datasource_id="ZZWKIZUS20";
+      datasource_id=BedRockDataSourceS3;
       const syncKbResponse   = await syncKb(kb_id, datasource_id);
 
      syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
