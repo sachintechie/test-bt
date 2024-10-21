@@ -536,6 +536,17 @@ type BulkImportResponse {
    filters: FilterInventoryInputData!
  }
 
+input TestMediaInput{
+   productId:String,
+   files: [FileInput!]!
+}
+
+type TestMediaResponse{
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -554,6 +565,7 @@ type Mutation {
 	BulkImportInventory(input: BulkImportInput): BulkImportResponse
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
+	TestMedia(input: TestMediaInput): TestMediaResponse
 }
 
 type Query {
