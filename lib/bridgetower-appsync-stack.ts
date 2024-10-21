@@ -63,6 +63,7 @@ const MUTATIONS = [
   "bulkImportInventory",
   "bulkImportProduct",
   "deleteInventory",
+  "deleteRefToKnowledgeBase",
 ];
 
 

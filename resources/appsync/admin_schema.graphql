@@ -520,6 +520,10 @@ type BulkImportResponse {
 	productName: String
  }
 
+ input DeleteRefToKnowledgeBaseInput{
+ refId: String!
+ }
+
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -539,6 +543,9 @@ type Mutation {
 	BulkImportInventory(input: BulkImportInput): BulkImportResponse
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
+	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+
+
 }
 
 type Query {

@@ -631,14 +631,8 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(
-  tenantId: string,
-  file: any,
-  refType: string,
-  websiteName?: string,
-  websiteUrl?: string,
-  depth?: number,
-  data?: any
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
+  depth?: number,data?: any
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -657,8 +651,9 @@ export async function addReferenceToDb(
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,
-        ingested: false,
+        size: refType == RefType.DOCUMENT ? data.size : null,       
+        ingested: isIngested,
+        isDeleted: false,
         depth: depth,
         isactive: true,
         createdat: new Date().toISOString()
@@ -670,13 +665,63 @@ export async function addReferenceToDb(
   }
 }
 
-export async function getReferenceList(limit: number, pageNo: number, tenantId: string, refType: string) {
+export async function getReferenceById(tenantId: string, refId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.knowledgebasereference.findFirst({
+      where: {
+        id: refId,
+        tenantid: tenantId,
+        isDeleted: false
+      }
+    });
+    if (reference == null) {
+      throw new Error("Reference not found");
+    }
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function deleteRef(tenantId: string, refId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.knowledgebasereference.findFirst({
+      where: {
+        id: refId,
+        tenantid: tenantId,
+        isDeleted: false
+      }
+    });
+    if (reference == null) {
+      throw new Error("Reference not found");
+    }
+    const deletedReference = await prisma.knowledgebasereference.update({
+      where: { id: refId },
+      data: { isDeleted: true }
+    });
+    return deletedReference;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
+
+export async function getReferenceList(
+  limit: number,
+  pageNo: number,
+  tenantId: string,
+  refType: string
+) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.knowledgebasereference.count({
       where: {
         tenantid: tenantId,
-        reftype: refType
+        reftype: refType,
+        isDeleted: false
       },
       orderBy: {
         createdat: "desc"
