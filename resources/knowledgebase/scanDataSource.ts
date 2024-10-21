@@ -45,14 +45,16 @@ export async function syncKb(kbId: string, dataSourceId: string) {
 
 
 
-export async function addWebsiteDataSource(kbId: string,url: string) {
+export async function addWebsiteDataSource(operation : string,kbId: string,url: string,action? : string, dataSourceId? : string) {
   const params = {
     FunctionName: "addDataSourceToBedrock", // Name of the target Lambda function
     Payload: Buffer.from(JSON.stringify({
       kb_id: kbId, // Pass any data you need to the target Lambda
-      operation: "ADD",
+      operation: operation,
       url:url,
-      ds_name:"website"
+      ds_name:"website",
+      action: action,
+      datasource_id: dataSourceId
     })),
   };
 

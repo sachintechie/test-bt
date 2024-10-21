@@ -1,5 +1,5 @@
 import { RefType, tenant } from "../db/models";
-import { addReferenceToDb  } from "../db/adminDbFunctions";
+import { addReferenceToDb, getDataSourcesCount  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
@@ -54,7 +54,17 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
       console.log("syncKbResponse", syncKbResponse);
     }
     else if(refType === RefType.WEBSITE){
-      const dataSourceDetails = await addWebsiteDataSource("WIKF9ALZ52",websiteUrl);
+      const dataSource = await getDataSourcesCount(tenant.id);
+      console.log("dataSource", dataSource);
+      let dataSourceDetails;
+      if(dataSource  == null){
+         dataSourceDetails = await addWebsiteDataSource("ADD","WIKF9ALZ52",websiteUrl);
+      }
+      else{
+        dataSourceDetails = await addWebsiteDataSource("UPDATE","WIKF9ALZ52",websiteUrl,"add_url",dataSource);
+
+      }
+
       console.log("dataSourceDetails", dataSourceDetails);
       datasource_id = dataSourceDetails.datasource_id;
        ingestionJobId = dataSourceDetails.ingestionJobId;

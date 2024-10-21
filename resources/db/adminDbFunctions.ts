@@ -667,6 +667,39 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
   }
 }
 
+export async function getDataSourcesCount(tenantId:string) {
+
+  try {
+    const prisma = await getPrismaClient();
+
+    const result = await prisma.knowledgebasereference.groupBy({
+      by: ['datasourceid'],  // Group by the `datasourceId` field
+      _count: {
+        id: true,  // Count the number of rows (assuming `id` is a unique identifier)
+      },
+      where: {
+        isdeleted: false,
+        tenantid: tenantId
+      }
+    });
+ // Step 2: Filter the results where the count is less than 10
+ const filteredResults = result.filter((group) => group._count.id < 10);
+
+    // Step 3: Return only the first matched datasourceId
+    if (filteredResults.length > 0) {
+      return filteredResults[0].datasourceid;  // Return the first result
+    } else {
+      return null;  // Return null if no datasourceId has a count less than 10
+    }    
+  } catch (error) {
+    console.error('Error fetching datasource counts:', error);
+    throw error;
+  }
+}
+
+
+
+
 export async function getReferenceById(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
