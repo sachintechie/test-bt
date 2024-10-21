@@ -201,7 +201,7 @@ jobs:
         run: npx cdk deploy --context env=playground-dev --all --require-approval never
   cdk-deploy-ai-sovereignty-dev:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/playground-dev'
+    if: github.ref == 'refs/heads/ai-sovereignty-dev'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
