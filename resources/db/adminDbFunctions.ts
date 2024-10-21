@@ -912,28 +912,75 @@ export async function deleteInventory(inventoryId: string) {
   }
 }
 
-export async function searchInventory(inventoryId: string, productName: string) {
+export async function searchInventory(searchKeyword: string) {
   try {
     const prisma = await getPrismaClient();
 
+    if (!searchKeyword || searchKeyword.trim() === "") {
+      return {
+        status: 400,
+        data: null,
+        error: "Search keyword is required."
+      };
+    }
+
+  
+    console.log("Searching with keyword:", searchKeyword.trim());
+
+  
     const searchResult = await prisma.productinventory.findMany({
       where: {
+        isdeleted: false,
         OR: [
-          { inventoryid: inventoryId },
-          { product: { name: { contains: productName, mode: 'insensitive' } } }
-        ],
-        isdeleted: false 
+          { inventoryid: { contains: searchKeyword.trim(), mode: 'insensitive' } }, 
+          { product: { name: { contains: searchKeyword.trim(), mode: 'insensitive' } } } 
+        ]
       },
       include: {
         product: true 
       }
     });
 
-    return searchResult;
+	console.log("searchResult:", searchResult);
+
+   
+    if (searchResult.length === 0) {
+      return {
+        status: 404,
+        data: null,
+        error: "No inventory or product found matching the search keyword."
+      };
+    }
+
+   
+    const inventoryWithoutProduct = searchResult.filter((inventory: any) => !inventory.product);
+
+    if (inventoryWithoutProduct.length > 0) {
+      return {
+        status: 200,
+        data: null,
+        error: "Inventory found but no linked product."
+      };
+    }
+
+    
+    return {
+      status: 200,
+      data: searchResult,
+      error: null
+    };
   } catch (err) {
-    throw err;
+    console.error("Error in searchInventory:", err);
+
+    return {
+      status: 500,
+      data: null,
+      error: "An error occurred while searching the inventory."
+    };
   }
 }
+
+
 
 export async function filterInventory(filters: inventoryfilter) {
   try {
