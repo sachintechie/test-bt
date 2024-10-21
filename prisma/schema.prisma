@@ -284,7 +284,7 @@ model product {
   productownerships productownership[]
   inventories       productinventory[] 
 
-  @@unique([categoryid, name])
+  @@unique([categoryid, name, sku])
 }
 
 model productattribute {
@@ -497,6 +497,7 @@ model productinventory {
   productid             String
   product               product   @relation(fields: [productid], references: [id])
   inventoryid           String   @unique  
+  isdeleted             Boolean?
   inventorycategory     String   
   price                 Float   
   quantity              Int      

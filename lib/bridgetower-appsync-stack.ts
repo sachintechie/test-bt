@@ -61,7 +61,8 @@ const MUTATIONS = [
   "createInventory",
   "updateInventory",
   "bulkImportInventory",
-  "bulkImportProduct"
+  "bulkImportProduct",
+  "deleteInventory",
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {

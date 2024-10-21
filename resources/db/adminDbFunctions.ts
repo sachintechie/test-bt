@@ -13,7 +13,7 @@ import {
   ProductStatus,
   RefType,
   productinventory,
-//   inventoryData
+  inventoryfilter
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -749,6 +749,7 @@ export async function createInventory(inventoryData: productinventory) {
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
+		isdeleted: false
       }
     });
 
@@ -788,6 +789,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
     const inventory = await prisma.productinventory.findMany({
       where: {
         productid: productId,
+		isdeleted: false
       },
       skip: offset, 
       take: limit,  
@@ -797,6 +799,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
     const totalCount = await prisma.productinventory.count({
       where: {
         productid: productId,
+		isdeleted: false
       },
     });
 
@@ -811,13 +814,14 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
   }
 }
 
-export async function updateInventory(inventoryId: string, updateData: inventory) {
+export async function updateInventory(inventoryId: string, updateData: productinventory) {
   const prisma = await getPrismaClient();
 
   try {
     const updatedInventory = await prisma.productinventory.update({
       where: {
         id: inventoryId,
+		
       },
       data: updateData,
     });
@@ -847,7 +851,8 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         quantity: inventoryData.quantity,
         ownershipnft: inventoryData.ownershipnft ?? false, 
         smartcontractaddress: inventoryData.smartcontractaddress,
-        tokenid: inventoryData.tokenid
+        tokenid: inventoryData.tokenid,
+		isdeleted: false
       })),
       skipDuplicates: true 
     });
@@ -891,3 +896,98 @@ export async function createBulkProduct(productDataArray: product[]) {
     }
   }
 }
+
+export async function deleteInventory(inventoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const deletedInventory = await prisma.productinventory.update({
+      where: { id: inventoryId },
+      data: { isdeleted: true }
+    });
+
+    return deletedInventory;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function searchInventory(inventoryId: string, productName: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const searchResult = await prisma.productinventory.findMany({
+      where: {
+        OR: [
+          { inventoryid: inventoryId },
+          { product: { name: { contains: productName, mode: 'insensitive' } } }
+        ],
+        isdeleted: false 
+      },
+      include: {
+        product: true 
+      }
+    });
+
+    return searchResult;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function filterInventory(filters: inventoryfilter) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const whereClause: any = {
+      isdeleted: false, 
+    };
+
+    if (filters.inventoryid) {
+      whereClause.inventoryid = filters.inventoryid;
+    }
+
+    if (filters.productname) {
+      whereClause.product = {
+        name: {
+          contains: filters.productname,
+          mode: 'insensitive' 
+        }
+      };
+    }
+
+    if (filters.price) {
+      const { operator, value } = filters.price;
+      if (operator === 'lt') {
+        whereClause.price = { lt: value };
+      } else if (operator === 'gt') {
+        whereClause.price = { gt: value };
+      } else if (operator === 'eq') {
+        whereClause.price = value;
+      }
+    }
+
+    if (filters.quantity) {
+      const { operator, value } = filters.quantity;
+      if (operator === 'lt') {
+        whereClause.quantity = { lt: value };
+      } else if (operator === 'gt') {
+        whereClause.quantity = { gt: value };
+      } else if (operator === 'eq') {
+        whereClause.quantity = value;
+      }
+    }
+
+    const filteredResult = await prisma.productinventory.findMany({
+      where: whereClause,
+      include: {
+        product: true 
+      }
+    });
+
+    return filteredResult;
+  } catch (err) {
+    throw err;
+  }
+}
+

@@ -459,12 +459,14 @@ type InventoryData {
   id: String
   inventoryid: String
   productid: String
+  product: ProductData
   inventorycategory: String
   price: Float
   quantity: Int
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
+  isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
 }
@@ -509,6 +511,31 @@ type BulkImportResponse {
    file: FileInput!
  }
 
+ input DeleteInventoryInput {
+	inventoryId: String!
+ }
+
+ input SearchInventoryInput {
+	inventoryId: String
+	productName: String
+ }
+
+ input FilterInput {
+   operator: String! 
+   value: Float!
+ }
+
+ input FilterInventoryInputData {
+   inventoryId: String
+   productName: String
+   price: FilterInput
+   quantity: FilterInput
+ }
+
+ input FilterInventoryInput {
+   filters: FilterInventoryInputData!
+ }
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -526,6 +553,7 @@ type Mutation {
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
 	BulkImportInventory(input: BulkImportInput): BulkImportResponse
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
+	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 }
 
 type Query {
@@ -538,6 +566,8 @@ type Query {
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
     GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
+	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
+	FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
 }
 
 schema {

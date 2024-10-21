@@ -163,6 +163,18 @@ export interface productinventory {
   updatedat?: string;
 }
 
+export interface inventoryfilter {
+  inventoryid?: string;
+  productname?: string;
+  price?: {
+    operator: 'lt' | 'gt' | 'eq';
+    value: number;
+  };
+  quantity?: {
+    operator: 'lt' | 'gt' | 'eq';
+    value: number;
+  };
+}
 
 
 export enum TransactionStatus {
