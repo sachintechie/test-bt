@@ -1,7 +1,7 @@
 import { RefType, tenant } from "../db/models";
 import { addReferenceToDb  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
-import { syncKb } from "../knowledgebase/scanDataSource";
+import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.BUCKET_NAME || ''; // Get bucket name from environment variables
 export const handler = async (event: any, context: any) => {
@@ -42,14 +42,27 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
     console.log("createUser", tenant.id, refType);
     let data;
     let isIngested = false;
+    let datasource_id;
+    let ingestionJobId;
     if(refType === RefType.DOCUMENT){
        data = await addToS3Bucket(file.fileName, file.fileContent);
       console.log("data", data);  
-      const syncKbResponse   = await syncKb("WIKF9ALZ52", "ZZWKIZUS20");
+      datasource_id="ZZWKIZUS20";
+      const syncKbResponse   = await syncKb("WIKF9ALZ52", datasource_id);
+
      syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
       console.log("syncKbResponse", syncKbResponse);
     }
-    const ref = await addReferenceToDb(tenant.id, file,refType,isIngested, websiteName,websiteUrl,depth,data?.data);
+    else if(refType === RefType.WEBSITE){
+      const dataSourceDetails = await addWebsiteDataSource("WIKF9ALZ52",websiteUrl);
+      console.log("dataSourceDetails", dataSourceDetails);
+      datasource_id = dataSourceDetails.datasource_id;
+       ingestionJobId = dataSourceDetails.ingestionJobId;
+      const syncKbResponse   = await syncKb("WIKF9ALZ52", dataSourceDetails.datasource_id);
+      syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
+       console.log("syncKbResponse", syncKbResponse);
+    }
+    const ref = await addReferenceToDb(tenant.id, file,refType,isIngested, websiteName,websiteUrl,depth,data?.data,datasource_id,ingestionJobId);
  
         return {
       document: ref,

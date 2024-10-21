@@ -1,5 +1,8 @@
 import AWS from "aws-sdk";
+import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
 
+// Create a Lambda client
+const lambdaClient = new LambdaClient({ region: "us-east-1" });
 const bedrockAgentClient = new AWS.BedrockAgent({ region: "us-east-1" });
 
 // Sync knowledge base
@@ -40,41 +43,28 @@ export async function syncKb(kbId: string, dataSourceId: string) {
 }
 
 
-export async function addDataSource(kbId: string) {
 
-  const t = await bedrockAgentClient.createDataSource({
-    knowledgeBaseId: kbId, // Required property
-    name: "dataSourceName", // Required property
-    dataSourceConfiguration: {
-        type: 'WEB', // or the appropriate type based on your use case
-        s3Configuration: {
-            bucketArn: 'arn:aws:s3:::your-bucket-name', // Your actual bucket ARN
-            // Include other necessary properties for S3 configuration, if required
-        },
-    },
-  }).promise();
-  console.log(t);
 
-  const t2 = await bedrockAgentClient.createDataSource({
-    knowledgeBaseId: kbId, // Required property
-    name: "dataSourceName", // Required property
-    dataSourceConfiguration: {
-      type: 'WEB', // Specify the type as WEB
-      webConfiguration: { // Include webConfiguration
-        sourceConfiguration: {
-          urlConfiguration: {
-            seedUrls: [
-              { url: "https://www.example.com" }, // Replace with your desired URL
-            ],
-          },
-        },
-        crawlerConfiguration: {
-          crawlerLimits: {
-            rateLimit: 300, // Rate limit for the crawler
-          },
-          scope: 'HOST_ONLY', // Scope for crawling
-        },
-      },
-    },
-  }).promise();
+export async function addWebsiteDataSource(kbId: string,url: string) {
+  const params = {
+    FunctionName: "addDataSourceToBedrock", // Name of the target Lambda function
+    Payload: Buffer.from(JSON.stringify({
+      kb_id: kbId, // Pass any data you need to the target Lambda
+      operation: "ADD",
+      url:url,
+      ds_name:"website"
+    })),
+  };
+
+  // Create the command to invoke the Lambda
+  const command = new InvokeCommand(params);
+
+  // Send the command to invoke the Lambda function
+  const response = await lambdaClient.send(command);
+
+  // Process the response from the invoked Lambda (if needed)
+  const payload = JSON.parse(new TextDecoder("utf-8").decode(response.Payload));
+  
+  console.log("Response from invoked Lambda:", payload);
+  return payload;
 }
