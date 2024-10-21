@@ -1,6 +1,6 @@
 import { S3 } from 'aws-sdk';
 const s3 = new S3();
-const bucketName = process.env.BUCKET_NAME || '';
+const bucketName = process.env.PRODUCT_BUCKET_NAME || '';
 
 export const handler = async (event: any, context: any) => {
   try {
