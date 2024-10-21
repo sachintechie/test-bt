@@ -42,6 +42,13 @@ async function deleteReference(tenant: tenant, refId: string) {
       console.log("data", data);
     } else if (reference != null && reference.reftype == RefType.WEBSITE) {
       const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "", reference?.datasourceid ?? "");
+      if(dataSourceDetails.error || dataSourceDetails.errorMessage 
+      ){
+        return {
+          document: null,
+          error: dataSourceDetails.error || dataSourceDetails.errorMessage
+        };
+      }
       console.log("deleted dataSourceDetails", dataSourceDetails);
     }
     const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
@@ -56,7 +63,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     console.log(`Not verified: ${e}`);
     return {
       document: null,
-      error: e
+      error: JSON.stringify(e)
     };
   }
 }
