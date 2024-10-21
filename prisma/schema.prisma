@@ -49,6 +49,8 @@ model knowledgebasereference{
   isdeleted         Boolean          @default(false)    
   isactive          Boolean
   createdat         String?
+  datasourceid      String?
+  ingestionjobid    String?
     
     @@unique([name, url])
 
