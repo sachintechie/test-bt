@@ -3,7 +3,7 @@ import { deleteRef, getReferenceById } from "../db/adminDbFunctions";
 import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 const s3 = new S3();
-const bucketName = process.env.BUCKET_NAME || ""; // Get bucket name from environment variables
+const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {
