@@ -64,7 +64,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_SUBNET_NETWORK_ID: "41024",
         AVAX_NETWORK_ID: "43113",
         BUCKET_NAME:"knowledgebasedocument",
-        PRODUCT_BUCKET_NAME:"productbucket"
+        PRODUCT_BUCKET_NAME:"meadowlandproductbucket"
       };
     case "staging":
       return {
@@ -108,7 +108,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
         AVAX_NETWORK_ID: "43113",
-        PRODUCT_BUCKET_NAME:"productbucket"
+        PRODUCT_BUCKET_NAME:"meadowlandproductbucket"
       };
   }
 };
