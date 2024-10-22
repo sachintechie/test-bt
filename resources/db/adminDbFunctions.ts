@@ -664,7 +664,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         s3poststorehash:hashedData.s3PostStoreHash,
         s3poststoretxhash:hashedData.s3PostStoreTxHash,
         chaintype: hashedData.chainType,
-        chainid: hashedData.chainId,
+        chainid: hashedData.chainId.toString(),
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: depth,
@@ -678,7 +678,29 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
   }
 }
 
-export async function getDataSourcesCount(tenantId:string) {
+export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
+  const prisma = await getPrismaClient();
+  const existingReference = await prisma.knowledgebasereference.findFirst({
+    where: {
+      name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
+      url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+      isdeleted: false
+    }
+  });
+  if (existingReference) {
+    return {
+      isExist: true,
+      error: "Reference is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+export async function getDataSourcesCount(tenantId:string,refType: string) {
 
   try {
     const prisma = await getPrismaClient();
@@ -690,7 +712,8 @@ export async function getDataSourcesCount(tenantId:string) {
       },
       where: {
         isdeleted: false,
-        tenantid: tenantId
+        tenantid: tenantId,
+        reftype: refType
       }
     });
  // Step 2: Filter the results where the count is less than 10
