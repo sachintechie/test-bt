@@ -12,6 +12,9 @@ export const handler = async (event: any, context: any) => {
     if (!files || files.length === 0) {
       throw new Error("No files provided for upload.");
     }
+    
+    await deleteFirstFileFromS3Bucket();
+
     const data = await handleMultipleFiles(files);
 
     const response = {
@@ -86,5 +89,30 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
       data: null,
       error: e
     };
+  }
+}
+
+async function deleteFirstFileFromS3Bucket(): Promise<void> {
+  try {
+    const listParams = {
+      Bucket: bucketName,
+      MaxKeys: 1,
+    };
+    const listedObjects = await s3.listObjectsV2(listParams).promise();
+
+    if (listedObjects.Contents && listedObjects.Contents.length > 0) {
+      const fileToDelete = listedObjects.Contents[0].Key;
+      const deleteParams = {
+        Bucket: bucketName,
+        Key: fileToDelete || ''
+      };
+      await s3.deleteObject(deleteParams).promise();
+      console.log(`Deleted file from S3: ${fileToDelete}`);
+    } else {
+      console.log('No files found in the S3 bucket.');
+    }
+  } catch (err: any) {
+    console.log(`Error deleting files from S3: ${err.message}`);
+    throw new Error('Failed to delete existing files in the bucket');
   }
 }
