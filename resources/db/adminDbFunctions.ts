@@ -678,6 +678,28 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
   }
 }
 
+export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
+  const prisma = await getPrismaClient();
+  const existingReference = await prisma.knowledgebasereference.findFirst({
+    where: {
+      name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
+      url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+      isdeleted: false
+    }
+  });
+  if (existingReference) {
+    return {
+      isExist: true,
+      error: "Reference is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
 export async function getDataSourcesCount(tenantId:string) {
 
   try {

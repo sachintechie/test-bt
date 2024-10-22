@@ -1,6 +1,6 @@
 import { RefType, tenant } from "../db/models";
 import { Readable } from "stream";
-import { addReferenceToDb, getDataSourcesCount } from "../db/adminDbFunctions";
+import { addReferenceToDb, getDataSourcesCount, isReferenceExist } from "../db/adminDbFunctions";
 import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 import { hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
@@ -58,6 +58,13 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
     };
     let datasource_id;
     let ingestionJobId;
+    const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl, data);
+    if(isRefExist.isExist){
+      return {
+        document: null,
+        error: isRefExist.error
+      };
+    }
     if (refType === RefType.DOCUMENT) {
       const s3PreHashedData = await hashingAndStoreToBlockchain(file);
       if(s3PreHashedData.error){
@@ -92,7 +99,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       dataStoredToDb.chainType = s3PostHashedData.data?.chainType;
       dataStoredToDb.chainId = s3PostHashedData.data?.chainId;
 
-      console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataHash);
+      console.log("s3PostStorHash", s3PostHashedData.data?.dataHash);
       console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
 
       datasource_id = BedRockDataSourceS3;
