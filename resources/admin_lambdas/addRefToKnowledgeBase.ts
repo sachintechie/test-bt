@@ -163,6 +163,7 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
       Key: fileName
     };
     const s3Details = await s3.getObject(s3Params).promise();
+    console.log("s3Details", s3Details);
     const objectContent = await streamToBuffer(s3Details.Body as Readable);
     const size = await formatBytes(s3Details.ContentLength || 0);
 
