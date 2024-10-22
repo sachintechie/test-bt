@@ -120,7 +120,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       }
       console.log("dataSourceDetails", dataSourceDetails);
       datasource_id = JSON.parse(dataSourceDetails.body).datasource_id;
-      ingestionJobId = JSON.parse(dataSourceDetails.body).body.ingestionJobId;
+      ingestionJobId = JSON.parse(dataSourceDetails.body).ingestionJobId;
       console.log("datasource_id", datasource_id, ingestionJobId);
 
     }
