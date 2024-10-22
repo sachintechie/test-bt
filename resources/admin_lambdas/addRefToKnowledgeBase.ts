@@ -136,16 +136,22 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       ingestionJobId,
       dataStoredToDb
     );
+    if(ref.error){
+      return {
+        document: null,
+        error: ref.error
+      };
+    }
 
     return {
-      document: ref,
+      document: ref.data,
       error: null
     };
   } catch (e: any) {
     console.log(`Not verified: ${e}`);
     return {
       document: null,
-      error: JSON.stringify(e.Error)
+      error: e
     };
   }
 }
