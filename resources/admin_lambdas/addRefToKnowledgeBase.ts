@@ -104,7 +104,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
         };
       }
       console.log("dataSourceDetails", dataSourceDetails);
-      datasource_id = dataSourceDetails.body.datasource_id;
+       = dataSourceDetails.body.datasource_id;
       ingestionJobId = dataSourceDetails.body.ingestionJobId;
     }
 
@@ -119,8 +119,8 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       websiteName,
       websiteUrl,
       depth,
+      datasource_id
       data?.data,
-      datasource_id,
       ingestionJobId,
       dataStoredToDb
     );

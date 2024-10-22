@@ -633,7 +633,7 @@ export async function deleteProduct(productId: string) {
 }
 
 export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
-  depth?: number,data?: any,datasource_id?: string,ingestionJobId?: string,hashedData?: any
+  depth?: number,datasource_id?: string,data?: any,ingestionJobId?: string,hashedData?: any
 ) {
   try {
     const prisma = await getPrismaClient();
