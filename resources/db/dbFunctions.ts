@@ -2203,16 +2203,19 @@ export async function transferProductOwnership(
   }
 }
 
-export async function searchProductsByName(name?: string) {
+
+
+export async function searchProducts(searchKeyword: string) {
   try {
     const prisma = await getPrismaClient();
 
     const products = await prisma.product.findMany({
       where: {
-        name: {
-          contains: name,
-          mode: "insensitive"
-        }
+        OR: [
+          { name: { contains: searchKeyword.trim(), mode: "insensitive" } },
+          { sku: { contains: searchKeyword.trim(), mode: "insensitive" } },
+          { type: { contains: searchKeyword.trim(), mode: "insensitive" } }
+        ]
       },
       include: {
         category: true,
