@@ -7,7 +7,7 @@ import {newApiGateway, newStripeWebhookApiGateway} from "./utils/apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo, getPlaygrounDevDatabaseInfo } from "./utils/aurora";
 import { AuroraStack } from "./bridgetower-aurora-stack";
-import { newNodeJsFunction } from "./utils/lambda";
+import {newMigrateNodeJsFunction, newNodeJsFunction} from "./utils/lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
@@ -104,10 +104,17 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
-      lambdaMap.set(
-        lambdaResourceName,
-        newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-      );
+      if(lambdaResourceName === MIGRATION_LAMBDA_NAME){
+        lambdaMap.set(
+          lambdaResourceName,
+          newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+        );
+      }else{
+        lambdaMap.set(
+          lambdaResourceName,
+          newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+        );
+      }
     }
 
     if (!isDevOrProd() && props.needMigrate) {
@@ -116,7 +123,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
         onEventHandler: lambdaMap.get(MIGRATION_LAMBDA_NAME)!
       });
 
-      new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken, properties: { version: "0.0.5" } });
+      new cdk.CustomResource(this, env`MigrateResource`, { serviceToken: provider.serviceToken, properties: { version: "0.0.6" } });
     }
 
     if (props.hasApiGateway) {
