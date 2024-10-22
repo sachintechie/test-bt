@@ -44,6 +44,12 @@ model knowledgebasereference{
   reftype           String?
   url               String? 
   size              String?
+  s3prestorehash    String?
+  s3prestoretxhash  String?
+  s3poststorehash   String?
+  s3poststoretxhash String?
+  chaintype         String?
+  chainid           String?
   depth             Int?
   ingested          Boolean  
   isdeleted         Boolean          @default(false)    

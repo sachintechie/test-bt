@@ -633,7 +633,7 @@ export async function deleteProduct(productId: string) {
 }
 
 export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
-  depth?: number,data?: any,datasource_id?: string,ingestionJobId?: string
+  depth?: number,datasource_id?: string,data?: any,ingestionJobId?: string,hashedData?: any
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -645,7 +645,10 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
       }
     });
     if (existingReference) {
-      throw new Error("Reference is already added with this name");
+      return {
+        data: null,
+        error: "Reference is already added with this name"
+      }
     }
     const newRef = await prisma.knowledgebasereference.create({
       data: {
@@ -656,6 +659,12 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         size: refType == RefType.DOCUMENT ? data.size : null,       
         ingested: isIngested,
         isdeleted: false,
+        s3prestorehash :hashedData.s3PreStoreHash,
+        s3prestoretxhash : hashedData.s3PreStoreTxHash,
+        s3poststorehash:hashedData.s3PostStoreHash,
+        s3poststoretxhash:hashedData.s3PostStoreTxHash,
+        chaintype: hashedData.chainType,
+        chainid: hashedData.chainId.toString(),
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: depth,
@@ -663,13 +672,35 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         createdat: new Date().toISOString()
       }
     });
-    return newRef;
+    return {data : newRef ,error:null};
   } catch (err) {
-    throw err;
+    return {data : null ,error:err};
   }
 }
 
-export async function getDataSourcesCount(tenantId:string) {
+export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
+  const prisma = await getPrismaClient();
+  const existingReference = await prisma.knowledgebasereference.findFirst({
+    where: {
+      name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
+      url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+      isdeleted: false
+    }
+  });
+  if (existingReference) {
+    return {
+      isExist: true,
+      error: "Reference is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+export async function getDataSourcesCount(tenantId:string,refType: string) {
 
   try {
     const prisma = await getPrismaClient();
@@ -681,7 +712,8 @@ export async function getDataSourcesCount(tenantId:string) {
       },
       where: {
         isdeleted: false,
-        tenantid: tenantId
+        tenantid: tenantId,
+        reftype: refType
       }
     });
  // Step 2: Filter the results where the count is less than 10
