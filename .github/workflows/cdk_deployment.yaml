@@ -11,6 +11,7 @@ on:
       - schoolhack-prod
       - ondemand-prod
       - playground-dev
+      - ai-sovereignty-dev
 
 jobs:
   cdk-deploy-dev:
@@ -198,3 +199,29 @@ jobs:
         env:
           CDK_ENV: "playground-dev"
         run: npx cdk deploy --context env=playground-dev --all --require-approval never
+  cdk-deploy-ai-sovereignty-dev:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/ai-sovereignty-dev'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Set up AWS credentials for ai-sovereignty-dev
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_AI_Sovereignty_DEV }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AI_Sovereignty_DEV }}
+          aws-region: ${{ secrets.AWS_REGION_AI_Sovereignty_DEV }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Deploy to ai-sovereignty-dev
+        env:
+          CDK_ENV: "ai-sovereignty-dev"
+        run: npx cdk deploy --context env=ai-sovereignty-dev --all --require-approval never

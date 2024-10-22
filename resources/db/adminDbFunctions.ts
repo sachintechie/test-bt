@@ -633,7 +633,7 @@ export async function deleteProduct(productId: string) {
 }
 
 export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
-  depth?: number,data?: any,datasource_id?: string,ingestionJobId?: string
+  depth?: number,data?: any,datasource_id?: string,ingestionJobId?: string,hashedData?: any
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -656,6 +656,10 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         size: refType == RefType.DOCUMENT ? data.size : null,       
         ingested: isIngested,
         isdeleted: false,
+        s3PreStoreHash :hashedData.s3PreStoreHash,
+        s3PreStoreTxHash : hashedData.s3PreStoreTxHash,
+        s3PostStoreHash:hashedData.s3PostStoreHash,
+        s3PostStoreTxHash:hashedData.s3PostStoreTxHash,
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: depth,

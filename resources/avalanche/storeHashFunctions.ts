@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 import { AvalancheTransactionStatus } from "../db/models";
+import * as crypto from "crypto";
+
 // Environment variables (set in AWS Lambda or using dotenv)
 const AVAX_RPC_SUBNET_URL = process.env.AVAX_RPC_SUBNET_URL; // Infura or any RPC provider URL
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL; // Infura or any RPC provider URL
@@ -228,6 +230,31 @@ export async function storeHash(hash: string) {
         gas: gas.toString(),
         nonce: transaction.nonce,
         chainId: transaction.chainId
+      },
+      error: null
+    };
+  } catch (error) {
+    // Handle any errors
+    console.log("Error: ", error);
+    return {
+      data: null,
+      error: error
+    };
+  }
+}
+
+
+export async function hashingAndStoreToBlockchain(data: any) {
+  try {
+    const dataHash = crypto.createHash("sha256").update(data).digest("hex");
+    console.log("dataHash", dataHash);
+    const dataTxHash = await storeHash(dataHash);
+    console.log("dataTxHash", dataTxHash);
+    
+    return {
+      data: {
+        dataHash,
+        dataTxHash : dataTxHash?.data?.transactionId
       },
       error: null
     };
