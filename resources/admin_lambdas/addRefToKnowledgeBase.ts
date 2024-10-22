@@ -93,9 +93,9 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       console.log("dataSource", dataSource);
       let dataSourceDetails;
       if (dataSource == null) {
-        dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl);
+        dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl,websiteName);
       } else {
-        dataSourceDetails = await addWebsiteDataSource("UPDATE", kb_id, websiteUrl, "add_url", dataSource);
+        dataSourceDetails = await addWebsiteDataSource("UPDATE", kb_id, websiteUrl, websiteName,"add_url", dataSource);
       }
       if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
         return {
