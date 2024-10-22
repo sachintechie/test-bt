@@ -57,9 +57,7 @@ model knowledgebasereference{
   createdat         String?
   datasourceid      String?
   ingestionjobid    String?
-    
-  @@unique([name, url])
-
+  
   @@unique([name, url])
 }
 
