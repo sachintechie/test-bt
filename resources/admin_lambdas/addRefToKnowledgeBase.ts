@@ -95,7 +95,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       console.log("uploadedFile", uploadedFile);
       const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
       dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
-      dataStoredToDb.s3PreStoreTxHash = s3PostHashedData.data?.dataTxHash;
+      dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.dataTxHash;
       dataStoredToDb.chainType = s3PostHashedData.data?.chainType;
       dataStoredToDb.chainId = s3PostHashedData.data?.chainId;
 
@@ -104,7 +104,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
 
       datasource_id = BedRockDataSourceS3;
     } else if (refType === RefType.WEBSITE) {
-      const dataSource = await getDataSourcesCount(tenant.id);
+      const dataSource = await getDataSourcesCount(tenant.id,refType);
       console.log("dataSource", dataSource);
       let dataSourceDetails;
       if (dataSource == null) {
