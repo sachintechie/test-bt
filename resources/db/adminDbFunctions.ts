@@ -945,38 +945,24 @@ export async function searchInventory(searchKeyword: string) {
 
    
     if (searchResult.length === 0) {
-      return {
-        status: 404,
-        data: null,
-        error: "No inventory or product found matching the search keyword."
-      };
+	    throw new Error("No inventory found.");
     }
 
    
     const inventoryWithoutProduct = searchResult.filter((inventory: any) => !inventory.product);
 
     if (inventoryWithoutProduct.length > 0) {
-      return {
-        status: 200,
-        data: null,
-        error: "Inventory found but no linked product."
-      };
+      throw new Error(`No product found for inventory ID(s)`);
     }
 
     
-    return {
-      status: 200,
-      data: searchResult,
-      error: null
-    };
+    return searchResult
   } catch (err) {
-    console.error("Error in searchInventory:", err);
-
-    return {
-      status: 500,
-      data: null,
-      error: "An error occurred while searching the inventory."
-    };
+   if (err instanceof Error) {
+      throw new Error(err.message || "An error occurred while searching the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
