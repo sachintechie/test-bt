@@ -229,7 +229,8 @@ export async function storeHash(hash: string) {
         gasPrice: transaction.gasPrice?.toString(),
         gas: gas.toString(),
         nonce: transaction.nonce,
-        chainId: transaction.chainId
+        chainId: transaction.chainId,
+        chainType: "Avalanche"
       },
       error: null
     };
@@ -254,7 +255,9 @@ export async function hashingAndStoreToBlockchain(data: any) {
     return {
       data: {
         dataHash,
-        dataTxHash : dataTxHash?.data?.transactionId
+        dataTxHash : dataTxHash?.data?.transactionId,
+        chainId: dataTxHash?.data?.chainId,
+        chainType: dataTxHash?.data?.chainType
       },
       error: null
     };
