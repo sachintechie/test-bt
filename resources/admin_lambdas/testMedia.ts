@@ -1,12 +1,17 @@
 import { S3 } from 'aws-sdk';
 const s3 = new S3();
 const bucketName = process.env.PRODUCT_BUCKET_NAME || '';
-
+if (!bucketName) {
+  throw new Error("Bucket name is not set in environment variables");
+}
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
     const files = event.arguments?.input?.files;
+    if (!files || files.length === 0) {
+      throw new Error("No files provided for upload.");
+    }
     const data = await handleMultipleFiles(files);
 
     const response = {
@@ -31,10 +36,8 @@ async function handleMultipleFiles(files: any[]) {
   const uploadPromises = files.map(async (file) => {
     try {
       const fileUploadData = await addToS3Bucket(file.fileName, file.fileContent);
-      console.log(`Uploaded file: ${file.fileName}`, fileUploadData);
       return {
         fileName: file.fileName,
-        size: fileUploadData.data?.size || 'N/A',
         url: fileUploadData.data?.url || 'N/A'
       };
     } catch (err: any) {
@@ -57,29 +60,20 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
         error: JSON.stringify({ message: 'File name or content is missing' }),
       };
     }
+    const sanitizedFileName = fileName.replace(/ /g, '_');
+    const unique = new Date().getTime();
+    const uniqueFileName = `${unique}-${sanitizedFileName}`;
+    const url = `https://${bucketName}.s3.amazonaws.com/${uniqueFileName}`;
 
     const params = {
       Bucket: bucketName,
-      Key: fileName,
+      Key: uniqueFileName,
       Body: Buffer.from(fileContent, 'base64'),
     };
-
-    const s3Data = await s3.putObject(params).promise();
-    console.log('File uploaded to S3', s3Data);
-
-    const s3Params = {
-      Bucket: bucketName,
-      Key: fileName,
-    };
-    const s3Details = await s3.getObject(s3Params).promise();
-    const size = await formatBytes(s3Details.ContentLength || 0);
-
-    console.log('S3 file details', s3Details, size);
+    await s3.putObject(params).promise();
 
     const data = {
-      fileName: fileName,
-      size: size,
-      url: s3Details.ETag
+       url: url
     };
 
     return {
@@ -93,15 +87,4 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
       error: e
     };
   }
-}
-
-async function formatBytes(bytes: number, decimals = 2) {
-  if (bytes === 0) return '0 Bytes';
-
-  const k = 1024;
-  const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
