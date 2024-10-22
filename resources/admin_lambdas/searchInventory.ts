@@ -19,6 +19,8 @@ export const handler = async (event: any, context: any) => {
     
     const searchResult = await searchInventory(searchKeyword);
 
+	console.log(searchResult);
+
     return {
       status: 200,
       data: searchResult,

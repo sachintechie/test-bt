@@ -941,19 +941,19 @@ export async function searchInventory(searchKeyword: string) {
       }
     });
 
-	console.log("searchResult:", searchResult);
-
-   
+	
+	
     if (searchResult.length === 0) {
-	    throw new Error("No inventory found.");
+		throw new Error("No inventory found.");
     }
-
-   
+	
+	
     const inventoryWithoutProduct = searchResult.filter((inventory: any) => !inventory.product);
-
+	
     if (inventoryWithoutProduct.length > 0) {
-      throw new Error(`No product found for inventory ID(s)`);
+		throw new Error(`No product found for inventory ID(s)`);
     }
+	console.log("searchResult:", searchResult,inventoryWithoutProduct);
 
     
     return searchResult
