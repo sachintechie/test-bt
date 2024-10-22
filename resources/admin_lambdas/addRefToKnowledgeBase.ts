@@ -60,6 +60,12 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
     let ingestionJobId;
     if (refType === RefType.DOCUMENT) {
       const s3PreHashedData = await hashingAndStoreToBlockchain(file);
+      if(s3PreHashedData.error){
+        return {
+          document: null,
+          error: s3PreHashedData.error
+        };
+      }
       dataStoredToDb.s3PreStoreHash = s3PreHashedData.data?.dataHash;
       console.log("s3PreStoreHash", s3PreHashedData.data?.dataHash);
       dataStoredToDb.s3PreStoreTxHash = s3PreHashedData.data?.dataTxHash;
