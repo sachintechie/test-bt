@@ -1,10 +1,12 @@
 import { RefType, tenant } from "../db/models";
-import { addReferenceToDb, getDataSourcesCount  } from "../db/adminDbFunctions";
-import { S3 } from 'aws-sdk';
+import { Readable } from "stream";
+import { addReferenceToDb, getDataSourcesCount } from "../db/adminDbFunctions";
+import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
+import { hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
 const s3 = new S3();
-const bucketName = process.env.KB_BUCKET_NAME || ''; // Get bucket name from environment variables
-const kb_id = process.env.KB_ID || ''; // Get knowledge base ID from environment variables
+const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
+const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
@@ -19,6 +21,7 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.websiteUrl,
       event.arguments?.input?.depth
     );
+    console.log("data", data);
 
     const response = {
       status: data.document != null ? 200 : 400,
@@ -38,33 +41,57 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addReference(tenant: tenant, refType: string, file: any,websiteName: string,websiteUrl: string,depth: number) {   
-   console.log("Creating admin user");
+async function addReference(tenant: tenant, refType: string, file: any, websiteName: string, websiteUrl: string, depth: number) {
+  console.log("Creating admin user");
 
   try {
     console.log("createUser", tenant.id, refType);
     let data;
     let isIngested = false;
+      const dataStoredToDb: any = {
+      s3PreStoreHash : "",
+      s3PreStoreTxHash : "",
+      s3PostStoreHash :"",
+      s3PostStoreTxHash:""
+      
+    }
     let datasource_id;
     let ingestionJobId;
-    if(refType === RefType.DOCUMENT){
-       data = await addToS3Bucket(file.fileName, file.fileContent);
-      console.log("data", data);  
-      datasource_id=BedRockDataSourceS3;
-    }
-    else if(refType === RefType.WEBSITE){
+    if (refType === RefType.DOCUMENT) {
+      const s3PreHashedData = await hashingAndStoreToBlockchain(file);
+      dataStoredToDb.s3PreStoreHash = s3PreHashedData.data?.dataHash;
+      console.log("s3PreStoreHash", s3PreHashedData.data?.dataHash);
+      dataStoredToDb.s3PreStoreTxHash = s3PreHashedData.data?.dataTxHash;
+
+      console.log("s3PreStoreTxHash", s3PreHashedData.data?.dataTxHash);
+      data = await addToS3Bucket(file.fileName, file.fileContent);
+      if (data.data == null) {
+        return {
+          document: null,
+          error: data.error
+        };
+      }
+
+      console.log("data", data);
+      const s3_object = data?.data?.s3Object;
+      console.log("s3_object", s3_object);
+      const s3PostHashedData = await hashingAndStoreToBlockchain(s3_object);
+      dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
+      dataStoredToDb.s3PreStoreTxHash = s3PostHashedData.data?.dataTxHash;
+      console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataHash);
+      console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
+
+      datasource_id = BedRockDataSourceS3;
+    } else if (refType === RefType.WEBSITE) {
       const dataSource = await getDataSourcesCount(tenant.id);
       console.log("dataSource", dataSource);
       let dataSourceDetails;
-      if(dataSource  == null){
-         dataSourceDetails = await addWebsiteDataSource("ADD",kb_id,websiteUrl);
+      if (dataSource == null) {
+        dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl);
+      } else {
+        dataSourceDetails = await addWebsiteDataSource("UPDATE", kb_id, websiteUrl, "add_url", dataSource);
       }
-      else{
-        dataSourceDetails = await addWebsiteDataSource("UPDATE",kb_id,websiteUrl,"add_url",dataSource);
-
-      }
-      if(dataSourceDetails.error || dataSourceDetails.errorMessage 
-      ){
+      if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
         return {
           document: null,
           error: dataSourceDetails.error || dataSourceDetails.errorMessage
@@ -75,81 +102,98 @@ async function addReference(tenant: tenant, refType: string, file: any,websiteNa
       ingestionJobId = dataSourceDetails.body.ingestionJobId;
     }
 
-    const syncKbResponse   = await syncKb(kb_id,datasource_id);
-    syncKbResponse == "COMPLETE" ? isIngested = true : isIngested = false;
-     console.log("syncKbResponse", syncKbResponse);
-    const ref = await addReferenceToDb(tenant.id, file,refType,isIngested, websiteName,websiteUrl,depth,data?.data,datasource_id,ingestionJobId);
- 
-        return {
+    const syncKbResponse = await syncKb(kb_id, datasource_id);
+    syncKbResponse == "COMPLETE" ? (isIngested = true) : (isIngested = false);
+    console.log("syncKbResponse", syncKbResponse);
+    const ref = await addReferenceToDb(
+      tenant.id,
+      file,
+      refType,
+      isIngested,
+      websiteName,
+      websiteUrl,
+      depth,
+      data?.data,
+      datasource_id,
+      ingestionJobId,
+      dataStoredToDb
+    );
+
+    return {
       document: ref,
       error: null
     };
-  } catch (e) {
+  } catch (e: any) {
     console.log(`Not verified: ${e}`);
     return {
       document: null,
-      error: JSON.stringify(e)
+      error: JSON.stringify(e.Error)
     };
   }
 }
 
-async function addToS3Bucket(fileName: string, fileContent: string) { 
-  try{
-  if (!fileName || !fileContent) {
+async function addToS3Bucket(fileName: string, fileContent: string) {
+  try {
+    if (!fileName || !fileContent) {
+      return {
+        data: null,
+        error: JSON.stringify({ message: "File name or content is missing" })
+      };
+    }
+
+    // Prepare the S3 upload parameters
+    const params = {
+      Bucket: bucketName,
+      Key: fileName,
+      Body: Buffer.from(fileContent, "base64") // Assuming fileContent is base64 encoded
+    };
+
+    // Upload the file to S3
+    const s3Data = await s3.putObject(params).promise();
+    console.log("File uploaded to S3", s3Data);
+    // Prepare the S3 upload parameters
+    const s3Params = {
+      Bucket: bucketName,
+      Key: fileName
+    };
+    const s3Details = await s3.getObject(s3Params).promise();
+    const objectContent = await streamToBuffer(s3Details.Body as Readable);
+    const size = await formatBytes(s3Details.ContentLength || 0);
+
+    console.log("File uploaded to s3Details", s3Details, size);
+    const data = {
+      fileName: fileName,
+      size: size,
+      url: s3Details.ETag,
+      s3Object: objectContent
+    };
     return {
-      data : null,
-      error: JSON.stringify({ message: 'File name or content is missing' }),
+      data: data,
+      error: null
+    };
+  } catch (e) {
+    console.log(`data not uploded to s3: ${e}`);
+    return {
+      data: null,
+      error: e
     };
   }
-
-  // Prepare the S3 upload parameters
-  const params = {
-    Bucket: bucketName,
-    Key: fileName,
-    Body: Buffer.from(fileContent, 'base64'), // Assuming fileContent is base64 encoded
-  };
-
-  // Upload the file to S3
-   const s3Data = await s3.putObject(params).promise();
-   console.log('File uploaded to S3', s3Data);
-   // Prepare the S3 upload parameters
-  const s3Params = {
-    Bucket: bucketName,
-    Key: fileName,
-  };
-   const s3Details =await s3.getObject(s3Params).promise();
-   const size = await formatBytes(s3Details.ContentLength || 0);
-
-   console.log('File uploaded to s3Details', s3Details,size);
-  const data ={
-    fileName: fileName,
-    size: size,
-    url:s3Details.ETag
-    
+}
+// Helper function to convert stream to Buffer
+const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
+  const chunks: Uint8Array[] = [];
+  for await (const chunk of stream) {
+    chunks.push(chunk);
   }
-  return {
-    data : data,
-    error: null
-  };
-}
-catch (e) {
-  console.log(`data not uploded to s3: ${e}`);
-  return {
-    data: null,
-    error: e
-  };
-}
-
-}
-
-
+  return Buffer.concat(chunks);
+};
 async function formatBytes(bytes: number, decimals = 2) {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
 
   const k = 1024;
   const dm = decimals < 0 ? 0 : decimals;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return  parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
