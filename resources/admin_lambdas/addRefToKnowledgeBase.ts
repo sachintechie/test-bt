@@ -48,15 +48,14 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
     console.log("createUser", tenant.id, refType);
     let data;
     let isIngested = false;
-      const dataStoredToDb: any = {
-      s3PreStoreHash : "",
-      s3PreStoreTxHash : "",
-      s3PostStoreHash :"",
-      s3PostStoreTxHash:"",
-      chainType:"",
-      chainId:""
-      
-    }
+    const dataStoredToDb: any = {
+      s3PreStoreHash: "",
+      s3PreStoreTxHash: "",
+      s3PostStoreHash: "",
+      s3PostStoreTxHash: "",
+      chainType: "",
+      chainId: ""
+    };
     let datasource_id;
     let ingestionJobId;
     if (refType === RefType.DOCUMENT) {
@@ -83,7 +82,6 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       dataStoredToDb.chainType = s3PostHashedData.data?.chainType;
       dataStoredToDb.chainId = s3PostHashedData.data?.chainId;
 
-      
       console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataHash);
       console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
 
@@ -93,9 +91,9 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       console.log("dataSource", dataSource);
       let dataSourceDetails;
       if (dataSource == null) {
-        dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl,websiteName);
+        dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl, websiteName);
       } else {
-        dataSourceDetails = await addWebsiteDataSource("UPDATE", kb_id, websiteUrl, websiteName,"add_url", dataSource);
+        dataSourceDetails = await addWebsiteDataSource("UPDATE", kb_id, websiteUrl, websiteName, "add_url", dataSource);
       }
       if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
         return {
@@ -104,7 +102,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
         };
       }
       console.log("dataSourceDetails", dataSourceDetails);
-      datasource_id= dataSourceDetails.body.datasource_id;
+      datasource_id = dataSourceDetails.body.datasource_id;
       ingestionJobId = dataSourceDetails.body.ingestionJobId;
     }
 
@@ -164,7 +162,18 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
     };
     const s3Details = await s3.getObject(s3Params).promise();
     console.log("s3Details", s3Details);
-    const objectContent = await streamToBuffer(s3Details.Body as Readable);
+    // Check the type of Body
+    let objectContent;
+    if (Buffer.isBuffer(s3Details.Body)) {
+      objectContent = s3Details.Body; // It's already a Buffer
+    } else if (typeof s3Details.Body === "string") {
+      objectContent = Buffer.from(s3Details.Body); // Convert string to Buffer
+    } else if (s3Details.Body instanceof Readable) {
+      objectContent = await streamToBuffer(s3Details.Body);
+    } else {
+      throw new Error("Unexpected type for s3Details.Body");
+    }
+    //const objectContent = await streamToBuffer(s3Details.Body as Readable);
     const size = await formatBytes(s3Details.ContentLength || 0);
 
     console.log("File uploaded to s3Details", s3Details, size);
@@ -194,6 +203,8 @@ const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   }
   return Buffer.concat(chunks);
 };
+
+// Helper function to format bytes
 async function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return "0 Bytes";
 
