@@ -102,9 +102,13 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
         };
       }
       console.log("dataSourceDetails", dataSourceDetails);
-      datasource_id = dataSourceDetails.body.datasource_id;
-      ingestionJobId = dataSourceDetails.body.ingestionJobId;
+      datasource_id = JSON.parse(dataSourceDetails.body).datasource_id;
+      ingestionJobId = JSON.parse(dataSourceDetails.body).body.ingestionJobId;
+      console.log("datasource_id", datasource_id, ingestionJobId);
+
     }
+
+    console.log("datasource_id", datasource_id, ingestionJobId);
 
     const syncKbResponse = await syncKb(kb_id, datasource_id);
     syncKbResponse == "COMPLETE" ? (isIngested = true) : (isIngested = false);
