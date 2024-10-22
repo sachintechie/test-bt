@@ -13,6 +13,14 @@ type AddRefToKnowledgeBaseData {
 	reftype: String
 	name: String
 	url: String
+	datasourceid: String
+	ingestionjobid: String
+	s3prestorehash: String
+	s3prestoretxhash: String
+	s3poststorehash: String
+	s3poststoretxhash: String
+	chaintype: String
+	chainid: String
 }
 
 input AddRefToKnowledgeBaseInput {
@@ -93,6 +101,16 @@ type AdminUserListData {
 	users: [AdminUserData]
 }
 
+input BulkImportInput {
+	file: FileInput!
+}
+
+type BulkImportResponse {
+	status: Int
+	data: String
+	error: AWSJSON
+}
+
 type CategoryData {
 	name: String!
 	tenantid: String!
@@ -110,11 +128,28 @@ input CreateCategoryInput {
 	categoryName: String!
 }
 
+input CreateInventoryInput {
+	productId: String!
+	inventoryId: String!
+	inventoryCategory: String!
+	price: Float!
+	quantity: Int!
+	ownershipNft: Boolean
+	smartContractAddress: String
+	tokenId: String
+}
+
+type CreateInventoryResponse {
+	status: Int
+	data: InventoryData
+	error: AWSJSON
+}
+
 input CreateProductInput {
 	name: String!
 	description: String
-	type:String
-	sku:String
+	type: String
+	sku: String
 	categoryId: String!
 	rarity: ProductRarity
 	price: Float
@@ -134,8 +169,43 @@ input CreateWalletInput {
 	chainType: String!
 }
 
+input DeleteInventoryInput {
+	inventoryId: String!
+}
+
 input DeleteProductInput {
 	productId: String
+}
+
+input DeleteRefToKnowledgeBaseInput {
+	refId: String!
+}
+
+input FileInput {
+	fileName: String!
+	fileContent: String!
+	contentType: String!
+}
+
+input FilterInput {
+	operator: String!
+	value: Float!
+}
+
+input FilterInventoryInput {
+	filters: FilterInventoryInputData!
+}
+
+input FilterInventoryInputData {
+	inventoryId: String
+	productName: String
+	price: FilterInput
+	quantity: FilterInput
+}
+
+input GetAdminProductsInput {
+	page: Int
+	perPage: Int
 }
 
 input GetAdminTransactionInput {
@@ -177,6 +247,22 @@ input GetCategoryByIdInput {
 	categoryId: String
 }
 
+type GetInventoriesByProductIdIdResponse {
+	status: Int
+	data: [InventoryData]
+	error: AWSJSON
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
+}
+
+input GetInventoriesByProductIdInput {
+	productId: String!
+	page: Int
+	perPage: Int
+}
+
 input GetProductAttributesByProductIdInput {
 	productId: String!
 }
@@ -196,13 +282,13 @@ input GetProductsByCategoryIdInput {
 }
 
 type GetProductsResponse {
-    status: Int
-    data: [ProductData]
-    error: AWSJSON
-    page: Int
-    perPage: Int
-    totalRecordsCount: Int
-    totalPageCount: Int
+	status: Int
+	data: [ProductData]
+	error: AWSJSON
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
 }
 
 type GetWallet {
@@ -221,6 +307,22 @@ type GetWalletData {
 	emailid: String
 }
 
+type InventoryData {
+	id: String
+	inventoryid: String
+	productid: String
+	product: ProductData
+	inventorycategory: String
+	price: Float
+	quantity: Int
+	ownershipnft: Boolean
+	smartcontractaddress: String
+	tokenid: String
+	isdeleted: Boolean
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+}
+
 type ListAdminUsers {
 	status: Int
 	data: AdminUserListData
@@ -236,6 +338,14 @@ type ListRefData {
 	reftype: String
 	name: String
 	url: String
+	datasourceid: String
+	ingestionjobid: String
+	s3prestorehash: String
+	s3prestoretxhash: String
+	s3poststorehash: String
+	s3poststoretxhash: String
+	chaintype: String
+	chainid: String
 }
 
 input ListRefInput {
@@ -300,13 +410,13 @@ type ProductData {
 	id: String!
 	name: String!
 	description: String
-	type:String
-	sku:String
+	type: String
+	sku: String
 	categoryid: String!
 	rarity: ProductRarity
 	price: Float
 	status: ProductStatus
-    tenantid: String
+	tenantid: String
 	isdeleted: Boolean
 	purchasedpercentage: Float
 	availablepercentage: Float
@@ -335,10 +445,9 @@ enum ProductStatus {
 	INACTIVE
 }
 
-input FileInput {
-	fileName: String!
-	fileContent: String!
-	contentType: String!
+input SearchInventoryInput {
+	inventoryId: String
+	productName: String
 }
 
 type SignIn {
@@ -394,6 +503,20 @@ type UpdateCategoryResponse {
 	error: AWSJSON
 }
 
+input UpdateInventoryData {
+	inventoryCategory: String
+	price: Float
+	quantity: Int
+	ownershipNft: Boolean
+	smartContractAddress: String
+	tokenId: String
+}
+
+input UpdateInventoryInput {
+	inventoryId: String!
+	inventoryData: UpdateInventoryData!
+}
+
 input UpdateProductAttributeInput {
 	key: String!
 	newValue: String!
@@ -415,7 +538,7 @@ input UpdateProductInputData {
 	name: String
 	description: String
 	type: String
-	sku:String
+	sku: String
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
@@ -571,6 +694,7 @@ type Mutation {
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
+	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
 }
 
 type Query {
@@ -581,7 +705,7 @@ type Query {
 	ListReference(input: ListRefInput): ListReference
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-    GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+	GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
 	SearchInventory(input: SearchInventoryInput): GetInventoryResponse
 	FilterInventory(input: FilterInventoryInput): GetInventoryResponse

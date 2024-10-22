@@ -25,7 +25,7 @@ export const handler = async (event: any) => {
     const paymentIntent = await stripe.paymentIntents.create({
       amount: totalAmount,
       currency: 'usd',
-      metadata: {cart:JSON.stringify(cart),address,tenant_id:tenant.id},
+      metadata: {cart:JSON.stringify(cart),address},
     });
 
     return {
