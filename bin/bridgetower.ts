@@ -19,7 +19,7 @@ if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
 }
 
 // Create the stack with an environment-specific ID
-new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
+new BridgeTowerAppSyncStack(app, env`BTAppSyncStack1`, {
   env: envConfig,
   lambdaFolder: "../../resources/lambdas",
   schemaFile: "schema.graphql",
@@ -31,7 +31,7 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   auroraStack: auroraStack
 });
 
-new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
+new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin1`, {
   env: envConfig,
   lambdaFolder: "../../resources/admin_lambdas",
   schemaFile: "admin_schema.graphql",
