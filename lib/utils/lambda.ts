@@ -60,6 +60,7 @@ export const newNodeJsFunction = (
       },
     },
   });
+  return lambdaFunction;
 };
 
 export const newMigrateNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dataInfo: DatabaseInfo, memorySize: number = 512) => {
