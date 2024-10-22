@@ -1523,39 +1523,28 @@ export async function filterProducts(filters: productfilter[]) {
       const condition: any = {};
 
       if (filter.key === "rarity") {
-        // Check if the value is not one of the allowed product rarities
         const rarityValue = filter.value as productRarity;
         if (!Object.values(productRarity).includes(rarityValue)) {
           throw new Error(`Invalid rarity value: ${filter.value}. Allowed values are ${Object.values(productRarity).join(", ")}.`);
         }
       }
 
-      if (filter.key === "price" || filter.key === "rarity") {
-        if (filter.key === "price") {
-          const priceValue = typeof filter.value === "string" ? parseFloat(filter.value) : filter.value;
-          if (filter.operator === "eq") {
-            whereClause.AND.push({
-              price: priceValue
-            });
-          } else {
-            condition[filter.operator] = priceValue;
-            whereClause.AND.push({
-              price: condition
-            });
-          }
+      if (filter.key === "price" || filter.key === "rarity" || filter.key === "sku" || filter.key === "type") {
+        // Handle price, rarity, sku, and type explicitly
+        const filterValue = typeof filter.value === "string" ? filter.value.trim() : filter.value;
+
+        if (filter.operator === "eq") {
+          whereClause.AND.push({
+            [filter.key]: filterValue
+          });
         } else {
-          if (filter.operator === "eq") {
-            whereClause.AND.push({
-              [filter.key]: filter.value
-            });
-          } else {
-            condition[filter.operator] = filter.value;
-            whereClause.AND.push({
-              [filter.key]: condition
-            });
-          }
+          condition[filter.operator] = filterValue;
+          whereClause.AND.push({
+            [filter.key]: condition
+          });
         }
       } else {
+        // Handle product attributes
         const attrCondition: any = {};
 
         if (["gte", "gt", "lte", "lt"].includes(filter.operator)) {
@@ -1585,12 +1574,13 @@ export async function filterProducts(filters: productfilter[]) {
     return products;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while removing the product from wishlist.");
+      throw new Error(error.message || "An error occurred while filtering the products.");
     } else {
       throw new Error("An unexpected error occurred.");
     }
   }
 }
+
 
 export async function addToWishlist(customerId: string, productId: string) {
   const prisma = await getPrismaClient();
