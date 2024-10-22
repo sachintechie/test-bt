@@ -645,7 +645,10 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
       }
     });
     if (existingReference) {
-      throw new Error("Reference is already added with this name");
+      return {
+        data: null,
+        error: "Reference is already added with this name"
+      }
     }
     const newRef = await prisma.knowledgebasereference.create({
       data: {
@@ -669,9 +672,9 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         createdat: new Date().toISOString()
       }
     });
-    return newRef;
+    return {data : newRef ,error:null};
   } catch (err) {
-    throw err;
+    return {data : null ,error:err};
   }
 }
 
