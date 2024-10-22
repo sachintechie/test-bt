@@ -333,13 +333,15 @@ model transaction {
 }
 
 model contracttransaction {
-  id              String @id @default(uuid())
-  chain           String
-  txhash          String
-  fromaddress     String
-  contractaddress String
-  methodname      String
-  params          String
+  id                    String @id @default(uuid())
+  chain                 String
+  txhash                String
+  fromaddress           String
+  contractaddress       String
+  methodname            String
+  params                String
+  provider              String
+  providertransactionid String
 }
 
 model admintransaction {
