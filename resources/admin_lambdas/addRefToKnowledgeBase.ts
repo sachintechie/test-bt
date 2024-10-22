@@ -74,9 +74,13 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       }
 
       console.log("data", data);
-      const s3_object = data?.data?.s3Object;
-      console.log("s3_object", s3_object);
-      const s3PostHashedData = await hashingAndStoreToBlockchain(s3_object);
+      const uploadedFile = {
+        fileName: data?.data?.fileName,
+        fileContent:  data?.data?.s3Object,
+        contentType: data?.data?.contentType
+      }
+      console.log("uploadedFile", uploadedFile);
+      const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
       dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
       dataStoredToDb.s3PreStoreTxHash = s3PostHashedData.data?.dataTxHash;
       dataStoredToDb.chainType = s3PostHashedData.data?.chainType;
@@ -169,23 +173,26 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
     // Check the type of Body
     let objectContent;
     if (Buffer.isBuffer(s3Details.Body)) {
-      objectContent = s3Details.Body; // It's already a Buffer
+      objectContent = s3Details.Body.toString('base64');
     } else if (typeof s3Details.Body === "string") {
       objectContent = Buffer.from(s3Details.Body); // Convert string to Buffer
+      objectContent = objectContent.toString('base64');
     } else if (s3Details.Body instanceof Readable) {
       objectContent = await streamToBuffer(s3Details.Body);
+      objectContent = objectContent.toString('base64');
+
     } else {
       throw new Error("Unexpected type for s3Details.Body");
     }
     //const objectContent = await streamToBuffer(s3Details.Body as Readable);
     const size = await formatBytes(s3Details.ContentLength || 0);
-
     console.log("File uploaded to s3Details", s3Details, size);
     const data = {
       fileName: fileName,
       size: size,
       url: s3Details.ETag,
-      s3Object: objectContent
+      s3Object: objectContent,
+      contentType : s3Details.ContentType
     };
     return {
       data: data,
