@@ -104,7 +104,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
         };
       }
       console.log("dataSourceDetails", dataSourceDetails);
-      datasource_id = dataSourceDetails.body.datasource_id;
+       = dataSourceDetails.body.datasource_id;
       ingestionJobId = dataSourceDetails.body.ingestionJobId;
     }
 
@@ -119,8 +119,8 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       websiteName,
       websiteUrl,
       depth,
+      datasource_id
       data?.data,
-      datasource_id,
       ingestionJobId,
       dataStoredToDb
     );
@@ -163,6 +163,7 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
       Key: fileName
     };
     const s3Details = await s3.getObject(s3Params).promise();
+    console.log("s3Details", s3Details);
     const objectContent = await streamToBuffer(s3Details.Body as Readable);
     const size = await formatBytes(s3Details.ContentLength || 0);
 
