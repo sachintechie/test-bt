@@ -52,7 +52,9 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       s3PreStoreHash : "",
       s3PreStoreTxHash : "",
       s3PostStoreHash :"",
-      s3PostStoreTxHash:""
+      s3PostStoreTxHash:"",
+      chainType:"",
+      chainId:""
       
     }
     let datasource_id;
@@ -78,6 +80,10 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       const s3PostHashedData = await hashingAndStoreToBlockchain(s3_object);
       dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
       dataStoredToDb.s3PreStoreTxHash = s3PostHashedData.data?.dataTxHash;
+      dataStoredToDb.chainType = s3PostHashedData.data?.chainType;
+      dataStoredToDb.chainId = s3PostHashedData.data?.chainId;
+
+      
       console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataHash);
       console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
 
