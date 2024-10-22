@@ -541,12 +541,12 @@ type BulkImportResponse {
    filters: FilterInventoryInputData!
  }
 
-input TestMediaInput{
+input ManageProductMediaInput{
    productId:String,
    files: [FileInput!]!
 }
 
-type TestMediaResponse{
+type ManageProductMediaResponse{
   status: Int
   data: String
   error: AWSJSON
@@ -570,7 +570,7 @@ type Mutation {
 	BulkImportInventory(input: BulkImportInput): BulkImportResponse
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
-	TestMedia(input: TestMediaInput): TestMediaResponse
+	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
 }
 
 type Query {
