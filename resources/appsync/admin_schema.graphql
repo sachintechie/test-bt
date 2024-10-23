@@ -354,7 +354,7 @@ type ListProject {
 type ListProjectData {
 	total: Int
 	totalPages: Int
-	refs: [ProjectData]
+	projects: [ProjectData]
 }
 
 input ListProjectInput {
