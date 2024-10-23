@@ -665,7 +665,7 @@ type BulkImportResponse {
  }
 
 input ManageProductMediaInput{
-   productId:String,
+   productId:String
    files: [FileInput!]!
 }
 
