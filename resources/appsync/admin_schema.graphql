@@ -105,12 +105,6 @@ input BulkImportInput {
 	file: FileInput!
 }
 
-type BulkImportResponse {
-	status: Int
-	data: String
-	error: AWSJSON
-}
-
 type CategoryData {
 	name: String!
 	tenantid: String!
@@ -294,22 +288,6 @@ type GetWalletData {
 	tenantuserid: String
 	tenantid: String
 	emailid: String
-}
-
-type InventoryData {
-	id: String
-	inventoryid: String
-	productid: String
-	product: ProductData
-	inventorycategory: String
-	price: Float
-	quantity: Int
-	ownershipnft: Boolean
-	smartcontractaddress: String
-	tokenid: String
-	isdeleted: Boolean
-	createdat: AWSDateTime
-	updatedat: AWSDateTime
 }
 
 type ListAdminUsers {
@@ -573,15 +551,6 @@ type InventoryData {
   updatedat: AWSDateTime
 }
 
-input UpdateInventoryData {
-  inventoryCategory: String
-  price: Float
-  quantity: Int
-  ownershipNft: Boolean
-  smartContractAddress: String
-  tokenId: String
-}
-
 type BulkImportResponse {
   status: Int
   data: String
@@ -590,11 +559,6 @@ type BulkImportResponse {
 
  input SearchInventoryInput {
 	searchKeyword: String!
- }
-
- input FilterInput {
-   operator: String! 
-   value: Float!
  }
 
 input ManageProductMediaInput{
