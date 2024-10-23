@@ -688,12 +688,6 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         size: refType == RefType.DOCUMENT ? data.size : null,
         ingested: isIngested,
         isdeleted: false,
-        s3prestorehash :hashedData.s3PreStoreHash,
-        s3prestoretxhash : hashedData.s3PreStoreTxHash,
-        s3poststorehash:hashedData.s3PostStoreHash,
-        s3poststoretxhash:hashedData.s3PostStoreTxHash,
-        chaintype: hashedData.chainType,
-        chainid: hashedData.chainId.toString(),
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: depth,
@@ -701,9 +695,15 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         createdat: new Date().toISOString()
       }
     });
-    return {data : newRef ,error:null};
+    return {
+      data: newRef,
+      error: "Reference is already added with this name"
+    }
   } catch (err) {
-    return {data : null ,error:err};
+    return{
+      data: null,
+      error: err
+    }
   }
 }
 
@@ -754,7 +754,7 @@ export async function isProjectExist(projectType: ProjectType, name: string,orga
 
 
 
-export async function getDataSourcesCount(tenantId:string,refType: string) {
+export async function getDataSourcesCount(tenantId:string,websiteUrl:string,refType: string) {
 
   try {
     const prisma = await getPrismaClient();
@@ -767,6 +767,7 @@ export async function getDataSourcesCount(tenantId:string,refType: string) {
       where: {
         isdeleted: false,
         tenantid: tenantId,
+        url: websiteUrl,
         reftype: refType
       }
     });

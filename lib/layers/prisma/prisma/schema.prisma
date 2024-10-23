@@ -119,18 +119,12 @@ model reference  {
   referencestage    ReferenceStage
   name              String?            
   reftype           String?
-  url               String? 
+  url               String?    
   size              String?
-  s3prestorehash    String?
-  s3prestoretxhash  String?
-  s3poststorehash   String?
-  s3poststoretxhash String?
-  chaintype         String?
-  chainid           String?
   depth             Int?
-  ingested          Boolean  
-  isdeleted         Boolean          @default(false)    
+  ingested          Boolean?       
   isactive          Boolean
+  isdeleted         Boolean          @default(false)
   createdat         String?
   datasourceid      String?
   ingestionjobid    String?
