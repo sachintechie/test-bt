@@ -21,6 +21,8 @@ type AddRefToKnowledgeBaseData {
 	s3poststoretxhash: String
 	chaintype: String
 	chainid: String
+	projectid: String
+	referencestage: String
 }
 
 input AddRefToKnowledgeBaseInput {
