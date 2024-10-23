@@ -628,6 +628,7 @@ type Mutation {
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
 	CreateProject(input: CreateProjectInput): CreateProjectResponse
+
 }
 
 type Query {
