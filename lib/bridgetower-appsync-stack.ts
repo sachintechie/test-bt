@@ -64,6 +64,7 @@ const MUTATIONS = [
   "bulkImportProduct",
   "deleteInventory",
   "deleteRefToKnowledgeBase",
+  "createProject"
 ];
 
 

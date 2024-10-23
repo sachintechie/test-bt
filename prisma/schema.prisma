@@ -36,10 +36,87 @@ model cubistconfig {
   sendtokensecretname String?
 }
 
-model knowledgebasereference{
+model organization {
+  id                String            @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  adminusers        adminuser[]
+  projects          project[]
+}
+
+model project {
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  projecttype       ProjectType
+  projectstatus     ProjectStatusEnum
+  projectstage      ProjectStage
+  projectmetadata   projectdataitem[]
+  knowledgebaseid   String
+  organization      organization @relation(fields: [organizationid], references: [id])
+  organizationid    String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  createdby         String
+  adminUsers        adminuser[]
+  references        reference[]
+}
+
+enum ProjectType {
+  ON_PREM
+  HYBRID
+  CLOUD
+  CUSTOM_CLOUD
+}
+
+enum ReferenceStage {
+  DATA_SELECTION
+  DATA_INGESTION
+  DATA_STORAGE
+}
+
+enum ProjectStatusEnum {
+  STARTED
+  PAUSED
+  CANCELLED
+  ACTIVE
+}
+
+enum ProjectStage {
+  DATA_SELECTION
+  DATA_INGESTION
+  DATA_STORAGE
+  DATA_PREPARATION
+  LLM_FINE_TUNING
+  VERSIONING
+  RAG
+  PUBLISHED
+}
+
+model projectdataitem {
+  id              String          @id @default(uuid())
+  projectid       String
+  project         project         @relation(fields: [projectid], references: [id])
+  name            String
+  value           String
+  createdat       String
+}
+
+
+
+model reference  {
   id                String             @id @default(uuid())
   tenantid          String
   tenant            tenant            @relation(fields: [tenantid], references: [id])
+  projectid         String?
+  project           project?            @relation(fields: [projectid], references: [id])
+  referencestage    ReferenceStage
   name              String?            
   reftype           String?
   url               String? 
@@ -95,9 +172,12 @@ model adminuser {
   isactive          Boolean?
   createdat         String?
   iss               String?
+  organizationid    String?
+  organization      organization? @relation(fields: [organizationid], references: [id])
   isbonuscredit     Boolean?
   adminwallets      adminwallet[]
   admintransactions admintransaction[]
+  projects          project[]
 }
 
 model customerkyc {
@@ -237,7 +317,9 @@ model tenant {
   staketransaction staketransaction[]
   categories       productcategory[]
   products         product[]
-  knowledgebasereferences knowledgebasereference[]
+  references       reference[]   
+  organizations    organization[]
+  projects         project[]
 }
 
 enum productrarity {
@@ -247,6 +329,7 @@ enum productrarity {
   LEGENDARY
   MYTHICAL
 }
+
 
 model productcategory {
   id        String    @id @default(uuid())

@@ -18,6 +18,7 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
+import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -36,6 +37,32 @@ export async function createAdminUser(customer: customer) {
       }
     });
     return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProject(tenant: tenant, name: string, description: string, projectType: ProjectType,
+  organizationId:string,knowledgeBaseId:string) {
+    console.log("Creating admin project", tenant.id, projectType);
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.project.create({
+      data: {
+        name: name,
+        description: description,
+        knowledgebaseid: knowledgeBaseId,
+        projecttype: projectType,
+        organizationid: organizationId,
+        tenantid: tenant.id,  
+        isactive: true,
+        projectstage: ProjectStage.DATA_SELECTION,
+        projectstatus: ProjectStatusEnum.ACTIVE,
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
   } catch (err) {
     throw err;
   }
@@ -632,12 +659,12 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
-  depth?: number,data?: any,datasource_id?: string,ingestionJobId?: string
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,projectId:string,  websiteName?: string,websiteUrl?: string,
+  depth?: number,datasource_id?: string,data?: any,ingestionJobId?: string,hashedData?: any
 ) {
   try {
     const prisma = await getPrismaClient();
-    const existingReference = await prisma.knowledgebasereference.findFirst({
+    const existingReference = await prisma.reference.findFirst({
       where: {
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
@@ -645,15 +672,20 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
       }
     });
     if (existingReference) {
-      throw new Error("Reference is already added with this name");
+      return {
+        data: null,
+        error: "Reference is already added with this name"
+      }
     }
-    const newRef = await prisma.knowledgebasereference.create({
+    const newRef = await prisma.reference.create({
       data: {
         tenantid: tenantId as string,
+        projectid: projectId,
+        referencestage : ReferenceStage.DATA_STORAGE,
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,       
+        size: refType == RefType.DOCUMENT ? data.size : null,
         ingested: isIngested,
         isdeleted: false,
         datasourceid: datasource_id,
@@ -663,25 +695,80 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         createdat: new Date().toISOString()
       }
     });
-    return newRef;
+    return {
+      data: newRef,
+      error: "Reference is already added with this name"
+    }
   } catch (err) {
-    throw err;
+    return{
+      data: null,
+      error: err
+    }
   }
 }
 
-export async function getDataSourcesCount(tenantId:string) {
+export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
+  const prisma = await getPrismaClient();
+  const existingReference = await prisma.reference.findFirst({
+    where: {
+      name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
+      url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+      isdeleted: false
+    }
+  });
+  if (existingReference) {
+    return {
+      isExist: true,
+      error: "Reference is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+export async function isProjectExist(projectType: ProjectType, name: string,organizationId:string) {
+  const prisma = await getPrismaClient();
+  const existingProject = await prisma.project.findFirst({
+    where: {
+      name: name,
+      projecttype:  projectType,
+      organizationid: organizationId,
+    }
+  });
+  if (existingProject) {
+    return {
+      isExist: true,
+      error: "Project is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+
+
+
+export async function getDataSourcesCount(tenantId:string,websiteUrl:string,refType: string) {
 
   try {
     const prisma = await getPrismaClient();
 
-    const result = await prisma.knowledgebasereference.groupBy({
+    const result = await prisma.reference.groupBy({
       by: ['datasourceid'],  // Group by the `datasourceId` field
       _count: {
         id: true,  // Count the number of rows (assuming `id` is a unique identifier)
       },
       where: {
         isdeleted: false,
-        tenantid: tenantId
+        tenantid: tenantId,
+        url: websiteUrl,
+        reftype: refType
       }
     });
  // Step 2: Filter the results where the count is less than 10
@@ -705,7 +792,7 @@ export async function getDataSourcesCount(tenantId:string) {
 export async function getReferenceById(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -724,7 +811,7 @@ export async function getReferenceById(tenantId: string, refId: string) {
 export async function deleteRef(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -734,7 +821,7 @@ export async function deleteRef(tenantId: string, refId: string) {
     if (reference == null) {
       throw new Error("Reference not found");
     }
-    const deletedReference = await prisma.knowledgebasereference.update({
+    const deletedReference = await prisma.reference.update({
       where: { id: refId },
       data: { isdeleted: true }
     });
@@ -754,7 +841,7 @@ export async function getReferenceList(
 ) {
   try {
     const prisma = await getPrismaClient();
-    const refCount = await prisma.knowledgebasereference.count({
+    const refCount = await prisma.reference.count({
       where: {
         tenantid: tenantId,
         reftype: refType,
@@ -767,7 +854,7 @@ export async function getReferenceList(
     if (refCount == 0) {
       return [];
     }
-    const refs = await prisma.knowledgebasereference.findMany({
+    const refs = await prisma.reference.findMany({
       where: {
         tenantid: tenantId,
         reftype: refType,
@@ -786,6 +873,48 @@ export async function getReferenceList(
       total: refCount,
       totalPages: Math.ceil(refCount / limit),
       refs: refs
+    };
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProjectList(
+  limit: number,
+  pageNo: number,
+  organizationId: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const projectCount = await prisma.project.count({
+      where: {
+        organizationid: organizationId
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+    if (projectCount == 0) {
+      return [];
+    }
+    const projects = await prisma.project.findMany({
+      where: {
+        organizationid: organizationId
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: projectCount,
+      totalPages: Math.ceil(projectCount / limit),
+      projects: projects
     };
 
     return data;

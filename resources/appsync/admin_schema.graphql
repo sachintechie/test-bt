@@ -13,10 +13,22 @@ type AddRefToKnowledgeBaseData {
 	reftype: String
 	name: String
 	url: String
+	datasourceid: String
+	ingestionjobid: String
+	s3prestorehash: String
+	s3prestoretxhash: String
+	s3poststorehash: String
+	s3poststoretxhash: String
+	chaintype: String
+	chainid: String
+	projectid: String
+	referencestage: String
+
 }
 
 input AddRefToKnowledgeBaseInput {
 	refType: String!
+	projectId: String!
 	file: FileInput
 	depth: Int
 	websiteName: String
@@ -129,6 +141,19 @@ input CreateProductInput {
 	tokenId: Int
 }
 
+input CreateProjectInput {
+	name: String!
+	description: String
+	projectType: String!
+	organizationId: String!
+}
+
+type CreateProjectResponse {
+	status: Int
+	data: ProjectData
+	error: AWSJSON
+}
+
 input CreateWalletInput {
 	tenantUserId: String!
 	chainType: String!
@@ -225,6 +250,24 @@ type ListAdminUsers {
 	status: Int
 	data: AdminUserListData
 	error: AWSJSON
+}
+
+type ListProject {
+	status: Int
+	data: ListProjectData
+	error: AWSJSON
+}
+
+type ListProjectData {
+	total: Int
+	totalPages: Int
+	projects: [ProjectData]
+}
+
+input ListProjectInput {
+	limit: Int!
+	pageNo: Int!
+	organizationId: String
 }
 
 type ListRefData {
@@ -335,6 +378,23 @@ enum ProductStatus {
 	INACTIVE
 }
 
+type ProjectData {
+	id: String
+	createdat: String
+	projecttype: String
+	projectstage: String
+	projectstatus: String
+	organizationid: String
+	name: String
+	description: String
+	isactive: Boolean
+	createdby: String
+}
+
+input SearchInventoryInput {
+	inventoryId: String
+	productName: String
+}
 input FileInput {
 	fileName: String!
 	fileContent: String!
@@ -559,7 +619,7 @@ type Mutation {
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
-
+	CreateProject(input: CreateProjectInput): CreateProjectResponse
 
 }
 
@@ -575,6 +635,7 @@ type Query {
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
 	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
 	FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
+	ListProject(input: ListProjectInput): ListProject
 }
 
 schema {
