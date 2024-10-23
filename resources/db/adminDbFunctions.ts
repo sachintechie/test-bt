@@ -44,6 +44,7 @@ export async function createAdminUser(customer: customer) {
 
 export async function createProject(tenant: tenant, name: string, description: string, projectType: ProjectType,
   organizationId:string,knowledgeBaseId:string) {
+    console.log("Creating admin project", tenant.id, projectType);
   try {
     const prisma = await getPrismaClient();
     const newProject = await prisma.project.create({
@@ -53,6 +54,7 @@ export async function createProject(tenant: tenant, name: string, description: s
         knowledgebaseid: knowledgeBaseId,
         projecttype: projectType,
         organizationid: organizationId,
+        tenantid: tenant.id,  
         isactive: true,
         projectstage: ProjectStage.DATA_SELECTION,
         projectstatus: ProjectStatusEnum.ACTIVE,
@@ -911,7 +913,7 @@ export async function getProjectList(
     const data = {
       total: projectCount,
       totalPages: Math.ceil(projectCount / limit),
-      refs: projects
+      projects: projects
     };
 
     return data;

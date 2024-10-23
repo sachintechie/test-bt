@@ -99,7 +99,7 @@ export const handler = async (event: any) => {
                         cognitoclientid: tenant.cognitoclientid,
                         iscubistactive: tenant.iscubistactive,
                         userType: "ADMIN",
-                        adminUserId: adminUser.id
+                        adminuserid: adminUser.id
                       }
                     };
                   }
