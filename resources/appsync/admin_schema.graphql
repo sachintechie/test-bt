@@ -128,17 +128,6 @@ input CreateCategoryInput {
 	categoryName: String!
 }
 
-input CreateInventoryInput {
-	productId: String!
-	inventoryId: String!
-	inventoryCategory: String!
-	price: Float!
-	quantity: Int!
-	ownershipNft: Boolean
-	smartContractAddress: String
-	tokenId: String
-}
-
 type CreateInventoryResponse {
 	status: Int
 	data: InventoryData
@@ -551,11 +540,6 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
-input GetAdminProductsInput {
-    page: Int
-    perPage: Int
-} 
-
 input CreateInventoryInput {
   productId: String!
   inventoryId: String!
@@ -595,11 +579,6 @@ type InventoryData {
   updatedat: AWSDateTime
 }
 
-input GetInventoriesByProductIdInput {
-	productId: String!
-	page: Int
-    perPage: Int
-}
 
 type GetInventoriesByProductIdIdResponse {
   status: Int
@@ -609,11 +588,6 @@ type GetInventoriesByProductIdIdResponse {
   perPage: Int
   totalRecordsCount: Int
   totalPageCount: Int
-}
-
-input UpdateInventoryInput {
-  inventoryId: String!
-  inventoryData: UpdateInventoryData!
 }
 
 input UpdateInventoryData {
@@ -631,14 +605,6 @@ type BulkImportResponse {
   error: AWSJSON
 }
 
- input BulkImportInput {
-   file: FileInput!
- }
-
- input DeleteInventoryInput {
-	inventoryId: String!
- }
-
  input SearchInventoryInput {
 	searchKeyword: String!
  }
@@ -646,17 +612,6 @@ type BulkImportResponse {
  input FilterInput {
    operator: String! 
    value: Float!
- }
-
- input FilterInventoryInputData {
-   inventoryId: String
-   productName: String
-   price: FilterInput
-   quantity: FilterInput
- }
-
- input FilterInventoryInput {
-   filters: FilterInventoryInputData!
  }
 
 input ManageProductMediaInput{
