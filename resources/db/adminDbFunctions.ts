@@ -18,6 +18,7 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
+import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -36,6 +37,30 @@ export async function createAdminUser(customer: customer) {
       }
     });
     return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProject(tenant: tenant, name: string, description: string, projectType: ProjectType,
+  organizationId:string,knowledgeBaseId:string) {
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.project.create({
+      data: {
+        name: name,
+        description: description,
+        knowledgebaseid: knowledgeBaseId,
+        projecttype: projectType,
+        organizationid: organizationId,
+        isactive: true,
+        projectstage: ProjectStage.DATA_SELECTION,
+        projectstatus: ProjectStatusEnum.ACTIVE,
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
   } catch (err) {
     throw err;
   }
@@ -701,6 +726,31 @@ export async function isReferenceExist(refType: string, file: any, websiteName: 
   }
 }
 
+export async function isProjectExist(projectType: ProjectType, name: string,organizationId:string) {
+  const prisma = await getPrismaClient();
+  const existingProject = await prisma.project.findFirst({
+    where: {
+      name: name,
+      projecttype:  projectType,
+      organizationid: organizationId,
+    }
+  });
+  if (existingProject) {
+    return {
+      isExist: true,
+      error: "Project is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+
+
+
 export async function getDataSourcesCount(tenantId:string,refType: string) {
 
   try {
@@ -819,6 +869,48 @@ export async function getReferenceList(
       total: refCount,
       totalPages: Math.ceil(refCount / limit),
       refs: refs
+    };
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProjectList(
+  limit: number,
+  pageNo: number,
+  organizationId: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const projectCount = await prisma.project.count({
+      where: {
+        organizationid: organizationId
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+    if (projectCount == 0) {
+      return [];
+    }
+    const projects = await prisma.project.findMany({
+      where: {
+        organizationid: organizationId
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: projectCount,
+      totalPages: Math.ceil(projectCount / limit),
+      refs: projects
     };
 
     return data;

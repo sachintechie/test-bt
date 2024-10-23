@@ -164,6 +164,19 @@ input CreateProductInput {
 	tokenId: Int
 }
 
+input CreateProjectInput {
+	name: String!
+	description: String
+	projectType: String!
+	organizationId: String!
+}
+
+type CreateProjectResponse {
+	status: Int
+	data: ProjectData
+	error: AWSJSON
+}
+
 input CreateWalletInput {
 	tenantUserId: String!
 	chainType: String!
@@ -329,6 +342,24 @@ type ListAdminUsers {
 	error: AWSJSON
 }
 
+type ListProject {
+	status: Int
+	data: ListProjectData
+	error: AWSJSON
+}
+
+type ListProjectData {
+	total: Int
+	totalPages: Int
+	refs: [ProjectData]
+}
+
+input ListProjectInput {
+	limit: Int!
+	pageNo: Int!
+	organizationId: String
+}
+
 type ListRefData {
 	id: String
 	createdat: String
@@ -443,6 +474,19 @@ type ProductResponse {
 enum ProductStatus {
 	ACTIVE
 	INACTIVE
+}
+
+type ProjectData {
+	id: String
+	createdat: String
+	projecttype: String
+	projectstage: String
+	projectstatus: String
+	organizationid: String
+	name: String
+	description: String
+	isactive: Boolean
+	createdby: String
 }
 
 input SearchInventoryInput {
@@ -575,6 +619,7 @@ type Mutation {
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+	CreateProject(input: CreateProjectInput): CreateProjectResponse
 }
 
 type Query {
@@ -589,6 +634,7 @@ type Query {
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
 	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
 	FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
+	ListProject(input: ListProjectInput): ListProject
 }
 
 schema {
