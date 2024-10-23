@@ -167,11 +167,11 @@ export interface inventoryfilter {
   inventoryid?: string;
   productname?: string;
   price?: {
-    operator: 'lt' | 'gt' | 'eq';
+    operator: 'lt' | 'gt' | 'eq' | 'gte' | 'lte';
     value: number;
   };
   quantity?: {
-    operator: 'lt' | 'gt' | 'eq';
+    operator: 'lt' | 'gt' | 'eq' | 'gte' | 'lte';
     value: number;
   };
 }

@@ -105,12 +105,6 @@ input BulkImportInput {
 	file: FileInput!
 }
 
-type BulkImportResponse {
-	status: Int
-	data: String
-	error: AWSJSON
-}
-
 type CategoryData {
 	name: String!
 	tenantid: String!
@@ -126,17 +120,6 @@ type CategoryResponse {
 
 input CreateCategoryInput {
 	categoryName: String!
-}
-
-input CreateInventoryInput {
-	productId: String!
-	inventoryId: String!
-	inventoryCategory: String!
-	price: Float!
-	quantity: Int!
-	ownershipNft: Boolean
-	smartContractAddress: String
-	tokenId: String
 }
 
 type CreateInventoryResponse {
@@ -307,22 +290,6 @@ type GetWalletData {
 	emailid: String
 }
 
-type InventoryData {
-	id: String
-	inventoryid: String
-	productid: String
-	product: ProductData
-	inventorycategory: String
-	price: Float
-	quantity: Int
-	ownershipnft: Boolean
-	smartcontractaddress: String
-	tokenid: String
-	isdeleted: Boolean
-	createdat: AWSDateTime
-	updatedat: AWSDateTime
-}
-
 type ListAdminUsers {
 	status: Int
 	data: AdminUserListData
@@ -445,11 +412,6 @@ enum ProductStatus {
 	INACTIVE
 }
 
-input SearchInventoryInput {
-	inventoryId: String
-	productName: String
-}
-
 type SignIn {
 	status: Int
 	data: SignInData
@@ -556,6 +518,60 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
+input CreateInventoryInput {
+  productId: String!
+  inventoryId: String!
+  inventoryCategory: String!
+  price: Float!
+  quantity: Int!
+  ownershipNft: Boolean
+  smartContractAddress: String
+  tokenId: String
+}
+
+type GetInventoryResponse {
+  status: Int
+  data: [InventoryData]
+  error: AWSJSON
+}
+
+type InventoryData {
+  id: String
+  inventoryid: String
+  productid: String
+  product: ProductData
+  inventorycategory: String
+  price: Float
+  quantity: Int
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  isdeleted: Boolean
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+type BulkImportResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
+ input SearchInventoryInput {
+	searchKeyword: String!
+ }
+
+input ManageProductMediaInput{
+   productId:String
+   files: [FileInput!]!
+}
+
+type ManageProductMediaResponse{
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -574,6 +590,7 @@ type Mutation {
 	BulkImportInventory(input: BulkImportInput): BulkImportResponse
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
+	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
 }
 
@@ -587,8 +604,8 @@ type Query {
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
 	GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
-	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
-	FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
+	SearchInventory(input: SearchInventoryInput): GetInventoryResponse
+	FilterInventory(input: FilterInventoryInput): GetInventoryResponse
 }
 
 schema {

@@ -16,7 +16,7 @@ export const handler = async (event: any, context: any) => {
   const tenant = event.identity.resolverContext as tenant;
 
   try {
-    const receipt = await transferERC1155(toAddress, tokenId, amount, chain, contractAddress, tenant.id);
+    const receipt = await transferERC1155(toAddress, tokenId, amount, chain, contractAddress, tenant.id,"direct","admin");
     return {
       status: 200,
       transactionHash: receipt.transactionHash,
@@ -32,7 +32,7 @@ export const handler = async (event: any, context: any) => {
 
 };
 
-export const transferERC1155 = async (toAddress: string, tokenId: number, amount: number, chain: string, contractAddress: string, tenantId: string) => {
+export const transferERC1155 = async (toAddress: string, tokenId: number, amount: number, chain: string, contractAddress: string, tenantId: string,provider:string,providerId:string) => {
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
@@ -77,7 +77,9 @@ export const transferERC1155 = async (toAddress: string, tokenId: number, amount
       chain: chain,
       fromaddress: payerKey.key?.materialId!,
       methodname: "safeTransferFrom",
-      params: JSON.stringify({ from: payerKey.key?.materialId, to: toAddress, tokenId: tokenId, amount: amount})
+      params: JSON.stringify({ from: payerKey.key?.materialId, to: toAddress, tokenId: tokenId, amount: amount}),
+      provider: provider,
+      providertransactionid: providerId
     }
   });
 

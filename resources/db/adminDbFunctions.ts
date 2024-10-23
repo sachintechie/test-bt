@@ -1027,28 +1027,42 @@ export async function deleteInventory(inventoryId: string) {
   }
 }
 
-export async function searchInventory(inventoryId: string, productName: string) {
+export async function searchInventory(searchKeyword: string) {
   try {
     const prisma = await getPrismaClient();
 
+    if (!searchKeyword || searchKeyword.trim() === "") {
+      return {
+        status: 400,
+        data: null,
+        error: "Search keyword is required."
+      };
+    }
+  
     const searchResult = await prisma.productinventory.findMany({
       where: {
+        isdeleted: false,
         OR: [
-          { inventoryid: inventoryId },
-          { product: { name: { contains: productName, mode: 'insensitive' } } }
-        ],
-        isdeleted: false 
+          { inventoryid: { contains: searchKeyword.trim(), mode: 'insensitive' } }, 
+          { product: { name: { contains: searchKeyword.trim(), mode: 'insensitive' } } } 
+        ]
       },
       include: {
         product: true 
       }
     });
-
-    return searchResult;
+    
+    return searchResult
   } catch (err) {
-    throw err;
+   if (err instanceof Error) {
+      throw new Error(err.message || "An error occurred while searching the inventory");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
+
+
 
 export async function filterInventory(filters: inventoryfilter) {
   try {
@@ -1059,7 +1073,10 @@ export async function filterInventory(filters: inventoryfilter) {
     };
 
     if (filters.inventoryid) {
-      whereClause.inventoryid = filters.inventoryid;
+      whereClause.inventoryid = {
+        contains: filters.inventoryid, 
+        mode: 'insensitive' 
+      };
     }
 
     if (filters.productname) {
@@ -1079,7 +1096,11 @@ export async function filterInventory(filters: inventoryfilter) {
         whereClause.price = { gt: value };
       } else if (operator === 'eq') {
         whereClause.price = value;
-      }
+      } else if (operator === 'gte') {
+		whereClause.price = { gte: value };
+	  } else if (operator === 'lte') {
+		whereClause.price = { lte: value };
+	  }
     }
 
     if (filters.quantity) {
@@ -1090,7 +1111,11 @@ export async function filterInventory(filters: inventoryfilter) {
         whereClause.quantity = { gt: value };
       } else if (operator === 'eq') {
         whereClause.quantity = value;
-      }
+      } else if (operator === 'gte') {
+		whereClause.quantity = { gte: value };
+	  } else if (operator === 'lte') {
+		whereClause.quantity = { lte: value };
+	  }
     }
 
     const filteredResult = await prisma.productinventory.findMany({
