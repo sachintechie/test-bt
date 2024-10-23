@@ -8,6 +8,7 @@ import { env, getDescription, getEnvConfig } from "./env";
 import { getLambdaRole } from "./iam";
 import { getSecurityGroups } from "./security_group";
 import { DatabaseInfo } from "./aurora";
+import * as iam from "aws-cdk-lib/aws-iam";
 
 // Function to create a new Node.js Lambda function with the Prisma layer for reducing deployment size
 export const newNodeJsFunction = (
@@ -25,7 +26,7 @@ export const newNodeJsFunction = (
   });
 
   // Return the new Nodejs Lambda function
-  return new NodejsFunction(scope, env`${id}`, {
+  const lambdaFunction= new NodejsFunction(scope, env`${id}`, {
     functionName: env`${id}-function`,
     description: getDescription(),
     runtime: lambda.Runtime.NODEJS_18_X,
@@ -59,6 +60,7 @@ export const newNodeJsFunction = (
       },
     },
   });
+  return lambdaFunction;
 };
 
 export const newMigrateNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dataInfo: DatabaseInfo, memorySize: number = 512) => {

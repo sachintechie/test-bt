@@ -23,12 +23,12 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "moonpayNftLiteAsset",
   "moonpayNftLiteDelivery",
   "moonpayNftLiteStatus",
-  "postStripePaymentIntentWebhook",
+  "postStripePaymentIntentWebhook"
 ];
 
 const GET_METADATA = "getMetadata";
-const POST_STRIPE_PAYMENT_INTENT_WEBHOOK = "postStripePaymentIntentWebhook";
 const MIGRATION_LAMBDA_NAME = "migrateDB";
+const POST_STRIPE_PAYMENT_INTENT_WEBHOOK = "postStripePaymentIntentWebhook";
 
 const MUTATIONS = [
   "createCategory",
@@ -63,8 +63,10 @@ const MUTATIONS = [
   "bulkImportInventory",
   "bulkImportProduct",
   "deleteInventory",
-  "testMedia"
+  "manageProductMedia",
+  "deleteRefToKnowledgeBase",
 ];
+
 
 interface AppSyncStackProps extends cdk.StackProps {
   lambdaFolder: string;
@@ -132,6 +134,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     // Create a new AppSync GraphQL API
     const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, props.schemaFile, props.authorizerLambda);
+
 
     // Create resolvers for each lambda function
     for (const [key, value] of lambdaMap) {

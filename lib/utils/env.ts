@@ -44,7 +44,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
   };
   const thirdPartyInfo = {
     STRIPE_SECRET: "sk_test_51Q5WSYRoB3vP63ZcG0446nZxieFZHLftc9TywVGeXSzDBwkO1YnyMxg4cuBBkGN8kPTjYYYUHtyF7eytbduUVrJ5005U9k0Jxi",
-    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET: "whsec_PvjPpIk5n1iLDpSf8qORqwmfuFjywPoy"
+    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET:'whsec_mpDmxZjkszP88yuGFkmzv8kFvZoUhEPo'
   }
   const commonEnvs = {
     ...databaseInfoEnv,
@@ -63,8 +63,10 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_RPC_SUBNET_URL:"http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
         AVAX_SUBNET_NETWORK_ID: "41024",
         AVAX_NETWORK_ID: "43113",
-        BUCKET_NAME:"knowledgebasedocument",
-        PRODUCT_BUCKET_NAME:"meadowlandproductbucket"
+        PRODUCT_BUCKET_NAME:"meadowlandproductbucket",
+        KB_BUCKET_NAME:"knowledgebasedocument",
+        KB_ID:"WIKF9ALZ52",
+        BEDROCK_DATASOURCE_S3:"ZZWKIZUS20"
       };
     case "staging":
       return {

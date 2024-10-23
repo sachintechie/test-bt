@@ -40,7 +40,7 @@ export const handler = async (event: any) => {
       for(let i=0;i<cart.length;i++){
         const {id,quantity,product_metadata} = cart[i];
         console.log('cart',cart[i])
-        const {id:tokenId,chain,contract,type,metadata}=product_metadata;
+        const {id:tokenId,chain,contract,type,metadata,tenant_id}=product_metadata;
         console.log('product_metadata',product_metadata)
         try{
           if(type==='NFT'){
