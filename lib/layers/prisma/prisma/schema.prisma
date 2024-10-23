@@ -58,8 +58,7 @@ model knowledgebasereference{
   datasourceid      String?
   ingestionjobid    String?
     
-    @@unique([name, url])
-
+  @@unique([name, url])
 }
 
 model customer {
@@ -267,27 +266,33 @@ model productcategory {
 }
 
 model product {
-  id         String     @id @default(uuid())
-  name       String
-  categoryid String 
-  category   productcategory   @relation(fields: [categoryid], references: [id])
-  rarity            productrarity?        @default(NORMAL)
-  price             Float?
-  purchasedpercentage         Float?
-  availablepercentage         Float?
-  tenantid          String?
-  tenant            tenant?              @relation(fields: [tenantid], references: [id])
-  createdat         DateTime?            @default(now())
-  updatedat         DateTime?            @updatedAt
-  transactions      transaction[]
-  productattributes productattribute[]
-  wishlists  productwishlist[]
-  orders            orders[]
-  productreviews    productreview[]
-  collections            productcollectionproducts[] @relation("productcollectionproductsproduct")
-  productownerships productownership[]
+  id                  String                      @id @default(uuid())
+  name                String
+  description         String
+  type                String
+  sku                 String
+  categoryid          String
+  category            productcategory             @relation(fields: [categoryid], references: [id])
+  rarity              productrarity?              @default(NORMAL)
+  price               Float?
+  purchasedpercentage Float?
+  availablepercentage Float?
+  tenantid            String?
+  tenant              tenant?                     @relation(fields: [tenantid], references: [id])
+  status              ProductStatus?              @default(ACTIVE)
+  isdeleted           Boolean?
+  createdat           DateTime?                   @default(now())
+  updatedat           DateTime?                   @updatedAt
+  transactions        transaction[]
+  productattributes   productattribute[]
+  wishlists           productwishlist[]
+  orders              orders[]
+  productreviews      productreview[]
+  collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
+  productownerships   productownership[]
+  inventories         productinventory[]
 
-  @@unique([categoryid, name])
+  @@unique([categoryid, name, sku])
 }
 
 model productattribute {
@@ -313,6 +318,7 @@ model token {
   transactions      transaction[]
   admintransactions admintransaction[]
   staketransaction  staketransaction[]
+  inventory         productinventory?
 }
 
 model transaction {
@@ -449,17 +455,17 @@ model orders {
 }
 
 model productreview {
-  id          String       @id @default(uuid())
-  comment     String?
-  rating      Float?
+  id         String    @id @default(uuid())
+  comment    String?
+  rating     Float?
   customerid String
-  customer   customer?    @relation(fields: [customerid], references: [id])
-  productid   String?
-  product     product?     @relation(fields: [productid], references: [id])
-  orderid     String?
-  orders      orders?     @relation(fields: [orderid], references: [id])
-  createdat   DateTime     @default(now())
-  updatedat   DateTime    @updatedAt
+  customer   customer? @relation(fields: [customerid], references: [id])
+  productid  String?
+  product    product?  @relation(fields: [productid], references: [id])
+  orderid    String?
+  orders     orders?   @relation(fields: [orderid], references: [id])
+  createdat  DateTime  @default(now())
+  updatedat  DateTime  @updatedAt
 }
 
 model productcollection {
@@ -472,6 +478,7 @@ model productcollection {
   createdat   DateTime     @default(now())
   updatedat   DateTime    @updatedAt
 }
+
 model productcollectionproducts {
   productcollectionid     String
   productcollection       productcollection          @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
@@ -489,4 +496,26 @@ model productownership {
   product    product  @relation(fields: [productId], references: [id])
   fractional Boolean
   fraction   Float?
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model productinventory {
+  id                   String    @id @default(uuid())
+  productid            String
+  product              product   @relation(fields: [productid], references: [id])
+  inventoryid          String    @unique
+  isdeleted            Boolean?
+  inventorycategory    String
+  price                Float
+  quantity             Int
+  ownershipnft         Boolean
+  smartcontractaddress String?
+  tokenid              String?   @unique
+  token                token?    @relation(fields: [tokenid], references: [id])
+  createdat            DateTime? @default(now())
+  updatedat            DateTime? @updatedAt
 }
