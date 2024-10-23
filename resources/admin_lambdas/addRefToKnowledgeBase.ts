@@ -1,12 +1,12 @@
 import { RefType, tenant } from "../db/models";
+import { addReferenceToDb, getDataSourcesCount, isReferenceExist  } from "../db/adminDbFunctions";
+import { S3 } from 'aws-sdk';
 import { Readable } from "stream";
-import { addReferenceToDb, getDataSourcesCount, isReferenceExist } from "../db/adminDbFunctions";
-import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 import { hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
 const s3 = new S3();
-const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
-const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
+const bucketName = process.env.KB_BUCKET_NAME || ''; // Get bucket name from environment variables
+const kb_id = process.env.KB_ID || ''; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
@@ -22,7 +22,6 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.websiteUrl,
       event.arguments?.input?.depth
     );
-    console.log("data", data);
 
     const response = {
       status: data.document != null ? 200 : 400,
@@ -41,6 +40,9 @@ export const handler = async (event: any, context: any) => {
     };
   }
 };
+
+
+
 
 async function addReference(tenant: tenant, refType: string,projectId:string, file: any, websiteName: string, websiteUrl: string, depth: number) {
   console.log("Creating admin user");
@@ -105,7 +107,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
 
       datasource_id = BedRockDataSourceS3;
     } else if (refType === RefType.WEBSITE) {
-      const dataSource = await getDataSourcesCount(tenant.id,refType);
+      const dataSource = await getDataSourcesCount(tenant.id,websiteUrl,refType);
       console.log("dataSource", dataSource);
       let dataSourceDetails;
       if (dataSource == null) {
@@ -247,3 +249,5 @@ async function formatBytes(bytes: number, decimals = 2) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
+
+
