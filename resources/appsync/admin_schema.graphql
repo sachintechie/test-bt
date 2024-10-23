@@ -445,11 +445,6 @@ enum ProductStatus {
 	INACTIVE
 }
 
-input SearchInventoryInput {
-	inventoryId: String
-	productName: String
-}
-
 type SignIn {
 	status: Int
 	data: SignInData
