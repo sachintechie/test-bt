@@ -136,7 +136,6 @@ input CreateProductInput {
 	categoryId: String!
 	rarity: ProductRarity
 	price: Float
-	purchasedPercentage: Float
 	isMintAble: Boolean
 	chainType: String
 	tokenType: String

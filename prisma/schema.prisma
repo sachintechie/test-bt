@@ -275,8 +275,6 @@ model product {
   category            productcategory             @relation(fields: [categoryid], references: [id])
   rarity              productrarity?              @default(NORMAL)
   price               Float?
-  purchasedpercentage Float?
-  availablepercentage Float?
   tenantid            String?
   tenant              tenant?                     @relation(fields: [tenantid], references: [id])
   status              ProductStatus?              @default(ACTIVE)
@@ -490,13 +488,14 @@ model productcollectionproducts {
 
 model productownership {
   id         String   @id @default(uuid())
-  customerId String
-  customer   customer @relation(fields: [customerId], references: [id])
-  productId  String
-  product    product  @relation(fields: [productId], references: [id])
+  customerid String
+  customer   customer @relation(fields: [customerid], references: [id])
+  productid  String
+  product    product  @relation(fields: [productid], references: [id])
   fractional Boolean
   fraction   Float?
-}
+  isdeleted  Boolean?
+} 
 
 enum ProductStatus {
   ACTIVE
@@ -510,6 +509,8 @@ model productinventory {
   inventoryid          String    @unique
   isdeleted            Boolean?
   inventorycategory    String
+  purchasedpercentage  Float?
+  availablepercentage  Float?
   price                Float
   quantity             Int
   ownershipnft         Boolean

@@ -18,7 +18,8 @@ import {
   ReviewsFindBy,
   CategoryFindBy,
   CollectionFindBy,
-  OrderFindBy
+  OrderFindBy,
+  productOwnership
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1806,6 +1807,14 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
       }
     });
 
+//    if (status === orderstatus.DELIVERED) {
+//       await transferProductOwnership({
+//         sellerid: updatedOrder.sellerid!,
+//         buyerid: updatedOrder.buyerid!,
+//         productid: updatedOrder.productid!
+//       });
+//     }
+
     return {
       message: "Order status updated successfully",
       order: {
@@ -2099,18 +2108,22 @@ export async function getCollectionById(offset: number, itemsPerPage: number, va
 }
 
 export async function transferProductOwnership(
-  productId: string,
-  sellerId: string,
-  buyerId: string,
-  fractional: boolean = false,
-  fraction: number = 1
+  ownershipData: productOwnership,
 ) {
   const prisma = await getPrismaClient();
-  // Check if the product is already owned by the seller
+
+  const { productid, buyerid, sellerid, fractional = false, fraction = 1 } = ownershipData;
+
+  // Ensure productid and buyerid are not undefined
+  if (!productid || !buyerid || !sellerid) {
+    throw new Error("Product ID, Buyer ID, or Seller ID is missing.");
+  }
+
+  // Check if the product is owned by the seller
   const sellerOwnership = await prisma.productownership.findFirst({
     where: {
-      productId: productId,
-      customerId: sellerId,
+      productid: productid,
+      customerid: sellerid,
       fractional: fractional
     }
   });
@@ -2135,23 +2148,26 @@ export async function transferProductOwnership(
           // Create new ownership record for buyer
           await tx.productownership.create({
             data: {
-              customerId: buyerId,
-              productId: productId,
+              customerid: buyerid,
+              productid: productid,
               fractional: true,
               fraction: fraction
             }
           });
         } else if (remainingFraction === 0) {
           // If transferring full ownership, remove seller's record
-          await tx.productownership.delete({
-            where: { id: sellerOwnership.id }
+          await tx.productownership.update({
+            where: { id: sellerOwnership.id },
+            data: {
+              isdeleted: true
+            }
           });
 
           // Create new ownership record for buyer
           await tx.productownership.create({
             data: {
-              customerId: buyerId,
-              productId: productId,
+              customerid: buyerid,
+              productid: productid,
               fractional: true,
               fraction: fraction
             }
@@ -2161,14 +2177,17 @@ export async function transferProductOwnership(
         }
       } else {
         // Full ownership transfer
-        await tx.productownership.delete({
-          where: { id: sellerOwnership.id }
+        await tx.productownership.update({
+          where: { id: sellerOwnership.id },
+          data: {
+            isdeleted: true
+          }
         });
 
         await tx.productownership.create({
           data: {
-            customerId: buyerId,
-            productId: productId,
+            customerid: buyerid,
+            productid: productid,
             fractional: false,
             fraction: null
           }
@@ -2178,9 +2197,9 @@ export async function transferProductOwnership(
 
     return {
       message: "Ownership transferred successfully",
-      productId,
-      sellerId,
-      buyerId,
+      productid,
+      sellerid,
+      buyerid,
       fractional,
       fraction
     };
@@ -2192,8 +2211,6 @@ export async function transferProductOwnership(
     }
   }
 }
-
-
 
 export async function searchProducts(searchKeyword: string) {
   try {

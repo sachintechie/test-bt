@@ -472,10 +472,6 @@ export async function createCategory(category: productcategory) {
 
 export async function createProduct(product: product) {
   try {
-    console.log(product.tenantid);
-    if (product.purchasedpercentage > 100) {
-      throw new Error("purchasedpercentage cannot exceed 100.");
-    }
     const prisma = await getPrismaClient();
     const existingProduct = await prisma.product.findFirst({
       where: {
@@ -496,11 +492,8 @@ export async function createProduct(product: product) {
         categoryid: product.categoryid,
         tenantid: product.tenantid,
         rarity: product.rarity,
-        price: product.price,
-        purchasedpercentage: product.purchasedpercentage,
-        availablepercentage: 100 - product.purchasedpercentage
-      }
-    });
+        price: product.price,      }
+});
     return newProduct;
   } catch (error) {
     if (error instanceof Error) {
@@ -1130,4 +1123,3 @@ export async function filterInventory(filters: inventoryfilter) {
     throw err;
   }
 }
-
