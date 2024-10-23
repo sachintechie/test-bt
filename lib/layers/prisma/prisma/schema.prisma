@@ -36,10 +36,78 @@ model cubistconfig {
   sendtokensecretname String?
 }
 
-model knowledgebasereference{
+model organization {
+  id                String            @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  adminusers        adminuser[]
+  projects          project[]
+}
+
+model project {
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  projecttype       ProjectType
+  projectstatus     ProjectStatusEnum
+  projectstage      ProjectStage
+  projectmetadata   projectdataitem[]
+  knowledgebaseid   String
+  organization      organization @relation(fields: [organizationid], references: [id])
+  organizationid    String
+  isactive          Boolean
+  createdat         String
+  createdby         String
+  adminUsers        adminuser[]
+  references        reference[]
+}
+
+enum ProjectType {
+  ON_PREM
+  HYBRID
+  CLOUD
+  CUSTOM_CLOUD
+}
+
+enum ProjectStatusEnum {
+  STARTED
+  PAUSED
+  CANCELLED
+  ACTIVE
+}
+
+enum ProjectStage {
+  DATA_SELECTION
+  DATA_INGESTION
+  DATA_STORAGE
+  DATA_PREPARATION
+  LLM_FINE_TUNING
+  VERSIONING
+  RAG
+  PUBLISHED
+}
+
+model projectdataitem {
+  id              String          @id @default(uuid())
+  projectid       String
+  project         project         @relation(fields: [projectid], references: [id])
+  name            String
+  value           String
+  createdat       String
+}
+
+
+
+model reference  {
   id                String             @id @default(uuid())
   tenantid          String
   tenant            tenant            @relation(fields: [tenantid], references: [id])
+  projectid         String?
+  project           project?            @relation(fields: [projectid], references: [id])
   name              String?            
   reftype           String?
   url               String? 
@@ -101,9 +169,12 @@ model adminuser {
   isactive          Boolean?
   createdat         String?
   iss               String?
+  organizationid    String?
+  organization      organization? @relation(fields: [organizationid], references: [id])
   isbonuscredit     Boolean?
   adminwallets      adminwallet[]
   admintransactions admintransaction[]
+  projects          project[]
 }
 
 model customerkyc {
@@ -233,7 +304,7 @@ model tenant {
   userpoolid       String?
   cognitoclientid  String?
   iscognitoactive  Boolean?
-  iscubistactive   Boolean?
+  iscubistactive  Boolean?
   cubistconfig     cubistconfig[]
   customer         customer[]
   adminuser        adminuser[]
@@ -243,7 +314,8 @@ model tenant {
   staketransaction staketransaction[]
   categories       productcategory[]
   products         product[]
-  knowledgebasereferences knowledgebasereference[]
+  references       reference[]   
+  organizations    organization[]
 }
 
 enum productrarity {
@@ -253,6 +325,7 @@ enum productrarity {
   LEGENDARY
   MYTHICAL
 }
+
 
 model productcategory {
   id        String    @id @default(uuid())
@@ -269,6 +342,9 @@ model productcategory {
 model product {
   id         String     @id @default(uuid())
   name       String
+  description String
+  type       String
+  sku        String
   categoryid String 
   category   productcategory   @relation(fields: [categoryid], references: [id])
   rarity            productrarity?        @default(NORMAL)
@@ -277,6 +353,8 @@ model product {
   availablepercentage         Float?
   tenantid          String?
   tenant            tenant?              @relation(fields: [tenantid], references: [id])
+  status            ProductStatus?              @default(ACTIVE)
+  isdeleted         Boolean?
   createdat         DateTime?            @default(now())
   updatedat         DateTime?            @updatedAt
   transactions      transaction[]
@@ -284,10 +362,11 @@ model product {
   wishlists  productwishlist[]
   orders            orders[]
   productreviews    productreview[]
-  collections            productcollectionproducts[] @relation("productcollectionproductsproduct")
+  collections       productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships productownership[]
+  inventories       productinventory[] 
 
-  @@unique([categoryid, name])
+  @@unique([categoryid, name, sku])
 }
 
 model productattribute {
@@ -302,7 +381,7 @@ model productattribute {
 }
 
 model token {
-  id                String             @id @default(uuid())
+  id                String              @id @default(uuid())
   name              String?
   chaintype         String
   contractaddress   String
@@ -313,6 +392,7 @@ model token {
   transactions      transaction[]
   admintransactions admintransaction[]
   staketransaction  staketransaction[]
+  inventory         productinventory?
 }
 
 model transaction {
@@ -487,4 +567,26 @@ model productownership {
   product    product  @relation(fields: [productId], references: [id])
   fractional Boolean
   fraction   Float?
+}
+
+enum ProductStatus {
+ACTIVE
+INACTIVE
+}
+
+model productinventory {
+  id                    String    @id @default(uuid())
+  productid             String
+  product               product   @relation(fields: [productid], references: [id])
+  inventoryid           String   @unique  
+  isdeleted             Boolean?
+  inventorycategory     String   
+  price                 Float   
+  quantity              Int      
+  ownershipnft          Boolean  
+  smartcontractaddress  String?  
+  tokenid               String?   @unique 
+  token                 token?    @relation(fields: [tokenid], references: [id])
+  createdat             DateTime? @default(now())
+  updatedat             DateTime? @updatedAt
 }

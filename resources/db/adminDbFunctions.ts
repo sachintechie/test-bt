@@ -637,7 +637,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
 ) {
   try {
     const prisma = await getPrismaClient();
-    const existingReference = await prisma.knowledgebasereference.findFirst({
+    const existingReference = await prisma.reference.findFirst({
       where: {
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
@@ -650,9 +650,10 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         error: "Reference is already added with this name"
       }
     }
-    const newRef = await prisma.knowledgebasereference.create({
+    const newRef = await prisma.reference.create({
       data: {
         tenantid: tenantId as string,
+        projectid: null,
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
@@ -680,7 +681,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
 
 export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
   const prisma = await getPrismaClient();
-  const existingReference = await prisma.knowledgebasereference.findFirst({
+  const existingReference = await prisma.reference.findFirst({
     where: {
       name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
       url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
@@ -705,7 +706,7 @@ export async function getDataSourcesCount(tenantId:string,refType: string) {
   try {
     const prisma = await getPrismaClient();
 
-    const result = await prisma.knowledgebasereference.groupBy({
+    const result = await prisma.reference.groupBy({
       by: ['datasourceid'],  // Group by the `datasourceId` field
       _count: {
         id: true,  // Count the number of rows (assuming `id` is a unique identifier)
@@ -737,7 +738,7 @@ export async function getDataSourcesCount(tenantId:string,refType: string) {
 export async function getReferenceById(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -756,7 +757,7 @@ export async function getReferenceById(tenantId: string, refId: string) {
 export async function deleteRef(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -766,7 +767,7 @@ export async function deleteRef(tenantId: string, refId: string) {
     if (reference == null) {
       throw new Error("Reference not found");
     }
-    const deletedReference = await prisma.knowledgebasereference.update({
+    const deletedReference = await prisma.reference.update({
       where: { id: refId },
       data: { isdeleted: true }
     });
@@ -786,7 +787,7 @@ export async function getReferenceList(
 ) {
   try {
     const prisma = await getPrismaClient();
-    const refCount = await prisma.knowledgebasereference.count({
+    const refCount = await prisma.reference.count({
       where: {
         tenantid: tenantId,
         reftype: refType,
@@ -799,7 +800,7 @@ export async function getReferenceList(
     if (refCount == 0) {
       return [];
     }
-    const refs = await prisma.knowledgebasereference.findMany({
+    const refs = await prisma.reference.findMany({
       where: {
         tenantid: tenantId,
         reftype: refType,
