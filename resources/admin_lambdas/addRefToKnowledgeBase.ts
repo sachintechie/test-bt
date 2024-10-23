@@ -16,6 +16,7 @@ export const handler = async (event: any, context: any) => {
     const data = await addReference(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.refType,
+      event.arguments?.input?.projectId,
       event.arguments?.input?.file,
       event.arguments?.input?.websiteName,
       event.arguments?.input?.websiteUrl,
@@ -41,7 +42,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addReference(tenant: tenant, refType: string, file: any, websiteName: string, websiteUrl: string, depth: number) {
+async function addReference(tenant: tenant, refType: string,projectId:string, file: any, websiteName: string, websiteUrl: string, depth: number) {
   console.log("Creating admin user");
 
   try {
@@ -135,6 +136,7 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       file,
       refType,
       isIngested,
+      projectId,
       websiteName,
       websiteUrl,
       depth,

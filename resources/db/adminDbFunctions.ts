@@ -18,7 +18,7 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
-import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
+import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -657,7 +657,7 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,projectId:string,  websiteName?: string,websiteUrl?: string,
   depth?: number,datasource_id?: string,data?: any,ingestionJobId?: string,hashedData?: any
 ) {
   try {
@@ -678,11 +678,12 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
     const newRef = await prisma.reference.create({
       data: {
         tenantid: tenantId as string,
-        projectid: null,
+        projectid: projectId,
+        referencestage : ReferenceStage.DATA_STORAGE,
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,       
+        size: refType == RefType.DOCUMENT ? data.size : null,
         ingested: isIngested,
         isdeleted: false,
         s3prestorehash :hashedData.s3PreStoreHash,

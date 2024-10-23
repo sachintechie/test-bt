@@ -73,6 +73,12 @@ enum ProjectType {
   CUSTOM_CLOUD
 }
 
+enum ReferenceStage {
+  DATA_SELECTION
+  DATA_INGESTION
+  DATA_STORAGE
+}
+
 enum ProjectStatusEnum {
   STARTED
   PAUSED
@@ -108,6 +114,7 @@ model reference  {
   tenant            tenant            @relation(fields: [tenantid], references: [id])
   projectid         String?
   project           project?            @relation(fields: [projectid], references: [id])
+  referencestage    ReferenceStage
   name              String?            
   reftype           String?
   url               String? 
