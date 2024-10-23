@@ -551,12 +551,6 @@ input CreateInventoryInput {
   tokenId: String
 }
 
-type CreateInventoryResponse {
-  status: Int
-  data: InventoryData
-  error: AWSJSON
-}
-
 type GetInventoryResponse {
   status: Int
   data: [InventoryData]
@@ -577,17 +571,6 @@ type InventoryData {
   isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
-}
-
-
-type GetInventoriesByProductIdIdResponse {
-  status: Int
-  data: [InventoryData]
-  error: AWSJSON
-  page: Int
-  perPage: Int
-  totalRecordsCount: Int
-  totalPageCount: Int
 }
 
 input UpdateInventoryData {
