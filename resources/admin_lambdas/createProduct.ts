@@ -12,7 +12,6 @@ interface CreateProductInput {
   categoryId: string;
   rarity: productRarity;
   price: number;
-  purchasedPercentage: number;
   isMintAble?: boolean;
   chainType?: string;
   tokenType?: string;
@@ -34,8 +33,7 @@ export const handler = async (event: any, context: any) => {
       !input.name ||
       !input.categoryId ||
       !input.rarity ||
-      input.price === undefined ||
-      input.purchasedPercentage === undefined
+      input.price === undefined 
     ) {
       return {
         statusCode: 400,
@@ -53,8 +51,7 @@ export const handler = async (event: any, context: any) => {
       categoryid: input.categoryId,
       rarity: input.rarity,
       price: input.price,
-      purchasedpercentage: input.purchasedPercentage,
-      tenantid:tenant.id
+      tenantid:tenant.id,
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -92,7 +89,6 @@ async function createProductInDb(input: {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  purchasedpercentage: number;
   tenantid:string
 }) {
   const newProduct = await createProduct(input);
