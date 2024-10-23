@@ -57,15 +57,15 @@ model knowledgebasereference{
   createdat         String?
   datasourceid      String?
   ingestionjobid    String?
-    
+  
   @@unique([name, url])
 }
 
 model customer {
-  id                String             @id @default(uuid())
+  id                String              @id @default(uuid())
   tenantuserid      String?
   tenantid          String?
-  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  tenant            tenant?             @relation(fields: [tenantid], references: [id])
   emailid           String?
   name              String?
   cubistuserid      String?
@@ -85,7 +85,7 @@ model customer {
   sellerorders      orders[]            @relation("SellerOrders")
   buyerorders       orders[]            @relation("BuyerOrders")
   productreviews    productreview[]
-  collections       productcollection[] 
+  collections       productcollection[]
   productownerships productownership[]
 }
 
@@ -219,29 +219,29 @@ model sumsubconfig {
 }
 
 model tenant {
-  id               String             @id @default(uuid())
-  name             String?
-  apikey           String?
-  logo             String?
-  isactive         Boolean?
-  createdat        String?
-  tenantsecret     String?
-  tenantheaderkey  String?
-  callbackurl      String?
-  cubistorgid      String?
-  userpoolid       String?
-  cognitoclientid  String?
-  iscognitoactive  Boolean?
-  iscubistactive   Boolean?
-  cubistconfig     cubistconfig[]
-  customer         customer[]
-  adminuser        adminuser[]
-  customerkyc      customerkyc[]
-  gaspayerwallet   gaspayerwallet[]
-  stakeaccount     stakeaccount[]
-  staketransaction staketransaction[]
-  categories       productcategory[]
-  products         product[]
+  id                      String                   @id @default(uuid())
+  name                    String?
+  apikey                  String?
+  logo                    String?
+  isactive                Boolean?
+  createdat               String?
+  tenantsecret            String?
+  tenantheaderkey         String?
+  callbackurl             String?
+  cubistorgid             String?
+  userpoolid              String?
+  cognitoclientid         String?
+  iscognitoactive         Boolean?
+  iscubistactive          Boolean?
+  cubistconfig            cubistconfig[]
+  customer                customer[]
+  adminuser               adminuser[]
+  customerkyc             customerkyc[]
+  gaspayerwallet          gaspayerwallet[]
+  stakeaccount            stakeaccount[]
+  staketransaction        staketransaction[]
+  categories              productcategory[]
+  products                product[]
   knowledgebasereferences knowledgebasereference[]
 }
 
@@ -439,19 +439,19 @@ enum orderstatus {
 }
 
 model orders {
-  id         String       @id @default(uuid())
-  sellerid   String?
-  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
-  buyerid    String?
-  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
-  productid  String?
-  product    product?     @relation(fields: [productid], references: [id])
-  price      Float?
-  quantity   Int?
-  status     orderstatus
+  id             String          @id @default(uuid())
+  sellerid       String?
+  seller         customer?       @relation("SellerOrders", fields: [sellerid], references: [id])
+  buyerid        String?
+  buyer          customer?       @relation("BuyerOrders", fields: [buyerid], references: [id])
+  productid      String?
+  product        product?        @relation(fields: [productid], references: [id])
+  price          Float?
+  quantity       Int?
+  status         orderstatus
   productreviews productreview[]
-  createdat  DateTime   @default(now())
-  updatedat  DateTime   @updatedAt
+  createdat      DateTime        @default(now())
+  updatedat      DateTime        @updatedAt
 }
 
 model productreview {
@@ -469,21 +469,21 @@ model productreview {
 }
 
 model productcollection {
-  id          String       @id @default(uuid())
-  customerid String?
-  customer   customer?    @relation(fields: [customerid], references: [id])
-  products               productcollectionproducts[] @relation("productcollectionproductscollection")
+  id          String                      @id @default(uuid())
+  customerid  String?
+  customer    customer?                   @relation(fields: [customerid], references: [id])
+  products    productcollectionproducts[] @relation("productcollectionproductscollection")
   title       String?
   description String?
-  createdat   DateTime     @default(now())
-  updatedat   DateTime    @updatedAt
+  createdat   DateTime                    @default(now())
+  updatedat   DateTime                    @updatedAt
 }
 
 model productcollectionproducts {
-  productcollectionid     String
-  productcollection       productcollection          @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
-  productid               String
-  product                 product                    @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
+  productcollectionid String
+  productcollection   productcollection @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
+  productid           String
+  product             product           @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
 
   @@id([productcollectionid, productid])
 }
