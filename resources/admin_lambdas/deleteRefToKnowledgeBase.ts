@@ -41,7 +41,7 @@ async function deleteReference(tenant: tenant, refId: string) {
       data = await deleteFromS3(reference?.name ?? "");
       console.log("data", data);
     } else if (reference != null && reference.reftype == RefType.WEBSITE) {
-      const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "", reference?.datasourceid ?? "");
+      const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "","", reference?.datasourceid ?? "");
       if(dataSourceDetails.error || dataSourceDetails.errorMessage 
       ){
         return {
