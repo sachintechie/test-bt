@@ -14,7 +14,7 @@ export const handler = async (event: any) => {
       };
       return response;
     } 
-    else if (event.arguments?.input?.chainType === "Proveance") {
+    else if (event.arguments?.input?.chainType === "Provenance") {
       const hash = await storeHash(event.arguments?.input?.hash, event.arguments?.input?.chainType);
 
       const response = {
