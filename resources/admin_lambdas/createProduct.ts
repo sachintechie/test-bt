@@ -1,4 +1,5 @@
-import { createProduct,addOwnership } from "../db/adminDbFunctions";
+import { createProduct,addOwnership,getAdminUserById } from "../db/adminDbFunctions";
+import {getCustomer} from "../db/dbFunctions";
 import { productRarity } from "../db/models";
 import { mintNFT } from "../lambdas/mintNFT";
 import { mintERC1155 } from "../lambdas/mintERC1155";
@@ -27,7 +28,7 @@ export const handler = async (event: any, context: any) => {
 	  
 	  const input: CreateProductInput = event.arguments?.input;
 	  const tenant = event.identity?.resolverContext as tenant;
-	  console.log(event, tenant);
+	  console.log(event, context);
     if (
       !input ||
       !input.name ||
@@ -64,7 +65,13 @@ export const handler = async (event: any, context: any) => {
     }
 
 	if (product) {
-	 await addOwnership(product.id, tenant.customerid!);
+	 const adminUser = await getAdminUserById(tenant.adminuserid!);
+	 console.log("adminUser", adminUser);
+	 const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
+	 console.log("customer", customer);
+	 if(customer){
+	   await addOwnership(product.id, customer.id!);
+	  }
 	}
 
     return {

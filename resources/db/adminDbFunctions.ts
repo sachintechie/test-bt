@@ -1177,3 +1177,15 @@ export async function insertMediaEntries(mediaData: any[]) {
 	  throw new Error(`Error adding ownership: ${error.message}`);
 	}
   }
+
+  export async function getAdminUserById(userId: string) {
+	try {
+	  const prisma = await getPrismaClient();
+	  const adminUser = await prisma.adminuser.findUnique({
+		where: { id: userId }
+	  });
+	  return adminUser;
+	} catch (error:any) {
+	  throw new Error(`Error retrieving admin user with ID ${userId}: ${error.message}`);
+	}
+  }
