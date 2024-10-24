@@ -61,13 +61,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
     };
     let datasource_id;
     let ingestionJobId;
-    const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl, data);
-    if(isRefExist.isExist){
-      return {
-        document: null,
-        error: isRefExist.error
-      };
-    }
+    
     if (refType === RefType.DOCUMENT) {
       const hashedData = {
         fileName: file.fileName,
@@ -94,6 +88,13 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
       }
 
       console.log("data", data);
+      const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl,data);
+    if(isRefExist.isExist){
+      return {
+        document: null,
+        error: isRefExist.error
+      };
+    }
       const uploadedFile = {
         fileName: data?.data?.fileName,
         fileContent:  data?.data?.s3Object,
@@ -110,8 +111,16 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
 
       datasource_id = BedRockDataSourceS3;
     } else if (refType === RefType.WEBSITE) {
+      const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl,data);
+    if(isRefExist.isExist){
+      return {
+        document: null,
+        error: isRefExist.error
+      };
+    }
       const dataSource = await getDataSourcesCount(tenant.id,websiteUrl,refType);
       console.log("dataSource", dataSource);
+
       let dataSourceDetails;
       if (dataSource == null) {
         dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl, websiteName);
