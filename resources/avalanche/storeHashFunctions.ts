@@ -236,8 +236,8 @@ export async function storeHash(hash: string,chainType: string) {
       error: null
     };
   }
-  else if(chainType === "Provenace"){
-    
+  else if(chainType === "Provenance"){
+
   }
   } catch (error) {
     // Handle any errors

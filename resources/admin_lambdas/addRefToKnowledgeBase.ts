@@ -1,5 +1,5 @@
 import { RefType, tenant } from "../db/models";
-import { addReferenceToDb, getDataSourcesCount, isReferenceExist  } from "../db/adminDbFunctions";
+import { addReferenceToDb, getDataSourcesCount, isDocumentReferenceExist, isWebsiteReferenceExist  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
 import { Readable } from "stream";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
@@ -61,15 +61,13 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
     };
     let datasource_id;
     let ingestionJobId;
-    const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl, data);
-    if(isRefExist.isExist){
-      return {
-        document: null,
-        error: isRefExist.error
-      };
-    }
+    
     if (refType === RefType.DOCUMENT) {
-      const s3PreHashedData = await hashingAndStoreToBlockchain(file);
+      const hashedData = {
+        fileName: file.fileName,
+        fileContent: file.fileContent
+      }
+      const s3PreHashedData = await hashingAndStoreToBlockchain(hashedData);
       if(s3PreHashedData.error){
         return {
           document: null,
@@ -90,10 +88,16 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
       }
 
       console.log("data", data);
+      const isRefExist = await isDocumentReferenceExist( file,data);
+    if(isRefExist.isExist){
+      return {
+        document: null,
+        error: isRefExist.error
+      };
+    }
       const uploadedFile = {
         fileName: data?.data?.fileName,
         fileContent:  data?.data?.s3Object,
-        contentType: data?.data?.contentType
       }
       console.log("uploadedFile", uploadedFile);
       const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
@@ -107,8 +111,16 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
 
       datasource_id = BedRockDataSourceS3;
     } else if (refType === RefType.WEBSITE) {
+      const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
+    if(isRefExist.isExist){
+      return {
+        document: null,
+        error: isRefExist.error
+      };
+    }
       const dataSource = await getDataSourcesCount(tenant.id,websiteUrl,refType);
       console.log("dataSource", dataSource);
+
       let dataSourceDetails;
       if (dataSource == null) {
         dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl, websiteName);

@@ -10,6 +10,7 @@ export const handler = async (event: any) => {
       event.arguments?.input?.limit,
       event.arguments?.input?.pageNo,
       event.arguments?.input?.refType,
+      event.arguments?.input?.projectId
 
     );
     return {
@@ -27,9 +28,9 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getRefs(tenant: tenant, limit: number, pageNo: number,refType: string) {
+async function getRefs(tenant: tenant, limit: number, pageNo: number,refType: string,projectId:string) {
   try {
-    const refs = await getReferenceList(limit, pageNo,tenant.id, refType);
+    const refs = await getReferenceList(limit, pageNo,tenant.id, refType,projectId);
     console.log(refs, "refs");
     return refs;
   } catch (err) {

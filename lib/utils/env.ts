@@ -35,7 +35,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
     PRIVATE_KEY: "0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e",
     AVAX_PRIVATE_KEY: "68ff1b25786aec4108dd91e974528cb8035b9f2f5315de90a7a5e429a7ae36d2",
     STORE_AVAX_CONTRACT_ADDRESS: "0x7b72b77b930656591D0281DEC0532cA6a4a55AB4",
-    
+
     STORE_AVAX_SUBNET_CONTRACT_ADDRESS: "0x1D57cd10148f382116127ad7eC8Ebb3a573D5792",
     METADATA_TABLE: "METADATA_TABLE"
   };
@@ -79,8 +79,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
       AVAX_SUBNET_NETWORK_ID: "41024",
       AVAX_NETWORK_ID: "43113",
       KB_BUCKET_NAME:"bedrockkbdocumentdev",
-      KB_ID:"PHLLQYCS0A",
-      BEDROCK_DATASOURCE_S3:"8FSFKCL7EE"
+      KB_ID:"X3RMAORSFE",
+      BEDROCK_DATASOURCE_S3:"YQFKGJGVRR"
     };
     case "staging":
       return {

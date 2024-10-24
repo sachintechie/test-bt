@@ -713,12 +713,34 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
   }
 }
 
-export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
+export async function isDocumentReferenceExist(file: any, data?: any) {
   const prisma = await getPrismaClient();
   const existingReference = await prisma.reference.findFirst({
     where: {
-      name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-      url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+      name: file.fileName ,
+      url: data.url ,
+      isdeleted: false
+    }
+  });
+  if (existingReference) {
+    return {
+      isExist: true,
+      error: "Reference is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+export async function isWebsiteReferenceExist( websiteName: string, websiteUrl: string) {
+  const prisma = await getPrismaClient();
+  const existingReference = await prisma.reference.findFirst({
+    where: {
+      name:  websiteName,
+      url:  websiteUrl,
       isdeleted: false
     }
   });
@@ -843,7 +865,8 @@ export async function getReferenceList(
   limit: number,
   pageNo: number,
   tenantId: string,
-  refType: string
+  refType: string,
+  projectId: string
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -851,7 +874,8 @@ export async function getReferenceList(
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
       },
       orderBy: {
         createdat: "desc"
@@ -864,7 +888,8 @@ export async function getReferenceList(
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
 
       },
 
