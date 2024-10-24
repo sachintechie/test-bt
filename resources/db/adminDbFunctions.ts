@@ -703,7 +703,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
     });
     return {
       data: newRef,
-      error: "Reference is already added with this name"
+      error: null
     }
   } catch (err) {
     return{
