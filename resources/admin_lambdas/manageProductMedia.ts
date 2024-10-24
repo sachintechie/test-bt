@@ -55,7 +55,7 @@ async function handleMultipleFiles(files: any[], productId: string) {
         entityid: productId,
         entitytype: 'product',
         url: fileUploadData.data?.url || 'N/A',
-        type:file.type
+        type: file.contentType
       };
     } catch (err: any) {
       console.log(`Error uploading file ${file.fileName}:`, err.message);

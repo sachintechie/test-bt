@@ -527,7 +527,7 @@ model media {
   entityid   String 
   entitytype String
   url        String
-  type       String
+  type       String?   
   createdat  DateTime @default(now())
   updatedat  DateTime @updatedAt
   product    product? @relation("ProductMedia", fields: [entityid], references: [id])
