@@ -105,6 +105,10 @@ type AdminUserListData {
 	users: [AdminUserData]
 }
 
+input BulkImportInput {
+	file: FileInput!
+}
+
 type CategoryData {
 	name: String!
 	tenantid: String!
@@ -122,6 +126,12 @@ input CreateCategoryInput {
 	categoryName: String!
 }
 
+type CreateInventoryResponse {
+	status: Int
+	data: InventoryData
+	error: AWSJSON
+}
+
 input CreateProductInput {
 	name: String!
 	description: String
@@ -130,7 +140,6 @@ input CreateProductInput {
 	categoryId: String!
 	rarity: ProductRarity
 	price: Float
-	purchasedPercentage: Float
 	isMintAble: Boolean
 	chainType: String
 	tokenType: String
@@ -500,11 +509,6 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
-input GetAdminProductsInput {
-    page: Int
-    perPage: Int
-} 
-
 input CreateInventoryInput {
   productId: String!
   inventoryId: String!
@@ -516,9 +520,9 @@ input CreateInventoryInput {
   tokenId: String
 }
 
-type CreateInventoryResponse {
+type GetInventoryResponse {
   status: Int
-  data: InventoryData
+  data: [InventoryData]
   error: AWSJSON
 }
 
@@ -538,49 +542,11 @@ type InventoryData {
   updatedat: AWSDateTime
 }
 
-input GetInventoriesByProductIdInput {
-	productId: String!
-	page: Int
-    perPage: Int
-}
-
-type GetInventoriesByProductIdIdResponse {
-  status: Int
-  data: [InventoryData]
-  error: AWSJSON
-  page: Int
-  perPage: Int
-  totalRecordsCount: Int
-  totalPageCount: Int
-}
-
-input UpdateInventoryInput {
-  inventoryId: String!
-  inventoryData: UpdateInventoryData!
-}
-
-input UpdateInventoryData {
-  inventoryCategory: String
-  price: Float
-  quantity: Int
-  ownershipNft: Boolean
-  smartContractAddress: String
-  tokenId: String
-}
-
 type BulkImportResponse {
   status: Int
   data: String
   error: AWSJSON
 }
-
- input BulkImportInput {
-   file: FileInput!
- }
-
- input DeleteInventoryInput {
-	inventoryId: String!
- }
 
  input SearchInventoryInput {
 	inventoryId: String
@@ -591,21 +557,17 @@ type BulkImportResponse {
  refId: String!
  }
 
- input FilterInput {
-   operator: String! 
-   value: Float!
- }
+input ManageProductMediaInput {
+   productId: String
+   filesToBeAdded: [FileInput!]
+   filesToBeDeleted: [String!]
+}
 
- input FilterInventoryInputData {
-   inventoryId: String
-   productName: String
-   price: FilterInput
-   quantity: FilterInput
- }
-
- input FilterInventoryInput {
-   filters: FilterInventoryInputData!
- }
+type ManageProductMediaResponse{
+  status: Int
+  data: String
+  error: AWSJSON
+}
 
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin

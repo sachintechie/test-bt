@@ -1,4 +1,5 @@
-import { createProduct } from "../db/adminDbFunctions";
+import { createProduct,addOwnership,getAdminUserById } from "../db/adminDbFunctions";
+import {getCustomer} from "../db/dbFunctions";
 import { productRarity } from "../db/models";
 import { mintNFT } from "../lambdas/mintNFT";
 import { mintERC1155 } from "../lambdas/mintERC1155";
@@ -12,7 +13,6 @@ interface CreateProductInput {
   categoryId: string;
   rarity: productRarity;
   price: number;
-  purchasedPercentage: number;
   isMintAble?: boolean;
   chainType?: string;
   tokenType?: string;
@@ -25,17 +25,16 @@ interface CreateProductInput {
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log(event, context);
-
-    const input: CreateProductInput = event.arguments?.input;
-    const tenant = event.identity?.resolverContext as tenant;
+	  
+	  const input: CreateProductInput = event.arguments?.input;
+	  const tenant = event.identity?.resolverContext as tenant;
+	  console.log(event, context);
     if (
       !input ||
       !input.name ||
       !input.categoryId ||
       !input.rarity ||
-      input.price === undefined ||
-      input.purchasedPercentage === undefined
+      input.price === undefined 
     ) {
       return {
         statusCode: 400,
@@ -53,8 +52,7 @@ export const handler = async (event: any, context: any) => {
       categoryid: input.categoryId,
       rarity: input.rarity,
       price: input.price,
-      purchasedpercentage: input.purchasedPercentage,
-      tenantid:tenant.id
+      tenantid:tenant.id,
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -65,6 +63,17 @@ export const handler = async (event: any, context: any) => {
         await mintNFT(toAddress, quantity, chainType, contractAddress, metadata, tenant.id);
       }
     }
+
+	if (product) {
+	 const adminUser = await getAdminUserById(tenant.adminuserid!);
+	 console.log("adminUser", adminUser);
+	 const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
+	 console.log("customer", customer);
+	 if(customer){
+	   await addOwnership(product.id, customer.id!);
+	  }
+	}
+
     return {
       status: 200,
       data: product,
@@ -92,7 +101,6 @@ async function createProductInDb(input: {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  purchasedpercentage: number;
   tenantid:string
 }) {
   const newProduct = await createProduct(input);

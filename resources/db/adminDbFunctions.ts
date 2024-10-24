@@ -13,7 +13,7 @@ import {
   ProductStatus,
   RefType,
   productinventory,
-  inventoryfilter
+  inventoryfilter,
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -499,10 +499,6 @@ export async function createCategory(category: productcategory) {
 
 export async function createProduct(product: product) {
   try {
-    console.log(product.tenantid);
-    if (product.purchasedpercentage > 100) {
-      throw new Error("purchasedpercentage cannot exceed 100.");
-    }
     const prisma = await getPrismaClient();
     const existingProduct = await prisma.product.findFirst({
       where: {
@@ -523,11 +519,8 @@ export async function createProduct(product: product) {
         categoryid: product.categoryid,
         tenantid: product.tenantid,
         rarity: product.rarity,
-        price: product.price,
-        purchasedpercentage: product.purchasedpercentage,
-        availablepercentage: 100 - product.purchasedpercentage
-      }
-    });
+        price: product.price,      }
+});
     return newProduct;
   } catch (error) {
     if (error instanceof Error) {
@@ -1233,3 +1226,68 @@ export async function filterInventory(filters: inventoryfilter) {
   }
 }
 
+export async function getProductById(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const product = await prisma.product.findUnique({
+      where: { id: productId }
+    });
+    return product;
+  } catch (error:any) {
+    throw new Error(`Error retrieving product with ID ${productId}: ${error.message}`);
+  }
+}
+
+export async function insertMediaEntries(mediaData: any[]) {
+  try {
+    const prisma = await getPrismaClient();
+    const newMediaEntries = await prisma.media.createMany({
+      data: mediaData,
+    });
+    return newMediaEntries;
+  } catch (error:any) {
+    throw new Error(`Error inserting media entries: ${error.message}`);
+  }
+  }
+
+  export async function deleteMediaEntries(mediaUrls: string[], productId: string) {
+    try {
+      const prisma = await getPrismaClient();
+      await prisma.media.deleteMany({
+        where: {
+          entityid: productId,
+          url: { in: mediaUrls }
+        }
+      });
+    } catch (error:any) {
+      throw new Error(`Error deleting media entries: ${error.message}`);
+    }
+  }
+
+  export async function addOwnership(productId: string, customerId: string) {
+	try {
+	  const prisma = await getPrismaClient();
+	  await prisma.productownership.create({
+		data: {
+		  productid: productId,
+		  customerid: customerId,
+		  fractional: false,
+		  fraction: 0
+		}
+	  });
+	} catch (error:any) {
+	  throw new Error(`Error adding ownership: ${error.message}`);
+	}
+  }
+
+  export async function getAdminUserById(userId: string) {
+	try {
+	  const prisma = await getPrismaClient();
+	  const adminUser = await prisma.adminuser.findUnique({
+		where: { id: userId }
+	  });
+	  return adminUser;
+	} catch (error:any) {
+	  throw new Error(`Error retrieving admin user with ID ${userId}: ${error.message}`);
+	}
+  }
