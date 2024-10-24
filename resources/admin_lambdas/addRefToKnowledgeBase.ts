@@ -69,7 +69,11 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
       };
     }
     if (refType === RefType.DOCUMENT) {
-      const s3PreHashedData = await hashingAndStoreToBlockchain(file);
+      const hashedData = {
+        fileName: file.fileName,
+        fileContent: file.fileContent
+      }
+      const s3PreHashedData = await hashingAndStoreToBlockchain(hashedData);
       if(s3PreHashedData.error){
         return {
           document: null,
@@ -93,7 +97,6 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
       const uploadedFile = {
         fileName: data?.data?.fileName,
         fileContent:  data?.data?.s3Object,
-        contentType: data?.data?.contentType
       }
       console.log("uploadedFile", uploadedFile);
       const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
