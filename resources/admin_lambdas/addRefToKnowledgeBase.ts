@@ -1,5 +1,5 @@
 import { RefType, tenant } from "../db/models";
-import { addReferenceToDb, getDataSourcesCount, isReferenceExist  } from "../db/adminDbFunctions";
+import { addReferenceToDb, getDataSourcesCount, isDocumentReferenceExist, isWebsiteReferenceExist  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
 import { Readable } from "stream";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
@@ -88,7 +88,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
       }
 
       console.log("data", data);
-      const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl,data);
+      const isRefExist = await isDocumentReferenceExist( file,data);
     if(isRefExist.isExist){
       return {
         document: null,
@@ -111,7 +111,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
 
       datasource_id = BedRockDataSourceS3;
     } else if (refType === RefType.WEBSITE) {
-      const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl,data);
+      const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
     if(isRefExist.isExist){
       return {
         document: null,

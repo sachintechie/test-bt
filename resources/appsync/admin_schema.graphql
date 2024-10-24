@@ -610,7 +610,8 @@ type BulkImportResponse {
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
-	AdminTransfer(input: AdminTransferInput): AdminTransfer
+	AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+    AdminTransfer(input: AdminTransferInput): AdminTransfer
 	CreateTokenAccount(input: AdminTransferInput): AdminTransfer
 	CreateCategory(input: CreateCategoryInput): CategoryResponse
 	CreateProduct(input: CreateProductInput): ProductResponse
