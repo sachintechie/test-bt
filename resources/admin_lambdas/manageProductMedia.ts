@@ -1,4 +1,5 @@
 import { S3 } from 'aws-sdk';
+import { getProductById, insertMediaEntries, deleteMediaEntries } from '../db/adminDbFunctions';
 const s3 = new S3();
 const bucketName = process.env.PRODUCT_BUCKET_NAME || '';
 if (!bucketName) {
@@ -8,21 +9,32 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const files = event.arguments?.input?.files;
-    if (!files || files.length === 0) {
-      throw new Error("No files provided for upload.");
-    }
-    
-    await deleteFirstFileFromS3Bucket();
+    const { productId, filesToBeAdded, filesToBeDeleted } = event.arguments?.input;
 
-    const data = await handleMultipleFiles(files);
+    if (!productId) {
+      throw new Error("Product ID is required.");
+    }
+
+    const product = await getProductById(productId);
+    if (!product) {
+      throw new Error(`Product with ID ${productId} not found.`);
+    }
+
+    
+    if (filesToBeDeleted && filesToBeDeleted.length > 0) {
+      await deleteFilesFromS3AndDB(filesToBeDeleted, productId);
+    }
+
+    let newMediaEntries: { entityid: string; entitytype: string; url: string; type: any; }[] = [];
+    if (filesToBeAdded && filesToBeAdded.length > 0) {
+      newMediaEntries = await handleMultipleFiles(filesToBeAdded, productId);
+    }
 
     const response = {
-      status: data.length > 0 ? 200 : 400,
-      data: data,
+      status: 200,
+      data: newMediaEntries,
       error: null
     };
-    console.log("File upload response:", response);
 
     return response;
   } catch (err) {
@@ -35,24 +47,29 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function handleMultipleFiles(files: any[]) {
+async function handleMultipleFiles(files: any[], productId: string) {
   const uploadPromises = files.map(async (file) => {
     try {
       const fileUploadData = await addToS3Bucket(file.fileName, file.fileContent);
       return {
-        fileName: file.fileName,
-        url: fileUploadData.data?.url || 'N/A'
+        entityid: productId,
+        entitytype: 'product',
+        url: fileUploadData.data?.url || 'N/A',
+        type:file.type
       };
     } catch (err: any) {
-      console.log(`Error uploading file ${file.fileName}:`, err);
-      return {
-        fileName: file.fileName,
-        error: err.message
-      };
+      console.log(`Error uploading file ${file.fileName}:`, err.message);
+      return null
     }
   });
 
-  return Promise.all(uploadPromises);
+  const mediaData = await Promise.all(uploadPromises);
+  const filteredMediaData = mediaData.filter((entry) => entry !== null);
+  if (filteredMediaData.length > 0) {
+    await insertMediaEntries(filteredMediaData);
+  }
+
+  return filteredMediaData;
 }
 
 async function addToS3Bucket(fileName: string, fileContent: string) { 
@@ -74,15 +91,7 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
       Body: Buffer.from(fileContent, 'base64'),
     };
     await s3.putObject(params).promise();
-
-    const data = {
-       url: url
-    };
-
-    return {
-      data: data,
-      error: null
-    };
+    return { data: { url } };
   } catch (e) {
     console.log(`Error uploading to S3: ${e}`);
     return {
@@ -92,27 +101,18 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
   }
 }
 
-async function deleteFirstFileFromS3Bucket(): Promise<void> {
+async function deleteFilesFromS3AndDB(filesToBeDeleted: string[], productId: string): Promise<void> {
   try {
-    const listParams = {
-      Bucket: bucketName,
-      MaxKeys: 1,
-    };
-    const listedObjects = await s3.listObjectsV2(listParams).promise();
+    const deletePromises = filesToBeDeleted.map(async (fileUrl) => {
+      const fileName = fileUrl.split('/').pop();
+      const params = { Bucket: bucketName, Key: fileName };
+      await s3.deleteObject(params).promise();
+    });
+    await Promise.all(deletePromises);
+    await deleteMediaEntries(filesToBeDeleted, productId);
 
-    if (listedObjects.Contents && listedObjects.Contents.length > 0) {
-      const fileToDelete = listedObjects.Contents[0].Key;
-      const deleteParams = {
-        Bucket: bucketName,
-        Key: fileToDelete || ''
-      };
-      await s3.deleteObject(deleteParams).promise();
-      console.log(`Deleted file from S3: ${fileToDelete}`);
-    } else {
-      console.log('No files found in the S3 bucket.');
-    }
   } catch (err: any) {
     console.log(`Error deleting files from S3: ${err.message}`);
-    throw new Error('Failed to delete existing files in the bucket');
+    throw new Error(`Error deleting files from S3 or DB: ${err.message}`);
   }
 }

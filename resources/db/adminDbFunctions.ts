@@ -1123,3 +1123,41 @@ export async function filterInventory(filters: inventoryfilter) {
     throw err;
   }
 }
+
+export async function getProductById(productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const product = await prisma.product.findUnique({
+      where: { id: productId }
+    });
+    return product;
+  } catch (error:any) {
+    throw new Error(`Error retrieving product with ID ${productId}: ${error.message}`);
+  }
+}
+
+export async function insertMediaEntries(mediaData: any[]) {
+  try {
+    const prisma = await getPrismaClient();
+    const newMediaEntries = await prisma.media.createMany({
+      data: mediaData,
+    });
+    return newMediaEntries;
+  } catch (error:any) {
+    throw new Error(`Error inserting media entries: ${error.message}`);
+  }
+  }
+
+  export async function deleteMediaEntries(mediaUrls: string[], productId: string) {
+    try {
+      const prisma = await getPrismaClient();
+      await prisma.media.deleteMany({
+        where: {
+          entityid: productId,
+          url: { in: mediaUrls }
+        }
+      });
+    } catch (error:any) {
+      throw new Error(`Error deleting media entries: ${error.message}`);
+    }
+  }
