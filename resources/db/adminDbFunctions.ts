@@ -843,7 +843,8 @@ export async function getReferenceList(
   limit: number,
   pageNo: number,
   tenantId: string,
-  refType: string
+  refType: string,
+  projectId: string
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -851,7 +852,8 @@ export async function getReferenceList(
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
       },
       orderBy: {
         createdat: "desc"
@@ -864,7 +866,8 @@ export async function getReferenceList(
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
 
       },
 

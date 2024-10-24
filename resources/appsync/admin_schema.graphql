@@ -294,6 +294,7 @@ input ListRefInput {
 	limit: Int!
 	pageNo: Int!
 	refType: String
+	projectId: String
 }
 
 type ListReference {
