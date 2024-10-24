@@ -60,7 +60,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
       chainId: ""
     };
     let datasource_id;
-    let ingestionJobId;
+    let ingestionJobId,status;
     
     if (refType === RefType.DOCUMENT) {
       const hashedData = {
@@ -110,6 +110,11 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
       console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
 
       datasource_id = BedRockDataSourceS3;
+      
+    ({ status, ingestionJobId } = await syncKb(kb_id, datasource_id));
+
+    isIngested = status === "COMPLETE";
+    console.log("syncKbResponse", status);
     } else if (refType === RefType.WEBSITE) {
       const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
     if(isRefExist.isExist){
@@ -118,7 +123,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
         error: isRefExist.error
       };
     }
-      const dataSource = await getDataSourcesCount(tenant.id,websiteUrl,refType);
+      const dataSource = await getDataSourcesCount(tenant.id,refType);
       console.log("dataSource", dataSource);
 
       let dataSourceDetails;
@@ -142,9 +147,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
 
     console.log("datasource_id", datasource_id, ingestionJobId);
 
-    const syncKbResponse = await syncKb(kb_id, datasource_id);
-    syncKbResponse == "COMPLETE" ? (isIngested = true) : (isIngested = false);
-    console.log("syncKbResponse", syncKbResponse);
+  
     const ref = await addReferenceToDb(
       tenant.id,
       file,

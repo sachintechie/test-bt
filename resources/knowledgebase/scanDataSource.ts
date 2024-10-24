@@ -36,10 +36,10 @@ export async function syncKb(kbId: string, dataSourceId: string) {
   throw new Error("Knowledge Base ID and Data Source ID are required.");
 }
 
-    return status;
+    return {status,ingestionJobId : jobId};
   } catch (e) {
     console.log(`Error while syncing knowledge base: ${e}`);
-    return "FAILED";
+    return {status :"FAILED" };
   }
 }
 

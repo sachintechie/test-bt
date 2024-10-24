@@ -703,7 +703,7 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
     });
     return {
       data: newRef,
-      error: "Reference is already added with this name"
+      error: null
     }
   } catch (err) {
     return{
@@ -782,7 +782,7 @@ export async function isProjectExist(projectType: ProjectType, name: string,orga
 
 
 
-export async function getDataSourcesCount(tenantId:string,websiteUrl:string,refType: string) {
+export async function getDataSourcesCount(tenantId:string,refType: string) {
 
   try {
     const prisma = await getPrismaClient();
@@ -795,7 +795,6 @@ export async function getDataSourcesCount(tenantId:string,websiteUrl:string,refT
       where: {
         isdeleted: false,
         tenantid: tenantId,
-        url: websiteUrl,
         reftype: refType
       }
     });
