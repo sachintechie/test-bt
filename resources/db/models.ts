@@ -72,11 +72,10 @@ export interface product {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  purchasedpercentage: number;
   tenantid:string;
   description: string;   
   type: string;           
-  sku: string;        
+  sku: string;    
 }
 
 export interface productcategory {
@@ -141,12 +140,16 @@ export interface addtocollection {
   productid: string;
 }
 
-export interface ProductOwnership {
+export interface productOwnership {
   id?: string;
-  customerId?: string;
-  productId?: string;
+  buyerid?: string;
+  sellerid?: string;
+  productid?: string;
   fractional?: boolean;
   fraction?: number;
+  isdeleted?: boolean;
+  createdat?: string;
+  updatedat?: string;
 }
 
 export interface productinventory {
