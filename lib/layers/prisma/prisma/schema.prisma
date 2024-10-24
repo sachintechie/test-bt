@@ -291,6 +291,7 @@ model product {
   collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships   productownership[]
   inventories         productinventory[]
+  productmedia        media[] 
 
   @@unique([categoryid, name, sku])
 }
@@ -518,4 +519,14 @@ model productinventory {
   token                token?    @relation(fields: [tokenid], references: [id])
   createdat            DateTime? @default(now())
   updatedat            DateTime? @updatedAt
+}
+
+model media {
+  id         String   @id @default(uuid())
+  entityid   String 
+  entitytype String
+  url        String
+  type       String
+  createdat  DateTime @default(now())
+  updatedat  DateTime @updatedAt
 }

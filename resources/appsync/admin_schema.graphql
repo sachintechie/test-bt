@@ -560,9 +560,10 @@ type BulkImportResponse {
 	searchKeyword: String!
  }
 
-input ManageProductMediaInput{
-   productId:String
-   files: [FileInput!]!
+input ManageProductMediaInput {
+   productId: String
+   filesToBeAdded: [FileInput!]
+   filesToBeDeleted: [String!]
 }
 
 type ManageProductMediaResponse{

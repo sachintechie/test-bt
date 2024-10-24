@@ -1,4 +1,5 @@
-import { createProduct } from "../db/adminDbFunctions";
+import { createProduct,addOwnership,getAdminUserById } from "../db/adminDbFunctions";
+import {getCustomer} from "../db/dbFunctions";
 import { productRarity } from "../db/models";
 import { mintNFT } from "../lambdas/mintNFT";
 import { mintERC1155 } from "../lambdas/mintERC1155";
@@ -24,10 +25,10 @@ interface CreateProductInput {
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log(event, context);
-
-    const input: CreateProductInput = event.arguments?.input;
-    const tenant = event.identity?.resolverContext as tenant;
+	  
+	  const input: CreateProductInput = event.arguments?.input;
+	  const tenant = event.identity?.resolverContext as tenant;
+	  console.log(event, context);
     if (
       !input ||
       !input.name ||
@@ -62,6 +63,17 @@ export const handler = async (event: any, context: any) => {
         await mintNFT(toAddress, quantity, chainType, contractAddress, metadata, tenant.id);
       }
     }
+
+	if (product) {
+	 const adminUser = await getAdminUserById(tenant.adminuserid!);
+	 console.log("adminUser", adminUser);
+	 const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
+	 console.log("customer", customer);
+	 if(customer){
+	   await addOwnership(product.id, customer.id!);
+	  }
+	}
+
     return {
       status: 200,
       data: product,
