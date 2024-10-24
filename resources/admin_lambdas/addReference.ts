@@ -40,7 +40,7 @@ async function addReference(tenant: tenant, refType: string, projectId: string, 
       chainType: "",
       chainId: ""
     };
-    let datasource_id, ingestionJobId;
+    let datasource_id, ingestionJobId,status;
     let isIngested = false;
 
    
@@ -51,15 +51,20 @@ async function addReference(tenant: tenant, refType: string, projectId: string, 
       dataStoredToDb.s3PreStoreTxHash = s3PreStoreTxHash;
 
       datasource_id = BedRockDataSourceS3;
+    //   {status,ingestionJobId }= (await syncKb(kb_id, datasource_id)).status === "COMPLETE";
+      ({ status, ingestionJobId } = await syncKb(kb_id, datasource_id));
+
+      isIngested = status === "COMPLETE";
+
 
     } else if (refType === RefType.WEBSITE) {
         const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
         if (isRefExist.isExist) return { document: null, error: isRefExist.error };
     
       ({ datasource_id, ingestionJobId } = await handleWebsiteReference(tenant, websiteUrl, websiteName));
+      isIngested = true;
     }
 
-    isIngested = await syncKb(kb_id, datasource_id) === "COMPLETE";
 
     const ref = await addReferenceToDb(tenant.id, file, refType, isIngested, projectId, websiteName, websiteUrl, depth, datasource_id, ingestionJobId, dataStoredToDb);
     if (ref.error) return { document: null, error: ref.error };
