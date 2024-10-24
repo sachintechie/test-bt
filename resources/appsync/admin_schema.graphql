@@ -287,6 +287,7 @@ type ListRefData {
 	s3poststoretxhash: String
 	chaintype: String
 	chainid: String
+	referencestage: String
 }
 
 input ListRefInput {
