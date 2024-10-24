@@ -13,7 +13,7 @@ import {
   ProductStatus,
   RefType,
   productinventory,
-  inventoryfilter
+  inventoryfilter,
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -1160,4 +1160,20 @@ export async function insertMediaEntries(mediaData: any[]) {
     } catch (error:any) {
       throw new Error(`Error deleting media entries: ${error.message}`);
     }
+  }
+
+  export async function addOwnership(productId: string, customerId: string) {
+	try {
+	  const prisma = await getPrismaClient();
+	  await prisma.productownership.create({
+		data: {
+		  productid: productId,
+		  customerid: customerId,
+		  fractional: false,
+		  fraction: 0
+		}
+	  });
+	} catch (error:any) {
+	  throw new Error(`Error adding ownership: ${error.message}`);
+	}
   }
