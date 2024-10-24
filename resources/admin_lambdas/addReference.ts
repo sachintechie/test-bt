@@ -109,7 +109,7 @@ async function handleDocumentReference(file: any, dataStoredToDb: any) {
 }
 
 async function handleWebsiteReference(tenant: tenant, websiteUrl: string, websiteName: string) {
-  const dataSource = await getDataSourcesCount(tenant.id, websiteUrl, RefType.WEBSITE);
+  const dataSource = await getDataSourcesCount(tenant.id, RefType.WEBSITE);
   let dataSourceDetails;
 
   if (dataSource == null) {
