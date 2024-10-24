@@ -3,11 +3,11 @@ import { Construct } from "constructs";
 import { env, envConfig, isDevOrProd, isOnDemandProd, isPlaygroundDev } from "./utils/env";
 import { configResolver, newAppSyncApi } from "./utils/appsync";
 import { capitalize, readFilesFromFolder } from "./utils/utils";
-import {newApiGateway, newStripeWebhookApiGateway} from "./utils/apigateway";
+import { newApiGateway, newStripeWebhookApiGateway } from "./utils/apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo, getPlaygrounDevDatabaseInfo } from "./utils/aurora";
 import { AuroraStack } from "./bridgetower-aurora-stack";
-import {newMigrateNodeJsFunction, newNodeJsFunction} from "./utils/lambda";
+import { newMigrateNodeJsFunction, newNodeJsFunction } from "./utils/lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
@@ -63,9 +63,10 @@ const MUTATIONS = [
   "bulkImportInventory",
   "bulkImportProduct",
   "deleteInventory",
+  "manageProductMedia",
   "deleteRefToKnowledgeBase",
   "createProject",
-  "addReference"
+  "addReference",
 ];
 
 
@@ -89,16 +90,16 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     let databaseInfo: DatabaseInfo;
     if (isOnDemandProd()) {
       databaseInfo = getOnDemandProdDatabaseInfo(this);
-    }  
+    }
     else if (isPlaygroundDev()) {
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getPlaygrounDevDatabaseInfo(this);
-    } 
-    
+    }
+
     else if (!isDevOrProd()) {
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getDatabaseInfo(this, props.auroraStack!);
-    } 
+    }
     else {
       databaseInfo = getDevOrProdDatabaseInfo(this);
     }
@@ -106,12 +107,12 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
-      if(lambdaResourceName === MIGRATION_LAMBDA_NAME){
+      if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
         lambdaMap.set(
           lambdaResourceName,
           newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
         );
-      }else{
+      } else {
         lambdaMap.set(
           lambdaResourceName,
           newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
@@ -130,7 +131,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     if (props.hasApiGateway) {
       const gateway = newApiGateway(this, lambdaMap.get(GET_METADATA)!);
-      const stripeWebhookGateway=newStripeWebhookApiGateway(this, lambdaMap.get(POST_STRIPE_PAYMENT_INTENT_WEBHOOK)!);
+      const stripeWebhookGateway = newStripeWebhookApiGateway(this, lambdaMap.get(POST_STRIPE_PAYMENT_INTENT_WEBHOOK)!);
     }
 
     // Create a new AppSync GraphQL API

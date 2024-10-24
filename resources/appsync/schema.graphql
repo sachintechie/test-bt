@@ -809,6 +809,7 @@ input WithdrawStakeInput {
 input ProductSearchInput {
   searchKeyword: String!
 }
+
 enum ProductStatus {
   ACTIVE
   INACTIVE
