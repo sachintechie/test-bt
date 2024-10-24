@@ -36,20 +36,91 @@ model cubistconfig {
   sendtokensecretname String?
 }
 
-model knowledgebasereference{
+model organization {
+  id                String            @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  adminusers        adminuser[]
+  projects          project[]
+}
+
+model project {
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  projecttype       ProjectType
+  projectstatus     ProjectStatusEnum
+  projectstage      ProjectStage
+  projectmetadata   projectdataitem[]
+  knowledgebaseid   String
+  organization      organization @relation(fields: [organizationid], references: [id])
+  organizationid    String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  createdby         String
+  adminUsers        adminuser[]
+  references        reference[]
+}
+
+enum ProjectType {
+  ON_PREM
+  HYBRID
+  CLOUD
+  CUSTOM_CLOUD
+}
+
+enum ReferenceStage {
+  DATA_SELECTION
+  DATA_INGESTION
+  DATA_STORAGE
+}
+
+enum ProjectStatusEnum {
+  STARTED
+  PAUSED
+  CANCELLED
+  ACTIVE
+}
+
+enum ProjectStage {
+  DATA_SELECTION
+  DATA_INGESTION
+  DATA_STORAGE
+  DATA_PREPARATION
+  LLM_FINE_TUNING
+  VERSIONING
+  RAG
+  PUBLISHED
+}
+
+model projectdataitem {
+  id              String          @id @default(uuid())
+  projectid       String
+  project         project         @relation(fields: [projectid], references: [id])
+  name            String
+  value           String
+  createdat       String
+}
+
+
+
+model reference  {
   id                String             @id @default(uuid())
   tenantid          String
   tenant            tenant            @relation(fields: [tenantid], references: [id])
+  projectid         String?
+  project           project?            @relation(fields: [projectid], references: [id])
+  referencestage    ReferenceStage
   name              String?            
   reftype           String?
   url               String? 
   size              String?
-  s3prestorehash    String?
-  s3prestoretxhash  String?
-  s3poststorehash   String?
-  s3poststoretxhash String?
-  chaintype         String?
-  chainid           String?
   depth             Int?
   ingested          Boolean  
   isdeleted         Boolean          @default(false)    
@@ -57,15 +128,22 @@ model knowledgebasereference{
   createdat         String?
   datasourceid      String?
   ingestionjobid    String?
-  
-  @@unique([name, url])
+  s3prestorehash    String?
+  s3prestoretxhash  String?
+  s3poststorehash   String?
+  s3poststoretxhash String?
+  chaintype         String?
+  chainid           String?
+    
+    @@unique([name, url])
+
 }
 
 model customer {
-  id                String              @id @default(uuid())
+  id                String             @id @default(uuid())
   tenantuserid      String?
   tenantid          String?
-  tenant            tenant?             @relation(fields: [tenantid], references: [id])
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
   emailid           String?
   name              String?
   cubistuserid      String?
@@ -85,7 +163,7 @@ model customer {
   sellerorders      orders[]            @relation("SellerOrders")
   buyerorders       orders[]            @relation("BuyerOrders")
   productreviews    productreview[]
-  collections       productcollection[]
+  collections       productcollection[] 
   productownerships productownership[]
 }
 
@@ -100,9 +178,12 @@ model adminuser {
   isactive          Boolean?
   createdat         String?
   iss               String?
+  organizationid    String?
+  organization      organization? @relation(fields: [organizationid], references: [id])
   isbonuscredit     Boolean?
   adminwallets      adminwallet[]
   admintransactions admintransaction[]
+  projects          project[]
 }
 
 model customerkyc {
@@ -219,30 +300,32 @@ model sumsubconfig {
 }
 
 model tenant {
-  id                      String                   @id @default(uuid())
-  name                    String?
-  apikey                  String?
-  logo                    String?
-  isactive                Boolean?
-  createdat               String?
-  tenantsecret            String?
-  tenantheaderkey         String?
-  callbackurl             String?
-  cubistorgid             String?
-  userpoolid              String?
-  cognitoclientid         String?
-  iscognitoactive         Boolean?
-  iscubistactive          Boolean?
-  cubistconfig            cubistconfig[]
-  customer                customer[]
-  adminuser               adminuser[]
-  customerkyc             customerkyc[]
-  gaspayerwallet          gaspayerwallet[]
-  stakeaccount            stakeaccount[]
-  staketransaction        staketransaction[]
-  categories              productcategory[]
-  products                product[]
-  knowledgebasereferences knowledgebasereference[]
+  id               String             @id @default(uuid())
+  name             String?
+  apikey           String?
+  logo             String?
+  isactive         Boolean?
+  createdat        String?
+  tenantsecret     String?
+  tenantheaderkey  String?
+  callbackurl      String?
+  cubistorgid      String?
+  userpoolid       String?
+  cognitoclientid  String?
+  iscognitoactive  Boolean?
+  iscubistactive  Boolean?
+  cubistconfig     cubistconfig[]
+  customer         customer[]
+  adminuser        adminuser[]
+  customerkyc      customerkyc[]
+  gaspayerwallet   gaspayerwallet[]
+  stakeaccount     stakeaccount[]
+  staketransaction staketransaction[]
+  categories       productcategory[]
+  products         product[]
+  references       reference[]   
+  organizations    organization[]
+  projects         project[]
 }
 
 enum productrarity {
@@ -252,6 +335,7 @@ enum productrarity {
   LEGENDARY
   MYTHICAL
 }
+
 
 model productcategory {
   id        String    @id @default(uuid())
@@ -306,7 +390,7 @@ model productattribute {
 }
 
 model token {
-  id                String             @id @default(uuid())
+  id                String              @id @default(uuid())
   name              String?
   chaintype         String
   contractaddress   String
@@ -347,15 +431,13 @@ model transaction {
 }
 
 model contracttransaction {
-  id                    String @id @default(uuid())
-  chain                 String
-  txhash                String
-  fromaddress           String
-  contractaddress       String
-  methodname            String
-  params                String
-  provider              String
-  providertransactionid String
+  id              String @id @default(uuid())
+  chain           String
+  txhash          String
+  fromaddress     String
+  contractaddress String
+  methodname      String
+  params          String
 }
 
 model admintransaction {
@@ -438,51 +520,50 @@ enum orderstatus {
 }
 
 model orders {
-  id             String          @id @default(uuid())
-  sellerid       String?
-  seller         customer?       @relation("SellerOrders", fields: [sellerid], references: [id])
-  buyerid        String?
-  buyer          customer?       @relation("BuyerOrders", fields: [buyerid], references: [id])
-  productid      String?
-  product        product?        @relation(fields: [productid], references: [id])
-  price          Float?
-  quantity       Int?
-  status         orderstatus
+  id         String       @id @default(uuid())
+  sellerid   String?
+  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
+  buyerid    String?
+  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
+  productid  String?
+  product    product?     @relation(fields: [productid], references: [id])
+  price      Float?
+  quantity   Int?
+  status     orderstatus
   productreviews productreview[]
-  createdat      DateTime        @default(now())
-  updatedat      DateTime        @updatedAt
+  createdat  DateTime   @default(now())
+  updatedat  DateTime   @updatedAt
 }
 
 model productreview {
-  id         String    @id @default(uuid())
-  comment    String?
-  rating     Float?
+  id          String       @id @default(uuid())
+  comment     String?
+  rating      Float?
   customerid String
-  customer   customer? @relation(fields: [customerid], references: [id])
-  productid  String?
-  product    product?  @relation(fields: [productid], references: [id])
-  orderid    String?
-  orders     orders?   @relation(fields: [orderid], references: [id])
-  createdat  DateTime  @default(now())
-  updatedat  DateTime  @updatedAt
+  customer   customer?    @relation(fields: [customerid], references: [id])
+  productid   String?
+  product     product?     @relation(fields: [productid], references: [id])
+  orderid     String?
+  orders      orders?     @relation(fields: [orderid], references: [id])
+  createdat   DateTime     @default(now())
+  updatedat   DateTime    @updatedAt
 }
 
 model productcollection {
-  id          String                      @id @default(uuid())
-  customerid  String?
-  customer    customer?                   @relation(fields: [customerid], references: [id])
-  products    productcollectionproducts[] @relation("productcollectionproductscollection")
+  id          String       @id @default(uuid())
+  customerid String?
+  customer   customer?    @relation(fields: [customerid], references: [id])
+  products               productcollectionproducts[] @relation("productcollectionproductscollection")
   title       String?
   description String?
-  createdat   DateTime                    @default(now())
-  updatedat   DateTime                    @updatedAt
+  createdat   DateTime     @default(now())
+  updatedat   DateTime    @updatedAt
 }
-
 model productcollectionproducts {
-  productcollectionid String
-  productcollection   productcollection @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
-  productid           String
-  product             product           @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
+  productcollectionid     String
+  productcollection       productcollection          @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
+  productid               String
+  product                 product                    @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
 
   @@id([productcollectionid, productid])
 }
@@ -499,8 +580,8 @@ model productownership {
 } 
 
 enum ProductStatus {
-  ACTIVE
-  INACTIVE
+ACTIVE
+INACTIVE
 }
 
 model productinventory {

@@ -21,10 +21,14 @@ type AddRefToKnowledgeBaseData {
 	s3poststoretxhash: String
 	chaintype: String
 	chainid: String
+	projectid: String
+	referencestage: String
+
 }
 
 input AddRefToKnowledgeBaseInput {
 	refType: String!
+	projectId: String!
 	file: FileInput
 	depth: Int
 	websiteName: String
@@ -132,7 +136,7 @@ input CreateProductInput {
 	name: String!
 	description: String
 	type: String
-	sku: String
+	sku:  String
 	categoryId: String!
 	rarity: ProductRarity
 	price: Float
@@ -146,48 +150,26 @@ input CreateProductInput {
 	tokenId: Int
 }
 
+input CreateProjectInput {
+	name: String!
+	description: String
+	projectType: String!
+	organizationId: String!
+}
+
+type CreateProjectResponse {
+	status: Int
+	data: ProjectData
+	error: AWSJSON
+}
+
 input CreateWalletInput {
 	tenantUserId: String!
 	chainType: String!
 }
 
-input DeleteInventoryInput {
-	inventoryId: String!
-}
-
 input DeleteProductInput {
 	productId: String
-}
-
-input DeleteRefToKnowledgeBaseInput {
-	refId: String!
-}
-
-input FileInput {
-	fileName: String!
-	fileContent: String!
-	contentType: String!
-}
-
-input FilterInput {
-	operator: String!
-	value: Float!
-}
-
-input FilterInventoryInput {
-	filters: FilterInventoryInputData!
-}
-
-input FilterInventoryInputData {
-	inventoryId: String
-	productName: String
-	price: FilterInput
-	quantity: FilterInput
-}
-
-input GetAdminProductsInput {
-	page: Int
-	perPage: Int
 }
 
 input GetAdminTransactionInput {
@@ -229,22 +211,6 @@ input GetCategoryByIdInput {
 	categoryId: String
 }
 
-type GetInventoriesByProductIdIdResponse {
-	status: Int
-	data: [InventoryData]
-	error: AWSJSON
-	page: Int
-	perPage: Int
-	totalRecordsCount: Int
-	totalPageCount: Int
-}
-
-input GetInventoriesByProductIdInput {
-	productId: String!
-	page: Int
-	perPage: Int
-}
-
 input GetProductAttributesByProductIdInput {
 	productId: String!
 }
@@ -264,13 +230,13 @@ input GetProductsByCategoryIdInput {
 }
 
 type GetProductsResponse {
-	status: Int
-	data: [ProductData]
-	error: AWSJSON
-	page: Int
-	perPage: Int
-	totalRecordsCount: Int
-	totalPageCount: Int
+    status: Int
+    data: [ProductData]
+    error: AWSJSON
+    page: Int
+    perPage: Int
+    totalRecordsCount: Int
+    totalPageCount: Int
 }
 
 type GetWallet {
@@ -295,6 +261,24 @@ type ListAdminUsers {
 	error: AWSJSON
 }
 
+type ListProject {
+	status: Int
+	data: ListProjectData
+	error: AWSJSON
+}
+
+type ListProjectData {
+	total: Int
+	totalPages: Int
+	projects: [ProjectData]
+}
+
+input ListProjectInput {
+	limit: Int!
+	pageNo: Int!
+	organizationId: String
+}
+
 type ListRefData {
 	id: String
 	createdat: String
@@ -312,12 +296,14 @@ type ListRefData {
 	s3poststoretxhash: String
 	chaintype: String
 	chainid: String
+	referencestage: String
 }
 
 input ListRefInput {
 	limit: Int!
 	pageNo: Int!
 	refType: String
+	projectId: String
 }
 
 type ListReference {
@@ -376,13 +362,13 @@ type ProductData {
 	id: String!
 	name: String!
 	description: String
-	type: String
-	sku: String
+	type:String
+	sku:String
 	categoryid: String!
 	rarity: ProductRarity
 	price: Float
 	status: ProductStatus
-	tenantid: String
+    tenantid: String
 	isdeleted: Boolean
 	purchasedpercentage: Float
 	availablepercentage: Float
@@ -409,6 +395,26 @@ type ProductResponse {
 enum ProductStatus {
 	ACTIVE
 	INACTIVE
+}
+
+type ProjectData {
+	id: String
+	createdat: String
+	projecttype: String
+	projectstage: String
+	projectstatus: String
+	organizationid: String
+	name: String
+	description: String
+	isactive: Boolean
+	createdby: String
+}
+
+
+input FileInput {
+	fileName: String!
+	fileContent: String!
+	contentType: String!
 }
 
 type SignIn {
@@ -464,20 +470,6 @@ type UpdateCategoryResponse {
 	error: AWSJSON
 }
 
-input UpdateInventoryData {
-	inventoryCategory: String
-	price: Float
-	quantity: Int
-	ownershipNft: Boolean
-	smartContractAddress: String
-	tokenId: String
-}
-
-input UpdateInventoryInput {
-	inventoryId: String!
-	inventoryData: UpdateInventoryData!
-}
-
 input UpdateProductAttributeInput {
 	key: String!
 	newValue: String!
@@ -499,7 +491,7 @@ input UpdateProductInputData {
 	name: String
 	description: String
 	type: String
-	sku: String
+	sku:String
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
@@ -557,7 +549,12 @@ type BulkImportResponse {
 }
 
  input SearchInventoryInput {
-	searchKeyword: String!
+	inventoryId: String
+	productName: String
+ }
+
+ input DeleteRefToKnowledgeBaseInput{
+ refId: String!
  }
 
 input ManageProductMediaInput {
@@ -575,7 +572,8 @@ type ManageProductMediaResponse{
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
-	AdminTransfer(input: AdminTransferInput): AdminTransfer
+	AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+    AdminTransfer(input: AdminTransferInput): AdminTransfer
 	CreateTokenAccount(input: AdminTransferInput): AdminTransfer
 	CreateCategory(input: CreateCategoryInput): CategoryResponse
 	CreateProduct(input: CreateProductInput): ProductResponse
@@ -590,8 +588,8 @@ type Mutation {
 	BulkImportInventory(input: BulkImportInput): BulkImportResponse
 	BulkImportProduct(input: BulkImportInput): BulkImportResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
-	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+	CreateProject(input: CreateProjectInput): CreateProjectResponse
 }
 
 type Query {
@@ -602,10 +600,11 @@ type Query {
 	ListReference(input: ListRefInput): ListReference
 	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
 	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-	GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+    GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
 	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
-	SearchInventory(input: SearchInventoryInput): GetInventoryResponse
-	FilterInventory(input: FilterInventoryInput): GetInventoryResponse
+	SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
+	FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
+	ListProject(input: ListProjectInput): ListProject
 }
 
 schema {

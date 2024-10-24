@@ -63,8 +63,9 @@ const MUTATIONS = [
   "bulkImportInventory",
   "bulkImportProduct",
   "deleteInventory",
-  "manageProductMedia",
   "deleteRefToKnowledgeBase",
+  "createProject",
+  "addReference"
 ];
 
 

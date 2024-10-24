@@ -18,6 +18,7 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
+import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -36,6 +37,32 @@ export async function createAdminUser(customer: customer) {
       }
     });
     return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProject(tenant: tenant, name: string, description: string, projectType: ProjectType,
+  organizationId:string,knowledgeBaseId:string) {
+    console.log("Creating admin project", tenant.id, projectType);
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.project.create({
+      data: {
+        name: name,
+        description: description,
+        knowledgebaseid: knowledgeBaseId,
+        projecttype: projectType,
+        organizationid: organizationId,
+        tenantid: tenant.id,  
+        isactive: true,
+        projectstage: ProjectStage.DATA_SELECTION,
+        projectstatus: ProjectStatusEnum.ACTIVE,
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
   } catch (err) {
     throw err;
   }
@@ -625,12 +652,12 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
+export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,projectId:string,  websiteName?: string,websiteUrl?: string,
   depth?: number,datasource_id?: string,data?: any,ingestionJobId?: string,hashedData?: any
 ) {
   try {
     const prisma = await getPrismaClient();
-    const existingReference = await prisma.knowledgebasereference.findFirst({
+    const existingReference = await prisma.reference.findFirst({
       where: {
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
@@ -643,13 +670,15 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         error: "Reference is already added with this name"
       }
     }
-    const newRef = await prisma.knowledgebasereference.create({
+    const newRef = await prisma.reference.create({
       data: {
         tenantid: tenantId as string,
+        projectid: projectId,
+        referencestage : ReferenceStage.DATA_STORAGE,
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,       
+        size: refType == RefType.DOCUMENT ? data.size : null,
         ingested: isIngested,
         isdeleted: false,
         s3prestorehash :hashedData.s3PreStoreHash,
@@ -665,18 +694,24 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         createdat: new Date().toISOString()
       }
     });
-    return {data : newRef ,error:null};
+    return {
+      data: newRef,
+      error: null
+    }
   } catch (err) {
-    return {data : null ,error:err};
+    return{
+      data: null,
+      error: err
+    }
   }
 }
 
-export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
+export async function isDocumentReferenceExist(file: any, data?: any) {
   const prisma = await getPrismaClient();
-  const existingReference = await prisma.knowledgebasereference.findFirst({
+  const existingReference = await prisma.reference.findFirst({
     where: {
-      name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-      url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+      name: file.fileName ,
+      url: data.url ,
       isdeleted: false
     }
   });
@@ -693,12 +728,59 @@ export async function isReferenceExist(refType: string, file: any, websiteName: 
   }
 }
 
+export async function isWebsiteReferenceExist( websiteName: string, websiteUrl: string) {
+  const prisma = await getPrismaClient();
+  const existingReference = await prisma.reference.findFirst({
+    where: {
+      name:  websiteName,
+      url:  websiteUrl,
+      isdeleted: false
+    }
+  });
+  if (existingReference) {
+    return {
+      isExist: true,
+      error: "Reference is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+export async function isProjectExist(projectType: ProjectType, name: string,organizationId:string) {
+  const prisma = await getPrismaClient();
+  const existingProject = await prisma.project.findFirst({
+    where: {
+      name: name,
+      projecttype:  projectType,
+      organizationid: organizationId,
+    }
+  });
+  if (existingProject) {
+    return {
+      isExist: true,
+      error: "Project is already added with this name"
+    }
+  }else{
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+
+
+
 export async function getDataSourcesCount(tenantId:string,refType: string) {
 
   try {
     const prisma = await getPrismaClient();
 
-    const result = await prisma.knowledgebasereference.groupBy({
+    const result = await prisma.reference.groupBy({
       by: ['datasourceid'],  // Group by the `datasourceId` field
       _count: {
         id: true,  // Count the number of rows (assuming `id` is a unique identifier)
@@ -730,7 +812,7 @@ export async function getDataSourcesCount(tenantId:string,refType: string) {
 export async function getReferenceById(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -749,7 +831,7 @@ export async function getReferenceById(tenantId: string, refId: string) {
 export async function deleteRef(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -759,7 +841,7 @@ export async function deleteRef(tenantId: string, refId: string) {
     if (reference == null) {
       throw new Error("Reference not found");
     }
-    const deletedReference = await prisma.knowledgebasereference.update({
+    const deletedReference = await prisma.reference.update({
       where: { id: refId },
       data: { isdeleted: true }
     });
@@ -775,15 +857,17 @@ export async function getReferenceList(
   limit: number,
   pageNo: number,
   tenantId: string,
-  refType: string
+  refType: string,
+  projectId: string
 ) {
   try {
     const prisma = await getPrismaClient();
-    const refCount = await prisma.knowledgebasereference.count({
+    const refCount = await prisma.reference.count({
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
       },
       orderBy: {
         createdat: "desc"
@@ -792,11 +876,12 @@ export async function getReferenceList(
     if (refCount == 0) {
       return [];
     }
-    const refs = await prisma.knowledgebasereference.findMany({
+    const refs = await prisma.reference.findMany({
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
 
       },
 
@@ -811,6 +896,48 @@ export async function getReferenceList(
       total: refCount,
       totalPages: Math.ceil(refCount / limit),
       refs: refs
+    };
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProjectList(
+  limit: number,
+  pageNo: number,
+  organizationId: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const projectCount = await prisma.project.count({
+      where: {
+        organizationid: organizationId
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+    if (projectCount == 0) {
+      return [];
+    }
+    const projects = await prisma.project.findMany({
+      where: {
+        organizationid: organizationId
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: projectCount,
+      totalPages: Math.ceil(projectCount / limit),
+      projects: projects
     };
 
     return data;
@@ -1020,42 +1147,28 @@ export async function deleteInventory(inventoryId: string) {
   }
 }
 
-export async function searchInventory(searchKeyword: string) {
+export async function searchInventory(inventoryId: string, productName: string) {
   try {
     const prisma = await getPrismaClient();
 
-    if (!searchKeyword || searchKeyword.trim() === "") {
-      return {
-        status: 400,
-        data: null,
-        error: "Search keyword is required."
-      };
-    }
-  
     const searchResult = await prisma.productinventory.findMany({
       where: {
-        isdeleted: false,
         OR: [
-          { inventoryid: { contains: searchKeyword.trim(), mode: 'insensitive' } }, 
-          { product: { name: { contains: searchKeyword.trim(), mode: 'insensitive' } } } 
-        ]
+          { inventoryid: inventoryId },
+          { product: { name: { contains: productName, mode: 'insensitive' } } }
+        ],
+        isdeleted: false 
       },
       include: {
         product: true 
       }
     });
-    
-    return searchResult
+
+    return searchResult;
   } catch (err) {
-   if (err instanceof Error) {
-      throw new Error(err.message || "An error occurred while searching the inventory");
-    } else {
-      throw new Error("An unexpected error occurred.");
-    }
+    throw err;
   }
 }
-
-
 
 export async function filterInventory(filters: inventoryfilter) {
   try {
@@ -1066,10 +1179,7 @@ export async function filterInventory(filters: inventoryfilter) {
     };
 
     if (filters.inventoryid) {
-      whereClause.inventoryid = {
-        contains: filters.inventoryid, 
-        mode: 'insensitive' 
-      };
+      whereClause.inventoryid = filters.inventoryid;
     }
 
     if (filters.productname) {
@@ -1089,11 +1199,7 @@ export async function filterInventory(filters: inventoryfilter) {
         whereClause.price = { gt: value };
       } else if (operator === 'eq') {
         whereClause.price = value;
-      } else if (operator === 'gte') {
-		whereClause.price = { gte: value };
-	  } else if (operator === 'lte') {
-		whereClause.price = { lte: value };
-	  }
+      }
     }
 
     if (filters.quantity) {
@@ -1104,11 +1210,7 @@ export async function filterInventory(filters: inventoryfilter) {
         whereClause.quantity = { gt: value };
       } else if (operator === 'eq') {
         whereClause.quantity = value;
-      } else if (operator === 'gte') {
-		whereClause.quantity = { gte: value };
-	  } else if (operator === 'lte') {
-		whereClause.quantity = { lte: value };
-	  }
+      }
     }
 
     const filteredResult = await prisma.productinventory.findMany({
