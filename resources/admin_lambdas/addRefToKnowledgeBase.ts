@@ -123,7 +123,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
         error: isRefExist.error
       };
     }
-      const dataSource = await getDataSourcesCount(tenant.id,websiteUrl,refType);
+      const dataSource = await getDataSourcesCount(tenant.id,refType);
       console.log("dataSource", dataSource);
 
       let dataSourceDetails;
