@@ -59,8 +59,8 @@ model project {
   knowledgebaseid   String
   organization      organization @relation(fields: [organizationid], references: [id])
   organizationid    String
-  tenantid          String
-  tenant            tenant @relation(fields: [tenantid], references: [id])
+  tenantid          String?
+  tenant            tenant? @relation(fields: [tenantid], references: [id])
   isactive          Boolean
   createdat         String
   createdby         String
