@@ -20,7 +20,7 @@ export const handler = async (event: any, context: any) => {
       throw new Error(`Product with ID ${productId} not found.`);
     }
 
-    
+
     if (filesToBeDeleted && filesToBeDeleted.length > 0) {
       await deleteFilesFromS3AndDB(filesToBeDeleted, productId);
     }
@@ -72,7 +72,7 @@ async function handleMultipleFiles(files: any[], productId: string) {
   return filteredMediaData;
 }
 
-async function addToS3Bucket(fileName: string, fileContent: string) { 
+async function addToS3Bucket(fileName: string, fileContent: string) {
   try {
     if (!fileName || !fileContent) {
       return {
