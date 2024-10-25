@@ -161,11 +161,6 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
         "application/json": `{
               "error": "An error occurred while processing your request."
             }`
-      },
-      responseParameters: {
-        'method.response.header.Access-Control-Allow-Origin': "'*'",  // Allow all origins
-        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
-        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'"
       }
     }
   ]
@@ -185,6 +180,31 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
     methodResponses: [
       { statusCode: '200',responseModels: { "application/json": apigateway.Model.EMPTY_MODEL} },
     ],
+  });
+
+  const optionsResponse = {
+    statusCode: '200',
+    responseParameters: {
+      'method.response.header.Access-Control-Allow-Origin': "'*'",
+      'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+      'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'"
+    }
+  };
+
+// Create the OPTIONS method to handle CORS preflight requests
+  tokenId.addMethod('OPTIONS', new apigateway.MockIntegration({
+    integrationResponses: [optionsResponse],
+    passthroughBehavior: apigateway.PassthroughBehavior.WHEN_NO_MATCH,
+    requestTemplates: { "application/json": "{\"statusCode\": 200}" }
+  }), {
+    methodResponses: [{
+      statusCode: '200',
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Origin': true,
+        'method.response.header.Access-Control-Allow-Headers': true,
+        'method.response.header.Access-Control-Allow-Methods': true,
+      },
+    }],
   });
 
   // Create the /delivery resource
@@ -214,11 +234,6 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
           {
             "transactionId": "$inputRoot.transactionId"
           }`
-      },
-      responseParameters: {
-        'method.response.header.Access-Control-Allow-Origin': "'*'",  // Allow all origins
-        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
-        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'"
       }
     }
   ]
@@ -239,6 +254,22 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
     ],
   });
 
+// Create the OPTIONS method to handle CORS preflight requests
+  tokenIdDelivery.addMethod('OPTIONS', new apigateway.MockIntegration({
+    integrationResponses: [optionsResponse],
+    passthroughBehavior: apigateway.PassthroughBehavior.WHEN_NO_MATCH,
+    requestTemplates: { "application/json": "{\"statusCode\": 200}" }
+  }), {
+    methodResponses: [{
+      statusCode: '200',
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Origin': true,
+        'method.response.header.Access-Control-Allow-Headers': true,
+        'method.response.header.Access-Control-Allow-Methods': true,
+      },
+    }],
+  });
+
   // Create the /transaction_status resource
   const transaction_status = api.root.addResource('transaction_status');
 
@@ -254,11 +285,6 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
       statusCode: "200",
       responseTemplates: {
         "application/json": ``
-      },
-      responseParameters: {
-        'method.response.header.Access-Control-Allow-Origin': "'*'",  // Allow all origins
-        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
-        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'"
       }
     }
   ]
@@ -276,6 +302,22 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
     methodResponses: [
       { statusCode: '200' ,responseModels: { "application/json": apigateway.Model.EMPTY_MODEL}},
     ],
+  });
+
+  // Create the OPTIONS method to handle CORS preflight requests
+  transaction_status.addMethod('OPTIONS', new apigateway.MockIntegration({
+    integrationResponses: [optionsResponse],
+    passthroughBehavior: apigateway.PassthroughBehavior.WHEN_NO_MATCH,
+    requestTemplates: { "application/json": "{\"statusCode\": 200}" }
+  }), {
+    methodResponses: [{
+      statusCode: '200',
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Origin': true,
+        'method.response.header.Access-Control-Allow-Headers': true,
+        'method.response.header.Access-Control-Allow-Methods': true,
+      },
+    }],
   });
 
   return api;
