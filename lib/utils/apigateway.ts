@@ -161,6 +161,11 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
         "application/json": `{
               "error": "An error occurred while processing your request."
             }`
+      },
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Origin': "'*'",  // Allow all origins
+        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'"
       }
     }
   ]
@@ -178,9 +183,7 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
   // Add POST method to /webhook resource
   tokenId.addMethod('GET', assetLambdaIntegration, {
     methodResponses: [
-      { statusCode: '200' },
-      { statusCode: '400' },
-      { statusCode: '500' },
+      { statusCode: '200',responseModels: { "application/json": apigateway.Model.EMPTY_MODEL} },
     ],
   });
 
@@ -211,15 +214,11 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
           {
             "transactionId": "$inputRoot.transactionId"
           }`
-      }
-    },
-    {
-      // This handles any errors that might occur and returns a 500 status code
-      statusCode: "500",
-      responseTemplates: {
-        "application/json": `{
-              "error": "An error occurred while processing your request."
-            }`
+      },
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Origin': "'*'",  // Allow all origins
+        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'"
       }
     }
   ]
@@ -236,25 +235,46 @@ export const newMoonpayApiGateway = (scope: Construct, assetLambda: lambda.Funct
   // Add POST method to /delivery resource
   tokenIdDelivery.addMethod('POST', deliveryLambdaIntegration, {
     methodResponses: [
-      { statusCode: '200' },
-      { statusCode: '400' },
-      { statusCode: '500' },
+      { statusCode: '200' ,responseModels: { "application/json": apigateway.Model.EMPTY_MODEL}},
     ],
   });
 
   // Create the /transaction_status resource
-  const transaction_status = lite.addResource('transaction_status');
+  const transaction_status = api.root.addResource('transaction_status');
+
+  // Define the mapping template to decode the Base64-encoded body
+  const statusRequestTemplate = `{
+  "id": "$input.params('id')",
+  "contractAddress": "$input.params('contractAddress')",
+  "tokenId": "$input.params('tokenId')"
+}`;
+
+  const statusIntegrationResponses =  [
+    {
+      statusCode: "200",
+      responseTemplates: {
+        "application/json": ``
+      },
+      responseParameters: {
+        'method.response.header.Access-Control-Allow-Origin': "'*'",  // Allow all origins
+        'method.response.header.Access-Control-Allow-Headers': "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'",
+        'method.response.header.Access-Control-Allow-Methods': "'GET,POST,OPTIONS'"
+      }
+    }
+  ]
 
   const transactionStatusIntegration= new apigateway.LambdaIntegration(transactionStatusLambda, {
-    proxy:false
+    proxy:false,
+    requestTemplates: {
+      'application/json': statusRequestTemplate,
+    },
+    integrationResponses: statusIntegrationResponses
   });
 
   // Add GET method to /transaction_status resource
   transaction_status.addMethod('GET', transactionStatusIntegration, {
     methodResponses: [
-      { statusCode: '200' },
-      { statusCode: '400' },
-      { statusCode: '500' },
+      { statusCode: '200' ,responseModels: { "application/json": apigateway.Model.EMPTY_MODEL}},
     ],
   });
 
