@@ -21,13 +21,7 @@ export class AuroraStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-    let secret: ISecret;
-    try {
-      // Try to retrieve the existing secret by name
-      secret = secretsmanager.Secret.fromSecretNameV2(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, SECRET_NAME);
-    } catch (error) {
-      // If the secret does not exist, create a new one
-      secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
+    const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
         secretName: SECRET_NAME,
         generateSecretString: {
           secretStringTemplate: JSON.stringify({
@@ -39,7 +33,6 @@ export class AuroraStack extends cdk.Stack {
           excludeCharacters: "!@#$%^&*()-_+=[]{}|;:,.<>?/`~"
         }
       });
-    }
 
     let cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
       clusterIdentifier: env`AuroraCluster`,

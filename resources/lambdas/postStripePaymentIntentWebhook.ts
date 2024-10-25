@@ -44,9 +44,9 @@ export const handler = async (event: any) => {
         console.log('product_metadata',product_metadata)
         try{
           if(type==='NFT'){
-            await transferNFT(address,quantity,chain,contract,tenant_id,"stripe",paymentIntent.id)
+            await transferNFT(address,quantity,chain,contract,tenant_id)
           }else{
-            await transferERC1155(address,tokenId,quantity,chain,contract,tenant_id,"stripe",paymentIntent.id)
+            await transferERC1155(address,tokenId,quantity,chain,contract,tenant_id)
           }
         }catch (e) {
           return {

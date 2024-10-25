@@ -5,7 +5,7 @@ export const handler = async (event: any) => {
     console.log(event);
 
     if (event.arguments?.input?.chainType === "Avalanche") {
-      const hash = await storeHash(event.arguments?.input?.hash);
+      const hash = await storeHash(event.arguments?.input?.hash, event.arguments?.input?.chainType);
 
       const response = {
         status: hash?.data != null ? 200 : 400,
@@ -13,7 +13,19 @@ export const handler = async (event: any) => {
         error: hash?.error
       };
       return response;
-    } else {
+    } 
+    else if (event.arguments?.input?.chainType === "Provenance") {
+      const hash = await storeHash(event.arguments?.input?.hash, event.arguments?.input?.chainType);
+
+      const response = {
+        status: hash?.data != null ? 200 : 400,
+        data: hash?.data,
+        error: hash?.error
+      };
+      return response;
+    } 
+    
+    else {
       return {
         status: 400,
         data: null,

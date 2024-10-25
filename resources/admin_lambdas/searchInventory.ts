@@ -3,11 +3,11 @@ import { searchInventory } from "../db/adminDbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
-	
-    
+
+
     const { searchKeyword } = event.arguments?.input || {};
 
-   
+
     if (!searchKeyword || searchKeyword.trim() === "") {
       return {
         status: 400,
@@ -16,7 +16,7 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    
+
     const searchResult = await searchInventory(searchKeyword);
 
     return {
@@ -26,7 +26,7 @@ export const handler = async (event: any, context: any) => {
     };
   } catch (error) {
     console.error("Error searching inventory", error);
-    
+
     let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;

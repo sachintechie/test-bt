@@ -18,6 +18,7 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
+import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -36,6 +37,32 @@ export async function createAdminUser(customer: customer) {
       }
     });
     return newCustomer;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createProject(tenant: tenant, name: string, description: string, projectType: ProjectType,
+  organizationId: string, knowledgeBaseId: string) {
+  console.log("Creating admin project", tenant.id, projectType);
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.project.create({
+      data: {
+        name: name,
+        description: description,
+        knowledgebaseid: knowledgeBaseId,
+        projecttype: projectType,
+        organizationid: organizationId,
+        tenantid: tenant.id,
+        isactive: true,
+        projectstage: ProjectStage.DATA_SELECTION,
+        projectstatus: ProjectStatusEnum.ACTIVE,
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
   } catch (err) {
     throw err;
   }
@@ -486,14 +513,15 @@ export async function createProduct(product: product) {
     const newProduct = await prisma.product.create({
       data: {
         name: product.name,
-        description:product.description,
-        type:product.type,
-        sku:product.sku,
+        description: product.description,
+        type: product.type,
+        sku: product.sku,
         categoryid: product.categoryid,
         tenantid: product.tenantid,
         rarity: product.rarity,
-        price: product.price,      }
-});
+        price: product.price,
+      }
+    });
     return newProduct;
   } catch (error) {
     if (error instanceof Error) {
@@ -625,12 +653,12 @@ export async function deleteProduct(productId: string) {
   }
 }
 
-export async function addReferenceToDb(tenantId: string,file : any,refType: string,isIngested :boolean,  websiteName?: string,websiteUrl?: string,
-  depth?: number,datasource_id?: string,data?: any,ingestionJobId?: string,hashedData?: any
+export async function addReferenceToDb(tenantId: string, file: any, refType: string, isIngested: boolean, projectId: string, websiteName?: string, websiteUrl?: string,
+  depth?: number, datasource_id?: string, data?: any, ingestionJobId?: string, hashedData?: any
 ) {
   try {
     const prisma = await getPrismaClient();
-    const existingReference = await prisma.knowledgebasereference.findFirst({
+    const existingReference = await prisma.reference.findFirst({
       where: {
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
@@ -643,19 +671,21 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         error: "Reference is already added with this name"
       }
     }
-    const newRef = await prisma.knowledgebasereference.create({
+    const newRef = await prisma.reference.create({
       data: {
         tenantid: tenantId as string,
+        projectid: projectId,
+        referencestage: ReferenceStage.DATA_STORAGE,
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,       
+        size: refType == RefType.DOCUMENT ? data.size : null,
         ingested: isIngested,
         isdeleted: false,
-        s3prestorehash :hashedData.s3PreStoreHash,
-        s3prestoretxhash : hashedData.s3PreStoreTxHash,
-        s3poststorehash:hashedData.s3PostStoreHash,
-        s3poststoretxhash:hashedData.s3PostStoreTxHash,
+        s3prestorehash: hashedData.s3PreStoreHash,
+        s3prestoretxhash: hashedData.s3PreStoreTxHash,
+        s3poststorehash: hashedData.s3PostStoreHash,
+        s3poststoretxhash: hashedData.s3PostStoreTxHash,
         chaintype: hashedData.chainType,
         chainid: hashedData.chainId.toString(),
         datasourceid: datasource_id,
@@ -665,18 +695,24 @@ export async function addReferenceToDb(tenantId: string,file : any,refType: stri
         createdat: new Date().toISOString()
       }
     });
-    return {data : newRef ,error:null};
+    return {
+      data: newRef,
+      error: null
+    }
   } catch (err) {
-    return {data : null ,error:err};
+    return {
+      data: null,
+      error: err
+    }
   }
 }
 
-export async function isReferenceExist(refType: string, file: any, websiteName: string, websiteUrl: string, data: any) {
+export async function isDocumentReferenceExist(file: any, data?: any) {
   const prisma = await getPrismaClient();
-  const existingReference = await prisma.knowledgebasereference.findFirst({
+  const existingReference = await prisma.reference.findFirst({
     where: {
-      name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-      url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
+      name: file.fileName,
+      url: data.url,
       isdeleted: false
     }
   });
@@ -685,7 +721,7 @@ export async function isReferenceExist(refType: string, file: any, websiteName: 
       isExist: true,
       error: "Reference is already added with this name"
     }
-  }else{
+  } else {
     return {
       isExist: false,
       error: null
@@ -693,12 +729,59 @@ export async function isReferenceExist(refType: string, file: any, websiteName: 
   }
 }
 
-export async function getDataSourcesCount(tenantId:string,refType: string) {
+export async function isWebsiteReferenceExist(websiteName: string, websiteUrl: string) {
+  const prisma = await getPrismaClient();
+  const existingReference = await prisma.reference.findFirst({
+    where: {
+      name: websiteName,
+      url: websiteUrl,
+      isdeleted: false
+    }
+  });
+  if (existingReference) {
+    return {
+      isExist: true,
+      error: "Reference is already added with this name"
+    }
+  } else {
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+export async function isProjectExist(projectType: ProjectType, name: string, organizationId: string) {
+  const prisma = await getPrismaClient();
+  const existingProject = await prisma.project.findFirst({
+    where: {
+      name: name,
+      projecttype: projectType,
+      organizationid: organizationId,
+    }
+  });
+  if (existingProject) {
+    return {
+      isExist: true,
+      error: "Project is already added with this name"
+    }
+  } else {
+    return {
+      isExist: false,
+      error: null
+    }
+  }
+}
+
+
+
+
+export async function getDataSourcesCount(tenantId: string, refType: string) {
 
   try {
     const prisma = await getPrismaClient();
 
-    const result = await prisma.knowledgebasereference.groupBy({
+    const result = await prisma.reference.groupBy({
       by: ['datasourceid'],  // Group by the `datasourceId` field
       _count: {
         id: true,  // Count the number of rows (assuming `id` is a unique identifier)
@@ -709,15 +792,15 @@ export async function getDataSourcesCount(tenantId:string,refType: string) {
         reftype: refType
       }
     });
- // Step 2: Filter the results where the count is less than 10
- const filteredResults = result.filter((group) => group._count.id < 10);
+    // Step 2: Filter the results where the count is less than 10
+    const filteredResults = result.filter((group) => group._count.id < 10);
 
     // Step 3: Return only the first matched datasourceId
     if (filteredResults.length > 0) {
       return filteredResults[0].datasourceid;  // Return the first result
     } else {
       return null;  // Return null if no datasourceId has a count less than 10
-    }    
+    }
   } catch (error) {
     console.error('Error fetching datasource counts:', error);
     throw error;
@@ -730,7 +813,7 @@ export async function getDataSourcesCount(tenantId:string,refType: string) {
 export async function getReferenceById(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -749,7 +832,7 @@ export async function getReferenceById(tenantId: string, refId: string) {
 export async function deleteRef(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.knowledgebasereference.findFirst({
+    const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
         tenantid: tenantId,
@@ -759,7 +842,7 @@ export async function deleteRef(tenantId: string, refId: string) {
     if (reference == null) {
       throw new Error("Reference not found");
     }
-    const deletedReference = await prisma.knowledgebasereference.update({
+    const deletedReference = await prisma.reference.update({
       where: { id: refId },
       data: { isdeleted: true }
     });
@@ -775,15 +858,17 @@ export async function getReferenceList(
   limit: number,
   pageNo: number,
   tenantId: string,
-  refType: string
+  refType: string,
+  projectId: string
 ) {
   try {
     const prisma = await getPrismaClient();
-    const refCount = await prisma.knowledgebasereference.count({
+    const refCount = await prisma.reference.count({
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
       },
       orderBy: {
         createdat: "desc"
@@ -792,11 +877,12 @@ export async function getReferenceList(
     if (refCount == 0) {
       return [];
     }
-    const refs = await prisma.knowledgebasereference.findMany({
+    const refs = await prisma.reference.findMany({
       where: {
         tenantid: tenantId,
         reftype: refType,
-        isdeleted: false
+        isdeleted: false,
+        projectid: projectId
 
       },
 
@@ -811,6 +897,48 @@ export async function getReferenceList(
       total: refCount,
       totalPages: Math.ceil(refCount / limit),
       refs: refs
+    };
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getProjectList(
+  limit: number,
+  pageNo: number,
+  organizationId: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const projectCount = await prisma.project.count({
+      where: {
+        organizationid: organizationId
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+    if (projectCount == 0) {
+      return [];
+    }
+    const projects = await prisma.project.findMany({
+      where: {
+        organizationid: organizationId
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: projectCount,
+      totalPages: Math.ceil(projectCount / limit),
+      projects: projects
     };
 
     return data;
@@ -846,10 +974,10 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 export async function createInventory(inventoryData: productinventory) {
   try {
     const prisma = await getPrismaClient();
-   
+
     const newInventory = await prisma.productinventory.create({
       data: {
-		inventoryid: inventoryData.inventoryid,
+        inventoryid: inventoryData.inventoryid,
         productid: inventoryData.productid,
         inventorycategory: inventoryData.inventorycategory,
         price: inventoryData.price,
@@ -857,7 +985,7 @@ export async function createInventory(inventoryData: productinventory) {
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
-		isdeleted: false
+        isdeleted: false
       }
     });
 
@@ -878,7 +1006,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
   try {
     const prisma = await getPrismaClient();
 
-  
+
     const product = await prisma.product.findUnique({
       where: {
         id: productId,
@@ -893,25 +1021,25 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
       throw new Error("Unauthorized: Tenant does not own the product.");
     }
 
-   
+
     const inventory = await prisma.productinventory.findMany({
       where: {
         productid: productId,
-		isdeleted: false
+        isdeleted: false
       },
-      skip: offset, 
-      take: limit,  
+      skip: offset,
+      take: limit,
     });
 
-    
+
     const totalCount = await prisma.productinventory.count({
       where: {
         productid: productId,
-		isdeleted: false
+        isdeleted: false
       },
     });
 
-    
+
     return { inventory, totalCount };
   } catch (error) {
     if (error instanceof Error) {
@@ -929,7 +1057,7 @@ export async function updateInventory(inventoryId: string, updateData: productin
     const updatedInventory = await prisma.productinventory.update({
       where: {
         id: inventoryId,
-		
+
       },
       data: updateData,
     });
@@ -937,7 +1065,7 @@ export async function updateInventory(inventoryId: string, updateData: productin
     return updatedInventory;
   } catch (error) {
     console.error("Error in updateInventory:", error);
-     if (error instanceof Error) {
+    if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the inventory");
     } else {
       throw new Error("An unexpected error occurred.");
@@ -948,7 +1076,7 @@ export async function updateInventory(inventoryId: string, updateData: productin
 export async function createBulkInventory(inventoryDataArray: productinventory[]) {
   try {
     const prisma = await getPrismaClient();
-    
+
     // Perform bulk creation using createMany
     const createdInventories = await prisma.productinventory.createMany({
       data: inventoryDataArray.map(inventoryData => ({
@@ -957,12 +1085,12 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         inventorycategory: inventoryData.inventorycategory,
         price: inventoryData.price,
         quantity: inventoryData.quantity,
-        ownershipnft: inventoryData.ownershipnft ?? false, 
+        ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
-		isdeleted: false
+        isdeleted: false
       })),
-      skipDuplicates: true 
+      skipDuplicates: true
     });
 
     return createdInventories;
@@ -978,21 +1106,21 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
 export async function createBulkProduct(productDataArray: product[]) {
   try {
     const prisma = await getPrismaClient();
-    
+
     const createdProduct = await prisma.product.createMany({
       data: productDataArray.map(productData => ({
         name: productData.name,
-        description:productData.description,
-        type:productData.type,
-        sku:productData.sku,
-        rarity:productData.rarity,
+        description: productData.description,
+        type: productData.type,
+        sku: productData.sku,
+        rarity: productData.rarity,
         price: productData.price,
         categoryid: productData.categoryid,
         tenantid: productData.tenantid,
-        purchasedpercentage:0,
+        purchasedpercentage: 0,
         availablepercentage: 100
       })),
-      skipDuplicates: true 
+      skipDuplicates: true
     });
 
     return createdProduct;
@@ -1031,23 +1159,23 @@ export async function searchInventory(searchKeyword: string) {
         error: "Search keyword is required."
       };
     }
-  
+
     const searchResult = await prisma.productinventory.findMany({
       where: {
         isdeleted: false,
         OR: [
-          { inventoryid: { contains: searchKeyword.trim(), mode: 'insensitive' } }, 
-          { product: { name: { contains: searchKeyword.trim(), mode: 'insensitive' } } } 
+          { inventoryid: { contains: searchKeyword.trim(), mode: 'insensitive' } },
+          { product: { name: { contains: searchKeyword.trim(), mode: 'insensitive' } } }
         ]
       },
       include: {
-        product: true 
+        product: true
       }
     });
-    
+
     return searchResult
   } catch (err) {
-   if (err instanceof Error) {
+    if (err instanceof Error) {
       throw new Error(err.message || "An error occurred while searching the inventory");
     } else {
       throw new Error("An unexpected error occurred.");
@@ -1062,13 +1190,13 @@ export async function filterInventory(filters: inventoryfilter) {
     const prisma = await getPrismaClient();
 
     const whereClause: any = {
-      isdeleted: false, 
+      isdeleted: false,
     };
 
     if (filters.inventoryid) {
       whereClause.inventoryid = {
-        contains: filters.inventoryid, 
-        mode: 'insensitive' 
+        contains: filters.inventoryid,
+        mode: 'insensitive'
       };
     }
 
@@ -1076,7 +1204,7 @@ export async function filterInventory(filters: inventoryfilter) {
       whereClause.product = {
         name: {
           contains: filters.productname,
-          mode: 'insensitive' 
+          mode: 'insensitive'
         }
       };
     }
@@ -1090,10 +1218,10 @@ export async function filterInventory(filters: inventoryfilter) {
       } else if (operator === 'eq') {
         whereClause.price = value;
       } else if (operator === 'gte') {
-		whereClause.price = { gte: value };
-	  } else if (operator === 'lte') {
-		whereClause.price = { lte: value };
-	  }
+        whereClause.price = { gte: value };
+      } else if (operator === 'lte') {
+        whereClause.price = { lte: value };
+      }
     }
 
     if (filters.quantity) {
@@ -1105,16 +1233,16 @@ export async function filterInventory(filters: inventoryfilter) {
       } else if (operator === 'eq') {
         whereClause.quantity = value;
       } else if (operator === 'gte') {
-		whereClause.quantity = { gte: value };
-	  } else if (operator === 'lte') {
-		whereClause.quantity = { lte: value };
-	  }
+        whereClause.quantity = { gte: value };
+      } else if (operator === 'lte') {
+        whereClause.quantity = { lte: value };
+      }
     }
 
     const filteredResult = await prisma.productinventory.findMany({
       where: whereClause,
       include: {
-        product: true 
+        product: true
       }
     });
 
@@ -1131,7 +1259,7 @@ export async function getProductById(productId: string) {
       where: { id: productId }
     });
     return product;
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(`Error retrieving product with ID ${productId}: ${error.message}`);
   }
 }
@@ -1143,49 +1271,49 @@ export async function insertMediaEntries(mediaData: any[]) {
       data: mediaData,
     });
     return newMediaEntries;
-  } catch (error:any) {
+  } catch (error: any) {
     throw new Error(`Error inserting media entries: ${error.message}`);
   }
-  }
+}
 
-  export async function deleteMediaEntries(mediaUrls: string[], productId: string) {
-    try {
-      const prisma = await getPrismaClient();
-      await prisma.media.deleteMany({
-        where: {
-          entityid: productId,
-          url: { in: mediaUrls }
-        }
-      });
-    } catch (error:any) {
-      throw new Error(`Error deleting media entries: ${error.message}`);
-    }
+export async function deleteMediaEntries(mediaUrls: string[], productId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    await prisma.media.deleteMany({
+      where: {
+        entityid: productId,
+        url: { in: mediaUrls }
+      }
+    });
+  } catch (error: any) {
+    throw new Error(`Error deleting media entries: ${error.message}`);
   }
+}
 
-  export async function addOwnership(productId: string, customerId: string) {
-	try {
-	  const prisma = await getPrismaClient();
-	  await prisma.productownership.create({
-		data: {
-		  productid: productId,
-		  customerid: customerId,
-		  fractional: false,
-		  fraction: 0
-		}
-	  });
-	} catch (error:any) {
-	  throw new Error(`Error adding ownership: ${error.message}`);
-	}
+export async function addOwnership(productId: string, customerId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    await prisma.productownership.create({
+      data: {
+        productid: productId,
+        customerid: customerId,
+        fractional: false,
+        fraction: 0
+      }
+    });
+  } catch (error: any) {
+    throw new Error(`Error adding ownership: ${error.message}`);
   }
+}
 
-  export async function getAdminUserById(userId: string) {
-	try {
-	  const prisma = await getPrismaClient();
-	  const adminUser = await prisma.adminuser.findUnique({
-		where: { id: userId }
-	  });
-	  return adminUser;
-	} catch (error:any) {
-	  throw new Error(`Error retrieving admin user with ID ${userId}: ${error.message}`);
-	}
+export async function getAdminUserById(userId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const adminUser = await prisma.adminuser.findUnique({
+      where: { id: userId }
+    });
+    return adminUser;
+  } catch (error: any) {
+    throw new Error(`Error retrieving admin user with ID ${userId}: ${error.message}`);
   }
+}

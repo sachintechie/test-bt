@@ -17,7 +17,7 @@ export const handler = async (event: any, context: any) => {
   try {
     const tenant = event.identity.resolverContext as tenant;
     const tenantId = tenant.id;
-    const receipt = await transferNFT(toAddress, tokenIds, chain, contractAddress, tenantId,"direct","admin");
+    const receipt = await transferNFT(toAddress, tokenIds, chain, contractAddress, tenantId);
     return {
       status: 200,
       transactionHash: receipt.transactionHash,
@@ -32,7 +32,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-export const transferNFT = async (toAddress: string, tokenIds: any, chain: string, contractAddress: string, tenantId: string,provider:string,providerId:string) => {
+export const transferNFT = async (toAddress: string, tokenIds: any, chain: string, contractAddress: string, tenantId: string) => {
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
@@ -65,9 +65,7 @@ export const transferNFT = async (toAddress: string, tokenIds: any, chain: strin
       chain: chain,
       fromaddress: payerKey.key?.materialId!,
       methodname: "batchTransfer",
-      params: JSON.stringify({ from: payerKey.key?.materialId, to: toAddress, tokenIds: tokenIds }),
-      provider: provider,
-      providertransactionid: providerId
+      params: JSON.stringify({ from: payerKey.key?.materialId, to: toAddress, tokenIds: tokenIds })
     }
   });
 

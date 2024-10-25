@@ -27,7 +27,7 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   authorizerLambda: "appsyncAuthorizer",
   hasApiGateway: true,
   apiName: "Api",
-  needMigrate: false,
+  needMigrate: true,
   auroraStack: auroraStack
 });
 

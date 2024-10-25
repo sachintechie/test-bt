@@ -1,21 +1,19 @@
-import { getAdminTransactionsByWalletAddress, getAdminUsers, getReferenceList } from "../db/adminDbFunctions";
+import { getProjectList } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const tokens = await getRefs(
+    const projects = await getProjects(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.limit,
       event.arguments?.input?.pageNo,
-      event.arguments?.input?.refType,
-      event.arguments?.input?.projectId
-
+      event.arguments?.input?.organizationId
     );
     return {
       status: 200,
-      data: tokens,
+      data: projects,
       error: null
     };
   } catch (err) {
@@ -28,11 +26,11 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getRefs(tenant: tenant, limit: number, pageNo: number,refType: string,projectId:string) {
+async function getProjects(tenant: tenant, limit: number, pageNo: number, organizationId: string) {
   try {
-    const refs = await getReferenceList(limit, pageNo,tenant.id, refType,projectId);
-    console.log(refs, "refs");
-    return refs;
+    const projects = await getProjectList(limit, pageNo, organizationId);
+    console.log(projects, "projects");
+    return projects;
   } catch (err) {
     console.log(err);
     throw err;

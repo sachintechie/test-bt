@@ -123,8 +123,8 @@ type FilterProductData {
   id: String!
   name: String!
   description: String
-  type:String
-  sku:String
+  type: String
+  sku: String
   categoryid: String
   rarity: ProductRarity
   price: Float
@@ -449,8 +449,8 @@ type ProductData {
   id: String!
   name: String!
   description: String
-	type:String
-	sku:String
+  type: String
+  sku: String
   categoryid: String!
   rarity: ProductRarity
   price: Float
@@ -809,6 +809,7 @@ input WithdrawStakeInput {
 input ProductSearchInput {
   searchKeyword: String!
 }
+
 enum ProductStatus {
   ACTIVE
   INACTIVE

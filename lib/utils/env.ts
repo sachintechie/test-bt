@@ -35,6 +35,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
     PRIVATE_KEY: "0xaae1f02aea6da4ae54d4adcbb47ce41af11fa4e71c2527d356a845cbf771418e",
     AVAX_PRIVATE_KEY: "68ff1b25786aec4108dd91e974528cb8035b9f2f5315de90a7a5e429a7ae36d2",
     STORE_AVAX_CONTRACT_ADDRESS: "0x7b72b77b930656591D0281DEC0532cA6a4a55AB4",
+
     STORE_AVAX_SUBNET_CONTRACT_ADDRESS: "0x1D57cd10148f382116127ad7eC8Ebb3a573D5792",
     METADATA_TABLE: "METADATA_TABLE"
   };
@@ -44,7 +45,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
   };
   const thirdPartyInfo = {
     STRIPE_SECRET: "sk_test_51Q5WSYRoB3vP63ZcG0446nZxieFZHLftc9TywVGeXSzDBwkO1YnyMxg4cuBBkGN8kPTjYYYUHtyF7eytbduUVrJ5005U9k0Jxi",
-    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET:'whsec_mpDmxZjkszP88yuGFkmzv8kFvZoUhEPo'
+    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET: 'whsec_mpDmxZjkszP88yuGFkmzv8kFvZoUhEPo'
   }
   const commonEnvs = {
     ...databaseInfoEnv,
@@ -60,13 +61,27 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
-        AVAX_RPC_SUBNET_URL:"http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
+        AVAX_RPC_SUBNET_URL: "http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
         AVAX_SUBNET_NETWORK_ID: "41024",
         AVAX_NETWORK_ID: "43113",
-        PRODUCT_BUCKET_NAME:"meadowlandproductbucket",
-        KB_BUCKET_NAME:"knowledgebasedocument",
-        KB_ID:"WIKF9ALZ52",
-        BEDROCK_DATASOURCE_S3:"ZZWKIZUS20"
+        PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
+        KB_BUCKET_NAME: "knowledgebasedocument",
+        KB_ID: "WIKF9ALZ52",
+        BEDROCK_DATASOURCE_S3: "ZZWKIZUS20"
+      };
+    case "ai-sovereignty-dev":
+      return {
+        ...commonEnvs,
+        SOLANA_NETWORK: "devnet",
+        SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
+        CS_API_ROOT: "https://gamma.signer.cubist.dev",
+        AVAX_URL: "https://api.avax-test.network",
+        AVAX_RPC_SUBNET_URL: "http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
+        AVAX_SUBNET_NETWORK_ID: "41024",
+        AVAX_NETWORK_ID: "43113",
+        KB_BUCKET_NAME: "bedrockkbdocumentdev",
+        KB_ID: "X3RMAORSFE",
+        BEDROCK_DATASOURCE_S3: "YQFKGJGVRR"
       };
     case "staging":
       return {
@@ -110,7 +125,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
         AVAX_NETWORK_ID: "43113",
-        PRODUCT_BUCKET_NAME:"meadowlandproductbucket"
+        PRODUCT_BUCKET_NAME: "meadowlandproductbucket"
       };
   }
 };

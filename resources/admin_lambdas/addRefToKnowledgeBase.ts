@@ -1,12 +1,12 @@
 import { RefType, tenant } from "../db/models";
+import { addReferenceToDb, getDataSourcesCount, isDocumentReferenceExist, isWebsiteReferenceExist  } from "../db/adminDbFunctions";
+import { S3 } from 'aws-sdk';
 import { Readable } from "stream";
-import { addReferenceToDb, getDataSourcesCount, isReferenceExist } from "../db/adminDbFunctions";
-import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 import { hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
 const s3 = new S3();
-const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
-const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
+const bucketName = process.env.KB_BUCKET_NAME || ''; // Get bucket name from environment variables
+const kb_id = process.env.KB_ID || ''; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
@@ -16,12 +16,12 @@ export const handler = async (event: any, context: any) => {
     const data = await addReference(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.refType,
+      event.arguments?.input?.projectId,
       event.arguments?.input?.file,
       event.arguments?.input?.websiteName,
       event.arguments?.input?.websiteUrl,
       event.arguments?.input?.depth
     );
-    console.log("data", data);
 
     const response = {
       status: data.document != null ? 200 : 400,
@@ -41,7 +41,10 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addReference(tenant: tenant, refType: string, file: any, websiteName: string, websiteUrl: string, depth: number) {
+
+
+
+async function addReference(tenant: tenant, refType: string,projectId:string, file: any, websiteName: string, websiteUrl: string, depth: number) {
   console.log("Creating admin user");
 
   try {
@@ -57,16 +60,14 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       chainId: ""
     };
     let datasource_id;
-    let ingestionJobId;
-    const isRefExist = await isReferenceExist(refType, file, websiteName, websiteUrl, data);
-    if(isRefExist.isExist){
-      return {
-        document: null,
-        error: isRefExist.error
-      };
-    }
+    let ingestionJobId,status;
+    
     if (refType === RefType.DOCUMENT) {
-      const s3PreHashedData = await hashingAndStoreToBlockchain(file);
+      const hashedData = {
+        fileName: file.fileName,
+        fileContent: file.fileContent
+      }
+      const s3PreHashedData = await hashingAndStoreToBlockchain(hashedData);
       if(s3PreHashedData.error){
         return {
           document: null,
@@ -87,10 +88,16 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       }
 
       console.log("data", data);
+      const isRefExist = await isDocumentReferenceExist( file,data);
+    if(isRefExist.isExist){
+      return {
+        document: null,
+        error: isRefExist.error
+      };
+    }
       const uploadedFile = {
         fileName: data?.data?.fileName,
         fileContent:  data?.data?.s3Object,
-        contentType: data?.data?.contentType
       }
       console.log("uploadedFile", uploadedFile);
       const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
@@ -103,9 +110,22 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
       console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
 
       datasource_id = BedRockDataSourceS3;
+      
+    ({ status, ingestionJobId } = await syncKb(kb_id, datasource_id));
+
+    isIngested = status === "COMPLETE";
+    console.log("syncKbResponse", status);
     } else if (refType === RefType.WEBSITE) {
+      const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
+    if(isRefExist.isExist){
+      return {
+        document: null,
+        error: isRefExist.error
+      };
+    }
       const dataSource = await getDataSourcesCount(tenant.id,refType);
       console.log("dataSource", dataSource);
+
       let dataSourceDetails;
       if (dataSource == null) {
         dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl, websiteName);
@@ -127,14 +147,13 @@ async function addReference(tenant: tenant, refType: string, file: any, websiteN
 
     console.log("datasource_id", datasource_id, ingestionJobId);
 
-    const syncKbResponse = await syncKb(kb_id, datasource_id);
-    syncKbResponse == "COMPLETE" ? (isIngested = true) : (isIngested = false);
-    console.log("syncKbResponse", syncKbResponse);
+  
     const ref = await addReferenceToDb(
       tenant.id,
       file,
       refType,
       isIngested,
+      projectId,
       websiteName,
       websiteUrl,
       depth,
@@ -245,3 +264,5 @@ async function formatBytes(bytes: number, decimals = 2) {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
 }
+
+
