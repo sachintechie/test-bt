@@ -123,8 +123,8 @@ type FilterProductData {
   id: String!
   name: String!
   description: String
-	type:String
-	sku:String
+  type: String
+  sku: String
   categoryid: String
   rarity: ProductRarity
   price: Float
@@ -449,8 +449,8 @@ type ProductData {
   id: String!
   name: String!
   description: String
-	type:String
-	sku:String
+  type: String
+  sku: String
   categoryid: String!
   rarity: ProductRarity
   price: Float
@@ -807,8 +807,9 @@ input WithdrawStakeInput {
 }
 
 input ProductSearchInput {
-  name: String!
+  searchKeyword: String!
 }
+
 enum ProductStatus {
   ACTIVE
   INACTIVE
@@ -977,7 +978,7 @@ type Query {
   GetReviews(input: GetReviewsInput): ReviewResponse
   GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
   GetHashTransaction(input: GetTransactionInput): StoreHash
-  SearchProductsByName(input: ProductSearchInput): GetProductsResponse
+  SearchProducts(input: ProductSearchInput): GetProductsResponse
   GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
   GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
   GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse

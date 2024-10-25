@@ -1703,10 +1703,10 @@ export async function createOrder(order: orders) {
 }
 
 export async function getOrders(
-  offset: number, 
-  itemsPerPage: number, 
-  value?: string, 
-  searchBy?: OrderFindBy, 
+  offset: number,
+  itemsPerPage: number,
+  value?: string,
+  searchBy?: OrderFindBy,
   status?: string
 ) {
   const prisma = await getPrismaClient();
@@ -1728,13 +1728,13 @@ export async function getOrders(
     [OrderFindBy.TENANT]: null,
   };
 
-  let whereClause: { 
-    status?: string; 
-    id?: string; 
-    sellerid?: string; 
-    buyerid?: string; 
-    productid?: string; 
-    tenantid?: string 
+  let whereClause: {
+    status?: string;
+    id?: string;
+    sellerid?: string;
+    buyerid?: string;
+    productid?: string;
+    tenantid?: string
   } = {};
 
   if (status && statusMapping[status]) {
@@ -1748,8 +1748,8 @@ export async function getOrders(
     }
   }
 
-  const tenantFilter = searchBy === OrderFindBy.TENANT && value 
-    ? { product: { tenantid: value } } 
+  const tenantFilter = searchBy === OrderFindBy.TENANT && value
+    ? { product: { tenantid: value } }
     : {};
 
   try {
@@ -1817,13 +1817,13 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
       }
     });
 
-//    if (status === orderstatus.DELIVERED) {
-//       await transferProductOwnership({
-//         sellerid: updatedOrder.sellerid!,
-//         buyerid: updatedOrder.buyerid!,
-//         productid: updatedOrder.productid!
-//       });
-//     }
+    //    if (status === orderstatus.DELIVERED) {
+    //       await transferProductOwnership({
+    //         sellerid: updatedOrder.sellerid!,
+    //         buyerid: updatedOrder.buyerid!,
+    //         productid: updatedOrder.productid!
+    //       });
+    //     }
 
     return {
       message: "Order status updated successfully",
@@ -2228,10 +2228,11 @@ export async function searchProducts(searchKeyword: string) {
 
     const products = await prisma.product.findMany({
       where: {
-        name: {
-          contains: name,
-          mode: "insensitive"
-        }
+        OR: [
+          { name: { contains: searchKeyword.trim(), mode: "insensitive" } },
+          { sku: { contains: searchKeyword.trim(), mode: "insensitive" } },
+          { type: { contains: searchKeyword.trim(), mode: "insensitive" } }
+        ]
       },
       include: {
         category: true,
