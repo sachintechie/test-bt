@@ -656,8 +656,8 @@ type Query {
   GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
   GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
   GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
-  SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
-  FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
+  SearchInventory(input: SearchInventoryInput): GetInventoryResponse
+  FilterInventory(input: FilterInventoryInput): GetInventoryResponse
   ListProject(input: ListProjectInput): ListProject
 }
 
