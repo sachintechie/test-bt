@@ -621,6 +621,33 @@ type ManageProductMediaResponse {
   error: AWSJSON
 }
 
+input AddProjectAndReferenceInput{
+  name: String!
+  description: String
+  projectType: String!
+  organizationId: String!
+  files : [FileInput]
+}
+
+input ListProjectByIdInput{
+projectId: String!
+limit: Int!
+pageNo: Int!
+}
+
+type ProjectAndReferenceResponse{
+  status: Int
+  data: ProjectAndReferenceData
+  error: AWSJSON
+}
+
+type ProjectAndReferenceData{
+  project: ProjectData
+  references: ListReferenceData
+}
+
+
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -643,6 +670,7 @@ type Mutation {
   DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
   DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
   CreateProject(input: CreateProjectInput): CreateProjectResponse
+  AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
 
 }
 
@@ -659,6 +687,7 @@ type Query {
   SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
   FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
   ListProject(input: ListProjectInput): ListProject
+  GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
 }
 
 schema {
