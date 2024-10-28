@@ -36,7 +36,7 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
     }
     else{
       return {
-        project: project,
+        project: project.data,
         error: null
       };
     }
