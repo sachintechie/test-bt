@@ -171,9 +171,8 @@ const SUBNET_CONTRACT_ABI: any[] =[
   }
 ];
 
-export async function storeHash(hash: string,chainType: string) {
+export async function storeHash(hash: string) {
   try {
-    if(chainType === "Avalanche"){
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
 
@@ -235,10 +234,6 @@ export async function storeHash(hash: string,chainType: string) {
       },
       error: null
     };
-  }
-  else if(chainType === "Provenance"){
-
-  }
   } catch (error) {
     // Handle any errors
     console.log("Error: ", error);
@@ -255,7 +250,7 @@ export async function hashingAndStoreToBlockchain(data: any) {
 
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
     console.log("dataHash", dataHash);
-    const dataTxHash = await storeHash(dataHash,"Avalanche");
+    const dataTxHash = await storeHash(dataHash);
     console.log("dataTxHash", dataTxHash);
     
     return {
