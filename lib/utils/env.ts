@@ -37,7 +37,11 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
     STORE_AVAX_CONTRACT_ADDRESS: "0x7b72b77b930656591D0281DEC0532cA6a4a55AB4",
 
     STORE_AVAX_SUBNET_CONTRACT_ADDRESS: "0x1D57cd10148f382116127ad7eC8Ebb3a573D5792",
-    METADATA_TABLE: "METADATA_TABLE"
+    METADATA_TABLE: "METADATA_TABLE",
+
+    PROVENANCE_CONTRACT_ADDRESS: "tp1rhtzdffk4f5xk79sjede38lakuzrqcrxgx5337f0sfwrf7lwq4xqmkwst7",
+    PROVENANCE_RPC_URL: "https://rpc.test.provenance.io:443",
+    PROVENANCE_MNEMONIC: "your mnemonic phrase here"
   };
   const iamInfo = {
     ADMIN_GROUP: "Admin",
