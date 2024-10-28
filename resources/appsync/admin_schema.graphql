@@ -571,6 +571,8 @@ input CreateInventoryInput {
   ownershipNft: Boolean
   smartContractAddress: String
   tokenId: String
+  fractional: Boolean
+  fraction:   Float
 }
 
 type GetInventoryResponse {
@@ -590,6 +592,8 @@ type InventoryData {
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
+  fractional: Boolean
+  fraction:  Float
   isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime

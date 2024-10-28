@@ -596,6 +596,8 @@ model productinventory {
   price                Float
   quantity             Int
   ownershipnft         Boolean
+  fractional           Boolean
+  fraction             Float?
   smartcontractaddress String?
   tokenid              String?   @unique
   token                token?    @relation(fields: [tokenid], references: [id])

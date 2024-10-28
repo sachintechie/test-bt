@@ -103,11 +103,11 @@ export interface productfilter {
 
 export interface orders {
   id?: string;
-  sellerid?: string;
-  buyerid?: string;
-  productid?: string;
-  price?: number;
-  quantity?: number;
+  sellerid: string;
+  buyerid: string;
+  productid: string;
+  price: number;
+  quantity: number;
   status?: orderstatus;
 }
 
@@ -162,6 +162,9 @@ export interface productinventory {
   ownershipnft?: boolean;
   smartcontractaddress?: string;
   tokenid?: string;
+  isdeleted?: boolean;
+  fraction?: number;
+  fractional?: boolean;
   createdat?: string;
   updatedat?: string;
 }

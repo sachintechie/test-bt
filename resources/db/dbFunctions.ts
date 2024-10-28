@@ -1671,6 +1671,29 @@ export async function createOrder(order: orders) {
   try {
     const prisma = await getPrismaClient();
 
+	// check if product exists
+	const product = await prisma.product.findFirst({
+		where: {
+			id: order.productid,
+			isdeleted: false
+		}
+	});
+
+	if (!product) {
+		throw new Error("Product not found");
+	}
+
+	// check product inventory
+	const inventory = await prisma.productinventory.findFirst({
+		where: {
+			productid: order.productid
+		}
+	});
+
+	if (!inventory || inventory.quantity < order.quantity) {
+		throw new Error("Product is out of stock");
+	}
+
     const newOrder = await prisma.orders.create({
       data: {
         sellerid: order.sellerid,
@@ -1683,9 +1706,23 @@ export async function createOrder(order: orders) {
       }
     });
 
+	//  update product inventory
+	await prisma.productinventory.update({
+		where: {
+			id: inventory.id
+		},
+		data: {
+			quantity: inventory.quantity - order.quantity
+		}
+	});
+
     return newOrder;
   } catch (err) {
-    throw err;
+    if (err instanceof Error) {
+      throw new Error(err.message || "An error occurred while creating the order.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 

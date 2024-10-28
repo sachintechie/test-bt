@@ -985,6 +985,8 @@ export async function createInventory(inventoryData: productinventory) {
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
+		fraction: inventoryData.fraction,
+		fractional: inventoryData.fractional,
         isdeleted: false
       }
     });
