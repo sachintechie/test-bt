@@ -3,7 +3,7 @@ import { addDocumentReference, addReferenceToDb, createProject, isProjectExist }
 import { ProjectType } from "@prisma/client";
 import { hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { addToS3Bucket } from "./addRefToKnowledgeBase";
-import { syncKb } from "../knowledgebase/scanDataSource";
+import { getKbStatus, syncKb } from "../knowledgebase/scanDataSource";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
@@ -126,11 +126,11 @@ async function addProjectAndReference(
           dataStoredToDb
         );
       }
+     // const kbStatus = await getKbStatus(kb_id, datasource_id);
 
-
-      ({ status, ingestionJobId } = await syncKb(kb_id, datasource_id));
-
-   
+      // if (kbStatus === "AVAILABLE") {
+      //   ({ status, ingestionJobId } = await syncKb(kb_id, datasource_id));
+      // }
 
       return {
         project: project,

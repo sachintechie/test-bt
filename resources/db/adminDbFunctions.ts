@@ -42,6 +42,53 @@ export async function createAdminUser(customer: customer) {
   }
 }
 
+export async function getFirstReferenceByProjectId(projectId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.reference.findFirst({
+      where: {
+        projectid: projectId,
+        isdeleted: false
+      }
+    });
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+} 
+
+export async function updateProjectStage(projectId: string, stage: ProjectStage,status :ProjectStatusEnum) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        projectstage: stage,
+        projectstatus: status,
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+
+}
+
+export async function updateReferernces(projectId: string,ingested: boolean) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedReference = await prisma.reference.updateMany({
+      where: { projectid: projectId },
+      data: {
+        ingested: ingested,
+      }
+    });
+    return updatedReference;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function createProject(tenant: tenant, name: string, description: string, projectType: ProjectType,
   organizationId: string, knowledgeBaseId: string) {
   console.log("Creating admin project", tenant.id, projectType);
@@ -1037,6 +1084,20 @@ export async function getProjectByIdWithRef(
   } catch (err) {
     return{ data : null,error : err};
 
+  }
+}
+
+export async function getAllProjects() {
+  try {
+    const prisma = await getPrismaClient();
+    const transactions = await prisma.project.findMany({
+      where: {
+        projectstage : ProjectStage.DATA_SELECTION || ProjectStage.DATA_PREPARATION
+      }
+    });
+    return transactions;
+  } catch (err) {
+    throw err;
   }
 }
 
