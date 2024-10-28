@@ -182,6 +182,14 @@ export interface inventoryfilter {
   };
 }
 
+export interface productwithinventory {
+  product: product;
+  productinventory: productinventory[];
+  totalquantity: number;
+  status: string;
+}
+
+
 
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",

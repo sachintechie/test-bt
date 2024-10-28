@@ -19,7 +19,9 @@ import {
   CategoryFindBy,
   CollectionFindBy,
   OrderFindBy,
-  productOwnership
+  productOwnership,
+  productinventory,
+  productwithinventory
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1480,27 +1482,40 @@ export async function getProducts(offset: number, limit: number, value?: string,
       (whereClause as any)[field] = value;
     }
   }
+
   try {
     const totalCount = await prisma.product.count({
       where: whereClause
     });
 
-    const products = await prisma.product.findMany({
+    const products  = await prisma.product.findMany({
       where: whereClause,
       include: {
         category: true,
         productattributes: true,
-		productinventory: true
+        productinventory: true
       },
       skip: offset,
       take: limit
     });
 
-    return { products, totalCount };
+    // Add totalquantity and status to each product
+    const productsWithInventoryData = products.map(product => {
+      const totalquantity = product.productinventory.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
+      const status = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
+      return {
+        ...product,
+        totalquantity,
+        status
+      };
+    });
+
+    return { products: productsWithInventoryData, totalCount };
   } catch (err) {
     throw err;
   }
 }
+
 
 export async function GetProductAttributesByProductId(productId: string) {
   try {
