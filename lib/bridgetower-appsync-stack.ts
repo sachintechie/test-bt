@@ -68,7 +68,7 @@ const MUTATIONS = [
   "deleteRefToKnowledgeBase",
   "createProject",
   "addReference",
-  "AddProjectAndReference"
+  "addProjectAndReference"
 ];
 
 
