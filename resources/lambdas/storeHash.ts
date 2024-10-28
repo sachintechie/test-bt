@@ -21,7 +21,7 @@ export const handler = async (event: any) => {
         break;
 
       case ChainType.Provenance:
-        hashResult = await provenanceStoreHash(uuid, hash, process.env.PROVANENCE_MNEMONIC || "");
+        hashResult = await provenanceStoreHash("0xa0f70a94393b30f8b06382aabe21f16e9bc11b0e6929586dcefb7e83fa6d4d2e", hash, process.env.PROVANENCE_MNEMONIC || "");
         break;
 
       default:
