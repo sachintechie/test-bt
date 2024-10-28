@@ -104,7 +104,7 @@ export async function createProject(tenant: tenant, name: string, description: s
         tenantid: tenant.id,
         isactive: true,
         projectstage: ProjectStage.DATA_SELECTION,
-        projectstatus: ProjectStatusEnum.ACTIVE,
+        projectstatus: ProjectStatusEnum.STARTED,
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
       }
