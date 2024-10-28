@@ -147,6 +147,7 @@ input CreateProductInput {
   contractAddress: String
   metadata: AWSJSON
   tokenId: Int
+  tags: [String]
 }
 
 input CreateProjectInput {
@@ -400,6 +401,7 @@ type ProductData {
   createdat: AWSDateTime
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
+  tags: [String]
 }
 
 enum ProductRarity {

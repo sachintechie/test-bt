@@ -520,6 +520,7 @@ export async function createProduct(product: product) {
         tenantid: product.tenantid,
         rarity: product.rarity,
         price: product.price,
+		tags: product.tags
       }
     });
     return newProduct;
@@ -955,6 +956,11 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
       where: {
         tenantid: tenantId
       },
+      include: {
+        category: true,
+        productattributes: true,
+        inventories: true
+      },
       skip: offset,
       take: limit
     });
@@ -965,11 +971,30 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
       }
     });
 
-    return { products, totalCount };
+    const productsWithInventoryData = products.map(product => {
+      // Convert inventories to match `productinventory` interface
+      const inventories = product.inventories.map(inventory => ({
+        ...inventory,
+        createdat: inventory.createdat ? inventory.createdat.toISOString() : undefined,
+        updatedat: inventory.updatedat ? inventory.updatedat.toISOString() : undefined,
+      })) as productinventory[];
+
+      const totalquantity = inventories.reduce((sum: number, inventory: productinventory) => sum + (inventory.quantity || 0), 0);
+      const inventorystatus = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
+
+      return {
+        ...product,
+        totalquantity,
+        inventorystatus
+      };
+    });
+
+    return { products: productsWithInventoryData, totalCount };
   } catch (err) {
     throw err;
   }
 }
+
 
 export async function createInventory(inventoryData: productinventory) {
   try {

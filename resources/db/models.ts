@@ -75,7 +75,8 @@ export interface product {
   tenantid:string;
   description: string;   
   type: string;           
-  sku: string;    
+  sku: string;
+  tags?: string[];
 }
 
 export interface productcategory {

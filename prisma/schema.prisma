@@ -356,6 +356,7 @@ model product {
   type                String
   sku                 String
   categoryid          String
+  tags                String[]
   category            productcategory             @relation(fields: [categoryid], references: [id])
   rarity              productrarity?              @default(NORMAL)
   price               Float?

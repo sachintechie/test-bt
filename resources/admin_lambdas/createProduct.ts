@@ -21,6 +21,7 @@ interface CreateProductInput {
   contractAddress?: string;
   metadata?: any;
   tokenId?: number; // for ERC1155
+  tags?: string[];
 }
 
 export const handler = async (event: any, context: any) => {
@@ -53,6 +54,7 @@ export const handler = async (event: any, context: any) => {
       rarity: input.rarity,
       price: input.price,
       tenantid:tenant.id,
+	  tags:input.tags
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -101,7 +103,8 @@ async function createProductInDb(input: {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  tenantid:string
+  tenantid:string;
+  tags?: string[]
 }) {
   const newProduct = await createProduct(input);
 

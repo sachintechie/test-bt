@@ -457,8 +457,8 @@ type ProductData {
   status: ProductStatus
   tenantid: String
   isdeleted: Boolean
-  totalquantity: Int,
-  inventorystatus: String,
+  totalquantity: Int
+  inventorystatus: String
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime

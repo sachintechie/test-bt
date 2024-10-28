@@ -1499,7 +1499,7 @@ export async function getProducts(offset: number, limit: number, value?: string,
       take: limit
     });
 
-	console.log(products);
+	
 
     // Add totalquantity and status to each product
     const productsWithInventoryData = products.map(product => {
@@ -1512,7 +1512,7 @@ export async function getProducts(offset: number, limit: number, value?: string,
       };
     });
 
-	console.log(productsWithInventoryData);
+
 
     return { products: productsWithInventoryData, totalCount };
   } catch (err) {
