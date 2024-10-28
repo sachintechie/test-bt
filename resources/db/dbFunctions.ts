@@ -1499,9 +1499,11 @@ export async function getProducts(offset: number, limit: number, value?: string,
       take: limit
     });
 
+	console.log(products);
+
     // Add totalquantity and status to each product
     const productsWithInventoryData = products.map(product => {
-      const totalquantity = product.productinventory.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
+      const totalquantity = product.inventories.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
       const inventorystatus = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
       return {
         ...product,
@@ -1509,6 +1511,8 @@ export async function getProducts(offset: number, limit: number, value?: string,
         inventorystatus
       };
     });
+
+	console.log(productsWithInventoryData);
 
     return { products: productsWithInventoryData, totalCount };
   } catch (err) {
