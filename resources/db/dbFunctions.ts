@@ -1489,7 +1489,8 @@ export async function getProducts(offset: number, limit: number, value?: string,
       where: whereClause,
       include: {
         category: true,
-        productattributes: true
+        productattributes: true,
+		productinventory: true
       },
       skip: offset,
       take: limit

@@ -457,13 +457,30 @@ type ProductData {
   status: ProductStatus
   tenantid: String
   isdeleted: Boolean
-  purchasedpercentage: Float
-  availablepercentage: Float
+  inventories: [InventoryData]
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
 }
+
+type InventoryData {
+  id: String
+  inventoryid: String
+  productid: String
+  inventorycategory: String
+  price: Float
+  quantity: Int
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  fractional: Boolean
+  fraction:  Float
+  isdeleted: Boolean
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
 
 input ProductFilter {
   key: String
