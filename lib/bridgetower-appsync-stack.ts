@@ -23,7 +23,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "moonpayNftLiteAsset",
   "moonpayNftLiteDelivery",
   "moonpayNftLiteStatus",
-  "postStripePaymentIntentWebhook"
+  "postStripePaymentIntentWebhook",
+  "checkAndUpdateProjects",
 ];
 
 const GET_METADATA = "getMetadata";
@@ -67,6 +68,7 @@ const MUTATIONS = [
   "deleteRefToKnowledgeBase",
   "createProject",
   "addReference",
+  "AddProjectAndReference"
 ];
 
 
