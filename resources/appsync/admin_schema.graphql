@@ -402,6 +402,8 @@ type ProductData {
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
   tags: [String]
+  totalquantity: Int
+  inventorystatus: String
 }
 
 enum ProductRarity {

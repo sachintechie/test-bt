@@ -459,6 +459,7 @@ type ProductData {
   isdeleted: Boolean
   totalquantity: Int
   inventorystatus: String
+  tags: [String]
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime
