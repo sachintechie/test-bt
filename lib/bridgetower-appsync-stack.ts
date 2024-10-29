@@ -118,13 +118,15 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
-      const lambdaFunction = lambdaResourceName === MIGRATION_LAMBDA_NAME
-        ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-        : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
+      const isAuthorizerLambda = lambdaResourceName === props.authorizerLambda;
+
+      const lambdaFunction = isAuthorizerLambda
+      ? newNodeJsFunction(this, props.authorizerLambda, `${props.lambdaFolder}/${props.authorizerLambda}.ts`, databaseInfo)
+      : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
     
-        if (sharedLayer) {
-          lambdaFunction.addLayers(sharedLayer);
-        }
+      if (isAuthorizerLambda && sharedLayer) {
+        lambdaFunction.addLayers(sharedLayer);
+      }
 
     lambdaMap.set(lambdaResourceName, lambdaFunction); 
 
