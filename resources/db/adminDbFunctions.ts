@@ -1108,7 +1108,8 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 
     const products = await prisma.product.findMany({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+		isdeleted: false
       },
       include: {
         category: true,
@@ -1121,7 +1122,8 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 
     const totalCount = await prisma.product.count({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+		isdeleted: false
       }
     });
 

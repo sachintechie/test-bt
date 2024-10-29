@@ -1539,7 +1539,7 @@ export async function filterProducts(filters: productfilter[]) {
   const prisma = await getPrismaClient();
   try {
     const whereClause: any = {
-      AND: []
+      AND: [ { isdeleted: false }]
     };
 
     filters.forEach((filter) => {
@@ -2274,10 +2274,15 @@ export async function searchProducts(searchKeyword: string) {
 
     const products = await prisma.product.findMany({
       where: {
-        OR: [
-          { name: { contains: searchKeyword.trim(), mode: "insensitive" } },
-          { sku: { contains: searchKeyword.trim(), mode: "insensitive" } },
-          { type: { contains: searchKeyword.trim(), mode: "insensitive" } }
+        AND: [
+          { isdeleted: false },  
+          {
+            OR: [
+              { name: { contains: searchKeyword.trim(), mode: "insensitive" } },
+              { sku: { contains: searchKeyword.trim(), mode: "insensitive" } },
+              { type: { contains: searchKeyword.trim(), mode: "insensitive" } }
+            ]
+          }
         ]
       },
       include: {
@@ -2291,3 +2296,4 @@ export async function searchProducts(searchKeyword: string) {
     throw err;
   }
 }
+
