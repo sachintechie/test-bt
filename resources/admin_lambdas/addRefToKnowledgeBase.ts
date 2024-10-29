@@ -115,7 +115,9 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
 
     isIngested = status === "COMPLETE";
     console.log("syncKbResponse", status);
-    } else if (refType === RefType.WEBSITE) {
+    } 
+    
+    else if (refType === RefType.WEBSITE) {
       const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
     if(isRefExist.isExist){
       return {
@@ -182,7 +184,7 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
   }
 }
 
-async function addToS3Bucket(fileName: string, fileContent: string) {
+export async function addToS3Bucket(fileName: string, fileContent: string) {
   try {
     if (!fileName || !fileContent) {
       return {

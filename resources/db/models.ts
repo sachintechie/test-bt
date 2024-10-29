@@ -75,7 +75,10 @@ export interface product {
   tenantid:string;
   description: string;   
   type: string;           
-  sku: string;    
+  sku: string;
+  tags?: string[];
+  fraction : number;
+  fractional : boolean;
 }
 
 export interface productcategory {
@@ -103,11 +106,11 @@ export interface productfilter {
 
 export interface orders {
   id?: string;
-  sellerid?: string;
-  buyerid?: string;
-  productid?: string;
-  price?: number;
-  quantity?: number;
+  sellerid: string;
+  buyerid: string;
+  productid: string;
+  price: number;
+  quantity: number;
   status?: orderstatus;
 }
 
@@ -162,6 +165,7 @@ export interface productinventory {
   ownershipnft?: boolean;
   smartcontractaddress?: string;
   tokenid?: string;
+  isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;
 }
@@ -178,6 +182,14 @@ export interface inventoryfilter {
     value: number;
   };
 }
+
+export interface productwithinventory {
+  product: product;
+  productinventory: productinventory[];
+  totalquantity: number;
+  status: string;
+}
+
 
 
 export enum TransactionStatus {

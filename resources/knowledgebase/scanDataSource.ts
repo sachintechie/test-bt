@@ -43,6 +43,22 @@ export async function syncKb(kbId: string, dataSourceId: string) {
   }
 }
 
+export async function getKbStatus(kbId: string, dataSourceId: string) {
+
+  const dataSource = await bedrockAgentClient
+  .getDataSource({
+    knowledgeBaseId: kbId,
+    dataSourceId
+    //ingestionJobId: jobId
+  })
+  .promise();
+
+const status = dataSource.dataSource.status;
+console.log("Data Source Status",status);
+return status;
+
+}
+
 
 
 

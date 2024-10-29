@@ -147,6 +147,9 @@ input CreateProductInput {
   contractAddress: String
   metadata: AWSJSON
   tokenId: Int
+  tags: [String]
+  fractional: Boolean
+  fraction:  Float
 }
 
 input CreateProjectInput {
@@ -400,6 +403,11 @@ type ProductData {
   createdat: AWSDateTime
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
+  tags: [String]
+  totalquantity: Int
+  inventorystatus: String
+  fractional: Boolean
+  fraction:  Float
 }
 
 enum ProductRarity {
@@ -621,6 +629,33 @@ type ManageProductMediaResponse {
   error: AWSJSON
 }
 
+input AddProjectAndReferenceInput{
+  name: String!
+  description: String
+  projectType: String!
+  organizationId: String!
+  files : [FileInput]
+}
+
+input ListProjectByIdInput{
+projectId: String!
+limit: Int!
+pageNo: Int!
+}
+
+type ProjectAndReferenceResponse{
+  status: Int
+  data: ProjectAndReferenceData
+  error: AWSJSON
+}
+
+type ProjectAndReferenceData{
+  project: ProjectData
+  references: ListReferenceData
+}
+
+
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -643,6 +678,7 @@ type Mutation {
   DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
   DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
   CreateProject(input: CreateProjectInput): CreateProjectResponse
+  AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
 
 }
 
@@ -656,9 +692,10 @@ type Query {
   GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
   GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
   GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
-  SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
-  FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
+  SearchInventory(input: SearchInventoryInput): GetInventoryResponse
+  FilterInventory(input: FilterInventoryInput): GetInventoryResponse
   ListProject(input: ListProjectInput): ListProject
+  GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
 }
 
 schema {

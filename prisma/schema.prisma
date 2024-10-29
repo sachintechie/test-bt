@@ -356,6 +356,7 @@ model product {
   type                String
   sku                 String
   categoryid          String
+  tags                String[]
   category            productcategory             @relation(fields: [categoryid], references: [id])
   rarity              productrarity?              @default(NORMAL)
   price               Float?
@@ -369,6 +370,8 @@ model product {
   productattributes   productattribute[]
   wishlists           productwishlist[]
   orders              orders[]
+  fractional          Boolean
+  fraction            Float?
   productreviews      productreview[]
   collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships   productownership[]

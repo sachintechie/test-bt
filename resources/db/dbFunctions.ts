@@ -19,7 +19,9 @@ import {
   CategoryFindBy,
   CollectionFindBy,
   OrderFindBy,
-  productOwnership
+  productOwnership,
+  productinventory,
+  productwithinventory
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1027,6 +1029,8 @@ export async function getAllTransactions() {
   }
 }
 
+
+
 export async function getAllCustomerWalletForBonus(tenantId: string) {
   try {
     const prisma = await getPrismaClient();
@@ -1480,26 +1484,44 @@ export async function getProducts(offset: number, limit: number, value?: string,
       (whereClause as any)[field] = value;
     }
   }
+
   try {
     const totalCount = await prisma.product.count({
       where: whereClause
     });
 
-    const products = await prisma.product.findMany({
+    const products  = await prisma.product.findMany({
       where: whereClause,
       include: {
         category: true,
-        productattributes: true
+        productattributes: true,
+        inventories: true
       },
       skip: offset,
       take: limit
     });
 
-    return { products, totalCount };
+	
+
+    // Add totalquantity and status to each product
+    const productsWithInventoryData = products.map(product => {
+      const totalquantity = product.inventories.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
+      const inventorystatus = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
+      return {
+        ...product,
+        totalquantity,
+        inventorystatus
+      };
+    });
+
+
+
+    return { products: productsWithInventoryData, totalCount };
   } catch (err) {
     throw err;
   }
 }
+
 
 export async function GetProductAttributesByProductId(productId: string) {
   try {
@@ -1517,7 +1539,7 @@ export async function filterProducts(filters: productfilter[]) {
   const prisma = await getPrismaClient();
   try {
     const whereClause: any = {
-      AND: []
+      AND: [ { isdeleted: false }]
     };
 
     filters.forEach((filter) => {
@@ -1671,6 +1693,29 @@ export async function createOrder(order: orders) {
   try {
     const prisma = await getPrismaClient();
 
+	// check if product exists
+	const product = await prisma.product.findFirst({
+		where: {
+			id: order.productid,
+			isdeleted: false
+		}
+	});
+
+	if (!product) {
+		throw new Error("Product not found");
+	}
+
+	// check product inventory
+	const inventory = await prisma.productinventory.findFirst({
+		where: {
+			productid: order.productid
+		}
+	});
+
+	if (!inventory || inventory.quantity < order.quantity) {
+		throw new Error("Product is out of stock");
+	}
+
     const newOrder = await prisma.orders.create({
       data: {
         sellerid: order.sellerid,
@@ -1683,9 +1728,23 @@ export async function createOrder(order: orders) {
       }
     });
 
+	//  update product inventory
+	await prisma.productinventory.update({
+		where: {
+			id: inventory.id
+		},
+		data: {
+			quantity: inventory.quantity - order.quantity
+		}
+	});
+
     return newOrder;
   } catch (err) {
-    throw err;
+    if (err instanceof Error) {
+      throw new Error(err.message || "An error occurred while creating the order.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 
@@ -2215,10 +2274,15 @@ export async function searchProducts(searchKeyword: string) {
 
     const products = await prisma.product.findMany({
       where: {
-        OR: [
-          { name: { contains: searchKeyword.trim(), mode: "insensitive" } },
-          { sku: { contains: searchKeyword.trim(), mode: "insensitive" } },
-          { type: { contains: searchKeyword.trim(), mode: "insensitive" } }
+        AND: [
+          { isdeleted: false },  
+          {
+            OR: [
+              { name: { contains: searchKeyword.trim(), mode: "insensitive" } },
+              { sku: { contains: searchKeyword.trim(), mode: "insensitive" } },
+              { type: { contains: searchKeyword.trim(), mode: "insensitive" } }
+            ]
+          }
         ]
       },
       include: {
@@ -2232,3 +2296,4 @@ export async function searchProducts(searchKeyword: string) {
     throw err;
   }
 }
+

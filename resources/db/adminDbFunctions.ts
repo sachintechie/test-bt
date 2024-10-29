@@ -42,6 +42,53 @@ export async function createAdminUser(customer: customer) {
   }
 }
 
+export async function getFirstReferenceByProjectId(projectId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.reference.findFirst({
+      where: {
+        projectid: projectId,
+        isdeleted: false
+      }
+    });
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+} 
+
+export async function updateProjectStage(projectId: string, stage: ProjectStage,status :ProjectStatusEnum) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        projectstage: stage,
+        projectstatus: status,
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+
+}
+
+export async function updateReferernces(projectId: string,ingested: boolean) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedReference = await prisma.reference.updateMany({
+      where: { projectid: projectId },
+      data: {
+        ingested: ingested,
+      }
+    });
+    return updatedReference;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function createProject(tenant: tenant, name: string, description: string, projectType: ProjectType,
   organizationId: string, knowledgeBaseId: string) {
   console.log("Creating admin project", tenant.id, projectType);
@@ -57,7 +104,7 @@ export async function createProject(tenant: tenant, name: string, description: s
         tenantid: tenant.id,
         isactive: true,
         projectstage: ProjectStage.DATA_SELECTION,
-        projectstatus: ProjectStatusEnum.ACTIVE,
+        projectstatus: ProjectStatusEnum.STARTED,
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
       }
@@ -520,6 +567,9 @@ export async function createProduct(product: product) {
         tenantid: product.tenantid,
         rarity: product.rarity,
         price: product.price,
+		tags: product.tags,
+		fractional: product.fractional,
+		fraction: product.fraction
       }
     });
     return newProduct;
@@ -691,6 +741,48 @@ export async function addReferenceToDb(tenantId: string, file: any, refType: str
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: depth,
+        isactive: true,
+        createdat: new Date().toISOString()
+      }
+    });
+    return {
+      data: newRef,
+      error: null
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err
+    }
+  }
+}
+
+export async function addDocumentReference(tenantId: string, file: any, refType: string, isIngested: boolean, projectId: string,
+   datasource_id?: string, data?: any, ingestionJobId?: string, hashedData?: any
+) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const newRef = await prisma.reference.create({
+      data: {
+        tenantid: tenantId as string,
+        projectid: projectId,
+        referencestage: ReferenceStage.DATA_STORAGE,
+        reftype: refType,
+        name:  file.fileName,
+        url:  data.url ,
+        size:  data.size,
+        ingested: isIngested,
+        isdeleted: false,
+        s3prestorehash: hashedData.s3PreStoreHash,
+        s3prestoretxhash: hashedData.s3PreStoreTxHash,
+        s3poststorehash: hashedData.s3PostStoreHash,
+        s3poststoretxhash: hashedData.s3PostStoreTxHash,
+        chaintype: hashedData.chainType,
+        chainid: hashedData.chainId.toString(),
+        datasourceid: datasource_id,
+        ingestionjobid: ingestionJobId,
+        depth: 0,
         isactive: true,
         createdat: new Date().toISOString()
       }
@@ -947,13 +1039,84 @@ export async function getProjectList(
   }
 }
 
+export async function getProjectByIdWithRef(
+  projectId: string,
+  limit: number,
+  pageNo: number
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId
+      }
+    });
+    if(project == null){
+      return {data : null ,error : "Project not found"};
+    }
+    const refCount = await prisma.reference.count({
+      where: {
+        projectid: projectId
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+   
+    const refs = await prisma.reference.findMany({
+      where: {
+        projectid: projectId
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      project: project,
+      references:{
+      total: refCount,
+      totalPages: Math.ceil(refCount / limit),
+      refs: refs}
+    };
+
+    return{ data,error : null};
+  } catch (err) {
+    return{ data : null,error : err};
+
+  }
+}
+
+export async function getAllProjects() {
+  try {
+    const prisma = await getPrismaClient();
+    const transactions = await prisma.project.findMany({
+      where: {
+        projectstage : ProjectStage.DATA_SELECTION || ProjectStage.DATA_PREPARATION
+      }
+    });
+    return transactions;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getAdminProductsByTenantId(offset: number, limit: number, tenantId: string) {
   try {
     const prisma = await getPrismaClient();
 
     const products = await prisma.product.findMany({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+		isdeleted: false
+      },
+      include: {
+        category: true,
+        productattributes: true,
+        inventories: true
       },
       skip: offset,
       take: limit
@@ -961,15 +1124,35 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 
     const totalCount = await prisma.product.count({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+		isdeleted: false
       }
     });
 
-    return { products, totalCount };
+    const productsWithInventoryData = products.map(product => {
+      // Convert inventories to match `productinventory` interface
+      const inventories = product.inventories.map(inventory => ({
+        ...inventory,
+        createdat: inventory.createdat ? inventory.createdat.toISOString() : undefined,
+        updatedat: inventory.updatedat ? inventory.updatedat.toISOString() : undefined,
+      })) as productinventory[];
+
+      const totalquantity = inventories.reduce((sum: number, inventory: productinventory) => sum + (inventory.quantity || 0), 0);
+      const inventorystatus = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
+
+      return {
+        ...product,
+        totalquantity,
+        inventorystatus
+      };
+    });
+
+    return { products: productsWithInventoryData, totalCount };
   } catch (err) {
     throw err;
   }
 }
+
 
 export async function createInventory(inventoryData: productinventory) {
   try {
