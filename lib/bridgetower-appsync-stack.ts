@@ -88,7 +88,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     super(scope, id, props);
 
     const sharedLayer = new lambda.LayerVersion(this, 'SharedUtilsLayer', {
-      code: lambda.Code.fromAsset('resources/shared_lambdas'), // path to shared functions
+      code: lambda.Code.fromAsset('../resources/shared_lambdas'), // path to shared functions
       compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
       description: 'Layer with shared functions like getCategories',
     });
