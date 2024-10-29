@@ -81,12 +81,20 @@ interface AppSyncStackProps extends cdk.StackProps {
   apiName: string;
   needMigrate?: boolean;
   auroraStack?: AuroraStack;
-  sharedLayer?: lambda.LayerVersion;
+  useSharedLayer?: boolean;
 }
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AppSyncStackProps) {
     super(scope, id, props);
+
+    const sharedLayer = props.useSharedLayer
+      ? new lambda.LayerVersion(this, 'SharedUtilsLayer', {
+          code: lambda.Code.fromAsset('resources/shared_lambdas'),
+          compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
+          description: 'Layer with shared functions like getCategories',
+        })
+      : undefined;
 
     const lambdaMap = new Map<string, lambda.Function>();
 
@@ -111,12 +119,12 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
       const lambdaFunction = lambdaResourceName === MIGRATION_LAMBDA_NAME
-      ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-      : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
+        ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+        : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
     
-    if (props.sharedLayer) {
-      lambdaFunction.addLayers(props.sharedLayer);
-    }
+        if (sharedLayer) {
+          lambdaFunction.addLayers(sharedLayer);
+        }
 
     lambdaMap.set(lambdaResourceName, lambdaFunction); 
 
