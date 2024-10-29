@@ -1693,29 +1693,86 @@ export async function createOrder(order: orders) {
   try {
     const prisma = await getPrismaClient();
 
-	// check if product exists
-	const product = await prisma.product.findFirst({
-		where: {
-			id: order.productid,
-			isdeleted: false
-		}
-	});
+    // Check if product exists
+    const product = await prisma.product.findFirst({
+      where: {
+        id: order.productid,
+        isdeleted: false
+      }
+    });
 
-	if (!product) {
-		throw new Error("Product not found");
-	}
+    if (!product) {
+      throw new Error("Product not found");
+    }
 
-	// check product inventory
-	const inventory = await prisma.productinventory.findFirst({
-		where: {
-			productid: order.productid
-		}
-	});
 
-	if (!inventory || inventory.quantity < order.quantity) {
-		throw new Error("Product is out of stock");
-	}
+    const inventories = await prisma.productinventory.findMany({
+      where: {
+        productid: order.productid
+      },
+      orderBy: {
+        createdat: 'asc'
+      }
+    });
 
+    if (product.fractional) {
+		const totalAvailablePercentage = inventories.reduce((sum, inv) => sum + (inv.availablepercentage || 0), 0);
+		const requiredPercentage = order.quantity;
+
+      if (requiredPercentage > totalAvailablePercentage) {
+        throw new Error("Not enough stock available");
+      }
+
+      let remainingPercentage = requiredPercentage;
+
+      // Deduct from each inventory's available percentage
+      for (const inventory of inventories) {
+        if (remainingPercentage <= 0) break;
+
+        const deductPercentage = Math.min(inventory.availablepercentage || 0, remainingPercentage);
+
+        // Update inventory by reducing the available percentage
+        await prisma.productinventory.update({
+          where: {
+            id: inventory.id
+          },
+          data: {
+            availablepercentage: (inventory.availablepercentage || 0) - deductPercentage,
+            purchasedpercentage: (inventory.purchasedpercentage || 0) + deductPercentage
+          }
+        });
+
+        remainingPercentage -= deductPercentage;
+      }
+    } else {
+   
+      const totalQuantity = inventories.reduce((sum, inv) => sum + inv.quantity, 0);
+
+      if (totalQuantity < order.quantity) {
+        throw new Error("Product is out of stock");
+      }
+
+      let remainingQuantity = order.quantity;
+
+      // Deduct from each inventory entry until the order quantity is fulfilled
+      for (const inventory of inventories) {
+        if (remainingQuantity <= 0) break;
+
+        const deductQuantity = Math.min(inventory.quantity, remainingQuantity);
+        await prisma.productinventory.update({
+          where: {
+            id: inventory.id
+          },
+          data: {
+            quantity: inventory.quantity - deductQuantity
+          }
+        });
+
+        remainingQuantity -= deductQuantity;
+      }
+    }
+
+    
     const newOrder = await prisma.orders.create({
       data: {
         sellerid: order.sellerid,
@@ -1728,16 +1785,6 @@ export async function createOrder(order: orders) {
       }
     });
 
-	//  update product inventory
-	await prisma.productinventory.update({
-		where: {
-			id: inventory.id
-		},
-		data: {
-			quantity: inventory.quantity - order.quantity
-		}
-	});
-
     return newOrder;
   } catch (err) {
     if (err instanceof Error) {
@@ -1747,6 +1794,10 @@ export async function createOrder(order: orders) {
     }
   }
 }
+
+
+
+
 
 export async function getOrders(
   offset: number,

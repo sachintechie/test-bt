@@ -1158,6 +1158,17 @@ export async function createInventory(inventoryData: productinventory) {
   try {
     const prisma = await getPrismaClient();
 
+	// check if product is fractional
+	const product = await prisma.product.findUnique({
+		where: {
+			id: inventoryData.productid
+		}
+	});
+	if (!product) {
+		throw new Error("Product not found");
+	}
+	
+
     const newInventory = await prisma.productinventory.create({
       data: {
         inventoryid: inventoryData.inventoryid,
@@ -1168,7 +1179,8 @@ export async function createInventory(inventoryData: productinventory) {
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
-        isdeleted: false
+        isdeleted: false,
+		availablepercentage: product.fractional ? inventoryData.quantity * 100 : null
       }
     });
 
