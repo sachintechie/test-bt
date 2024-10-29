@@ -81,12 +81,17 @@ interface AppSyncStackProps extends cdk.StackProps {
   apiName: string;
   needMigrate?: boolean;
   auroraStack?: AuroraStack;
-  layers?: lambda.LayerVersion[]; 
 }
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AppSyncStackProps) {
     super(scope, id, props);
+
+    const sharedLayer = new lambda.LayerVersion(this, 'SharedUtilsLayer', {
+      code: lambda.Code.fromAsset('resources/shared_lambdas'), // path to shared functions
+      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
+      description: 'Layer with shared functions like getCategories',
+    });
 
     const lambdaMap = new Map<string, lambda.Function>();
 
@@ -125,15 +130,11 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
     : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
 
-  lambdaMap.set(lambdaResourceName, lambdaFunction); 
-    }
+      lambdaFunction.addLayers(sharedLayer);
+      lambdaMap.set(lambdaResourceName, lambdaFunction); 
 
-    if (props.layers) {
-      for (const lambdaFunction of lambdaMap.values()) {
-        lambdaFunction.addLayers(...props.layers);
-      }
-    }
-    
+  }
+
     if (!isDevOrProd() && props.needMigrate) {
       // Create a custom resource to trigger the migration Lambda function
       const provider = new cr.Provider(this, env`MigrateProvider`, {
