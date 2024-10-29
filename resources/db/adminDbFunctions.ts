@@ -567,7 +567,9 @@ export async function createProduct(product: product) {
         tenantid: product.tenantid,
         rarity: product.rarity,
         price: product.price,
-		tags: product.tags
+		tags: product.tags,
+		fractional: product.fractional,
+		fraction: product.fraction
       }
     });
     return newProduct;
@@ -1166,8 +1168,6 @@ export async function createInventory(inventoryData: productinventory) {
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
-		fraction: inventoryData.fraction,
-		fractional: inventoryData.fractional,
         isdeleted: false
       }
     });

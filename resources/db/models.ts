@@ -77,6 +77,8 @@ export interface product {
   type: string;           
   sku: string;
   tags?: string[];
+  fraction : number;
+  fractional : boolean;
 }
 
 export interface productcategory {
@@ -164,8 +166,6 @@ export interface productinventory {
   smartcontractaddress?: string;
   tokenid?: string;
   isdeleted?: boolean;
-  fraction?: number;
-  fractional?: boolean;
   createdat?: string;
   updatedat?: string;
 }

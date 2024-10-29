@@ -148,6 +148,8 @@ input CreateProductInput {
   metadata: AWSJSON
   tokenId: Int
   tags: [String]
+  fractional: Boolean
+  fraction:  Float
 }
 
 input CreateProjectInput {
@@ -404,6 +406,8 @@ type ProductData {
   tags: [String]
   totalquantity: Int
   inventorystatus: String
+  fractional: Boolean
+  fraction:  Float
 }
 
 enum ProductRarity {
@@ -575,8 +579,6 @@ input CreateInventoryInput {
   ownershipNft: Boolean
   smartContractAddress: String
   tokenId: String
-  fractional: Boolean
-  fraction:   Float
 }
 
 type GetInventoryResponse {
@@ -596,8 +598,6 @@ type InventoryData {
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
-  fractional: Boolean
-  fraction:  Float
   isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
