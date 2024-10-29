@@ -46,7 +46,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addProjectAndReference(
+ async function addProjectAndReference(
   tenant: tenant,
   name: string,
   description: string,
@@ -73,7 +73,7 @@ async function addProjectAndReference(
     if (project != null) {
       (async () => {
         try {
-          await addReferences(tenant, project, files, datasource_id);
+          await addReferences(tenant, project.id, files, datasource_id);
         } catch (error) {
           console.error("Error in async task:", error);
         }
@@ -98,7 +98,7 @@ async function addProjectAndReference(
   }
 }
 
-async function addReferences(tenant: tenant, project: any, files: any, datasource_id: string) {
+export async function addReferences(tenant: tenant, projectId: string, files: any, datasource_id: string) {
   for (const file of files) {
     let data;
     let isIngested = false;
@@ -153,7 +153,7 @@ async function addReferences(tenant: tenant, project: any, files: any, datasourc
       file,
       RefType.DOCUMENT,
       isIngested,
-      project.id,
+      projectId,
       datasource_id,
       data?.data,
       "null",
@@ -161,7 +161,7 @@ async function addReferences(tenant: tenant, project: any, files: any, datasourc
     );
   }
 
-  const updatedProject = await updateProjectStage(project.id, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
+  const updatedProject = await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
   console.log("updatedProject", updatedProject);
   return updatedProject;
 }

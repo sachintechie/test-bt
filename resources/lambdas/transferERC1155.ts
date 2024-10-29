@@ -8,8 +8,8 @@ const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
 const CONTRACT_ABI = contractAbi.abi;
 
-const web3Avax = new Web3(AVAX_RPC_URL);
-const web3Eth = new Web3(ETH_RPC_URL);
+export const web3Avax = new Web3(AVAX_RPC_URL);
+export const web3Eth = new Web3(ETH_RPC_URL);
 
 export const handler = async (event: any, context: any) => {
   const { toAddress, tokenId, amount, chain, contractAddress } = event.arguments?.input;

@@ -1,12 +1,11 @@
-import { RefType, tenant } from "../db/models";
-import { addReferenceToDb, getDataSourcesCount, isDocumentReferenceExist, isWebsiteReferenceExist  } from "../db/adminDbFunctions";
+import {  tenant } from "../db/models";
+import {  updateProjectStage  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
 import { Readable } from "stream";
-import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
-import { hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
+import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
+import { addReferences } from "./addProjectAndReference";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ''; // Get bucket name from environment variables
-const kb_id = process.env.KB_ID || ''; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
@@ -17,7 +16,7 @@ export const handler = async (event: any, context: any) => {
       event.identity.resolverContext as tenant,
       event.arguments?.input?.refType,
       event.arguments?.input?.projectId,
-      event.arguments?.input?.file,
+      event.arguments?.input?.files,
       event.arguments?.input?.websiteName,
       event.arguments?.input?.websiteUrl,
       event.arguments?.input?.depth
@@ -44,135 +43,150 @@ export const handler = async (event: any, context: any) => {
 
 
 
-async function addReference(tenant: tenant, refType: string,projectId:string, file: any, websiteName: string, websiteUrl: string, depth: number) {
+async function addReference(tenant: tenant, refType: string,projectId:string, files: any, websiteName: string, websiteUrl: string, depth: number) {
   console.log("Creating admin user");
 
   try {
+    let datasource_id = BedRockDataSourceS3;
+
     console.log("createUser", tenant.id, refType);
-    let data;
-    let isIngested = false;
-    const dataStoredToDb: any = {
-      s3PreStoreHash: "",
-      s3PreStoreTxHash: "",
-      s3PostStoreHash: "",
-      s3PostStoreTxHash: "",
-      chainType: "",
-      chainId: ""
-    };
-    let datasource_id;
-    let ingestionJobId,status;
+
+    // const dataStoredToDb: any = {
+    //   s3PreStoreHash: "",
+    //   s3PreStoreTxHash: "",
+    //   s3PostStoreHash: "",
+    //   s3PostStoreTxHash: "",
+    //   chainType: "",
+    //   chainId: ""
+    // };
+    (async () => {
+      try {
+        await addReferences(tenant, projectId, files, datasource_id);
+      } catch (error) {
+        console.error("Error in async task:", error);
+      }
+    })();
+
+  //   for (let file of files){
     
-    if (refType === RefType.DOCUMENT) {
-      const hashedData = {
-        fileName: file.fileName,
-        fileContent: file.fileContent
-      }
-      const s3PreHashedData = await hashingAndStoreToBlockchain(hashedData);
-      if(s3PreHashedData.error){
-        return {
-          document: null,
-          error: s3PreHashedData.error
-        };
-      }
-      dataStoredToDb.s3PreStoreHash = s3PreHashedData.data?.dataHash;
-      console.log("s3PreStoreHash", s3PreHashedData.data?.dataHash);
-      dataStoredToDb.s3PreStoreTxHash = s3PreHashedData.data?.dataTxHash;
+  //   if (refType === RefType.DOCUMENT) {
+  //     const hashedData = {
+  //       fileName: file.fileName,
+  //       fileContent: file.fileContent
+  //     }
+  //     const s3PreHashedData = await hashingAndStoreToBlockchain(hashedData);
+  //     if(s3PreHashedData.error){
+  //       return {
+  //         document: null,
+  //         error: s3PreHashedData.error
+  //       };
+  //     }
+  //     dataStoredToDb.s3PreStoreHash = s3PreHashedData.data?.dataHash;
+  //     console.log("s3PreStoreHash", s3PreHashedData.data?.dataHash);
+  //     dataStoredToDb.s3PreStoreTxHash = s3PreHashedData.data?.dataTxHash;
 
-      console.log("s3PreStoreTxHash", s3PreHashedData.data?.dataTxHash);
-      data = await addToS3Bucket(file.fileName, file.fileContent);
-      if (data.data == null) {
-        return {
-          document: null,
-          error: data.error
-        };
-      }
+  //     console.log("s3PreStoreTxHash", s3PreHashedData.data?.dataTxHash);
+  //     data = await addToS3Bucket(file.fileName, file.fileContent);
+  //     if (data.data == null) {
+  //       return {
+  //         document: null,
+  //         error: data.error
+  //       };
+  //     }
 
-      console.log("data", data);
-      const isRefExist = await isDocumentReferenceExist( file,data);
-    if(isRefExist.isExist){
-      return {
-        document: null,
-        error: isRefExist.error
-      };
-    }
-      const uploadedFile = {
-        fileName: data?.data?.fileName,
-        fileContent:  data?.data?.s3Object,
-      }
-      console.log("uploadedFile", uploadedFile);
-      const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
-      dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
-      dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.dataTxHash;
-      dataStoredToDb.chainType = s3PostHashedData.data?.chainType;
-      dataStoredToDb.chainId = s3PostHashedData.data?.chainId;
+  //     console.log("data", data);
+  //     const isRefExist = await isDocumentReferenceExist( file,data);
+  //   if(isRefExist.isExist){
+  //     return {
+  //       document: null,
+  //       error: isRefExist.error
+  //     };
+  //   }
+  //     const uploadedFile = {
+  //       fileName: data?.data?.fileName,
+  //       fileContent:  data?.data?.s3Object,
+  //     }
+  //     console.log("uploadedFile", uploadedFile);
+  //     const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
+  //     dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
+  //     dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.dataTxHash;
+  //     dataStoredToDb.chainType = s3PostHashedData.data?.chainType;
+  //     dataStoredToDb.chainId = s3PostHashedData.data?.chainId;
 
-      console.log("s3PostStorHash", s3PostHashedData.data?.dataHash);
-      console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
+  //     console.log("s3PostStorHash", s3PostHashedData.data?.dataHash);
+  //     console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
 
-      datasource_id = BedRockDataSourceS3;
+  //     datasource_id = BedRockDataSourceS3;
       
-    ({ status, ingestionJobId } = await syncKb(kb_id, datasource_id));
+  //   ({ status, ingestionJobId } = await syncKb(kb_id, datasource_id));
 
-    isIngested = status === "COMPLETE";
-    console.log("syncKbResponse", status);
-    } 
+  //   isIngested = status === "COMPLETE";
+  //   console.log("syncKbResponse", status);
+  //   } 
     
-    else if (refType === RefType.WEBSITE) {
-      const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
-    if(isRefExist.isExist){
-      return {
-        document: null,
-        error: isRefExist.error
-      };
-    }
-      const dataSource = await getDataSourcesCount(tenant.id,refType);
-      console.log("dataSource", dataSource);
+  //   else if (refType === RefType.WEBSITE) {
+  //     const isRefExist = await isWebsiteReferenceExist( websiteName, websiteUrl);
+  //   if(isRefExist.isExist){
+  //     return {
+  //       document: null,
+  //       error: isRefExist.error
+  //     };
+  //   }
+  //     const dataSource = await getDataSourcesCount(tenant.id,refType);
+  //     console.log("dataSource", dataSource);
 
-      let dataSourceDetails;
-      if (dataSource == null) {
-        dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl, websiteName);
-      } else {
-        dataSourceDetails = await addWebsiteDataSource("UPDATE", kb_id, websiteUrl, websiteName, "add_url", dataSource);
-      }
-      if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
-        return {
-          document: null,
-          error: dataSourceDetails.error || dataSourceDetails.errorMessage
-        };
-      }
-      console.log("dataSourceDetails", dataSourceDetails);
-      datasource_id = JSON.parse(dataSourceDetails.body).datasource_id;
-      ingestionJobId = JSON.parse(dataSourceDetails.body).ingestionJobId;
-      console.log("datasource_id", datasource_id, ingestionJobId);
+  //     let dataSourceDetails;
+  //     if (dataSource == null) {
+  //       dataSourceDetails = await addWebsiteDataSource("ADD", kb_id, websiteUrl, websiteName);
+  //     } else {
+  //       dataSourceDetails = await addWebsiteDataSource("UPDATE", kb_id, websiteUrl, websiteName, "add_url", dataSource);
+  //     }
+  //     if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
+  //       return {
+  //         document: null,
+  //         error: dataSourceDetails.error || dataSourceDetails.errorMessage
+  //       };
+  //     }
+  //     console.log("dataSourceDetails", dataSourceDetails);
+  //     datasource_id = JSON.parse(dataSourceDetails.body).datasource_id;
+  //     ingestionJobId = JSON.parse(dataSourceDetails.body).ingestionJobId;
+  //     console.log("datasource_id", datasource_id, ingestionJobId);
 
-    }
+  //   }
 
-    console.log("datasource_id", datasource_id, ingestionJobId);
+  //   console.log("datasource_id", datasource_id, ingestionJobId);
 
   
-    const ref = await addReferenceToDb(
-      tenant.id,
-      file,
-      refType,
-      isIngested,
-      projectId,
-      websiteName,
-      websiteUrl,
-      depth,
-      datasource_id,
-      data?.data,
-      ingestionJobId,
-      dataStoredToDb
-    );
-    if(ref.error){
-      return {
-        document: null,
-        error: ref.error
-      };
-    }
+  //   const ref = await addReferenceToDb(
+  //     tenant.id,
+  //     file,
+  //     refType,
+  //     isIngested,
+  //     projectId,
+  //     websiteName,
+  //     websiteUrl,
+  //     depth,
+  //     datasource_id,
+  //     data?.data,
+  //     ingestionJobId,
+  //     dataStoredToDb
+  //   );
+  //   refs.push(ref.data);
+  //   if(ref.error){
+  //     console.log("Error in addReferenceToDb", ref.error);
+  //     // return {
+  //     //   document: null,
+  //     //   error: ref.error
+  //     // };
+  //     //refs.push(ref.error);
+  //   }
+  // }
+
+  const updatedProject = await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
+  console.log("updatedProject", updatedProject);
 
     return {
-      document: ref.data,
+      document: updatedProject,
       error: null
     };
   } catch (e: any) {
