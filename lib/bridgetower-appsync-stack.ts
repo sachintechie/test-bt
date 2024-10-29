@@ -81,17 +81,12 @@ interface AppSyncStackProps extends cdk.StackProps {
   apiName: string;
   needMigrate?: boolean;
   auroraStack?: AuroraStack;
+  sharedLayer?: lambda.LayerVersion;
 }
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AppSyncStackProps) {
     super(scope, id, props);
-
-    const sharedLayer = new lambda.LayerVersion(this, 'SharedUtilsLayer', {
-      code: lambda.Code.fromAsset('../resources/shared_lambdas'), // path to shared functions
-      compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
-      description: 'Layer with shared functions like getCategories',
-    });
 
     const lambdaMap = new Map<string, lambda.Function>();
 
@@ -115,7 +110,17 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
-      // if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
+      const lambdaFunction = lambdaResourceName === MIGRATION_LAMBDA_NAME
+      ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+      : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
+    
+    if (props.sharedLayer) {
+      lambdaFunction.addLayers(props.sharedLayer);
+    }
+
+    lambdaMap.set(lambdaResourceName, lambdaFunction); 
+
+    // if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
       //   lambdaMap.set(
       //     lambdaResourceName,
       //     newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
@@ -126,14 +131,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       //     newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
       //   );
       // }
-      const lambdaFunction = lambdaResourceName === MIGRATION_LAMBDA_NAME
-    ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-    : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
-
-      lambdaFunction.addLayers(sharedLayer);
-      lambdaMap.set(lambdaResourceName, lambdaFunction); 
-
-  }
+    }
 
     if (!isDevOrProd() && props.needMigrate) {
       // Create a custom resource to trigger the migration Lambda function
