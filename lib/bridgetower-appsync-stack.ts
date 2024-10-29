@@ -81,6 +81,7 @@ interface AppSyncStackProps extends cdk.StackProps {
   apiName: string;
   needMigrate?: boolean;
   auroraStack?: AuroraStack;
+  layers?: lambda.LayerVersion[]; 
 }
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
@@ -109,19 +110,30 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
-      if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
-        lambdaMap.set(
-          lambdaResourceName,
-          newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-        );
-      } else {
-        lambdaMap.set(
-          lambdaResourceName,
-          newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-        );
-      }
+      // if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
+      //   lambdaMap.set(
+      //     lambdaResourceName,
+      //     newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+      //   );
+      // } else {
+      //   lambdaMap.set(
+      //     lambdaResourceName,
+      //     newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+      //   );
+      // }
+      const lambdaFunction = lambdaResourceName === MIGRATION_LAMBDA_NAME
+    ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+    : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
+
+  lambdaMap.set(lambdaResourceName, lambdaFunction); 
     }
 
+    if (props.layers) {
+      for (const lambdaFunction of lambdaMap.values()) {
+        lambdaFunction.addLayers(...props.layers);
+      }
+    }
+    
     if (!isDevOrProd() && props.needMigrate) {
       // Create a custom resource to trigger the migration Lambda function
       const provider = new cr.Provider(this, env`MigrateProvider`, {
