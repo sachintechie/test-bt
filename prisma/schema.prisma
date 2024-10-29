@@ -356,6 +356,7 @@ model product {
   type                String
   sku                 String
   categoryid          String
+  tags                String[]
   category            productcategory             @relation(fields: [categoryid], references: [id])
   rarity              productrarity?              @default(NORMAL)
   price               Float?
@@ -596,6 +597,8 @@ model productinventory {
   price                Float
   quantity             Int
   ownershipnft         Boolean
+  fractional           Boolean
+  fraction             Float?
   smartcontractaddress String?
   tokenid              String?   @unique
   token                token?    @relation(fields: [tokenid], references: [id])

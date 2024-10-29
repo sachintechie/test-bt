@@ -19,7 +19,9 @@ import {
   CategoryFindBy,
   CollectionFindBy,
   OrderFindBy,
-  productOwnership
+  productOwnership,
+  productinventory,
+  productwithinventory
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1482,26 +1484,44 @@ export async function getProducts(offset: number, limit: number, value?: string,
       (whereClause as any)[field] = value;
     }
   }
+
   try {
     const totalCount = await prisma.product.count({
       where: whereClause
     });
 
-    const products = await prisma.product.findMany({
+    const products  = await prisma.product.findMany({
       where: whereClause,
       include: {
         category: true,
-        productattributes: true
+        productattributes: true,
+        inventories: true
       },
       skip: offset,
       take: limit
     });
 
-    return { products, totalCount };
+	
+
+    // Add totalquantity and status to each product
+    const productsWithInventoryData = products.map(product => {
+      const totalquantity = product.inventories.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
+      const inventorystatus = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
+      return {
+        ...product,
+        totalquantity,
+        inventorystatus
+      };
+    });
+
+
+
+    return { products: productsWithInventoryData, totalCount };
   } catch (err) {
     throw err;
   }
 }
+
 
 export async function GetProductAttributesByProductId(productId: string) {
   try {
@@ -1533,32 +1553,19 @@ export async function filterProducts(filters: productfilter[]) {
         }
       }
 
-      if (filter.key === "price" || filter.key === "rarity") {
-        if (filter.key === "price") {
-          const priceValue = typeof filter.value === "string" ? parseFloat(filter.value) : filter.value;
-          if (filter.operator === "eq") {
-            whereClause.AND.push({
-              price: priceValue
-            });
-          } else {
-            condition[filter.operator] = priceValue;
-            whereClause.AND.push({
-              price: condition
-            });
-          }
+      if (filter.key === "price" || filter.key === "rarity" || filter.key === "sku" || filter.key === "type") {
+        const filterValue = typeof filter.value === "string" ? filter.value.trim() : filter.value;
+        if (filter.operator === "eq") {
+          whereClause.AND.push({
+            [filter.key]: filterValue
+          });
         } else {
-          if (filter.operator === "eq") {
-            whereClause.AND.push({
-              [filter.key]: filter.value
-            });
-          } else {
-            condition[filter.operator] = filter.value;
-            whereClause.AND.push({
-              [filter.key]: condition
-            });
-          }
+          condition[filter.operator] = filterValue;
+          whereClause.AND.push({
+            [filter.key]: condition
+          });
         }
-      } else {
+        } else {
         const attrCondition: any = {};
 
         if (["gte", "gt", "lte", "lt"].includes(filter.operator)) {
@@ -1588,7 +1595,7 @@ export async function filterProducts(filters: productfilter[]) {
     return products;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while removing the product from wishlist.");
+      throw new Error(error.message || "An error occurred while filtering the products.");
     } else {
       throw new Error("An unexpected error occurred.");
     }
@@ -1686,6 +1693,29 @@ export async function createOrder(order: orders) {
   try {
     const prisma = await getPrismaClient();
 
+	// check if product exists
+	const product = await prisma.product.findFirst({
+		where: {
+			id: order.productid,
+			isdeleted: false
+		}
+	});
+
+	if (!product) {
+		throw new Error("Product not found");
+	}
+
+	// check product inventory
+	const inventory = await prisma.productinventory.findFirst({
+		where: {
+			productid: order.productid
+		}
+	});
+
+	if (!inventory || inventory.quantity < order.quantity) {
+		throw new Error("Product is out of stock");
+	}
+
     const newOrder = await prisma.orders.create({
       data: {
         sellerid: order.sellerid,
@@ -1698,9 +1728,23 @@ export async function createOrder(order: orders) {
       }
     });
 
+	//  update product inventory
+	await prisma.productinventory.update({
+		where: {
+			id: inventory.id
+		},
+		data: {
+			quantity: inventory.quantity - order.quantity
+		}
+	});
+
     return newOrder;
   } catch (err) {
-    throw err;
+    if (err instanceof Error) {
+      throw new Error(err.message || "An error occurred while creating the order.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
   }
 }
 

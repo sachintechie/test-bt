@@ -5,7 +5,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log("event", event, "context", context);
 
-    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId } = event.arguments?.input;
+    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId, fraction,fractional } = event.arguments?.input;
     const tenantContext = event.identity.resolverContext as tenant;
 
 
@@ -26,7 +26,9 @@ export const handler = async (event: any, context: any) => {
       quantity,
       ownershipNft,
       smartContractAddress,
-      tokenId
+      tokenId,
+	  fraction: fraction ? fraction : 0,
+	  fractional: fractional ? fractional : false
     });
 
     return {
@@ -57,7 +59,9 @@ async function createInventoryInDb( inventoryData: any) {
     quantity: inventoryData.quantity,
     ownershipnft: inventoryData.ownershipNft,
     smartcontractaddress: inventoryData.smartContractAddress,
-    tokenid: inventoryData.tokenId
+    tokenid: inventoryData.tokenId,
+	fraction : inventoryData.fraction,
+	fractional : inventoryData.fractional
   });
   return newInventory;
 }
