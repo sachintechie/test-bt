@@ -370,6 +370,8 @@ model product {
   productattributes   productattribute[]
   wishlists           productwishlist[]
   orders              orders[]
+  fractional          Boolean
+  fraction            Float?
   productreviews      productreview[]
   collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships   productownership[]
@@ -597,8 +599,6 @@ model productinventory {
   price                Float
   quantity             Int
   ownershipnft         Boolean
-  fractional           Boolean
-  fraction             Float?
   smartcontractaddress String?
   tokenid              String?   @unique
   token                token?    @relation(fields: [tokenid], references: [id])
