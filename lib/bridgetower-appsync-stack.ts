@@ -143,6 +143,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       //   );
       // }
     }
+    //check Mudassir
     const sharedLambdaNames = readFilesFromFolder(props.sharedLambdaFolder);
     for (const sharedLambdaName of sharedLambdaNames) {
       const sharedLambdaFunction = newNodeJsFunction(this, sharedLambdaName, `${props.sharedLambdaFolder}/${sharedLambdaName}.ts`, databaseInfo);
