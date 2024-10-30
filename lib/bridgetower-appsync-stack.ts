@@ -118,8 +118,8 @@
       };
 
       const combinedSchema = loadSchemas(
-        "../resources/appsync/shared_schema.graphql",
-        `../resources/appsync/${props.schemaFile}`
+        "resources/appsync/shared_schema.graphql",
+        `resources/appsync/${props.schemaFile}`
       );
 
       const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, combinedSchema, props.authorizerLambda);
