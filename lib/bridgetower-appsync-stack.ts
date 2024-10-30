@@ -74,6 +74,7 @@ const MUTATIONS = [
 
 interface AppSyncStackProps extends cdk.StackProps {
   lambdaFolder: string;
+  sharedLambdaFolder: string; 
   schemaFile: string;
   name: string;
   authorizerLambda: string;
@@ -142,7 +143,16 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       //   );
       // }
     }
+    const sharedLambdaNames = readFilesFromFolder(props.sharedLambdaFolder);
+    for (const sharedLambdaName of sharedLambdaNames) {
+      const sharedLambdaFunction = newNodeJsFunction(this, sharedLambdaName, `${props.sharedLambdaFolder}/${sharedLambdaName}.ts`, databaseInfo);
+      
+      if (sharedLayer) {
+        sharedLambdaFunction.addLayers(sharedLayer);
+      }
 
+      lambdaMap.set(sharedLambdaName, sharedLambdaFunction);
+    }
     if (!isDevOrProd() && props.needMigrate) {
       // Create a custom resource to trigger the migration Lambda function
       const provider = new cr.Provider(this, env`MigrateProvider`, {
