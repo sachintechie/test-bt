@@ -112,6 +112,7 @@ export interface orders {
   price: number;
   quantity: number;
   status?: orderstatus;
+  inventoryid?: string;
 }
 
 export interface productwishlist {

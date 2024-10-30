@@ -1180,7 +1180,7 @@ export async function createInventory(inventoryData: productinventory) {
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
         isdeleted: false,
-		availablepercentage: product.fractional ? inventoryData.quantity * 100 : null
+		availablepercentage: product.fractional ?  100 : null
       }
     });
 
@@ -1272,9 +1272,20 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
   try {
     const prisma = await getPrismaClient();
 
-    // Perform bulk creation using createMany
-    const createdInventories = await prisma.productinventory.createMany({
-      data: inventoryDataArray.map(inventoryData => ({
+    // Retrieve all product data for the productids
+    const productIds = inventoryDataArray.map(item => item.productid);
+    const products = await prisma.product.findMany({
+      where: { id: { in: productIds } },
+      select: { id: true, fractional: true }
+    });
+
+   
+    const productMap = new Map(products.map(product => [product.id, product.fractional]));
+
+    // Prepare the inventory data array with the fractional condition for availablepercentage
+    const inventoryDataWithFraction = inventoryDataArray.map(inventoryData => {
+      const isFractional = productMap.get(inventoryData.productid);
+      return {
         inventoryid: inventoryData.inventoryid,
         productid: inventoryData.productid,
         inventorycategory: inventoryData.inventorycategory,
@@ -1283,8 +1294,14 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
-        isdeleted: false
-      })),
+        isdeleted: false,
+        availablepercentage: isFractional ? 100 : null,
+      };
+    });
+
+    // Perform bulk creation with the modified inventory data
+    const createdInventories = await prisma.productinventory.createMany({
+      data: inventoryDataWithFraction,
       skipDuplicates: true
     });
 
@@ -1297,6 +1314,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
     }
   }
 }
+
 
 export async function createBulkProduct(productDataArray: product[]) {
   try {
@@ -1312,8 +1330,6 @@ export async function createBulkProduct(productDataArray: product[]) {
         price: productData.price,
         categoryid: productData.categoryid,
         tenantid: productData.tenantid,
-        purchasedpercentage: 0,
-        availablepercentage: 100
       })),
       skipDuplicates: true
     });

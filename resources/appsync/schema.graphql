@@ -57,6 +57,7 @@ input CreateOrderInput {
   price: Float!
   quantity: Int!
   status: OrderStatus
+  inventoryId: String!
 }
 
 type CreateOrderResponse {
@@ -415,6 +416,7 @@ type OrderData {
   price: Float
   quantity: Int
   status: OrderStatus
+  inventoryid: String
   createdat: AWSDateTime
   updatedat: AWSDateTime
 }

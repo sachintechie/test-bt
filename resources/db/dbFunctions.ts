@@ -1705,74 +1705,53 @@ export async function createOrder(order: orders) {
       throw new Error("Product not found");
     }
 
-
-    const inventories = await prisma.productinventory.findMany({
+    // Retrieve the specified inventory based on the provided inventory ID
+    const inventory = await prisma.productinventory.findFirst({
       where: {
+        id: order.inventoryid,
         productid: order.productid
-      },
-      orderBy: {
-        createdat: 'asc'
       }
     });
 
-    if (product.fractional) {
-		const totalAvailablePercentage = inventories.reduce((sum, inv) => sum + (inv.availablepercentage || 0), 0);
-		const requiredPercentage = order.quantity;
-
-      if (requiredPercentage > totalAvailablePercentage) {
-        throw new Error("Not enough stock available");
-      }
-
-      let remainingPercentage = requiredPercentage;
-
-      // Deduct from each inventory's available percentage
-      for (const inventory of inventories) {
-        if (remainingPercentage <= 0) break;
-
-        const deductPercentage = Math.min(inventory.availablepercentage || 0, remainingPercentage);
-
-        // Update inventory by reducing the available percentage
-        await prisma.productinventory.update({
-          where: {
-            id: inventory.id
-          },
-          data: {
-            availablepercentage: (inventory.availablepercentage || 0) - deductPercentage,
-            purchasedpercentage: (inventory.purchasedpercentage || 0) + deductPercentage
-          }
-        });
-
-        remainingPercentage -= deductPercentage;
-      }
-    } else {
-   
-      const totalQuantity = inventories.reduce((sum, inv) => sum + inv.quantity, 0);
-
-      if (totalQuantity < order.quantity) {
-        throw new Error("Product is out of stock");
-      }
-
-      let remainingQuantity = order.quantity;
-
-      // Deduct from each inventory entry until the order quantity is fulfilled
-      for (const inventory of inventories) {
-        if (remainingQuantity <= 0) break;
-
-        const deductQuantity = Math.min(inventory.quantity, remainingQuantity);
-        await prisma.productinventory.update({
-          where: {
-            id: inventory.id
-          },
-          data: {
-            quantity: inventory.quantity - deductQuantity
-          }
-        });
-
-        remainingQuantity -= deductQuantity;
-      }
+    if (!inventory) {
+      throw new Error("Inventory not found");
     }
 
-    
+    if (product.fractional) {
+      // Check if there is enough available percentage
+      const requiredPercentage = order.quantity; 
+      if ((inventory.availablepercentage || 0) < requiredPercentage) {
+        throw new Error("Not enough stock available in the selected inventory");
+      }
+
+      // Update the inventory by adjusting available and purchased percentages
+      await prisma.productinventory.update({
+        where: {
+          id: inventory.id
+        },
+        data: {
+          availablepercentage: (inventory.availablepercentage || 0) - requiredPercentage,
+          purchasedpercentage: (inventory.purchasedpercentage || 0) + requiredPercentage
+        }
+      });
+    } else {
+      
+      if (inventory.quantity < order.quantity) {
+        throw new Error("Not enough stock available in the selected inventory");
+      }
+
+   
+      await prisma.productinventory.update({
+        where: {
+          id: inventory.id
+        },
+        data: {
+          quantity: inventory.quantity - order.quantity
+        }
+      });
+    }
+
+
     const newOrder = await prisma.orders.create({
       data: {
         sellerid: order.sellerid,
@@ -1794,9 +1773,6 @@ export async function createOrder(order: orders) {
     }
   }
 }
-
-
-
 
 
 export async function getOrders(
