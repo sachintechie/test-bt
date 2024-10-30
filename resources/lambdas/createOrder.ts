@@ -2,10 +2,10 @@ import { createOrder } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 export const handler = async (event: any, context: any) => {
   try {
-    const { sellerId, productId, price, quantity, status } = event.arguments?.input;
+    const { sellerId, productId, price, quantity, status, inventoryId } = event.arguments?.input;
     const tenant = event.identity.resolverContext as tenant;
     const customerId = tenant?.customerid;
-    if (!sellerId || !customerId || !productId || !price || !quantity || !status) {
+    if (!sellerId || !customerId || !productId || !price || !quantity || !status || !inventoryId) {
       return {
         status: 400,
         data: null,
@@ -17,6 +17,7 @@ export const handler = async (event: any, context: any) => {
       sellerid: sellerId,
       buyerid: customerId,
       productid: productId,
+	  inventoryid: inventoryId,
       price,
       quantity,
       status

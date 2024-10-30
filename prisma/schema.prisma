@@ -582,15 +582,17 @@ model productcollectionproducts {
 }
 
 model productownership {
-  id         String   @id @default(uuid())
-  customerid String
-  customer   customer @relation(fields: [customerid], references: [id])
-  productid  String
-  product    product  @relation(fields: [productid], references: [id])
-  fractional Boolean
-  fraction   Float?
-  isdeleted  Boolean?
-} 
+  id          String           @id @default(uuid())
+  customerid  String
+  customer    customer         @relation(fields: [customerid], references: [id])
+  productid   String
+  product     product          @relation(fields: [productid], references: [id])
+  inventoryid String
+  inventory   productinventory @relation(fields: [inventoryid], references: [inventoryid])  // Establishing the relation here
+  fractional  Boolean
+  fraction    Float?
+  isdeleted   Boolean?
+}
 
 enum ProductStatus {
 ACTIVE
@@ -614,6 +616,7 @@ model productinventory {
   token                token?    @relation(fields: [tokenid], references: [id])
   createdat            DateTime? @default(now())
   updatedat            DateTime? @updatedAt
+  ownerships           productownership[]
 }
 
 model media {
