@@ -113,7 +113,7 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
         .join("\n");
     };
 
-    const combinedSchema = loadSchemas("shared_schema.graphql", `graphql/${props.schemaFile}`);
+    const combinedSchema = loadSchemas("../resources/appsync/shared_schema.graphql", `graphql/${props.schemaFile}`);
 
     const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, combinedSchema, props.authorizerLambda);
 
