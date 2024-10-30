@@ -9,9 +9,6 @@
   import { AuroraStack } from "./bridgetower-aurora-stack";
   import { newMigrateNodeJsFunction, newNodeJsFunction } from "./utils/lambda";
   import * as cr from "aws-cdk-lib/custom-resources";
-  import * as fs from "fs";
-  import * as path from "path";
-  import * as appsync from "@aws-cdk/aws-appsync-alpha";
   
   const EXCLUDED_LAMBDAS_IN_APPSYNC = [
     "apigatewayAuthorizer",
@@ -77,7 +74,6 @@
 
   interface AppSyncStackProps extends cdk.StackProps {
     lambdaFolder: string;
-    sharedLambdaFolder: string; 
     schemaFile: string;
     name: string;
     authorizerLambda: string;
@@ -108,58 +104,17 @@
       }
       console.log(databaseInfo);
 
-      const loadSchemas = (...schemaFiles: string[]): string => {
-        return schemaFiles
-          .map(file => {
-            const filePath = path.resolve(process.cwd(), file); // Generate absolute path
-            console.log("Reading schema file at path:", filePath);  // Log actual path being read
-      
-            try {
-              const content = fs.readFileSync(filePath, "utf8");
-              console.log(`Successfully read content from ${filePath}`);
-              return content; // Return the file content as intended
-            } catch (error) {
-              console.error(`Error reading file ${filePath}:`, error);
-              throw error; // Rethrow to identify any specific read error
-            }
-          })
-          .join("\n"); // Concatenate all schema contents
-      };
-
-      const combinedSchema = loadSchemas(
-        "resources/appsync/shared_schema.graphql",
-        `resources/appsync/${props.schemaFile}`
-      );
-
-      const api = new appsync.GraphqlApi(this, props.name, {
-        name: props.apiName,
-        schema: appsync.Schema.fromString(combinedSchema), // Pass schema content directly
-        authorizationConfig: {
-          defaultAuthorization: {
-            authorizationType: appsync.AuthorizationType.LAMBDA,
-            lambdaAuthorizerConfig: {
-              handler: lambdaMap.get(props.authorizerLambda),
-            },
-          },
-        },
-      });
-      
-
       const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
-
       for (const lambdaResourceName of lambdaResourceNames) {
-        const lambdaFunction = lambdaResourceName === MIGRATION_LAMBDA_NAME
-        ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-        : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
-      lambdaMap.set(lambdaResourceName, lambdaFunction);
-      }
-
-      const sharedLambdaResourceNames = readFilesFromFolder(props.sharedLambdaFolder);
-      for (const lambdaResourceName of sharedLambdaResourceNames) {
-        if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(lambdaResourceName)) {
+        if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
           lambdaMap.set(
             lambdaResourceName,
-            newNodeJsFunction(this, lambdaResourceName, `${props.sharedLambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+            newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+          );
+        } else {
+          lambdaMap.set(
+            lambdaResourceName,
+            newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
           );
         }
       }
@@ -179,7 +134,7 @@
       }
 
       // // Create a new AppSync GraphQL API
-      // const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, props.schemaFile, props.authorizerLambda);
+      const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, props.schemaFile, props.authorizerLambda);
 
 
       // Create resolvers for each lambda function

@@ -208,6 +208,20 @@ input GetAdminWalletBalanceInput {
   symbol: String
 }
 
+input GetCategoriesByTenantIdInput {
+  tenantId: String
+}
+
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  error: AWSJSON
+}
+
+input GetCategoryByIdInput {
+  categoryId: String
+}
+
 type GetInventoriesByProductIdIdResponse {
   status: Int
   data: [InventoryData]
@@ -640,7 +654,29 @@ type ProjectAndReferenceData{
   references: ListReferenceData
 }
 
+input GetProductsInput {
+  value: String
+  searchBy: ProductFindBy
+  status: ProductStatus
+  page: Int
+  perPage: Int
+}
 
+enum ProductFindBy {
+  PRODUCT
+  CATEGORY
+  TENANT
+}
+
+type GetProductsPaginationResponse {
+  status: Int
+  data: [ProductData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
 
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -682,6 +718,8 @@ type Query {
   FilterInventory(input: FilterInventoryInput): GetInventoryResponse
   ListProject(input: ListProjectInput): ListProject
   GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
+  GetProducts(input: GetProductsInput): GetProductsPaginationResponse
+  GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 schema {
