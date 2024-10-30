@@ -109,7 +109,11 @@
 
       const loadSchemas = (...schemaFiles: string[]): string => {
         return schemaFiles
-          .map(file => fs.readFileSync(path.join(__dirname, file), "utf8"))
+          .map(file => {
+            const filePath = path.join(process.cwd(), file);
+            console.log("Loading schema file:", filePath); 
+            return fs.readFileSync(filePath, "utf8");
+          })
           .join("\n");
       };
 
