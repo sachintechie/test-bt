@@ -82,20 +82,11 @@ interface AppSyncStackProps extends cdk.StackProps {
   apiName: string;
   needMigrate?: boolean;
   auroraStack?: AuroraStack;
-  useSharedLayer?: boolean;
 }
 
 export class BridgeTowerAppSyncStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: AppSyncStackProps) {
     super(scope, id, props);
-
-    const sharedLayer = props.useSharedLayer
-      ? new lambda.LayerVersion(this, 'SharedUtilsLayer', {
-          code: lambda.Code.fromAsset('resources/shared_lambdas'),
-          compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
-          description: 'Layer with shared functions like getCategories',
-        })
-      : undefined;
 
     const lambdaMap = new Map<string, lambda.Function>();
 
@@ -119,40 +110,27 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
-      const isAuthorizerLambda = lambdaResourceName === props.authorizerLambda;
-
-      const lambdaFunction = isAuthorizerLambda
-      ? newNodeJsFunction(this, props.authorizerLambda, `${props.lambdaFolder}/${props.authorizerLambda}.ts`, databaseInfo)
-      : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
-    
-      if (isAuthorizerLambda && sharedLayer) {
-        lambdaFunction.addLayers(sharedLayer);
+    if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
+        lambdaMap.set(
+          lambdaResourceName,
+          newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+        );
+      } else {
+        lambdaMap.set(
+          lambdaResourceName,
+          newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+        );
       }
-
-    lambdaMap.set(lambdaResourceName, lambdaFunction); 
-
-    // if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
-      //   lambdaMap.set(
-      //     lambdaResourceName,
-      //     newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-      //   );
-      // } else {
-      //   lambdaMap.set(
-      //     lambdaResourceName,
-      //     newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-      //   );
-      // }
     }
-    //check Mudassir
-    const sharedLambdaNames = readFilesFromFolder(props.sharedLambdaFolder);
-    for (const sharedLambdaName of sharedLambdaNames) {
-      const sharedLambdaFunction = newNodeJsFunction(this, sharedLambdaName, `${props.sharedLambdaFolder}/${sharedLambdaName}.ts`, databaseInfo);
-      
-      if (sharedLayer) {
-        sharedLambdaFunction.addLayers(sharedLayer);
-      }
 
-      lambdaMap.set(sharedLambdaName, sharedLambdaFunction);
+    const sharedLambdaResourceNames = readFilesFromFolder(props.sharedLambdaFolder);
+    for (const lambdaResourceName of sharedLambdaResourceNames) {
+      if (!EXCLUDED_LAMBDAS_IN_APPSYNC.includes(lambdaResourceName)) {
+        lambdaMap.set(
+          lambdaResourceName,
+          newNodeJsFunction(this, lambdaResourceName, `${props.sharedLambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+          );
+      }
     }
     if (!isDevOrProd() && props.needMigrate) {
       // Create a custom resource to trigger the migration Lambda function

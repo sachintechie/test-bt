@@ -3,7 +3,6 @@ import * as cdk from "aws-cdk-lib";
 import { env, envConfig, isDevOrProd, isOnDemandProd, isPlaygroundDev } from "../lib/utils/env";
 import { BridgeTowerAppSyncStack } from "../lib/bridgetower-appsync-stack";
 import { AuroraStack } from "../lib/bridgetower-aurora-stack";
-import { getDatabaseInfo, getDevOrProdDatabaseInfo } from "../lib/utils/aurora";
 
 const app = new cdk.App();
 
@@ -28,7 +27,6 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   apiName: "Api",
   needMigrate: false,
   auroraStack: auroraStack,
-  useSharedLayer: true,
 });
 
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
@@ -42,5 +40,4 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   apiName: "AdminApi",
   needMigrate: false,
   auroraStack: auroraStack,
-  useSharedLayer: true,
 });
