@@ -718,8 +718,6 @@ type Query {
   FilterInventory(input: FilterInventoryInput): GetInventoryResponse
   ListProject(input: ListProjectInput): ListProject
   GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
-  GetProducts(input: GetProductsInput): GetProductsPaginationResponse
-  GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 schema {
