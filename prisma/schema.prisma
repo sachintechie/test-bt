@@ -584,15 +584,16 @@ model productcollectionproducts {
 model productownership {
   id          String           @id @default(uuid())
   customerid  String
-  customer    customer         @relation(fields: [customerid], references: [id])
+  customer    customer?         @relation(fields: [customerid], references: [id]) // No extra space here
   productid   String
   product     product          @relation(fields: [productid], references: [id])
   inventoryid String
-  inventory   productinventory @relation(fields: [inventoryid], references: [inventoryid])  // Establishing the relation here
+  inventory   productinventory @relation(fields: [inventoryid], references: [inventoryid])  
   fractional  Boolean
   fraction    Float?
   isdeleted   Boolean?
 }
+
 
 enum ProductStatus {
 ACTIVE

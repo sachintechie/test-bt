@@ -76,7 +76,7 @@ export const handler = async (event: any, context: any) => {
 	 const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
 	 console.log("customer", customer);
 	 if(customer){
-	   await addOwnership(product.id, customer.id!);
+	   await addOwnership(product.id, customer.id!, product.fraction ? product.fraction : 0, product.fractional);
 	  }
 	}
 
