@@ -9,6 +9,8 @@ import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandPro
 import { AuroraStack } from "./bridgetower-aurora-stack";
 import { newMigrateNodeJsFunction, newNodeJsFunction } from "./utils/lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
+import * as fs from "fs";
+import * as path from "path";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "apigatewayAuthorizer",
@@ -95,12 +97,9 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       databaseInfo = getOnDemandProdDatabaseInfo(this);
     }
     else if (isPlaygroundDev()) {
-      // Fetch the database credentials from Secrets Manager
       databaseInfo = getPlaygrounDevDatabaseInfo(this);
     }
-
     else if (!isDevOrProd()) {
-      // Fetch the database credentials from Secrets Manager
       databaseInfo = getDatabaseInfo(this, props.auroraStack!);
     }
     else {
@@ -108,19 +107,23 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     }
     console.log(databaseInfo);
 
+    const loadSchemas = (...schemaFiles: string[]): string => {
+      return schemaFiles
+        .map(file => fs.readFileSync(path.resolve(process.cwd(), file), "utf8"))
+        .join("\n");
+    };
+
+    const combinedSchema = loadSchemas("graphql/shared_schema.graphql", `graphql/${props.schemaFile}`);
+
+    const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, combinedSchema, props.authorizerLambda);
+
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
+
     for (const lambdaResourceName of lambdaResourceNames) {
-    if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
-        lambdaMap.set(
-          lambdaResourceName,
-          newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-        );
-      } else {
-        lambdaMap.set(
-          lambdaResourceName,
-          newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-        );
-      }
+      const lambdaFunction = lambdaResourceName === MIGRATION_LAMBDA_NAME
+      ? newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
+      : newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo);
+    lambdaMap.set(lambdaResourceName, lambdaFunction);
     }
 
     const sharedLambdaResourceNames = readFilesFromFolder(props.sharedLambdaFolder);
@@ -129,9 +132,10 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
         lambdaMap.set(
           lambdaResourceName,
           newNodeJsFunction(this, lambdaResourceName, `${props.sharedLambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
-          );
+        );
       }
     }
+
     if (!isDevOrProd() && props.needMigrate) {
       // Create a custom resource to trigger the migration Lambda function
       const provider = new cr.Provider(this, env`MigrateProvider`, {
@@ -146,8 +150,8 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
       const stripeWebhookGateway = newStripeWebhookApiGateway(this, lambdaMap.get(POST_STRIPE_PAYMENT_INTENT_WEBHOOK)!);
     }
 
-    // Create a new AppSync GraphQL API
-    const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, props.schemaFile, props.authorizerLambda);
+    // // Create a new AppSync GraphQL API
+    // const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, props.schemaFile, props.authorizerLambda);
 
 
     // Create resolvers for each lambda function
