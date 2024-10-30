@@ -1,5 +1,3 @@
-#import "./shared_schema.graphql"
-
 type AddRefToKnowledgeBase {
   status: Int
   data: AddRefToKnowledgeBaseData

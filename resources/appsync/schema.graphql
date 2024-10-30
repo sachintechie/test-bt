@@ -1,5 +1,3 @@
-#import "./shared_schema.graphql"
-
 input AddProductToCollectionInput {
   productId: String
   collectionId: String
