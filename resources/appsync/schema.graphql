@@ -799,6 +799,13 @@ type GetStripePaymentIntentClientSecretResponse {
   error: AWSJSON
 }
 
+type GetPaymentTransactionDetailsResponse {
+  status: Int
+  data: AWSJSON
+  error: AWSJSON
+}
+
+
 type WishlistData {
   customerid: String!
   productid: String!
@@ -862,6 +869,11 @@ input GetStripeCheckoutLinkInput {
 input GetStripePaymentIntentClientSecretInput {
   cart: AWSJSON
   address: String!
+}
+
+
+input GetPaymentTransactionDetailsInput {
+  toAddress: String!
 }
 
 enum ReviewsFindBy {
@@ -1001,6 +1013,7 @@ type Query {
   GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
   GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
   GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
+  GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
 }
 
 schema {
