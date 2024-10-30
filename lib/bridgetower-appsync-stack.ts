@@ -11,7 +11,8 @@
   import * as cr from "aws-cdk-lib/custom-resources";
   import * as fs from "fs";
   import * as path from "path";
-
+  import * as appsync from "@aws-cdk/aws-appsync-alpha";
+  
   const EXCLUDED_LAMBDAS_IN_APPSYNC = [
     "apigatewayAuthorizer",
     "adminAppsyncAuthorizer",
@@ -130,7 +131,19 @@
         `resources/appsync/${props.schemaFile}`
       );
 
-      const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, combinedSchema, props.authorizerLambda);
+      const api = new appsync.GraphqlApi(this, props.name, {
+        name: props.apiName,
+        schema: appsync.Schema.fromString(combinedSchema), // Pass schema content directly
+        authorizationConfig: {
+          defaultAuthorization: {
+            authorizationType: appsync.AuthorizationType.LAMBDA,
+            lambdaAuthorizerConfig: {
+              handler: lambdaMap.get(props.authorizerLambda),
+            },
+          },
+        },
+      });
+      
 
       const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
 
