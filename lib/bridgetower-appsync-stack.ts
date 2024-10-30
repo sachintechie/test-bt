@@ -110,11 +110,19 @@
       const loadSchemas = (...schemaFiles: string[]): string => {
         return schemaFiles
           .map(file => {
-            const filePath = path.join(process.cwd(), file);
-            console.log("Loading schema file:", filePath); 
-            return fs.readFileSync(filePath, "utf8");
+            const filePath = path.resolve(process.cwd(), file); // Generate absolute path
+            console.log("Reading schema file at path:", filePath);  // Log actual path being read
+      
+            try {
+              const content = fs.readFileSync(filePath, "utf8");
+              console.log(`Successfully read content from ${filePath}`);
+              return content; // Return the file content as intended
+            } catch (error) {
+              console.error(`Error reading file ${filePath}:`, error);
+              throw error; // Rethrow to identify any specific read error
+            }
           })
-          .join("\n");
+          .join("\n"); // Concatenate all schema contents
       };
 
       const combinedSchema = loadSchemas(
