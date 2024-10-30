@@ -70,15 +70,15 @@ export const handler = async (event: any, context: any) => {
       }
     }
 
-	if (product) {
-	 const adminUser = await getAdminUserById(tenant.adminuserid!);
-	 console.log("adminUser", adminUser);
-	 const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
-	 console.log("customer", customer);
-	 if(customer){
-	   await addOwnership(product.id, customer.id!, product.fraction ? product.fraction : 0, product.fractional);
-	  }
-	}
+	// if (product) {
+	//  const adminUser = await getAdminUserById(tenant.adminuserid!);
+	//  console.log("adminUser", adminUser);
+	//  const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
+	//  console.log("customer", customer);
+	//  if(customer){
+	//    await addOwnership(product.id, customer.id!, product.fraction ? product.fraction : 0, product.fractional);
+	//   }
+	// }
 
     return {
       status: 200,
