@@ -19,7 +19,6 @@ if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   env: envConfig,
   lambdaFolder: "../../resources/lambdas",
-  sharedLambdaFolder: "../../resources/shared_lambdas",
   schemaFile: "schema.graphql",
   name: "GraphQLAPI",
   authorizerLambda: "appsyncAuthorizer",
@@ -32,7 +31,6 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   env: envConfig,
   lambdaFolder: "../../resources/admin_lambdas",
-  sharedLambdaFolder: "../../resources/shared_lambdas",
   schemaFile: "admin_schema.graphql",
   name: "AdminGraphQLAPI",
   authorizerLambda: "adminAppsyncAuthorizer",

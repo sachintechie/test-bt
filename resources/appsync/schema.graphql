@@ -149,6 +149,15 @@ type FilterProductResponse {
   error: AWSJSON
 }
 
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
 
 type GetCubistOrg {
   wallets: Int
@@ -450,13 +459,17 @@ type ProductData {
   status: ProductStatus
   tenantid: String
   isdeleted: Boolean
-  totalquantity: Int
-  inventorystatus: String
-  tags: [String]
+  purchasedpercentage: Float
+  availablepercentage: Float
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
+  tags: [String]
+  totalquantity: Int
+  inventorystatus: String
+  fractional: Boolean
+  fraction:  Float
 }
 
 type InventoryData {
@@ -881,6 +894,18 @@ input GetReviewsInput {
   perPage: Int
 }
 
+input GetCategoriesInput {
+  value: String
+  searchBy: CategoryFindBy
+  page: Int
+  perPage: Int
+}
+
+enum CategoryFindBy {
+  CATEGORY
+  TENANT
+}
+
 enum CollectionFindBy {
   COLLECTION
   CUSTOMER
@@ -936,36 +961,6 @@ type GetOrdersData {
   updatedat: AWSDateTime
 }
 
-input GetCategoriesInput {
-  value: String
-  searchBy: CategoryFindBy
-  page: Int
-  perPage: Int
-}
-
-enum CategoryFindBy {
-  CATEGORY
-  TENANT
-}
-
-type GetCategoriesResponse {
-  status: Int
-  data: [CategoryData]
-  page: Int
-  perPage: Int
-  totalRecordsCount: Int
-  totalPageCount: Int
-  error: AWSJSON
-}
-
-type CategoryData {
-  id: String!
-  name: String!
-  tenantid: String!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1011,6 +1006,7 @@ type Query {
   TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
   UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
   GetMetadata(input: GetMetadataInput): GetMetadataResponse
+  GetCategories(input: GetCategoriesInput): GetCategoriesResponse
   GetProducts(input: GetProductsInput): GetProductsPaginationResponse
   GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   FilterProducts(input: FilterProductInput): FilterProductResponse
@@ -1024,9 +1020,6 @@ type Query {
   GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
   GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
   GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
-}
-extend type Query {
-  GetCategories(input: GetCategoriesInput): GetCategoriesResponse
 }
 
 schema {
