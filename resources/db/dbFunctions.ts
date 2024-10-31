@@ -1029,8 +1029,6 @@ export async function getAllTransactions() {
   }
 }
 
-
-
 export async function getAllCustomerWalletForBonus(tenantId: string) {
   try {
     const prisma = await getPrismaClient();
@@ -1409,16 +1407,14 @@ export async function getStakeAccountPubkeys(walletAddress: string, tenantId: st
 }
 
 export async function getCategories(offset: number, itemsPerPage: number, value?: string, searchBy?: CategoryFindBy) {
-
   const prisma = await getPrismaClient();
 
   const searchByMapping: Record<CategoryFindBy, string | null> = {
-    [CategoryFindBy.CATEGORY]: 'categoryid',
-    [CategoryFindBy.TENANT]: 'tenantid',
+    [CategoryFindBy.CATEGORY]: "categoryid",
+    [CategoryFindBy.TENANT]: "tenantid"
   };
 
   let whereClause: { id?: string; tenantid?: string } = {};
-
 
   if (value && searchBy && searchByMapping[searchBy]) {
     const field = searchByMapping[searchBy];
@@ -1463,13 +1459,13 @@ export async function getProducts(offset: number, limit: number, value?: string,
 
   const statusMapping: Record<string, string> = {
     ACTIVE: ProductStatus.ACTIVE,
-    INACTIVE: ProductStatus.INACTIVE,
+    INACTIVE: ProductStatus.INACTIVE
   };
 
   const searchByMapping: Record<ProductFindBy, string | null> = {
-    [ProductFindBy.PRODUCT]: 'id',
-    [ProductFindBy.CATEGORY]: 'categoryid',
-    [ProductFindBy.TENANT]: 'tenantid',
+    [ProductFindBy.PRODUCT]: "id",
+    [ProductFindBy.CATEGORY]: "categoryid",
+    [ProductFindBy.TENANT]: "tenantid"
   };
 
   let whereClause: { isdeleted: boolean; status?: string; id?: string; categoryid?: string; tenantid?: string } = { isdeleted: false };
@@ -1490,7 +1486,7 @@ export async function getProducts(offset: number, limit: number, value?: string,
       where: whereClause
     });
 
-    const products  = await prisma.product.findMany({
+    const products = await prisma.product.findMany({
       where: whereClause,
       include: {
         category: true,
@@ -1502,9 +1498,9 @@ export async function getProducts(offset: number, limit: number, value?: string,
     });
 
     // Add totalquantity and status to each product
-    const productsWithInventoryData = products.map((product: { inventories: any[]; }) => {  
+    const productsWithInventoryData = products.map((product: { inventories: any[] }) => {
       const totalquantity = product.inventories.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
-      const inventorystatus = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
+      const inventorystatus = totalquantity > 0 ? "In Stock" : "Out of Stock";
       return {
         ...product,
         totalquantity,
@@ -1517,7 +1513,6 @@ export async function getProducts(offset: number, limit: number, value?: string,
     throw err;
   }
 }
-
 
 export async function GetProductAttributesByProductId(productId: string) {
   try {
@@ -1535,7 +1530,7 @@ export async function filterProducts(filters: productfilter[]) {
   const prisma = await getPrismaClient();
   try {
     const whereClause: any = {
-      AND: [ { isdeleted: false }]
+      AND: [{ isdeleted: false }]
     };
 
     filters.forEach((filter) => {
@@ -1561,7 +1556,7 @@ export async function filterProducts(filters: productfilter[]) {
             [filter.key]: condition
           });
         }
-        } else {
+      } else {
         const attrCondition: any = {};
 
         if (["gte", "gt", "lte", "lt"].includes(filter.operator)) {
@@ -1689,50 +1684,70 @@ export async function createOrder(order: orders) {
   try {
     const prisma = await getPrismaClient();
 
-    const newOrder = await prisma.$transaction(async (prisma: { productinventory: { findFirst: (arg0: { where: { id: string; }; }) => any; update: (arg0: { where: { id: any; }; data: { quantity: number; }; }) => any; }; orders: { create: (arg0: { data: { sellerid: string; buyerid: string; totalprice: number; status: orderstatus | undefined; createdat: string; updatedat: string; }; }) => any; }; orderitem: { create: (arg0: { data: { orderid: any; inventoryid: string; quantity: number; price: number; }; }) => any; }; }) => {
-      for (const item of order.inventoryItems) {
-        const inventory = await prisma.productinventory.findFirst({
-          where: { id: item.inventoryId }
-        });
+    const newOrder = await prisma.$transaction(
+      async (prisma: {
+        productinventory: {
+          findFirst: (arg0: { where: { id: string } }) => any;
+          update: (arg0: { where: { id: any }; data: { quantity: number } }) => any;
+        };
+        orders: {
+          create: (arg0: {
+            data: {
+              sellerid: string;
+              buyerid: string;
+              totalprice: number;
+              status: orderstatus | undefined;
+              createdat: string;
+              updatedat: string;
+            };
+          }) => any;
+        };
+        orderitem: { create: (arg0: { data: { orderid: any; inventoryid: string; quantity: number; price: number } }) => any };
+      }) => {
+        for (const item of order.inventoryItems) {
+          const inventory = await prisma.productinventory.findFirst({
+            where: { id: item.inventoryId }
+          });
 
-        if (!inventory) {
-          throw new Error(`Inventory item with ID ${item.inventoryId} not found`);
+          if (!inventory) {
+            throw new Error(`Inventory item with ID ${item.inventoryId} not found`);
+          }
+
+          if (inventory.quantity < item.quantity) {
+            throw new Error(`Not enough stock available in inventory ${item.inventoryId}`);
+          }
+
+          await prisma.productinventory.update({
+            where: { id: inventory.id },
+            data: { quantity: inventory.quantity - item.quantity }
+          });
         }
 
-        if (inventory.quantity < item.quantity) {
-          throw new Error(`Not enough stock available in inventory ${item.inventoryId}`);
-        }
-
-        await prisma.productinventory.update({
-          where: { id: inventory.id },
-          data: { quantity: inventory.quantity - item.quantity }
-        });
-      }
-
-      const createdOrder = await prisma.orders.create({
-        data: {
-          sellerid: order.sellerid,
-          buyerid: order.buyerid,
-          totalprice: order.totalprice,
-          status: order.status,
-          createdat: new Date().toISOString(),
-          updatedat: new Date().toISOString()
-        }
-      });
-
-      for (const item of order.inventoryItems) {
-        await prisma.orderitem.create({
+        const createdOrder = await prisma.orders.create({
           data: {
-            orderid: createdOrder.id,
-            inventoryid: item.inventoryId,
-            quantity: item.quantity,
-            price: item.price
+            sellerid: order.sellerid,
+            buyerid: order.buyerid,
+            totalprice: order.totalprice,
+            status: order.status,
+            createdat: new Date().toISOString(),
+            updatedat: new Date().toISOString()
           }
         });
-      }
 
-      return createdOrder;
-    });
+        for (const item of order.inventoryItems) {
+          await prisma.orderitem.create({
+            data: {
+              orderid: createdOrder.id,
+              inventoryid: item.inventoryId,
+              quantity: item.quantity,
+              price: item.price
+            }
+          });
+        }
+
+        return createdOrder;
+      }
+    );
 
     return newOrder;
   } catch (err) {
@@ -1744,13 +1759,7 @@ export async function createOrder(order: orders) {
   }
 }
 
-export async function getOrders(
-  offset: number,
-  itemsPerPage: number,
-  value?: string,
-  searchBy?: OrderFindBy,
-  status?: string
-) {
+export async function getOrders(offset: number, itemsPerPage: number, value?: string, searchBy?: OrderFindBy, status?: string) {
   const prisma = await getPrismaClient();
 
   const statusMapping: Record<string, string> = {
@@ -1759,15 +1768,15 @@ export async function getOrders(
     SHIPPED: orderstatus.SHIPPED,
     DELIVERED: orderstatus.DELIVERED,
     CANCELLED: orderstatus.CANCELLED,
-    DISPUTED: orderstatus.DISPUTED,
+    DISPUTED: orderstatus.DISPUTED
   };
 
   const searchByMapping: Record<OrderFindBy, string | null> = {
-    [OrderFindBy.ORDER]: 'id',
-    [OrderFindBy.PRODUCT]: 'productid',
-    [OrderFindBy.BUYER]: 'buyerid',
-    [OrderFindBy.SELLER]: 'sellerid',
-    [OrderFindBy.TENANT]: null,
+    [OrderFindBy.ORDER]: "id",
+    [OrderFindBy.PRODUCT]: "productid",
+    [OrderFindBy.BUYER]: "buyerid",
+    [OrderFindBy.SELLER]: "sellerid",
+    [OrderFindBy.TENANT]: null
   };
 
   let whereClause: {
@@ -1776,7 +1785,7 @@ export async function getOrders(
     sellerid?: string;
     buyerid?: string;
     productid?: string;
-    tenantid?: string
+    tenantid?: string;
   } = {};
 
   if (status && statusMapping[status]) {
@@ -1790,15 +1799,13 @@ export async function getOrders(
     }
   }
 
-  const tenantFilter = searchBy === OrderFindBy.TENANT && value
-    ? { product: { tenantid: value } }
-    : {};
+  const tenantFilter = searchBy === OrderFindBy.TENANT && value ? { product: { tenantid: value } } : {};
 
   try {
     const orders = await prisma.orders.findMany({
       where: {
         ...whereClause,
-        ...tenantFilter,
+        ...tenantFilter
       },
       include: {
         buyer: {
@@ -1807,8 +1814,8 @@ export async function getOrders(
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true,
-          },
+            usertype: true
+          }
         },
         seller: {
           select: {
@@ -1816,20 +1823,19 @@ export async function getOrders(
             emailid: true,
             isactive: true,
             iss: true,
-            usertype: true,
-          },
+            usertype: true
+          }
         },
-        product: true,
       },
       skip: offset,
-      take: itemsPerPage,
+      take: itemsPerPage
     });
 
     const totalCount = await prisma.orders.count({
       where: {
         ...whereClause,
-        ...tenantFilter,
-      },
+        ...tenantFilter
+      }
     });
 
     return { orders, totalCount };
@@ -1853,26 +1859,34 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
       select: {
         sellerid: true,
         buyerid: true,
-        productid: true,
         status: true,
-        updatedat: true
+        updatedat: true,
+		orderItems: true
       }
     });
 
-    //    if (status === orderstatus.DELIVERED) {
-    //       await transferProductOwnership({
-    //         sellerid: updatedOrder.sellerid!,
-    //         buyerid: updatedOrder.buyerid!,
-    //         productid: updatedOrder.productid!
-    //       });
-    //     }
+
+    updatedOrder.orderItems.forEach(async (item) => {
+	    if (status === orderstatus.DELIVERED) {
+          await transferProductOwnership({
+            sellerid: updatedOrder.sellerid!,
+            buyerid: updatedOrder.buyerid!,
+			inventoryid: item.inventoryid
+          });
+		} else if (status === orderstatus.CANCELLED) {
+		  await prisma.productinventory.update({
+            where: { id: item.inventoryid },
+            data: { quantity: { increment: item.quantity } }
+          });
+		}
+    })
+   
 
     return {
       message: "Order status updated successfully",
       order: {
         sellerid: updatedOrder.sellerid,
         buyerid: updatedOrder.buyerid,
-        productid: updatedOrder.productid,
         status: updatedOrder.status,
         updatedat: updatedOrder.updatedat
       }
@@ -1937,8 +1951,8 @@ export async function getReviews(offset: number, limit: number, value?: string, 
   let whereClause: { productid?: string; customerid?: string } = {};
 
   const searchByMapping: Record<ReviewsFindBy, string | null> = {
-    [ReviewsFindBy.PRODUCT]: 'productid',
-    [ReviewsFindBy.CUSTOMER]: 'customerid',
+    [ReviewsFindBy.PRODUCT]: "productid",
+    [ReviewsFindBy.CUSTOMER]: "customerid"
   };
 
   if (value && searchBy && searchByMapping[searchBy]) {
@@ -2128,8 +2142,8 @@ export async function getCollectionById(offset: number, itemsPerPage: number, va
   let whereClause: { id?: string; customerid?: string } = {};
 
   const searchByMapping: Record<CollectionFindBy, string | null> = {
-    [CollectionFindBy.COLLECTION]: 'id',
-    [CollectionFindBy.CUSTOMER]: 'customerid',
+    [CollectionFindBy.COLLECTION]: "id",
+    [CollectionFindBy.CUSTOMER]: "customerid"
   };
 
   if (value && searchBy && searchByMapping[searchBy]) {
@@ -2166,7 +2180,7 @@ export async function searchProducts(searchKeyword: string) {
     const products = await prisma.product.findMany({
       where: {
         AND: [
-          { isdeleted: false },  
+          { isdeleted: false },
           {
             OR: [
               { name: { contains: searchKeyword.trim(), mode: "insensitive" } },
@@ -2188,10 +2202,7 @@ export async function searchProducts(searchKeyword: string) {
   }
 }
 
-
-export async function transferProductOwnership(
-  ownershipData: productOwnership,
-) {
+export async function transferProductOwnership(ownershipData: productOwnership) {
   const prisma = await getPrismaClient();
 
   const { inventoryid, buyerid, sellerid } = ownershipData;
@@ -2212,17 +2223,19 @@ export async function transferProductOwnership(
   }
 
   try {
-          await prisma.productownership.create({
-            data: {
-              customerid: buyerid,
-              inventoryid
-            }});
-          
-          await prisma.productownership.update({
-            where: { id: sellerOwnership.id },
-            data: {
-              isdeleted: true
-            }});  
+    await prisma.productownership.create({
+      data: {
+        customerid: buyerid,
+        inventoryid
+      }
+    });
+
+    await prisma.productownership.update({
+      where: { id: sellerOwnership.id },
+      data: {
+        isdeleted: true
+      }
+    });
 
     return {
       message: "Ownership transferred successfully",
