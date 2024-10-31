@@ -77,8 +77,6 @@ export interface product {
   type: string;           
   sku: string;
   tags?: string[];
-  fraction : number;
-  fractional : boolean;
 }
 
 export interface productcategory {
@@ -149,8 +147,6 @@ export interface productOwnership {
   buyerid?: string;
   sellerid?: string;
   productid?: string;
-  fractional?: boolean;
-  fraction?: number;
   isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;

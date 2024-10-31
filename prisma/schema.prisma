@@ -370,8 +370,6 @@ model product {
   productattributes   productattribute[]
   wishlists           productwishlist[]
   orders              orders[]
-  fractional          Boolean
-  fraction            Float?
   productreviews      productreview[]
   collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships   productownership[]
@@ -589,8 +587,6 @@ model productownership {
   product     product          @relation(fields: [productid], references: [id])
   inventoryid String
   inventory   productinventory @relation(fields: [inventoryid], references: [inventoryid])  
-  fractional  Boolean
-  fraction    Float?
   isdeleted   Boolean?
 }
 
@@ -607,8 +603,6 @@ model productinventory {
   inventoryid          String    @unique
   isdeleted            Boolean?
   inventorycategory    String
-  purchasedpercentage  Float?
-  availablepercentage  Float?
   price                Float
   quantity             Int
   ownershipnft         Boolean

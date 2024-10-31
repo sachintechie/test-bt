@@ -22,8 +22,6 @@ interface CreateProductInput {
   metadata?: any;
   tokenId?: number; // for ERC1155
   tags?: string[];
-  fraction : number;
-  fractional : boolean;
 }
 
 export const handler = async (event: any, context: any) => {
@@ -56,9 +54,7 @@ export const handler = async (event: any, context: any) => {
       rarity: input.rarity,
       price: input.price,
       tenantid:tenant.id,
-	  tags:input.tags,
-	  fraction: input.fraction ?  input.fraction : 0,
-	  fractional: input.fractional ?  input.fractional : false
+  	  tags:input.tags,
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -76,7 +72,7 @@ export const handler = async (event: any, context: any) => {
 	//  const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
 	//  console.log("customer", customer);
 	//  if(customer){
-	//    await addOwnership(product.id, customer.id!, product.fraction ? product.fraction : 0, product.fractional);
+	//    await addOwnership(product.id, customer.id!);
 	//   }
 	// }
 
@@ -109,11 +105,7 @@ async function createProductInDb(input: {
   price: number;
   tenantid:string;
   tags?: string[],
-  fraction : number,
-  fractional : boolean
 }) {
   const newProduct = await createProduct(input);
-
-  // Save to DB
   return newProduct;
 }

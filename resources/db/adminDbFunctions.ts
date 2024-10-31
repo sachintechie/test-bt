@@ -567,9 +567,7 @@ export async function createProduct(product: product) {
         tenantid: product.tenantid,
         rarity: product.rarity,
         price: product.price,
-		tags: product.tags,
-		fractional: product.fractional,
-		fraction: product.fraction
+    		tags: product.tags,
       }
     });
     return newProduct;
@@ -1157,8 +1155,6 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 export async function createInventory(inventoryData: productinventory) {
   try {
     const prisma = await getPrismaClient();
-
-	// check if product is fractional
 	const product = await prisma.product.findUnique({
 		where: {
 			id: inventoryData.productid
@@ -1179,8 +1175,7 @@ export async function createInventory(inventoryData: productinventory) {
         ownershipnft: inventoryData.ownershipnft ?? false,
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
-        isdeleted: false,
-		availablepercentage: product.fractional ?  100 : null
+        isdeleted: false
       }
     });
 
@@ -1276,15 +1271,10 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
     const productIds = inventoryDataArray.map(item => item.productid);
     const products = await prisma.product.findMany({
       where: { id: { in: productIds } },
-      select: { id: true, fractional: true }
+      select: { id: true}
     });
 
-   
-    const productMap = new Map(products.map(product => [product.id, product.fractional]));
-
-    // Prepare the inventory data array with the fractional condition for availablepercentage
-    const inventoryDataWithFraction = inventoryDataArray.map(inventoryData => {
-      const isFractional = productMap.get(inventoryData.productid);
+    const inventoryData = inventoryDataArray.map(inventoryData => {
       return {
         inventoryid: inventoryData.inventoryid,
         productid: inventoryData.productid,
@@ -1295,13 +1285,12 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
         isdeleted: false,
-        availablepercentage: isFractional ? 100 : null,
       };
     });
 
     // Perform bulk creation with the modified inventory data
     const createdInventories = await prisma.productinventory.createMany({
-      data: inventoryDataWithFraction,
+      data: inventoryData,
       skipDuplicates: true
     });
 
@@ -1501,15 +1490,13 @@ export async function deleteMediaEntries(mediaUrls: string[], productId: string)
   }
 }
 
-export async function addOwnership(productId: string, customerId: string, fraction: number, fractional: boolean) {
+export async function addOwnership(productId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
     await prisma.productownership.create({
       data: {
         productid: productId,
         customerid: customerId,
-        fractional: fractional,
-        fraction: fraction,
       }
     });
   } catch (error: any) {

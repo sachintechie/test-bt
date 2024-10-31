@@ -1716,31 +1716,9 @@ export async function createOrder(order: orders) {
     if (!inventory) {
       throw new Error("Inventory not found");
     }
-
-    if (product.fractional) {
-      // Check if there is enough available percentage
-      const requiredPercentage = order.quantity; 
-      if ((inventory.availablepercentage || 0) < requiredPercentage) {
-        throw new Error("Not enough stock available in the selected inventory");
-      }
-
-      // Update the inventory by adjusting available and purchased percentages
-      await prisma.productinventory.update({
-        where: {
-          id: inventory.id
-        },
-        data: {
-          availablepercentage: (inventory.availablepercentage || 0) - requiredPercentage,
-          purchasedpercentage: (inventory.purchasedpercentage || 0) + requiredPercentage
-        }
-      });
-    } else {
-      
       if (inventory.quantity < order.quantity) {
         throw new Error("Not enough stock available in the selected inventory");
       }
-
-   
       await prisma.productinventory.update({
         where: {
           id: inventory.id
@@ -1749,9 +1727,6 @@ export async function createOrder(order: orders) {
           quantity: inventory.quantity - order.quantity
         }
       });
-    }
-
-
     const newOrder = await prisma.orders.create({
       data: {
         sellerid: order.sellerid,
@@ -2189,119 +2164,6 @@ export async function getCollectionById(offset: number, itemsPerPage: number, va
     throw err;
   }
 }
-
-// export async function transferProductOwnership(
-//   ownershipData: productOwnership,
-// ) {
-//   const prisma = await getPrismaClient();
-
-//   const { productid, buyerid, sellerid } = ownershipData;
-
-//   // Ensure productid and buyerid are not undefined
-//   if (!productid || !buyerid || !sellerid) {
-//     throw new Error("Product ID, Buyer ID, or Seller ID is missing.");
-//   }
-
-//   const product = await prisma.product.findUnique({
-// 	where: {
-// 	  id: productid
-// 	}
-//   });
-
-
-//   // Check if the product is owned by the seller
-//   const sellerOwnership = await prisma.productownership.findFirst({
-//     where: {
-//       productid: productid,
-//       customerid: sellerid,
-//     //   fractional: product?.fractional,
-// 	//   fraction: product?.fractional ? product?.fraction : 100
-//     }
-//   });
-
-//   if (!sellerOwnership) {
-//     throw new Error("Seller does not own this product.");
-//   }
-
-//   try {
-//     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-//       if (product?.fractional && product?.fraction < 1) {
-//         // Fractional ownership transfer
-//         const remainingFraction = sellerOwnership.fraction! - fraction;
-
-//         if (remainingFraction > 0) {
-//           // Update seller's ownership fraction
-//           await tx.productownership.update({
-//             where: { id: sellerOwnership.id },
-//             data: { fraction: remainingFraction }
-//           });
-
-//           // Create new ownership record for buyer
-//           await tx.productownership.create({
-//             data: {
-//               customerid: buyerid,
-//               productid: productid,
-//               fractional: true,
-//               fraction: fraction
-//             }
-//           });
-//         } else if (remainingFraction === 0) {
-//           // If transferring full ownership, remove seller's record
-//           await tx.productownership.update({
-//             where: { id: sellerOwnership.id },
-//             data: {
-//               isdeleted: true
-//             }
-//           });
-
-//           // Create new ownership record for buyer
-//           await tx.productownership.create({
-//             data: {
-//               customerid: buyerid,
-//               productid: productid,
-//               fractional: true,
-//               fraction: fraction
-//             }
-//           });
-//         } else {
-//           throw new Error("Fraction transfer exceeds seller ownership.");
-//         }
-//       } else {
-//         // Full ownership transfer
-//         await tx.productownership.update({
-//           where: { id: sellerOwnership.id },
-//           data: {
-//             isdeleted: true
-//           }
-//         });
-
-//         await tx.productownership.create({
-//           data: {
-//             customerid: buyerid,
-//             productid: productid,
-//             fractional: false,
-//             fraction: null
-//           }
-//         });
-//       }
-//     });
-
-//     return {
-//       message: "Ownership transferred successfully",
-//       productid,
-//       sellerid,
-//       buyerid,
-//       fractional,
-//       fraction
-//     };
-//   } catch (error) {
-//     if (error instanceof Error) {
-//       throw new Error(error.message || "An error occurred while transferring ownership.");
-//     } else {
-//       throw new Error("An unexpected error occurred.");
-//     }
-//   }
-// }
 
 export async function searchProducts(searchKeyword: string) {
   try {

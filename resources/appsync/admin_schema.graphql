@@ -148,8 +148,6 @@ input CreateProductInput {
   metadata: AWSJSON
   tokenId: Int
   tags: [String]
-  fractional: Boolean
-  fraction:  Float
 }
 
 input CreateProjectInput {
@@ -391,8 +389,6 @@ type ProductData {
   status: ProductStatus
   tenantid: String
   isdeleted: Boolean
-  purchasedpercentage: Float
-  availablepercentage: Float
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime
@@ -400,8 +396,6 @@ type ProductData {
   tags: [String]
   totalquantity: Int
   inventorystatus: String
-  fractional: Boolean
-  fraction:  Float
 }
 
 enum ProductRarity {
@@ -550,7 +544,6 @@ input UpdateProductInputData {
   categoryId: String
   rarity: ProductRarity
   price: Float
-  purchasedPercentage: Float
 }
 
 type UpdateProductResponse {

@@ -584,8 +584,6 @@ model productownership {
   customer   customer @relation(fields: [customerid], references: [id])
   productid  String
   product    product  @relation(fields: [productid], references: [id])
-  fractional Boolean
-  fraction   Float?
   isdeleted  Boolean?
 } 
 
@@ -601,8 +599,6 @@ model productinventory {
   inventoryid          String    @unique
   isdeleted            Boolean?
   inventorycategory    String
-  purchasedpercentage  Float?
-  availablepercentage  Float?
   price                Float
   quantity             Int
   ownershipnft         Boolean
