@@ -212,12 +212,6 @@ input GetCategoriesByTenantIdInput {
   tenantId: String
 }
 
-type GetCategoriesResponse {
-  status: Int
-  data: [CategoryData]
-  error: AWSJSON
-}
-
 input GetCategoryByIdInput {
   categoryId: String
 }
@@ -678,6 +672,28 @@ type GetProductsPaginationResponse {
   error: AWSJSON
 }
 
+input GetCategoriesInput {
+  value: String
+  searchBy: CategoryFindBy
+  page: Int
+  perPage: Int
+}
+
+enum CategoryFindBy {
+  CATEGORY
+  TENANT
+}
+
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -718,6 +734,9 @@ type Query {
   FilterInventory(input: FilterInventoryInput): GetInventoryResponse
   ListProject(input: ListProjectInput): ListProject
   GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
+  GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
+  GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
+  GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 schema {

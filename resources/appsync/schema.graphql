@@ -482,8 +482,6 @@ type InventoryData {
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
-  fractional: Boolean
-  fraction:  Float
   isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
