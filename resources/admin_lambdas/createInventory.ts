@@ -7,8 +7,6 @@ export const handler = async (event: any, context: any) => {
 
     const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId,  } = event.arguments?.input;
     const tenantContext = event.identity.resolverContext as tenant;
-
-
   
     if (!productId || !inventoryCategory || !price || !quantity  || !inventoryId ) {
       return {
@@ -19,7 +17,7 @@ export const handler = async (event: any, context: any) => {
     }
 
     const inventory = await createInventoryInDb( {
-	  inventoryId,
+  	  inventoryId,
       productId,
       inventoryCategory,
       price,
@@ -27,7 +25,6 @@ export const handler = async (event: any, context: any) => {
       ownershipNft,
       smartContractAddress,
       tokenId,
-	
     });
 
     return {
@@ -51,15 +48,14 @@ export const handler = async (event: any, context: any) => {
 
 async function createInventoryInDb( inventoryData: any) {
   const newInventory = await createInventory({
-	inventoryid: inventoryData.inventoryId,
+  	inventoryid: inventoryData.inventoryId,
     productid: inventoryData.productId,
     inventorycategory: inventoryData.inventoryCategory,
     price: inventoryData.price,
     quantity: inventoryData.quantity,
     ownershipnft: inventoryData.ownershipNft,
     smartcontractaddress: inventoryData.smartContractAddress,
-    tokenid: inventoryData.tokenId,
-	
+    tokenid: inventoryData.tokenId,	
   });
   return newInventory;
 }

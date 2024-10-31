@@ -369,7 +369,6 @@ model product {
   transactions        transaction[]
   productattributes   productattribute[]
   wishlists           productwishlist[]
-  orders              orders[]
   productreviews      productreview[]
   collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships   productownership[]
@@ -530,22 +529,6 @@ enum orderstatus {
   DISPUTED
 }
 
-model orders {
-  id         String       @id @default(uuid())
-  sellerid   String?
-  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
-  buyerid    String?
-  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
-  productid  String?
-  product    product?     @relation(fields: [productid], references: [id])
-  price      Float?
-  quantity   Int?
-  status     orderstatus
-  productreviews productreview[]
-  createdat  DateTime   @default(now())
-  updatedat  DateTime   @updatedAt
-}
-
 model productreview {
   id          String       @id @default(uuid())
   comment     String?
@@ -582,9 +565,7 @@ model productcollectionproducts {
 model productownership {
   id          String           @id @default(uuid())
   customerid  String
-  customer    customer?         @relation(fields: [customerid], references: [id]) // No extra space here
-  productid   String
-  product     product          @relation(fields: [productid], references: [id])
+  customer    customer         @relation(fields: [customerid], references: [id])
   inventoryid String
   inventory   productinventory @relation(fields: [inventoryid], references: [inventoryid])  
   isdeleted   Boolean?
@@ -594,6 +575,17 @@ model productownership {
 enum ProductStatus {
 ACTIVE
 INACTIVE
+}
+
+model media {
+  id         String   @id @default(uuid())
+  entityid   String 
+  entitytype String
+  url        String
+  type       String?   
+  createdat  DateTime @default(now())
+  updatedat  DateTime @updatedAt
+  product    product? @relation("ProductMedia", fields: [entityid], references: [id])
 }
 
 model productinventory {
@@ -612,15 +604,29 @@ model productinventory {
   createdat            DateTime? @default(now())
   updatedat            DateTime? @updatedAt
   ownerships           productownership[]
+  orders               orderitem[]        @relation("InventoryOrderItems")
 }
 
-model media {
-  id         String   @id @default(uuid())
-  entityid   String 
-  entitytype String
-  url        String
-  type       String?   
-  createdat  DateTime @default(now())
-  updatedat  DateTime @updatedAt
-  product    product? @relation("ProductMedia", fields: [entityid], references: [id])
+model orders {
+  id         String       @id @default(uuid())
+  sellerid   String?
+  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
+  buyerid    String?
+  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
+  totalprice      Float?
+  status     orderstatus
+  productreviews productreview[]
+  orderItems     orderitem[]   @relation("OrderItems")
+  createdat  DateTime   @default(now())
+  updatedat  DateTime   @updatedAt
+}
+
+model orderitem {
+  id             String           @id @default(uuid())
+  orderid        String
+  order          orders           @relation("OrderItems", fields: [orderid], references: [id])
+  inventoryid    String
+  inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [inventoryid])
+  quantity       Int 
+  price      Float?
 }

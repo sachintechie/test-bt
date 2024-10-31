@@ -109,6 +109,7 @@ input BulkImportInput {
 }
 
 type CategoryData {
+  id: String!
   name: String!
   tenantid: String!
   createdat: AWSDateTime

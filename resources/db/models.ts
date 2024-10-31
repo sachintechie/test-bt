@@ -106,11 +106,9 @@ export interface orders {
   id?: string;
   sellerid: string;
   buyerid: string;
-  productid: string;
-  price: number;
-  quantity: number;
+  totalprice: number;
   status?: orderstatus;
-  inventoryid?: string;
+  inventoryItems: { inventoryId: string, quantity: number, price:number }[]
 }
 
 export interface productwishlist {
@@ -146,7 +144,7 @@ export interface productOwnership {
   id?: string;
   buyerid?: string;
   sellerid?: string;
-  productid?: string;
+  inventoryid?: string;
   isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;

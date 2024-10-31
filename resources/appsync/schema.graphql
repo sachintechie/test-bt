@@ -51,11 +51,15 @@ type CollectionData {
 
 input CreateOrderInput {
   sellerId: String!
-  productId: String!
-  price: Float!
-  quantity: Int!
+  totalPrice: Float!
   status: OrderStatus
+  inventoryItems: [InventoryItemInput!]!
+}
+
+input InventoryItemInput {
   inventoryId: String!
+  quantity: Int!
+  price: Float
 }
 
 type CreateOrderResponse {
@@ -417,13 +421,17 @@ input MintNFTInput {
 type OrderData {
   sellerid: String
   buyerid: String
-  productid: String
-  price: Float
-  quantity: Int
+  totalprice: Float
   status: OrderStatus
-  inventoryid: String
+  inventoryItems: [InventoryItem]
   createdat: AWSDateTime
   updatedat: AWSDateTime
+}
+
+type InventoryItem {
+  inventoryid: String
+  quantity: Int
+  price: Float
 }
 
 enum OrderStatus {

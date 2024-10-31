@@ -1501,10 +1501,8 @@ export async function getProducts(offset: number, limit: number, value?: string,
       take: limit
     });
 
-	
-
     // Add totalquantity and status to each product
-    const productsWithInventoryData = products.map(product => {
+    const productsWithInventoryData = products.map((product: { inventories: any[]; }) => {  
       const totalquantity = product.inventories.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
       const inventorystatus = totalquantity > 0 ? 'In Stock' : 'Out of Stock';
       return {
@@ -1513,8 +1511,6 @@ export async function getProducts(offset: number, limit: number, value?: string,
         inventorystatus
       };
     });
-
-
 
     return { products: productsWithInventoryData, totalCount };
   } catch (err) {
@@ -1693,50 +1689,49 @@ export async function createOrder(order: orders) {
   try {
     const prisma = await getPrismaClient();
 
-    // Check if product exists
-    const product = await prisma.product.findFirst({
-      where: {
-        id: order.productid,
-        isdeleted: false
-      }
-    });
+    const newOrder = await prisma.$transaction(async (prisma: { productinventory: { findFirst: (arg0: { where: { id: string; }; }) => any; update: (arg0: { where: { id: any; }; data: { quantity: number; }; }) => any; }; orders: { create: (arg0: { data: { sellerid: string; buyerid: string; totalprice: number; status: orderstatus | undefined; createdat: string; updatedat: string; }; }) => any; }; orderitem: { create: (arg0: { data: { orderid: any; inventoryid: string; quantity: number; price: number; }; }) => any; }; }) => {
+      for (const item of order.inventoryItems) {
+        const inventory = await prisma.productinventory.findFirst({
+          where: { id: item.inventoryId }
+        });
 
-    if (!product) {
-      throw new Error("Product not found");
-    }
+        if (!inventory) {
+          throw new Error(`Inventory item with ID ${item.inventoryId} not found`);
+        }
 
-    // Retrieve the specified inventory based on the provided inventory ID
-    const inventory = await prisma.productinventory.findFirst({
-      where: {
-        id: order.inventoryid,
-        productid: order.productid
-      }
-    });
+        if (inventory.quantity < item.quantity) {
+          throw new Error(`Not enough stock available in inventory ${item.inventoryId}`);
+        }
 
-    if (!inventory) {
-      throw new Error("Inventory not found");
-    }
-      if (inventory.quantity < order.quantity) {
-        throw new Error("Not enough stock available in the selected inventory");
+        await prisma.productinventory.update({
+          where: { id: inventory.id },
+          data: { quantity: inventory.quantity - item.quantity }
+        });
       }
-      await prisma.productinventory.update({
-        where: {
-          id: inventory.id
-        },
+
+      const createdOrder = await prisma.orders.create({
         data: {
-          quantity: inventory.quantity - order.quantity
+          sellerid: order.sellerid,
+          buyerid: order.buyerid,
+          totalprice: order.totalprice,
+          status: order.status,
+          createdat: new Date().toISOString(),
+          updatedat: new Date().toISOString()
         }
       });
-    const newOrder = await prisma.orders.create({
-      data: {
-        sellerid: order.sellerid,
-        buyerid: order.buyerid,
-        productid: order.productid,
-        price: order.price,
-        quantity: order.quantity,
-        status: orderstatus.CREATED,
-        updatedat: new Date().toISOString()
+
+      for (const item of order.inventoryItems) {
+        await prisma.orderitem.create({
+          data: {
+            orderid: createdOrder.id,
+            inventoryid: item.inventoryId,
+            quantity: item.quantity,
+            price: item.price
+          }
+        });
       }
+
+      return createdOrder;
     });
 
     return newOrder;
@@ -1748,7 +1743,6 @@ export async function createOrder(order: orders) {
     }
   }
 }
-
 
 export async function getOrders(
   offset: number,
@@ -2194,3 +2188,53 @@ export async function searchProducts(searchKeyword: string) {
   }
 }
 
+
+export async function transferProductOwnership(
+  ownershipData: productOwnership,
+) {
+  const prisma = await getPrismaClient();
+
+  const { inventoryid, buyerid, sellerid } = ownershipData;
+
+  if (!inventoryid || !buyerid || !sellerid) {
+    throw new Error("Inventory ID, Buyer ID, or Seller ID is missing.");
+  }
+
+  const sellerOwnership = await prisma.productownership.findFirst({
+    where: {
+      inventoryid,
+      customerid: sellerid
+    }
+  });
+
+  if (!sellerOwnership) {
+    throw new Error("Seller does not own this product.");
+  }
+
+  try {
+          await prisma.productownership.create({
+            data: {
+              customerid: buyerid,
+              inventoryid
+            }});
+          
+          await prisma.productownership.update({
+            where: { id: sellerOwnership.id },
+            data: {
+              isdeleted: true
+            }});  
+
+    return {
+      message: "Ownership transferred successfully",
+      inventoryid,
+      sellerid,
+      buyerid
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(error.message || "An error occurred while transferring ownership.");
+    } else {
+      throw new Error("An unexpected error occurred.");
+    }
+  }
+}
