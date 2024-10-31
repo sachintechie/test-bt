@@ -1825,7 +1825,7 @@ export async function getOrders(offset: number, itemsPerPage: number, value?: st
             iss: true,
             usertype: true
           }
-        },
+        }
       },
       skip: offset,
       take: itemsPerPage
@@ -1856,31 +1856,29 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
         status: status,
         updatedat: new Date().toISOString()
       },
-      select: {
-        sellerid: true,
-        buyerid: true,
-        status: true,
-        updatedat: true,
-		orderItems: true
+      include: {
+        orderItems: true,
+        seller: { select: { id: true } },
+        buyer: { select: { id: true } }
       }
     });
 
+    console.log("updatedOrder", updatedOrder);
 
     updatedOrder.orderItems.forEach(async (item) => {
-	    if (status === orderstatus.DELIVERED) {
-          await transferProductOwnership({
-            sellerid: updatedOrder.sellerid!,
-            buyerid: updatedOrder.buyerid!,
-			inventoryid: item.inventoryid
-          });
-		} else if (status === orderstatus.CANCELLED) {
-		  await prisma.productinventory.update({
-            where: { id: item.inventoryid },
-            data: { quantity: { increment: item.quantity } }
-          });
-		}
-    })
-   
+      if (status === orderstatus.DELIVERED) {
+        await transferProductOwnership({
+          sellerid: updatedOrder.sellerid!,
+          buyerid: updatedOrder.buyerid!,
+          inventoryid: item.inventoryid
+        });
+      } else if (status === orderstatus.CANCELLED) {
+        await prisma.productinventory.update({
+          where: { id: item.inventoryid },
+          data: { quantity: { increment: item.quantity } }
+        });
+      }
+    });
 
     return {
       message: "Order status updated successfully",
