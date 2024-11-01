@@ -1865,7 +1865,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
 
     console.log("updatedOrder", updatedOrder);
 
-    updatedOrder.orderItems.forEach(async (item: { inventoryid: any; quantity: any; }) => {
+    for (const item of updatedOrder.orderItems) {
       if (status === orderstatus.DELIVERED) {
         await transferProductOwnership({
           sellerid: updatedOrder.sellerid!,
@@ -1878,7 +1878,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
           data: { quantity: { increment: item.quantity } }
         });
       }
-    });
+    }
 
     return {
       message: "Order status updated successfully",
