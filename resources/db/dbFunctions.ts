@@ -2205,6 +2205,8 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
 
   const { inventoryid, buyerid, sellerid } = ownershipData;
 
+  console.log("transfer ownership function", ownershipData);
+
   if (!inventoryid || !buyerid || !sellerid) {
     throw new Error("Inventory ID, Buyer ID, or Seller ID is missing.");
   }
@@ -2221,12 +2223,14 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
   }
 
   try {
-    await prisma.productownership.create({
+    const newOwnership = await prisma.productownership.create({
       data: {
         customerid: buyerid,
         inventoryid
       }
     });
+
+    console.log("newOwnership", newOwnership);
 
     await prisma.productownership.update({
       where: { id: sellerOwnership.id },
