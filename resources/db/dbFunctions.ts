@@ -2264,3 +2264,26 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
     }
   }
 }
+
+export async function getOwnershipByInventoryId(inventoryId: string) {
+  const prisma = await getPrismaClient();
+
+  if (!inventoryId) {
+    throw new Error("Inventory ID");
+  }
+
+  const sellerOwnership = await prisma.productownership.findFirst({
+    where: {
+      inventoryid: inventoryId
+    }
+  });
+
+  if (!sellerOwnership) {
+    throw new Error("No seller found for this inventory");
+  }
+
+  return {
+    message: "Ownership transferred successfully",
+    sellerOwnership
+  };
+}
