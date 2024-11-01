@@ -25,21 +25,6 @@ export const handler = async (event: any, context: any) => {
       delete updatedProductData.categoryId; // Remove the original camel case field
     }
 
-    // Rename purchasedPercentage to purchasedpercentage and calculate availablepercentage if provided
-    if (productData.purchasedPercentage !== undefined) {
-      if (productData.purchasedPercentage > 100) {
-        return {
-          status: 400,
-          data: null,
-          error: "purchasedPercentage cannot exceed 100."
-        };
-      }
-
-      updatedProductData.purchasedpercentage = productData.purchasedPercentage;
-      updatedProductData.availablepercentage = 100 - productData.purchasedPercentage;
-      delete updatedProductData.purchasedPercentage; // Remove the original camel case field
-    }
-
     const updatedProduct = await updateProduct(productId, updatedProductData);
 
     return {

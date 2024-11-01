@@ -2,24 +2,33 @@ import { createOrder } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 export const handler = async (event: any, context: any) => {
   try {
-    const { sellerId, productId, price, quantity, status } = event.arguments?.input;
+    const { sellerId, totalPrice, status, inventoryItems } = event.arguments?.input;
     const tenant = event.identity.resolverContext as tenant;
     const customerId = tenant?.customerid;
-    if (!sellerId || !customerId || !productId || !price || !quantity || !status) {
+    if (!sellerId || !customerId || !totalPrice || !status || !inventoryItems || !Array.isArray(inventoryItems)) {
       return {
         status: 400,
         data: null,
-        error: "All required fields (sellerid, customerId, productid, price, quantity, status) must be provided."
+        error: "All required fields (sellerId, customerId, totalPrice, status, inventoryItems) must be provided."
       };
+    }
+
+    for (const item of inventoryItems) {
+      if (!item.inventoryId || !item.quantity || item.price === undefined) {
+        return {
+          status: 400,
+          data: null,
+          error: "Each inventory item must contain inventoryId and quantity."
+        };
+      }
     }
 
     const orderObj = {
       sellerid: sellerId,
       buyerid: customerId,
-      productid: productId,
-      price,
-      quantity,
-      status
+      totalprice: totalPrice,
+      status,
+      inventoryItems
     };
 
     const newOrder = await createOrder(orderObj);

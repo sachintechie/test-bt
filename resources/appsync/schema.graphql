@@ -51,10 +51,15 @@ type CollectionData {
 
 input CreateOrderInput {
   sellerId: String!
-  productId: String!
-  price: Float!
-  quantity: Int!
+  totalPrice: Float!
   status: OrderStatus
+  inventoryItems: [InventoryItemInput!]!
+}
+
+input InventoryItemInput {
+  inventoryId: String!
+  quantity: Int!
+  price: Float
 }
 
 type CreateOrderResponse {
@@ -128,8 +133,6 @@ type FilterProductData {
   categoryid: String
   rarity: ProductRarity
   price: Float
-  purchasedpercentage: Float
-  availablepercentage: Float
   status: ProductStatus
   isdeleted: Boolean
   category: CategoryData
@@ -418,12 +421,17 @@ input MintNFTInput {
 type OrderData {
   sellerid: String
   buyerid: String
-  productid: String
-  price: Float
-  quantity: Int
+  totalprice: Float
   status: OrderStatus
+  inventoryItems: [InventoryItem]
   createdat: AWSDateTime
   updatedat: AWSDateTime
+}
+
+type InventoryItem {
+  inventoryid: String
+  quantity: Int
+  price: Float
 }
 
 enum OrderStatus {
@@ -457,13 +465,13 @@ type ProductData {
   status: ProductStatus
   tenantid: String
   isdeleted: Boolean
-  totalquantity: Int
-  inventorystatus: String
-  tags: [String]
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
+  tags: [String]
+  totalquantity: Int
+  inventorystatus: String
 }
 
 type InventoryData {
@@ -476,13 +484,10 @@ type InventoryData {
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
-  fractional: Boolean
-  fraction:  Float
   isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
 }
-
 
 input ProductFilter {
   key: String
@@ -799,6 +804,18 @@ type GetStripePaymentIntentClientSecretResponse {
   error: AWSJSON
 }
 
+type GetPaymentTransactionDetailsResponse {
+  status: Int
+  data: AWSJSON
+  error: AWSJSON
+}
+
+type CryptoPurchaseResponse {
+  status: Int
+  data: AWSJSON
+  error: AWSJSON
+}
+
 type WishlistData {
   customerid: String!
   productid: String!
@@ -862,6 +879,17 @@ input GetStripeCheckoutLinkInput {
 input GetStripePaymentIntentClientSecretInput {
   cart: AWSJSON
   address: String!
+}
+
+input GetPaymentTransactionDetailsInput {
+  toAddress: String!
+}
+
+input CryptoPurchaseInput {
+  inventoryId: String!
+  chain: String!
+  tenantUserId: String!
+  quantity: Int!
 }
 
 enum ReviewsFindBy {
@@ -943,6 +971,58 @@ type GetOrdersData {
   updatedat: AWSDateTime
 }
 
+input GetOwnershipByInventoryIdInput {
+  inventoryId: String!
+}
+
+type GetOwnershipByInventoryIdResponse {
+  status: Int
+  data: GetOwnershipByInventoryIdData
+  error: AWSJSON
+}
+
+type GetOwnershipByInventoryIdData {
+  id: String
+  customerid: String
+  inventoryid: String
+}
+
+input GetOwnershipDetailByCustomerIdInput {
+  customerId: String!
+}
+
+type GetOwnershipDetailByCustomerIdResponse {
+  status: Int
+  data: [InventoryOrderDetails]
+  error: AWSJSON
+}
+
+type InventoryOrderDetails {
+  orderId: String
+  buyerId: String
+  totalprice: Float
+  status: OrderStatus
+  orderItems: [OrderItemDetails]
+}
+
+type OrderItemDetails {
+  quantity: Int
+  price: Float
+  inventory: InventoryDetails
+}
+
+type InventoryDetails {
+  id: String
+  productid: String
+  inventorycategory: String
+  price: Float
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1001,6 +1081,10 @@ type Query {
   GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
   GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
   GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
+  GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
+  CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
+  GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
+  GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
 }
 
 schema {

@@ -109,6 +109,7 @@ input BulkImportInput {
 }
 
 type CategoryData {
+  id: String!
   name: String!
   tenantid: String!
   createdat: AWSDateTime
@@ -208,12 +209,6 @@ input GetAdminWalletBalanceInput {
 
 input GetCategoriesByTenantIdInput {
   tenantId: String
-}
-
-type GetCategoriesResponse {
-  status: Int
-  data: [CategoryData]
-  error: AWSJSON
 }
 
 input GetCategoryByIdInput {
@@ -395,8 +390,6 @@ type ProductData {
   status: ProductStatus
   tenantid: String
   isdeleted: Boolean
-  purchasedpercentage: Float
-  availablepercentage: Float
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime
@@ -552,7 +545,6 @@ input UpdateProductInputData {
   categoryId: String
   rarity: ProductRarity
   price: Float
-  purchasedPercentage: Float
 }
 
 type UpdateProductResponse {
@@ -575,8 +567,6 @@ input CreateInventoryInput {
   ownershipNft: Boolean
   smartContractAddress: String
   tokenId: String
-  fractional: Boolean
-  fraction:   Float
 }
 
 type GetInventoryResponse {
@@ -596,8 +586,6 @@ type InventoryData {
   ownershipnft: Boolean
   smartcontractaddress: String
   tokenid: String
-  fractional: Boolean
-  fraction:  Float
   isdeleted: Boolean
   createdat: AWSDateTime
   updatedat: AWSDateTime
@@ -654,7 +642,51 @@ type ProjectAndReferenceData{
   references: ListReferenceData
 }
 
+input GetProductsInput {
+  value: String
+  searchBy: ProductFindBy
+  status: ProductStatus
+  page: Int
+  perPage: Int
+}
 
+enum ProductFindBy {
+  PRODUCT
+  CATEGORY
+  TENANT
+}
+
+type GetProductsPaginationResponse {
+  status: Int
+  data: [ProductData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
+
+input GetCategoriesInput {
+  value: String
+  searchBy: CategoryFindBy
+  page: Int
+  perPage: Int
+}
+
+enum CategoryFindBy {
+  CATEGORY
+  TENANT
+}
+
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
 
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -696,6 +728,9 @@ type Query {
   FilterInventory(input: FilterInventoryInput): GetInventoryResponse
   ListProject(input: ListProjectInput): ListProject
   GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
+  GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
+  GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
+  GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 schema {

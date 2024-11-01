@@ -436,8 +436,18 @@ model contracttransaction {
   txhash          String
   fromaddress     String
   contractaddress String
-  methodname      String
-  params          String
+  toaddress       String
+  tokenid         Int
+  amount          Int
+  tokentype       String
+}
+
+model paymenttransaction {
+  id         String @id @default(uuid())
+  txhash     String
+  provider   String
+  providerid String
+  toaddress  String
 }
 
 model admintransaction {
@@ -574,8 +584,6 @@ model productownership {
   customer   customer @relation(fields: [customerid], references: [id])
   productid  String
   product    product  @relation(fields: [productid], references: [id])
-  fractional Boolean
-  fraction   Float?
   isdeleted  Boolean?
 } 
 
@@ -591,8 +599,6 @@ model productinventory {
   inventoryid          String    @unique
   isdeleted            Boolean?
   inventorycategory    String
-  purchasedpercentage  Float?
-  availablepercentage  Float?
   price                Float
   quantity             Int
   ownershipnft         Boolean

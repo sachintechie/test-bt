@@ -106,10 +106,9 @@ export interface orders {
   id?: string;
   sellerid: string;
   buyerid: string;
-  productid: string;
-  price: number;
-  quantity: number;
+  totalprice: number;
   status?: orderstatus;
+  inventoryItems: { inventoryId: string, quantity: number, price:number }[]
 }
 
 export interface productwishlist {
@@ -145,9 +144,7 @@ export interface productOwnership {
   id?: string;
   buyerid?: string;
   sellerid?: string;
-  productid?: string;
-  fractional?: boolean;
-  fraction?: number;
+  inventoryid?: string;
   isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;
@@ -164,8 +161,6 @@ export interface productinventory {
   smartcontractaddress?: string;
   tokenid?: string;
   isdeleted?: boolean;
-  fraction?: number;
-  fractional?: boolean;
   createdat?: string;
   updatedat?: string;
 }

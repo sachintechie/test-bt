@@ -17,7 +17,7 @@ export const handler = async (event: any, context: any) => {
   try {
     const tenant = event.identity.resolverContext as tenant;
     const tenantId = tenant.id;
-    const receipt = await transferNFT(toAddress, tokenIds, chain, contractAddress, tenantId);
+    const receipt = await transferNFT(toAddress, tokenIds, chain, contractAddress, tenantId,"admin","admin");
     return {
       status: 200,
       transactionHash: receipt.transactionHash,
@@ -32,7 +32,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-export const transferNFT = async (toAddress: string, tokenIds: any, chain: string, contractAddress: string, tenantId: string) => {
+export const transferNFT = async (toAddress: string, tokenIds: any, chain: string, contractAddress: string, tenantId: string,provider:string,providerId:string) => {
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
@@ -58,14 +58,26 @@ export const transferNFT = async (toAddress: string, tokenIds: any, chain: strin
   const receipt = await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || "");
 
   const prisma = await getPrismaClient();
-  await prisma.contracttransaction.create({
+  for (const tokenId of (tokenIds as number[])) {
+    await prisma.contracttransaction.create({
+      data: {
+        txhash: receipt.transactionHash.toString(),
+        contractaddress: contractAddress,
+        chain: chain,
+        fromaddress: payerKey.key?.materialId!,
+        toaddress: toAddress,
+        tokenid:tokenId,
+        amount:1,
+        tokentype: "ERC721"
+      }
+    });
+  }
+  await prisma.paymenttransaction.create({
     data: {
       txhash: receipt.transactionHash.toString(),
-      contractaddress: contractAddress,
-      chain: chain,
-      fromaddress: payerKey.key?.materialId!,
-      methodname: "batchTransfer",
-      params: JSON.stringify({ from: payerKey.key?.materialId, to: toAddress, tokenIds: tokenIds })
+      toaddress: toAddress,
+      provider:provider,
+      providerid:providerId
     }
   });
 
