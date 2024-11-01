@@ -16,11 +16,11 @@ export const handler = async (event: any, context: any) => {
 
     const ownership = await getOwnershipByInventoryId(inventoryId);
 
-    if (!inventoryId) {
+    if (!ownership) {
       return {
         status: 404,
         data: null,
-        error: "No inventory found for the given inventoryId"
+        error: "No ownership found for the given inventoryId"
       };
     }
 
