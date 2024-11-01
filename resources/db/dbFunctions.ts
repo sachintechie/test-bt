@@ -1865,7 +1865,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
 
     console.log("updatedOrder", updatedOrder);
 
-    updatedOrder.orderItems.forEach(async (item: { inventoryid: any; quantity: any; }) => {
+    for (const item of updatedOrder.orderItems) {
       if (status === orderstatus.DELIVERED) {
         await transferProductOwnership({
           sellerid: updatedOrder.sellerid!,
@@ -1878,7 +1878,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
           data: { quantity: { increment: item.quantity } }
         });
       }
-    });
+    }
 
     return {
       message: "Order status updated successfully",
@@ -2216,6 +2216,8 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
 
   const { inventoryid, buyerid, sellerid } = ownershipData;
 
+  console.log("transfer ownership function", ownershipData);
+
   if (!inventoryid || !buyerid || !sellerid) {
     throw new Error("Inventory ID, Buyer ID, or Seller ID is missing.");
   }
@@ -2232,12 +2234,14 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
   }
 
   try {
-    await prisma.productownership.create({
+    const newOwnership = await prisma.productownership.create({
       data: {
         customerid: buyerid,
         inventoryid
       }
     });
+
+    console.log("newOwnership", newOwnership);
 
     await prisma.productownership.update({
       where: { id: sellerOwnership.id },
