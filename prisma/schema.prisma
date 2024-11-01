@@ -566,7 +566,7 @@ model productownership {
   customerid  String
   customer    customer         @relation(fields: [customerid], references: [id])
   inventoryid String
-  inventory   productinventory @relation(fields: [inventoryid], references: [inventoryid])  
+  inventory   productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
   isdeleted   Boolean?
 }
 
@@ -625,7 +625,7 @@ model orderitem {
   orderid        String
   order          orders           @relation("OrderItems", fields: [orderid], references: [id])
   inventoryid    String
-  inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [inventoryid])
+  inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
   quantity       Int 
   price      Float?
 }

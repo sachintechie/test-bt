@@ -489,7 +489,6 @@ type InventoryData {
   updatedat: AWSDateTime
 }
 
-
 input ProductFilter {
   key: String
   operator: FilterOperator
@@ -817,7 +816,6 @@ type CryptoPurchaseResponse {
   error: AWSJSON
 }
 
-
 type WishlistData {
   customerid: String!
   productid: String!
@@ -882,7 +880,6 @@ input GetStripePaymentIntentClientSecretInput {
   cart: AWSJSON
   address: String!
 }
-
 
 input GetPaymentTransactionDetailsInput {
   toAddress: String!
@@ -974,6 +971,22 @@ type GetOrdersData {
   updatedat: AWSDateTime
 }
 
+input GetOwnershipByInventoryIdInput {
+  inventoryId: String!
+}
+
+type GetOwnershipByInventoryIdResponse {
+  status: Int
+  data: GetOwnershipByInventoryIdData
+  error: AWSJSON
+}
+
+type GetOwnershipByInventoryIdData {
+  id: String
+  customerid: String
+  inventoryid: String
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1034,6 +1047,7 @@ type Query {
   GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
   GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
   CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
+  GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 }
 
 schema {
