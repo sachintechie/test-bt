@@ -2010,8 +2010,14 @@ export async function addProductToCollection(productcollection: addtocollection)
     const owned = await prisma.orders.findFirst({
       where: {
         buyerid: customerid,
-        productid,
-        status: orderstatus.DELIVERED
+        status: orderstatus.DELIVERED,
+        orderItems: {
+          some: {
+            inventory: {
+              productid: productid
+            }
+          }
+        }
       }
     });
     if (!owned) {
