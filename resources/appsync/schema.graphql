@@ -987,6 +987,42 @@ type GetOwnershipByInventoryIdData {
   inventoryid: String
 }
 
+input GetOwnershipDetailByCustomerIdInput {
+  customerId: String!
+}
+
+type GetOwnershipDetailByCustomerIdResponse {
+  status: Int
+  data: [InventoryOrderDetails]
+  error: AWSJSON
+}
+
+type InventoryOrderDetails {
+  orderId: String
+  buyerId: String
+  totalprice: Float
+  status: OrderStatus
+  orderItems: [OrderItemDetails]
+}
+
+type OrderItemDetails {
+  quantity: Int
+  price: Float
+  inventory: InventoryDetails
+}
+
+type InventoryDetails {
+  id: String
+  productid: String
+  inventorycategory: String
+  price: Float
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1048,6 +1084,7 @@ type Query {
   GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
   CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
   GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
+  GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
 }
 
 schema {

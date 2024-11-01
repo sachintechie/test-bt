@@ -1845,7 +1845,6 @@ export async function getOrders(offset: number, itemsPerPage: number, value?: st
 }
 
 export async function updateOrderStatus(orderId: string, status: orderstatus) {
-  // TODO: add role check
   const prisma = await getPrismaClient();
   try {
     const updatedOrder = await prisma.orders.update({
@@ -1863,7 +1862,18 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
       }
     });
 
-    console.log("updatedOrder", updatedOrder);
+    //    if status is already delivered, return
+    if (updatedOrder.status === orderstatus.DELIVERED) {
+      return {
+        message: "Order is already completed",
+        order: {
+          sellerid: updatedOrder.sellerid,
+          buyerid: updatedOrder.buyerid,
+          status: updatedOrder.status,
+          updatedat: updatedOrder.updatedat
+        }
+      };
+    }
 
     for (const item of updatedOrder.orderItems) {
       if (status === orderstatus.DELIVERED) {
@@ -2286,4 +2296,38 @@ export async function getOwnershipByInventoryId(inventoryId: string) {
     message: "Ownership transferred successfully",
     sellerOwnership
   };
+}
+
+export async function getOwnershipDetailByCustomerId(customerId: string) {
+  const prisma = await getPrismaClient();
+
+  const inventoryDetails = await prisma.orders.findMany({
+    where: {
+      buyerid: customerId,
+      status: orderstatus.DELIVERED
+    },
+    include: {
+      orderItems: {
+        select: {
+          quantity: true,
+          price: true,
+          inventory: {
+            select: {
+              id: true,
+              inventorycategory: true,
+              price: true,
+              productid: true,
+              ownershipnft: true,
+              smartcontractaddress: true,
+              tokenid: true,
+              createdat: true,
+              updatedat: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  return inventoryDetails;
 }
