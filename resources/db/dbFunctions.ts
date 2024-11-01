@@ -1865,7 +1865,7 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
 
     console.log("updatedOrder", updatedOrder);
 
-    updatedOrder.orderItems.forEach(async (item) => {
+    updatedOrder.orderItems.forEach(async (item: { inventoryid: any; quantity: any; }) => {
       if (status === orderstatus.DELIVERED) {
         await transferProductOwnership({
           sellerid: updatedOrder.sellerid!,
@@ -1909,12 +1909,17 @@ export async function addReview(productReview: productreview) {
     if (existingReview) {
       throw new Error("Already reviewed this product against this order");
     }
-
-    // check if user has bought this product
     const order = await prisma.orders.findFirst({
       where: {
+        id: orderid,
         buyerid: customerid,
-        productid
+        orderItems: {
+          some: {
+            inventory: {
+              productid: productid
+            }
+          }
+        }
       }
     });
 
