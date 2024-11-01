@@ -566,7 +566,7 @@ model productownership {
   customerid  String
   customer    customer         @relation(fields: [customerid], references: [id])
   inventoryid String
-  inventory   productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
+  inventory   productinventory @relation("InventoryOwnerships", fields: [inventoryid], references: [id])
   isdeleted   Boolean?
 }
 
@@ -602,7 +602,7 @@ model productinventory {
   token                token?    @relation(fields: [tokenid], references: [id])
   createdat            DateTime? @default(now())
   updatedat            DateTime? @updatedAt
-  ownerships           productownership[]
+  ownerships           productownership[] @relation("InventoryOwnerships")
   orders               orderitem[]        @relation("InventoryOrderItems")
 }
 
