@@ -811,6 +811,12 @@ type GetPaymentTransactionDetailsResponse {
   error: AWSJSON
 }
 
+type CryptoPurchaseResponse {
+  status: Int
+  data: AWSJSON
+  error: AWSJSON
+}
+
 
 type WishlistData {
   customerid: String!
@@ -880,6 +886,13 @@ input GetStripePaymentIntentClientSecretInput {
 
 input GetPaymentTransactionDetailsInput {
   toAddress: String!
+}
+
+input CryptoPurchaseInput {
+  inventoryId: String!
+  chain: String!
+  tenantUserId: String!
+  quantity: Int!
 }
 
 enum ReviewsFindBy {
@@ -1020,6 +1033,7 @@ type Query {
   GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
   GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
   GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
+  CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
 }
 
 schema {
