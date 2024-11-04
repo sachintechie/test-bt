@@ -3,7 +3,7 @@ import {  updateProjectStage  } from "../db/adminDbFunctions";
 import { S3 } from 'aws-sdk';
 import { Readable } from "stream";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { addReferences } from "./addProjectAndReference";
+import {  addReferencesLambda } from "./addProjectAndReference";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ''; // Get bucket name from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
@@ -59,13 +59,9 @@ async function addReference(tenant: tenant, refType: string,projectId:string, fi
     //   chainType: "",
     //   chainId: ""
     // };
-    (async () => {
-      try {
-        await addReferences(tenant, projectId, files, datasource_id);
-      } catch (error) {
-        console.error("Error in async task:", error);
-      }
-    })();
+
+        await addReferencesLambda(tenant.id, projectId, files, datasource_id);
+    
 
   //   for (let file of files){
     

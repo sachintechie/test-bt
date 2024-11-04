@@ -25,6 +25,7 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "moonpayNftLiteStatus",
   "postStripePaymentIntentWebhook",
   "checkAndUpdateProjects",
+  "addReferences"
 ];
 
 const GET_METADATA = "getMetadata";

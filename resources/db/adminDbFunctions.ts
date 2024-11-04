@@ -1062,7 +1062,8 @@ export async function getProjectByIdWithRef(
    
     const refs = await prisma.reference.findMany({
       where: {
-        projectid: projectId
+        projectid: projectId,
+        isdeleted: false
       },
 
       orderBy: {

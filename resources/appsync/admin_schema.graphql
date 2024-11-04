@@ -34,7 +34,7 @@ type AddRefToKnowledgeBaseData {
 input AddRefToKnowledgeBaseInput {
   refType: String!
   projectId: String!
-  file: FileInput
+  files: [FileInput]!
   depth: Int
   websiteName: String
   websiteUrl: String

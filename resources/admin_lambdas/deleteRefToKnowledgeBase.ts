@@ -70,7 +70,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     console.log(`Not verified: ${e}`);
     return {
       document: null,
-      error: JSON.stringify(e)
+      error: e
     };
   }
 }
