@@ -688,6 +688,21 @@ type GetCategoriesResponse {
   error: AWSJSON
 }
 
+input GetOwnershipByInventoryIdInput {
+  inventoryId: String!
+}
+
+  status: Int
+  data: GetOwnershipByInventoryIdData
+  error: AWSJSON
+}
+
+type GetOwnershipByInventoryIdData {
+  id: String
+  customerid: String
+  inventoryid: String
+}
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -731,6 +746,7 @@ type Query {
   GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
   GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
   GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+  GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 }
 
 schema {

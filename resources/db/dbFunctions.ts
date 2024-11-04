@@ -2292,10 +2292,7 @@ export async function getOwnershipByInventoryId(inventoryId: string) {
     throw new Error("No seller found for this inventory");
   }
 
-  return {
-    message: "Ownership transferred successfully",
-    sellerOwnership
-  };
+  return sellerOwnership
 }
 
 export async function getOwnershipDetailByCustomerId(customerId: string) {
