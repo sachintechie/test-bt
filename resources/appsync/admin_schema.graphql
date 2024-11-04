@@ -692,6 +692,7 @@ input GetOwnershipByInventoryIdInput {
   inventoryId: String!
 }
 
+type GetOwnershipByInventoryIdResponse {
   status: Int
   data: GetOwnershipByInventoryIdData
   error: AWSJSON
