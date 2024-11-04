@@ -73,14 +73,32 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
   }
 
 }
-
-export async function updateReferernces(projectId: string,ingested: boolean) {
+export async function updateRefererncePostS3Data(projectId: string,ingested: boolean, hashedData : any) {
   try {
     const prisma = await getPrismaClient();
     const updatedReference = await prisma.reference.updateMany({
       where: { projectid: projectId },
       data: {
         ingested: ingested,
+        referencestage: ReferenceStage.DATA_STORAGE,
+        s3poststorehash: hashedData.s3PostStoreHash,
+        s3poststoretxhash: hashedData.s3PostStoreTxHash,
+
+      }
+    });
+    return updatedReference;
+  } catch (err) {
+    throw err;
+  }
+}
+export async function updateReferernces(projectId: string,ingested: boolean, refStage? : ReferenceStage) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedReference = await prisma.reference.updateMany({
+      where: { projectid: projectId },
+      data: {
+        ingested: ingested,
+        referencestage: refStage
       }
     });
     return updatedReference;
@@ -764,7 +782,7 @@ export async function addDocumentReference(tenantId: string, file: any, refType:
       data: {
         tenantid: tenantId as string,
         projectid: projectId,
-        referencestage: ReferenceStage.DATA_STORAGE,
+        referencestage: ReferenceStage.DATA_SELECTION,
         reftype: refType,
         name:  file.fileName,
         url:  data.url ,
@@ -1101,6 +1119,22 @@ export async function getAllProjects() {
     throw err;
   }
 }
+
+export async function getAllReferences() {
+  try {
+    const prisma = await getPrismaClient();
+    const transactions = await prisma.reference.findMany({
+      where: {
+        referencestage : ProjectStage.DATA_SELECTION 
+      }
+    });
+    return transactions;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 
 export async function getAdminProductsByTenantId(offset: number, limit: number, tenantId: string) {
   try {
