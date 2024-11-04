@@ -135,7 +135,6 @@ model reference  {
   chaintype         String?
   chainid           String?
     
-    @@unique([name, url])
 
 }
 
