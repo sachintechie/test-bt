@@ -257,7 +257,7 @@ export async function addToS3Bucket(fileName: string, fileContent: string) {
   }
 }
 // Helper function to convert stream to Buffer
-const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
+export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   const chunks: Uint8Array[] = [];
   for await (const chunk of stream) {
     chunks.push(chunk);
@@ -266,7 +266,7 @@ const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
 };
 
 // Helper function to format bytes
-async function formatBytes(bytes: number, decimals = 2) {
+export async function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return "0 Bytes";
 
   const k = 1024;
