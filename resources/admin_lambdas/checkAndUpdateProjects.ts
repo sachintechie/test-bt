@@ -41,13 +41,9 @@ async function updateProjects() {
         } else if (project.projectstage == ProjectStage.DATA_SELECTION) {
           const status = await getKbStatus(project.knowledgebaseid, reference?.datasourceid ?? "");
           if (status == "AVAILABLE") {
-            (async () => {
-              try {
-                await syncKb(project.knowledgebaseid, reference?.datasourceid ?? "");
-              } catch (error) {
-                console.error("Error in async task:", error);
-              }
-            })();
+           
+                 syncKbAsync(project.knowledgebaseid, reference?.datasourceid ?? "");
+          
             // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
             const updateProject = await updateProjectStage(project.id, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
           
@@ -63,4 +59,13 @@ async function updateProjects() {
     console.log(err);
     throw err;
   }
+}
+
+
+async function syncKbAsync(knowledgeBaseId: string, datasourceId: string) {
+  // This code will run in the background
+    await syncKb(knowledgeBaseId, datasourceId ?? "");
+
+await new Promise((resolve) => setTimeout(resolve, 5000));
+  console.log("Background task completed");
 }

@@ -101,7 +101,7 @@ export async function addReferencesLambda(tenantId:string,projectId:string,files
   }
 
   const params = {
-    FunctionName: "addReferences", // The ARN or name of your background Lambda function
+    FunctionName: "addReferences-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
     InvocationType: "Event", // This makes the invocation asynchronous
     Payload: JSON.stringify(event),
   };
