@@ -192,8 +192,9 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
     const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
     const _hash = "0x" + hash;
     const _metadata = "0x" + hash;
-    // Estimate gas limit for the specific method call
-    const gasLimit = await contract.estimateGas.storeHash(_hash, _metadata);
+    // Estimate gas limit with buffer
+    const estimatedGasLimit = await contract.estimateGas.storeHash(_hash, _metadata);
+    const gasLimit = estimatedGasLimit.mul(120).div(100); // Adding a 20% buffer
 
   // Set custom options, including the nonce
   const options = {
