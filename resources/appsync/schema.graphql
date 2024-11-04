@@ -998,8 +998,6 @@ type GetOwnershipDetailByCustomerIdResponse {
 }
 
 type InventoryOrderDetails {
-  orderId: String
-  buyerId: String
   totalprice: Float
   status: OrderStatus
   orderItems: [OrderItemDetails]

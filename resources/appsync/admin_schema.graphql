@@ -378,7 +378,7 @@ input ProductAttributeInternalInput {
 
 type ProductAttributeResponse {
   status: Int
-  data: ProductAttributeData
+  data: [ProductAttributeData!]!
   error: AWSJSON
 }
 
@@ -621,27 +621,27 @@ type ManageProductMediaResponse {
   error: AWSJSON
 }
 
-input AddProjectAndReferenceInput{
+input AddProjectAndReferenceInput {
   name: String!
   description: String
   projectType: String!
   organizationId: String!
-  files : [FileInput]
+  files: [FileInput]
 }
 
-input ListProjectByIdInput{
-projectId: String!
-limit: Int!
-pageNo: Int!
+input ListProjectByIdInput {
+  projectId: String!
+  limit: Int!
+  pageNo: Int!
 }
 
-type ProjectAndReferenceResponse{
+type ProjectAndReferenceResponse {
   status: Int
   data: ProjectAndReferenceData
   error: AWSJSON
 }
 
-type ProjectAndReferenceData{
+type ProjectAndReferenceData {
   project: ProjectData
   references: ListReferenceData
 }
@@ -731,7 +731,6 @@ type Mutation {
   DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
   CreateProject(input: CreateProjectInput): CreateProjectResponse
   AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
-
 }
 
 type Query {

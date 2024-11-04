@@ -592,6 +592,7 @@ export async function createProductAttributes(attributes: productattribute[]) {
       data: attributes,
       skipDuplicates: true
     });
+    console.log(newAttribute);
     return newAttribute;
   } catch (err) {
     throw err;
