@@ -171,10 +171,22 @@ const SUBNET_CONTRACT_ABI: any[] =[
   }
 ];
 
-export async function storeHash(hash: string) {
+export async function storeHash(hash: string,isSecondTx?:boolean) {
   try {
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
+      // Get the current nonce for the wallet address
+  let currentNonce = await provider.getTransactionCount(wallet.address);
+  if(isSecondTx){
+    currentNonce = currentNonce + 1;
+  }
+
+  // Set custom options, including the nonce
+  const options = {
+    nonce: currentNonce,
+    // gasLimit: ethers.utils.hexlify(100000), // Adjust gas limit as needed
+    // gasPrice: ethers.utils.parseUnits("25", "gwei") // Adjust gas price based on network conditions
+  };
 
     // Format the data hash to bytes32
     // const _dataHash = ethers.utils.formatBytes32String(dataHash);
@@ -185,7 +197,7 @@ export async function storeHash(hash: string) {
     const _hash = "0x" + hash;
     const _metadata = "0x" + hash;
 
-    const tx = await contract.storeHash(_hash, _metadata);
+    const tx = await contract.storeHash(_hash, _metadata,options);
     console.log("Transaction sent:", tx.hash);
 
     const receipt = await tx.wait();
@@ -245,12 +257,12 @@ export async function storeHash(hash: string) {
 }
 
 
-export async function hashingAndStoreToBlockchain(data: any) {
+export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean) {
   try {
 
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
     console.log("dataHash", dataHash);
-    const dataTxHash = await storeHash(dataHash);
+    const dataTxHash = await storeHash(dataHash,isSecondTx);
     console.log("dataTxHash", dataTxHash);
     
     return {
