@@ -585,16 +585,12 @@ export async function createProduct(product: product) {
   }
 }
 
-export async function createProductAttribute(productattributes: productattribute) {
+export async function createProductAttributes(attributes: productattribute[]) {
   try {
     const prisma = await getPrismaClient();
-    const newAttribute = await prisma.productattribute.create({
-      data: {
-        key: productattributes.key,
-        value: productattributes.value,
-        type: productattributes.type,
-        productid: productattributes.productid
-      }
+    const newAttribute = await prisma.productattribute.createMany({
+      data: attributes,
+      skipDuplicates: true
     });
     return newAttribute;
   } catch (err) {

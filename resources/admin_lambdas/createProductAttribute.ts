@@ -1,13 +1,13 @@
-import { productattribute } from "../db/models";
-import { createProductAttribute } from "../db/adminDbFunctions";
+import { createProductAttributes } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const { key, value, type, productId } = event.arguments?.input;
+    const { productId, data } = event.arguments?.input;
 
-    if (!key || !value || !type || !productId) {
+
+    if (!productId || !data || !Array.isArray(data) || data.length === 0) {
       return {
         status: 400,
         data: null,
@@ -15,11 +15,18 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const attribute = await createAttributeInDb(key, value, type, productId);
+    const attributes = data.map(({ key, value, type }) => ({
+      key,
+      value,
+      type,
+      productid: productId
+    }));
+
+    const result = await createProductAttributes(attributes);
 
     return {
       status: 200,
-      data: attribute,
+      data: result,
       error: null
     };
   } catch (error) {
@@ -35,12 +42,3 @@ export const handler = async (event: any, context: any) => {
     };
   }
 };
-
-async function createAttributeInDb(key: string, value: string, type: string, productId: string) {
-  // Logic to create the product attribute in the database
-  const attributeData: productattribute = { key, value, type, productid: productId };
-  const newAttribute = await createProductAttribute(attributeData);
-
-  // Save to DB
-  return newAttribute;
-}

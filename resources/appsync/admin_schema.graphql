@@ -366,10 +366,14 @@ type ProductAttributeData {
 }
 
 input ProductAttributeInput {
+  productId: String!
+  data: [ProductAttributeInternalInput!]!
+}
+
+input ProductAttributeInternalInput {
   key: String!
   value: String!
   type: String!
-  productId: String!
 }
 
 type ProductAttributeResponse {
