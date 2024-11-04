@@ -176,7 +176,7 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
       // Get the current nonce for the wallet address
-  let currentNonce = await provider.getTransactionCount(wallet.address);
+  let currentNonce = await provider.getTransactionCount(wallet.address, "pending");
   if(isSecondTx){
     currentNonce = currentNonce + 1;
   }
@@ -194,7 +194,8 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
     const _metadata = "0x" + hash;
     // Estimate gas limit with buffer
     const estimatedGasLimit = await contract.estimateGas.storeHash(_hash, _metadata);
-    const gasLimit = estimatedGasLimit.mul(120).div(100); // Adding a 20% buffer
+    const gasLimit = ethers.BigNumber.from("500000");
+    //const gasLimit = estimatedGasLimit.mul(120).div(100); // Adding a 20% buffer
 
   // Set custom options, including the nonce
   const options = {
