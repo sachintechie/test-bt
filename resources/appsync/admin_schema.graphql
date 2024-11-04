@@ -378,7 +378,13 @@ input ProductAttributeInternalInput {
 
 type ProductAttributeResponse {
   status: Int
-  data: [ProductAttributeData!]!
+  data: ProductAttributeData
+  error: AWSJSON
+}
+
+type CreateProductAttributeResponse {
+  status: Int
+  data: String
   error: AWSJSON
 }
 
@@ -525,15 +531,13 @@ input UpdateInventoryInput {
 }
 
 input UpdateProductAttributeInput {
-  key: String!
-  newValue: String!
   productId: String!
+  data: [UpdateProductAttributeInputData!]!
 }
 
-type UpdateProductAttributeResponse {
-  status: Int
-  data: ProductAttributeData
-  error: AWSJSON
+input UpdateProductAttributeInputData {
+  key: String!
+  value: String!
 }
 
 input UpdateProductInput {
@@ -716,10 +720,10 @@ type Mutation {
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
   CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
-  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+  CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
   UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
   UpdateProduct(input: UpdateProductInput): UpdateProductResponse
-  UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
+  UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
   UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
   DeleteProduct(input: DeleteProductInput): ProductResponse
   CreateInventory(input: CreateInventoryInput): CreateInventoryResponse

@@ -26,7 +26,7 @@ export const handler = async (event: any, context: any) => {
 
     return {
       status: 200,
-      data: result,
+      data: `Successfully created ${result.count} attributes`,
       error: null
     };
   } catch (error) {
