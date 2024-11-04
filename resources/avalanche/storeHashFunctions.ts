@@ -181,12 +181,8 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
     currentNonce = currentNonce + 1;
   }
 
-  // Set custom options, including the nonce
-  const options = {
-    nonce: currentNonce,
-    // gasLimit: ethers.utils.hexlify(100000), // Adjust gas limit as needed
-    // gasPrice: ethers.utils.parseUnits("25", "gwei") // Adjust gas price based on network conditions
-  };
+    // Dynamically get the current gas price
+    const gasPrice = await provider.getGasPrice();
 
     // Format the data hash to bytes32
     // const _dataHash = ethers.utils.formatBytes32String(dataHash);
@@ -196,6 +192,18 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
     const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
     const _hash = "0x" + hash;
     const _metadata = "0x" + hash;
+    // Estimate gas limit for the specific method call
+    const gasLimit = await contract.estimateGas.storeHash(_hash, _metadata);
+
+  // Set custom options, including the nonce
+  const options = {
+    gasLimit,
+    gasPrice,
+    nonce: currentNonce,
+    // gasLimit: ethers.utils.hexlify(100000), // Adjust gas limit as needed
+    // gasPrice: ethers.utils.parseUnits("25", "gwei") // Adjust gas price based on network conditions
+  };
+
 
     const tx = await contract.storeHash(_hash, _metadata,options);
     console.log("Transaction sent:", tx.hash);
