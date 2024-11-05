@@ -1081,7 +1081,7 @@ export async function getProjectByIdWithRef(
     const prisma = await getPrismaClient();
     const project = await prisma.project.findFirst({
       where: {
-        id: projectId
+        id: projectId,
       }
     });
     if(project == null){

@@ -23,7 +23,7 @@ export const newNodeJsFunction = (
     code: lambda.Code.fromAsset(path.join(__dirname, "../layers/prisma")), // Assumed path to pre-built Prisma layer
     compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
     description: "Prisma ORM Layer for Lambda functions",
-  });
+  }); 
 
   // Return the new Nodejs Lambda function
   const lambdaFunction= new NodejsFunction(scope, env`${id}`, {
