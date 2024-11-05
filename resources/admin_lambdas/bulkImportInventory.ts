@@ -74,17 +74,18 @@ export const handler = async (event: any, context: any) => {
       inventoryDataArray = [...inventoryDataArray, ...transformedData];
     });
 
-    const createdInventories = await createBulkInventory(inventoryDataArray);
-    console.log(`Successfully created ${createdInventories.length} inventories across all sheets`,createdInventories);
+   const createdInventories = await createBulkInventory(inventoryDataArray);
+   console.log(`Successfully created ${createdInventories.length} inventories across all sheets`, createdInventories);
 
-    const adminUser = await getAdminUserById(tenantContext.adminuserid!);
-    const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
+	const adminUser = await getAdminUserById(tenantContext.adminuserid!);
+	const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
 
-    if (customer) {
-      for (const inventory of createdInventories.records) {
-        await addOwnership(inventory.id, customer.id!);
-      }
-    }
+	if (customer) {
+  		for (const inventory of createdInventories) {
+    	await addOwnership(inventory.id, customer.id!);
+    	}
+	}
+ 
 
     return {
       status: 200,
