@@ -380,15 +380,25 @@ type ProductAttributeData {
 }
 
 input ProductAttributeInput {
+  productId: String!
+  data: [ProductAttributeInternalInput!]!
+}
+
+input ProductAttributeInternalInput {
   key: String!
   value: String!
   type: String!
-  productId: String!
 }
 
 type ProductAttributeResponse {
   status: Int
   data: ProductAttributeData
+  error: AWSJSON
+}
+
+type CreateProductAttributeResponse {
+  status: Int
+  data: String
   error: AWSJSON
 }
 
@@ -409,8 +419,19 @@ type ProductData {
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
   tags: [String]
+  productmedia: [MediaData]
   totalquantity: Int
   inventorystatus: String
+}
+
+type MediaData {
+  id:         String!   
+  entityid:   String
+  entitytype: String
+  url:        String
+  type:       String   
+  createdat:  AWSDateTime
+  updatedat:  AWSDateTime
 }
 
 enum ProductRarity {
@@ -535,15 +556,13 @@ input UpdateInventoryInput {
 }
 
 input UpdateProductAttributeInput {
-  key: String!
-  newValue: String!
   productId: String!
+  data: [UpdateProductAttributeInputData!]!
 }
 
-type UpdateProductAttributeResponse {
-  status: Int
-  data: ProductAttributeData
-  error: AWSJSON
+input UpdateProductAttributeInputData {
+  key: String!
+  value: String!
 }
 
 input UpdateProductInput {
@@ -631,27 +650,27 @@ type ManageProductMediaResponse {
   error: AWSJSON
 }
 
-input AddProjectAndReferenceInput{
+input AddProjectAndReferenceInput {
   name: String!
   description: String
   projectType: String!
   organizationId: String!
-  files : [FileInput]
+  files: [FileInput]
 }
 
-input ListProjectByIdInput{
-projectId: String!
-limit: Int!
-pageNo: Int!
+input ListProjectByIdInput {
+  projectId: String!
+  limit: Int!
+  pageNo: Int!
 }
 
-type ProjectAndReferenceResponse{
+type ProjectAndReferenceResponse {
   status: Int
   data: ProjectAndReferenceData
   error: AWSJSON
 }
 
-type ProjectAndReferenceData{
+type ProjectAndReferenceData {
   project: ProjectData
   references: ListReferenceData
 }
@@ -702,6 +721,33 @@ type GetCategoriesResponse {
   error: AWSJSON
 }
 
+input GetOwnershipByInventoryIdInput {
+  inventoryId: String!
+}
+
+type GetOwnershipByInventoryIdResponse {
+  status: Int
+  data: GetOwnershipByInventoryIdData
+  error: AWSJSON
+}
+
+type GetOwnershipByInventoryIdData {
+  id: String
+  customerid: String
+  inventoryid: String
+}
+
+input DeleteProductAttributesInput {
+  productId: String!
+  attributeIds: [String!]!
+}
+
+type DeleteProductAttributesResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -710,10 +756,10 @@ type Mutation {
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
   CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
-  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+  CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
   UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
   UpdateProduct(input: UpdateProductInput): UpdateProductResponse
-  UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
+  UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
   UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
   DeleteProduct(input: DeleteProductInput): ProductResponse
   CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
@@ -725,7 +771,7 @@ type Mutation {
   DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
   CreateProject(input: CreateProjectInput): CreateProjectResponse
   AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
-
+  DeleteProductAttributes(input:DeleteProductAttributesInput): DeleteProductAttributesResponse
 }
 
 type Query {
@@ -745,6 +791,7 @@ type Query {
   GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
   GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
   GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+  GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 }
 
 schema {

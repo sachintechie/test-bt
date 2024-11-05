@@ -1,25 +1,20 @@
-import { updateProductAttribute } from "../db/adminDbFunctions";
+import { updateProductAttributes } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const { productId, key, newValue } = event.arguments?.input;
+    const { productId, data } = event.arguments?.input;
 
-    if (!productId || !key || !newValue) {
+    if (!productId || !Array.isArray(data) || data.length === 0) {
       return {
         status: 400,
         data: null,
-        error: "Invalid input: productId, key, and newValue are required."
+        error: "Invalid input: productId and data array are required."
       };
     }
-    const data = {
-      productId,
-      key,
-      newValue
-    };
 
-    const updatedAttribute = await updateProductAttribute(data);
+    const updatedAttribute = await updateProductAttributes(productId, data);
 
     return {
       status: 200,
@@ -27,7 +22,7 @@ export const handler = async (event: any, context: any) => {
       error: null
     };
   } catch (error) {
-    console.error("Error updating product attribute:", error);
+    console.error("Error updating product attributes:", error);
     let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;
