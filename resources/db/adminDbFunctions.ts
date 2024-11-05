@@ -1179,7 +1179,10 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
         tenantid: tenantId
       },
       skip: offset,
-      take: limit
+      take: limit,
+	  include: {
+        productmedia:true
+      },
     });
 
     const totalCount = await prisma.product.count({
