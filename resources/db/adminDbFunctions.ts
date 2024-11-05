@@ -1089,7 +1089,9 @@ export async function getProjectByIdWithRef(
     }
     const refCount = await prisma.reference.count({
       where: {
-        projectid: projectId
+        projectid: projectId,
+        isdeleted: false
+
       },
       orderBy: {
         createdat: "desc"
