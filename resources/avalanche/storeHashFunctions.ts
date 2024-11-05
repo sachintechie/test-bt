@@ -171,11 +171,18 @@ const SUBNET_CONTRACT_ABI: any[] =[
   }
 ];
 
-export async function storeHash(hash: string,chainType: string) {
+export async function storeHash(hash: string,isSecondTx?:boolean) {
   try {
-    if(chainType === "Avalanche"){
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
+      // Get the current nonce for the wallet address
+  let currentNonce = await provider.getTransactionCount(wallet.address, "pending");
+  if(isSecondTx){
+    currentNonce = currentNonce + 1;
+  }
+
+    // Dynamically get the current gas price
+    const gasPrice = await provider.getGasPrice();
 
     // Format the data hash to bytes32
     // const _dataHash = ethers.utils.formatBytes32String(dataHash);
@@ -185,8 +192,22 @@ export async function storeHash(hash: string,chainType: string) {
     const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
     const _hash = "0x" + hash;
     const _metadata = "0x" + hash;
+    // Estimate gas limit with buffer
+    const estimatedGasLimit = await contract.estimateGas.storeHash(_hash, _metadata);
+    const gasLimit = ethers.BigNumber.from("50000");
+    //const gasLimit = estimatedGasLimit.mul(120).div(100); // Adding a 20% buffer
 
-    const tx = await contract.storeHash(_hash, _metadata);
+  // Set custom options, including the nonce
+  const options = {
+    gasLimit,
+    gasPrice,
+    nonce: currentNonce,
+    // gasLimit: ethers.utils.hexlify(100000), // Adjust gas limit as needed
+    // gasPrice: ethers.utils.parseUnits("25", "gwei") // Adjust gas price based on network conditions
+  };
+
+
+    const tx = await contract.storeHash(_hash, _metadata,options);
     console.log("Transaction sent:", tx.hash);
 
     const receipt = await tx.wait();
@@ -235,77 +256,6 @@ export async function storeHash(hash: string,chainType: string) {
       },
       error: null
     };
-  }
-  else if(chainType === "Provenance"){
-      const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
-      const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
-  
-      // Format the data hash to bytes32
-      // const _dataHash = ethers.utils.formatBytes32String(dataHash);
-  
-      console.log("Data Hash (bytes32):", hash);
-      // Connect to the smart contract
-      const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
-      const _hash = "0x" + hash;
-      const _metadata = "0x" + hash;
-  
-      const tx = await contract.storeHash(_hash, _metadata);
-      console.log("Transaction sent:", tx.hash);
-  
-      const receipt = await tx.wait();
-  
-      console.log("Transaction confirmed in block:", receipt);
-      const transaction = await provider.getTransaction(receipt.transactionHash);
-  
-      const transactionReceipt = await provider.getTransactionReceipt(receipt.transactionHash);
-      const blockDetails = await provider.getBlock(receipt.blockHash);
-      const transactionTimestamp = new Date(blockDetails.timestamp * 1000);
-  
-      const status = AvalancheTransactionStatus[transactionReceipt.status!];
-  
-      if (transaction) {
-        console.log("Transaction Details:", transaction.data);
-      } else {
-        console.log("Transaction not found.");
-      }
-      const iface = new ethers.utils.Interface(CONTRACT_ABI);
-      // Decode the input data
-      const parsedTransaction = iface.parseTransaction({ data: transaction.data });
-      console.log("parsedTransaction Arguments:", parsedTransaction);
-  
-      const gas = ((Number(transactionReceipt.effectiveGasPrice) / 1e9) * Number(transactionReceipt.cumulativeGasUsed!)) / 1e9;
-  
-      return {
-        data: {
-          message: "Transaction successful!",
-          transactionId: transactionReceipt.transactionHash,
-          status: status,
-          hash: parsedTransaction.args._dataHash.split("0x")[1],
-          metaData: parsedTransaction.args._metaData,
-          blockHash: transaction.blockHash,
-          type: transaction.type,
-          timestamp: transactionTimestamp,
-          blockNumber: transaction.blockNumber,
-          confirmations: transaction.confirmations,
-          from: transaction.from,
-          to: transaction.to,
-          gasLimit: transaction.gasLimit.toString(),
-          gasPrice: transaction.gasPrice?.toString(),
-          gas: gas.toString(),
-          nonce: transaction.nonce,
-          chainId: transaction.chainId,
-          chainType: "Avalanche"
-        },
-        error: null
-      };
-    
-  }
-  else{
-    return {
-      data: null,
-      error: "ChainType not supported"
-    };
-  }
   } catch (error) {
     // Handle any errors
     console.log("Error: ", error);
@@ -317,12 +267,12 @@ export async function storeHash(hash: string,chainType: string) {
 }
 
 
-export async function hashingAndStoreToBlockchain(data: any) {
+export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean) {
   try {
 
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
     console.log("dataHash", dataHash);
-    const dataTxHash = await storeHash(dataHash,"Avalanche");
+    const dataTxHash = await storeHash(dataHash,isSecondTx);
     console.log("dataTxHash", dataTxHash);
     
     return {
