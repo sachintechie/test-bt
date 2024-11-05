@@ -592,6 +592,7 @@ export async function createProductAttributes(attributes: productattribute[]) {
       data: attributes,
       skipDuplicates: true
     });
+
     return newAttribute;
   } catch (err) {
     throw err;
@@ -634,41 +635,44 @@ export async function updateProduct(id: string, product: Partial<product>) {
   }
 }
 
-export async function updateProductAttribute(updateproductattribute: updateproductattribute) {
+export async function updateProductAttributes(productId: string, attributes: productattribute[]) {
   try {
     const prisma = await getPrismaClient();
-    const { productId, key, newValue } = updateproductattribute;
-    const updatedAttribute = await prisma.productattribute.updateMany({
-      where: {
-        productid: productId,
-        key: key
-      },
-      data: {
-        value: newValue,
-        updatedat: new Date().toISOString()
-      }
-    });
+    const results = [];
 
-    if (updatedAttribute.count === 0) {
-      throw new Error("Attribute not found.");
-    }
-    const fetchedAttribute = await prisma.productattribute.findFirst({
-      where: {
-        productid: productId,
-        key: key
-      }
-    });
+    for (const attribute of attributes) {
+      const { key, value } = attribute;
 
-    if (fetchedAttribute) {
-      return fetchedAttribute;
-    } else {
-      throw new Error("Updated attribute could not be found.");
+      await prisma.productattribute.updateMany({
+        where: {
+          productid: productId,
+          key: key
+        },
+        data: {
+          value: value,
+          updatedat: new Date()
+        }
+      });
+
+      const updatedAttribute = await prisma.productattribute.findFirst({
+        where: {
+          productid: productId,
+          key: key
+        }
+      });
+
+      if (updatedAttribute) {
+        results.push(updatedAttribute);
+      }
     }
+
+    return results;
   } catch (err) {
-    console.error("Error in updateProductAttribute:", err);
+    console.error("Error updating product attributes:", err);
     throw err;
   }
 }
+
 export async function updateProductStatus(productId: string, status: ProductStatus) {
   try {
     const prisma = await getPrismaClient();

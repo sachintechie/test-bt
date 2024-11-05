@@ -6,7 +6,6 @@ export const handler = async (event: any, context: any) => {
 
     const { productId, data } = event.arguments?.input;
 
-
     if (!productId || !data || !Array.isArray(data) || data.length === 0) {
       return {
         status: 400,
@@ -23,10 +22,11 @@ export const handler = async (event: any, context: any) => {
     }));
 
     const result = await createProductAttributes(attributes);
+    console.log(result);
 
     return {
       status: 200,
-      data: result,
+      data: `Successfully created ${result.count} attributes`,
       error: null
     };
   } catch (error) {

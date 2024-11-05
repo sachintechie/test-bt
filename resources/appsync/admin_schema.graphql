@@ -382,6 +382,12 @@ type ProductAttributeResponse {
   error: AWSJSON
 }
 
+type CreateProductAttributeResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
 type ProductData {
   id: String!
   name: String!
@@ -525,15 +531,13 @@ input UpdateInventoryInput {
 }
 
 input UpdateProductAttributeInput {
-  key: String!
-  newValue: String!
   productId: String!
+  data: [UpdateProductAttributeInputData!]!
 }
 
-type UpdateProductAttributeResponse {
-  status: Int
-  data: ProductAttributeData
-  error: AWSJSON
+input UpdateProductAttributeInputData {
+  key: String!
+  value: String!
 }
 
 input UpdateProductInput {
@@ -621,27 +625,27 @@ type ManageProductMediaResponse {
   error: AWSJSON
 }
 
-input AddProjectAndReferenceInput{
+input AddProjectAndReferenceInput {
   name: String!
   description: String
   projectType: String!
   organizationId: String!
-  files : [FileInput]
+  files: [FileInput]
 }
 
-input ListProjectByIdInput{
-projectId: String!
-limit: Int!
-pageNo: Int!
+input ListProjectByIdInput {
+  projectId: String!
+  limit: Int!
+  pageNo: Int!
 }
 
-type ProjectAndReferenceResponse{
+type ProjectAndReferenceResponse {
   status: Int
   data: ProjectAndReferenceData
   error: AWSJSON
 }
 
-type ProjectAndReferenceData{
+type ProjectAndReferenceData {
   project: ProjectData
   references: ListReferenceData
 }
@@ -716,10 +720,10 @@ type Mutation {
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
   CreateCategory(input: CreateCategoryInput): CategoryResponse
   CreateProduct(input: CreateProductInput): ProductResponse
-  CreateProductAttribute(input: ProductAttributeInput!): ProductAttributeResponse
+  CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
   UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
   UpdateProduct(input: UpdateProductInput): UpdateProductResponse
-  UpdateProductAttribute(input: UpdateProductAttributeInput): UpdateProductAttributeResponse
+  UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
   UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
   DeleteProduct(input: DeleteProductInput): ProductResponse
   CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
@@ -731,7 +735,6 @@ type Mutation {
   DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
   CreateProject(input: CreateProjectInput): CreateProjectResponse
   AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
-
 }
 
 type Query {
