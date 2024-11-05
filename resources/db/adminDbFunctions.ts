@@ -73,11 +73,11 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
   }
 
 }
-export async function updateRefererncePostS3Data(projectId: string,ingested: boolean, hashedData : any) {
+export async function updateRefererncePostS3Data(refId: string,ingested: boolean, hashedData : any) {
   try {
     const prisma = await getPrismaClient();
-    const updatedReference = await prisma.reference.updateMany({
-      where: { projectid: projectId },
+    const updatedReference = await prisma.reference.update({
+      where: { id: refId },
       data: {
         ingested: ingested,
         referencestage: ReferenceStage.DATA_STORAGE,
