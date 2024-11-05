@@ -29,6 +29,10 @@ type AddRefToKnowledgeBaseData {
   chainid: String
   projectid: String
   referencestage: String
+  completechunkhash: String
+  completechunktxhash: String
+  chunkshash:String
+  chunkstxhash:String
 }
 
 input AddRefToKnowledgeBaseInput {
@@ -327,6 +331,10 @@ type ListRefData {
   chaintype: String
   chainid: String
   referencestage: String
+  completechunkhash: String
+  completechunktxhash: String
+  chunkshash:String
+  chunkstxhash:String
 }
 
 input ListRefInput {

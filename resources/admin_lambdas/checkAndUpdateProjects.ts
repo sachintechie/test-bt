@@ -1,12 +1,20 @@
-import { getAllProjects, getAllReferences, getFirstReferenceByProjectId, updateProjectStage, updateRefererncePostS3Data, updateReferernces } from "../db/adminDbFunctions";
+import {
+  getAllProjects,
+  getAllReferences,
+  getFirstReferenceByProjectId,
+  updateProjectStage,
+  updateRefererncePostIndexing,
+  updateRefererncePostS3Data,
+  updateReferernces
+} from "../db/adminDbFunctions";
 import { getKbStatus, syncKb } from "../knowledgebase/scanDataSource";
 import { ProjectStage, ProjectStatusEnum, ReferenceStage } from "@prisma/client";
-import { hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
-import { S3 } from 'aws-sdk';
+import { hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
+import { S3 } from "aws-sdk";
 import { Readable } from "stream";
 import { formatBytes, streamToBuffer } from "./addRefToKnowledgeBase";
 const s3 = new S3();
-const bucketName = process.env.KB_BUCKET_NAME || ''; // Get bucket name from environment variables
+const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 
 export const handler = async (event: any) => {
   try {
@@ -40,20 +48,18 @@ async function updateProjects() {
           if (status == "AVAILABLE") {
             // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
             const updateProject = await updateProjectStage(project.id, ProjectStage.LLM_FINE_TUNING, ProjectStatusEnum.ACTIVE);
-            const updateReference = await updateReferernces(project.id,true);
-            console.log("updateReference",updateReference);
+            const updateReference = await updateReferernces(project.id, true);
+            console.log("updateReference", updateReference);
 
             updatedProjects.push(updateProject);
           }
         } else if (project.projectstage == ProjectStage.DATA_SELECTION) {
           const status = await getKbStatus(project.knowledgebaseid, reference?.datasourceid ?? "");
           if (status == "AVAILABLE") {
-           
-                 syncKbAsync(project.knowledgebaseid, reference?.datasourceid ?? "");
-          
+            syncKbAsync(project.knowledgebaseid, reference?.datasourceid ?? "");
+
             // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
             const updateProject = await updateProjectStage(project.id, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
-          
 
             updatedProjects.push(updateProject);
           }
@@ -76,12 +82,12 @@ async function updateReferences() {
     for (const ref of refs) {
       if (ref != null) {
         if (ref.referencestage == ReferenceStage.DATA_SELECTION) {
-
           const dataStoredToDb: any = {
             s3PreStoreHash: "",
             s3PreStoreTxHash: "",
             s3PostStoreHash: "",
             s3PostStoreTxHash: "",
+            completeChunkTxHash: "",
             chainType: "",
             chainId: ""
           };
@@ -92,18 +98,33 @@ async function updateReferences() {
             fileContent: data?.data?.s3Object
           };
           console.log("uploadedFile", uploadedFile);
-          const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile,true);
+          const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile, true);
           dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
           dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.dataTxHash;
-        //  const status = await getKbStatus(project.knowledgebaseid, ref?.datasourceid ?? "");
-            // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
-            const updateReference = await updateRefererncePostS3Data(ref.id ?? "",true,dataStoredToDb);
-            console.log("updatedRefs",updateReference);
+          //  const status = await getKbStatus(project.knowledgebaseid, ref?.datasourceid ?? "");
+          // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
+          const updateReference = await updateRefererncePostS3Data(ref.id ?? "", true, dataStoredToDb);
+          console.log("updatedRefs", updateReference);
 
-            updatedRefs.push(updateReference);
-          
-        } 
-      
+          updatedRefs.push(updateReference);
+        } else if (ref.referencestage == ReferenceStage.DATA_INDEX) {
+          const dataStoredToDb: any = {
+            completeChunkTxHash: "",
+            chunksTxHash: ""
+          };
+          const chunksTxHash = await hashingAndStoreToBlockchain(ref.chunkshash, false);
+          dataStoredToDb.chunksTxHash = chunksTxHash.data?.dataTxHash;
+
+          if (ref.completechunkhash) {
+            const completeChunkTxHash = await storeHash(ref.completechunkhash, false);
+            dataStoredToDb.completeChunkTxHash = completeChunkTxHash.data?.transactionId;
+          }
+          const updateReference = await updateRefererncePostIndexing(ref.id ?? "", true, dataStoredToDb);
+          console.log("updatedRefs", updateReference);
+          const updateProject = await updateProjectStage(ref.projectid ?? "", ProjectStage.PUBLISHED, ProjectStatusEnum.ACTIVE);
+
+          updatedRefs.push(updateReference);
+        }
       }
     }
 
@@ -114,27 +135,23 @@ async function updateReferences() {
   }
 }
 
-
 async function syncKbAsync(knowledgeBaseId: string, datasourceId: string) {
   // This code will run in the background
-    await syncKb(knowledgeBaseId, datasourceId ?? "");
+  await syncKb(knowledgeBaseId, datasourceId ?? "");
 
-await new Promise((resolve) => setTimeout(resolve, 5000));
+  await new Promise((resolve) => setTimeout(resolve, 5000));
   console.log("Background task completed");
 }
 
 export async function getS3Data(fileName: string) {
   try {
-    if (!fileName ) {
+    if (!fileName) {
       return {
         data: null,
         error: JSON.stringify({ message: "File name  is missing" })
       };
     }
 
- 
-
-  
     const s3Params = {
       Bucket: bucketName,
       Key: fileName
@@ -144,14 +161,13 @@ export async function getS3Data(fileName: string) {
     // Check the type of Body
     let objectContent;
     if (Buffer.isBuffer(s3Details.Body)) {
-      objectContent = s3Details.Body.toString('base64');
+      objectContent = s3Details.Body.toString("base64");
     } else if (typeof s3Details.Body === "string") {
       objectContent = Buffer.from(s3Details.Body); // Convert string to Buffer
-      objectContent = objectContent.toString('base64');
+      objectContent = objectContent.toString("base64");
     } else if (s3Details.Body instanceof Readable) {
       objectContent = await streamToBuffer(s3Details.Body);
-      objectContent = objectContent.toString('base64');
-
+      objectContent = objectContent.toString("base64");
     } else {
       throw new Error("Unexpected type for s3Details.Body");
     }
@@ -163,7 +179,7 @@ export async function getS3Data(fileName: string) {
       size: size,
       url: s3Details.ETag,
       s3Object: objectContent,
-      contentType : s3Details.ContentType
+      contentType: s3Details.ContentType
     };
     return {
       data: data,

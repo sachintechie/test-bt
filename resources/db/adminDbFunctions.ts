@@ -91,6 +91,24 @@ export async function updateRefererncePostS3Data(refId: string,ingested: boolean
     throw err;
   }
 }
+
+export async function updateRefererncePostIndexing(refId: string,ingested: boolean, hashedData : any) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedReference = await prisma.reference.update({
+      where: { id: refId },
+      data: {
+        ingested: ingested,
+        referencestage: ReferenceStage.DATA_PUBLISHED,
+        chunkstxhash: hashedData.chunkstxhash,
+        completechunktxhash: hashedData.completeChunkTxHash,
+      }
+    });
+    return updatedReference;
+  } catch (err) {
+    throw err;
+  }
+}
 export async function updateReferernces(projectId: string,ingested: boolean, refStage? : ReferenceStage) {
   try {
     const prisma = await getPrismaClient();
