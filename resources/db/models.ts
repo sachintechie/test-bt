@@ -72,11 +72,11 @@ export interface product {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  purchasedpercentage: number;
   tenantid:string;
   description: string;   
   type: string;           
-  sku: string;        
+  sku: string;
+  tags?: string[];
 }
 
 export interface productcategory {
@@ -104,12 +104,11 @@ export interface productfilter {
 
 export interface orders {
   id?: string;
-  sellerid?: string;
-  buyerid?: string;
-  productid?: string;
-  price?: number;
-  quantity?: number;
+  sellerid: string;
+  buyerid: string;
+  totalprice: number;
   status?: orderstatus;
+  inventoryItems: { inventoryId: string, quantity: number, price:number }[]
 }
 
 export interface productwishlist {
@@ -141,12 +140,14 @@ export interface addtocollection {
   productid: string;
 }
 
-export interface ProductOwnership {
+export interface productOwnership {
   id?: string;
-  customerId?: string;
-  productId?: string;
-  fractional?: boolean;
-  fraction?: number;
+  buyerid?: string;
+  sellerid?: string;
+  inventoryid?: string;
+  isdeleted?: boolean;
+  createdat?: string;
+  updatedat?: string;
 }
 
 export interface productinventory {
@@ -159,6 +160,7 @@ export interface productinventory {
   ownershipnft?: boolean;
   smartcontractaddress?: string;
   tokenid?: string;
+  isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;
 }
@@ -167,14 +169,22 @@ export interface inventoryfilter {
   inventoryid?: string;
   productname?: string;
   price?: {
-    operator: 'lt' | 'gt' | 'eq';
+    operator: "gt" | "lt" | "gte" | "lte" | "eq";
     value: number;
   };
   quantity?: {
-    operator: 'lt' | 'gt' | 'eq';
+    operator: "gt" | "lt" | "gte" | "lte" | "eq";
     value: number;
   };
 }
+
+export interface productwithinventory {
+  product: product;
+  productinventory: productinventory[];
+  totalquantity: number;
+  status: string;
+}
+
 
 
 export enum TransactionStatus {

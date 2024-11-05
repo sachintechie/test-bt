@@ -69,22 +69,33 @@ export const mintERC1155 = async (
   const signedTx = await payerKey.key?.signEvm({ tx, chain_id: 43113 });
   const receipt = await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || "");
 
+  const prisma = await getPrismaClient();
+
   // eslint-disable-next-line no-restricted-syntax
-  for (const i of ids) {
+  for (let i = 0; i < ids.length; i++) {
     await storeMetadataInDynamoDB(dynamoDB, contractAddress, i, metadata);
+    await prisma.contracttransaction.create({
+      data: {
+        txhash: receipt.transactionHash.toString(),
+        contractaddress: contractAddress,
+        chain: chain,
+        fromaddress: payerKey.key?.materialId!,
+        toaddress: toAddress,
+        tokenid:ids[i],
+        amount:amounts[i],
+        tokentype: "ERC1155",
+      }
+    });
+    await prisma.paymenttransaction.create({
+      data: {
+        txhash: receipt.transactionHash.toString(),
+        toaddress: toAddress,
+        provider:"admin",
+        providerid:"admin",
+      }
+    });
   }
 
-  const prisma = await getPrismaClient();
-  await prisma.contracttransaction.create({
-    data: {
-      txhash: receipt.transactionHash.toString(),
-      contractaddress: contractAddress,
-      chain: chain,
-      fromaddress: payerKey.key?.materialId!,
-      methodname: "batchMint",
-      params: JSON.stringify({ to: toAddress, ids: ids, amounts: amounts })
-    }
-  });
 
   return receipt;
 };

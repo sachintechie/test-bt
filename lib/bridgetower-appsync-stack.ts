@@ -7,7 +7,7 @@ import {newApiGateway, newMoonpayApiGateway, newStripeWebhookApiGateway} from ".
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo, getPlaygrounDevDatabaseInfo } from "./utils/aurora";
 import { AuroraStack } from "./bridgetower-aurora-stack";
-import {newMigrateNodeJsFunction, newNodeJsFunction} from "./utils/lambda";
+import { newMigrateNodeJsFunction, newNodeJsFunction } from "./utils/lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
 
 const EXCLUDED_LAMBDAS_IN_APPSYNC = [
@@ -23,7 +23,9 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "moonpayNftLiteAsset",
   "moonpayNftLiteDelivery",
   "moonpayNftLiteStatus",
-  "postStripePaymentIntentWebhook"
+  "postStripePaymentIntentWebhook",
+  "checkAndUpdateProjects",
+  "addReferences"
 ];
 
 const GET_METADATA = "getMetadata";
@@ -63,9 +65,11 @@ const MUTATIONS = [
   "bulkImportInventory",
   "bulkImportProduct",
   "deleteInventory",
+  "manageProductMedia",
   "deleteRefToKnowledgeBase",
   "createProject",
-  "addReference"
+  "addReference",
+  "addProjectAndReference"
 ];
 
 
@@ -89,16 +93,16 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     let databaseInfo: DatabaseInfo;
     if (isOnDemandProd()) {
       databaseInfo = getOnDemandProdDatabaseInfo(this);
-    }  
+    }
     else if (isPlaygroundDev()) {
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getPlaygrounDevDatabaseInfo(this);
-    } 
-    
+    }
+
     else if (!isDevOrProd()) {
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getDatabaseInfo(this, props.auroraStack!);
-    } 
+    }
     else {
       databaseInfo = getDevOrProdDatabaseInfo(this);
     }
@@ -106,12 +110,12 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     const lambdaResourceNames = readFilesFromFolder(props.lambdaFolder);
     for (const lambdaResourceName of lambdaResourceNames) {
-      if(lambdaResourceName === MIGRATION_LAMBDA_NAME){
+      if (lambdaResourceName === MIGRATION_LAMBDA_NAME) {
         lambdaMap.set(
           lambdaResourceName,
           newMigrateNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)
         );
-      }else{
+      } else {
         lambdaMap.set(
           lambdaResourceName,
           newNodeJsFunction(this, lambdaResourceName, `${props.lambdaFolder}/${lambdaResourceName}.ts`, databaseInfo)

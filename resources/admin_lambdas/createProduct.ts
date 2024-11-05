@@ -12,7 +12,6 @@ interface CreateProductInput {
   categoryId: string;
   rarity: productRarity;
   price: number;
-  purchasedPercentage: number;
   isMintAble?: boolean;
   chainType?: string;
   tokenType?: string;
@@ -21,21 +20,21 @@ interface CreateProductInput {
   contractAddress?: string;
   metadata?: any;
   tokenId?: number; // for ERC1155
+  tags?: string[];
 }
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log(event, context);
-
-    const input: CreateProductInput = event.arguments?.input;
-    const tenant = event.identity?.resolverContext as tenant;
+	  
+	  const input: CreateProductInput = event.arguments?.input;
+	  const tenant = event.identity?.resolverContext as tenant;
+	  console.log(event, context);
     if (
       !input ||
       !input.name ||
       !input.categoryId ||
       !input.rarity ||
-      input.price === undefined ||
-      input.purchasedPercentage === undefined
+      input.price === undefined 
     ) {
       return {
         statusCode: 400,
@@ -53,8 +52,8 @@ export const handler = async (event: any, context: any) => {
       categoryid: input.categoryId,
       rarity: input.rarity,
       price: input.price,
-      purchasedpercentage: input.purchasedPercentage,
-      tenantid:tenant.id
+      tenantid:tenant.id,
+  	  tags:input.tags,
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -65,6 +64,7 @@ export const handler = async (event: any, context: any) => {
         await mintNFT(toAddress, quantity, chainType, contractAddress, metadata, tenant.id);
       }
     }
+
     return {
       status: 200,
       data: product,
@@ -92,11 +92,9 @@ async function createProductInDb(input: {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  purchasedpercentage: number;
-  tenantid:string
+  tenantid:string;
+  tags?: string[],
 }) {
   const newProduct = await createProduct(input);
-
-  // Save to DB
   return newProduct;
 }

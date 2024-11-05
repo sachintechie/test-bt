@@ -171,10 +171,18 @@ const SUBNET_CONTRACT_ABI: any[] =[
   }
 ];
 
-export async function storeHash(hash: string) {
+export async function storeHash(hash: string,isSecondTx?:boolean) {
   try {
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
+      // Get the current nonce for the wallet address
+  let currentNonce = await provider.getTransactionCount(wallet.address, "pending");
+  if(isSecondTx){
+    currentNonce = currentNonce + 1;
+  }
+
+    // Dynamically get the current gas price
+    const gasPrice = await provider.getGasPrice();
 
     // Format the data hash to bytes32
     // const _dataHash = ethers.utils.formatBytes32String(dataHash);
@@ -184,8 +192,22 @@ export async function storeHash(hash: string) {
     const contract = new ethers.Contract(CONTRACT_ADDRESS!, CONTRACT_ABI, wallet);
     const _hash = "0x" + hash;
     const _metadata = "0x" + hash;
+    // Estimate gas limit with buffer
+    const estimatedGasLimit = await contract.estimateGas.storeHash(_hash, _metadata);
+    const gasLimit = ethers.BigNumber.from("50000");
+    //const gasLimit = estimatedGasLimit.mul(120).div(100); // Adding a 20% buffer
 
-    const tx = await contract.storeHash(_hash, _metadata);
+  // Set custom options, including the nonce
+  const options = {
+    gasLimit,
+    gasPrice,
+    nonce: currentNonce,
+    // gasLimit: ethers.utils.hexlify(100000), // Adjust gas limit as needed
+    // gasPrice: ethers.utils.parseUnits("25", "gwei") // Adjust gas price based on network conditions
+  };
+
+
+    const tx = await contract.storeHash(_hash, _metadata,options);
     console.log("Transaction sent:", tx.hash);
 
     const receipt = await tx.wait();
@@ -245,12 +267,12 @@ export async function storeHash(hash: string) {
 }
 
 
-export async function hashingAndStoreToBlockchain(data: any) {
+export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean) {
   try {
 
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
     console.log("dataHash", dataHash);
-    const dataTxHash = await storeHash(dataHash);
+    const dataTxHash = await storeHash(dataHash,isSecondTx);
     console.log("dataTxHash", dataTxHash);
     
     return {
