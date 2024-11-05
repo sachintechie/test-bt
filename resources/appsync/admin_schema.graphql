@@ -119,6 +119,7 @@ input BulkImportInput {
 }
 
 type CategoryData {
+  id: String!
   name: String!
   tenantid: String!
   createdat: AWSDateTime
@@ -157,6 +158,7 @@ input CreateProductInput {
   contractAddress: String
   metadata: AWSJSON
   tokenId: Int
+  tags: [String]
 }
 
 input CreateProjectInput {
@@ -217,12 +219,6 @@ input GetAdminWalletBalanceInput {
 
 input GetCategoriesByTenantIdInput {
   tenantId: String
-}
-
-type GetCategoriesResponse {
-  status: Int
-  data: [CategoryData]
-  error: AWSJSON
 }
 
 input GetCategoryByIdInput {
@@ -408,12 +404,13 @@ type ProductData {
   status: ProductStatus
   tenantid: String
   isdeleted: Boolean
-  purchasedpercentage: Float
-  availablepercentage: Float
   category: CategoryData!
   createdat: AWSDateTime
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
+  tags: [String]
+  totalquantity: Int
+  inventorystatus: String
 }
 
 enum ProductRarity {
@@ -562,7 +559,6 @@ input UpdateProductInputData {
   categoryId: String
   rarity: ProductRarity
   price: Float
-  purchasedPercentage: Float
 }
 
 type UpdateProductResponse {
@@ -660,7 +656,51 @@ type ProjectAndReferenceData{
   references: ListReferenceData
 }
 
+input GetProductsInput {
+  value: String
+  searchBy: ProductFindBy
+  status: ProductStatus
+  page: Int
+  perPage: Int
+}
 
+enum ProductFindBy {
+  PRODUCT
+  CATEGORY
+  TENANT
+}
+
+type GetProductsPaginationResponse {
+  status: Int
+  data: [ProductData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
+
+input GetCategoriesInput {
+  value: String
+  searchBy: CategoryFindBy
+  page: Int
+  perPage: Int
+}
+
+enum CategoryFindBy {
+  CATEGORY
+  TENANT
+}
+
+type GetCategoriesResponse {
+  status: Int
+  data: [CategoryData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
 
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
@@ -698,10 +738,13 @@ type Query {
   GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
   GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
   GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
-  SearchInventory(input: SearchInventoryInput): CreateInventoryResponse
-  FilterInventory(input: FilterInventoryInput): CreateInventoryResponse
+  SearchInventory(input: SearchInventoryInput): GetInventoryResponse
+  FilterInventory(input: FilterInventoryInput): GetInventoryResponse
   ListProject(input: ListProjectInput): ListProject
   GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
+  GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
+  GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
+  GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 }
 
 schema {

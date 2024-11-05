@@ -1,16 +1,16 @@
 import { tenant } from "../db/models";
-import { createInventory } from "../db/adminDbFunctions"; 
+import { createInventory, addOwnership, getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log("event", event, "context", context);
 
-    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId } = event.arguments?.input;
-    const tenantContext = event.identity.resolverContext as tenant;
+    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId } =
+      event.arguments?.input;
+    const tenant = event.identity.resolverContext as tenant;
 
-
-  
-    if (!productId || !inventoryCategory || !price || !quantity  || !inventoryId ) {
+    if (!productId || !inventoryCategory || !price || !quantity || !inventoryId) {
       return {
         status: 400,
         data: null,
@@ -18,8 +18,8 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const inventory = await createInventoryInDb( {
-	  inventoryId,
+    const inventory = await createInventoryInDb({
+      inventoryId,
       productId,
       inventoryCategory,
       price,
@@ -28,6 +28,16 @@ export const handler = async (event: any, context: any) => {
       smartContractAddress,
       tokenId
     });
+
+    if (inventory) {
+      const adminUser = await getAdminUserById(tenant.adminuserid!);
+      console.log("adminUser", adminUser);
+      const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
+      console.log("customer", customer);
+      if (customer) {
+        await addOwnership(inventory.id, customer.id!);
+      }
+    }
 
     return {
       status: 200,
@@ -48,9 +58,9 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createInventoryInDb( inventoryData: any) {
+async function createInventoryInDb(inventoryData: any) {
   const newInventory = await createInventory({
-	inventoryid: inventoryData.inventoryId,
+    inventoryid: inventoryData.inventoryId,
     productid: inventoryData.productId,
     inventorycategory: inventoryData.inventoryCategory,
     price: inventoryData.price,

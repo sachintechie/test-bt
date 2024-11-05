@@ -363,6 +363,7 @@ model product {
   type                String
   sku                 String
   categoryid          String
+  tags                String[]
   category            productcategory             @relation(fields: [categoryid], references: [id])
   rarity              productrarity?              @default(NORMAL)
   price               Float?
@@ -375,10 +376,8 @@ model product {
   transactions        transaction[]
   productattributes   productattribute[]
   wishlists           productwishlist[]
-  orders              orders[]
   productreviews      productreview[]
   collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
-  productownerships   productownership[]
   inventories         productinventory[]
   productmedia        media[]    @relation("ProductMedia")  
 
@@ -443,8 +442,18 @@ model contracttransaction {
   txhash          String
   fromaddress     String
   contractaddress String
-  methodname      String
-  params          String
+  toaddress       String
+  tokenid         Int
+  amount          Int
+  tokentype       String
+}
+
+model paymenttransaction {
+  id         String @id @default(uuid())
+  txhash     String
+  provider   String
+  providerid String
+  toaddress  String
 }
 
 model admintransaction {
@@ -526,22 +535,6 @@ enum orderstatus {
   DISPUTED
 }
 
-model orders {
-  id         String       @id @default(uuid())
-  sellerid   String?
-  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
-  buyerid    String?
-  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
-  productid  String?
-  product    product?     @relation(fields: [productid], references: [id])
-  price      Float?
-  quantity   Int?
-  status     orderstatus
-  productreviews productreview[]
-  createdat  DateTime   @default(now())
-  updatedat  DateTime   @updatedAt
-}
-
 model productreview {
   id          String       @id @default(uuid())
   comment     String?
@@ -576,38 +569,18 @@ model productcollectionproducts {
 }
 
 model productownership {
-  id         String   @id @default(uuid())
-  customerid String
-  customer   customer @relation(fields: [customerid], references: [id])
-  productid  String
-  product    product  @relation(fields: [productid], references: [id])
-  fractional Boolean
-  fraction   Float?
-  isdeleted  Boolean?
-} 
+  id          String           @id @default(uuid())
+  customerid  String
+  customer    customer         @relation(fields: [customerid], references: [id])
+  inventoryid String
+  inventory   productinventory @relation("InventoryOwnerships", fields: [inventoryid], references: [id])
+  isdeleted   Boolean?
+}
+
 
 enum ProductStatus {
 ACTIVE
 INACTIVE
-}
-
-model productinventory {
-  id                   String    @id @default(uuid())
-  productid            String
-  product              product   @relation(fields: [productid], references: [id])
-  inventoryid          String    @unique
-  isdeleted            Boolean?
-  inventorycategory    String
-  purchasedpercentage  Float?
-  availablepercentage  Float?
-  price                Float
-  quantity             Int
-  ownershipnft         Boolean
-  smartcontractaddress String?
-  tokenid              String?   @unique
-  token                token?    @relation(fields: [tokenid], references: [id])
-  createdat            DateTime? @default(now())
-  updatedat            DateTime? @updatedAt
 }
 
 model media {
@@ -619,4 +592,47 @@ model media {
   createdat  DateTime @default(now())
   updatedat  DateTime @updatedAt
   product    product? @relation("ProductMedia", fields: [entityid], references: [id])
+}
+
+model productinventory {
+  id                   String    @id @default(uuid())
+  productid            String
+  product              product   @relation(fields: [productid], references: [id])
+  inventoryid          String    @unique
+  isdeleted            Boolean?
+  inventorycategory    String
+  price                Float
+  quantity             Int
+  ownershipnft         Boolean
+  smartcontractaddress String?
+  tokenid              String?   @unique
+  token                token?    @relation(fields: [tokenid], references: [id])
+  createdat            DateTime? @default(now())
+  updatedat            DateTime? @updatedAt
+  ownerships           productownership[] @relation("InventoryOwnerships")
+  orders               orderitem[]        @relation("InventoryOrderItems")
+}
+
+model orders {
+  id         String       @id @default(uuid())
+  sellerid   String?
+  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
+  buyerid    String?
+  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
+  totalprice      Float?
+  status     orderstatus
+  productreviews productreview[]
+  orderItems     orderitem[]   @relation("OrderItems")
+  createdat  DateTime   @default(now())
+  updatedat  DateTime   @updatedAt
+}
+
+model orderitem {
+  id             String           @id @default(uuid())
+  orderid        String
+  order          orders           @relation("OrderItems", fields: [orderid], references: [id])
+  inventoryid    String
+  inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
+  quantity       Int 
+  price      Float?
 }
