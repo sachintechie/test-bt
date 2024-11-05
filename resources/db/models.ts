@@ -75,7 +75,8 @@ export interface product {
   tenantid:string;
   description: string;   
   type: string;           
-  sku: string;    
+  sku: string;
+  tags?: string[];
 }
 
 export interface productcategory {
@@ -103,12 +104,11 @@ export interface productfilter {
 
 export interface orders {
   id?: string;
-  sellerid?: string;
-  buyerid?: string;
-  productid?: string;
-  price?: number;
-  quantity?: number;
+  sellerid: string;
+  buyerid: string;
+  totalprice: number;
   status?: orderstatus;
+  inventoryItems: { inventoryId: string, quantity: number, price:number }[]
 }
 
 export interface productwishlist {
@@ -144,9 +144,7 @@ export interface productOwnership {
   id?: string;
   buyerid?: string;
   sellerid?: string;
-  productid?: string;
-  fractional?: boolean;
-  fraction?: number;
+  inventoryid?: string;
   isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;
@@ -162,6 +160,7 @@ export interface productinventory {
   ownershipnft?: boolean;
   smartcontractaddress?: string;
   tokenid?: string;
+  isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;
 }
@@ -170,14 +169,22 @@ export interface inventoryfilter {
   inventoryid?: string;
   productname?: string;
   price?: {
-    operator: 'lt' | 'gt' | 'eq';
+    operator: "gt" | "lt" | "gte" | "lte" | "eq";
     value: number;
   };
   quantity?: {
-    operator: 'lt' | 'gt' | 'eq';
+    operator: "gt" | "lt" | "gte" | "lte" | "eq";
     value: number;
   };
 }
+
+export interface productwithinventory {
+  product: product;
+  productinventory: productinventory[];
+  totalquantity: number;
+  status: string;
+}
+
 
 
 export enum TransactionStatus {

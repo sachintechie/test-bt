@@ -1,5 +1,4 @@
-import { createProduct,addOwnership,getAdminUserById } from "../db/adminDbFunctions";
-import {getCustomer} from "../db/dbFunctions";
+import { createProduct } from "../db/adminDbFunctions";
 import { productRarity } from "../db/models";
 import { mintNFT } from "../lambdas/mintNFT";
 import { mintERC1155 } from "../lambdas/mintERC1155";
@@ -21,6 +20,7 @@ interface CreateProductInput {
   contractAddress?: string;
   metadata?: any;
   tokenId?: number; // for ERC1155
+  tags?: string[];
 }
 
 export const handler = async (event: any, context: any) => {
@@ -53,6 +53,7 @@ export const handler = async (event: any, context: any) => {
       rarity: input.rarity,
       price: input.price,
       tenantid:tenant.id,
+  	  tags:input.tags,
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -63,16 +64,6 @@ export const handler = async (event: any, context: any) => {
         await mintNFT(toAddress, quantity, chainType, contractAddress, metadata, tenant.id);
       }
     }
-
-	if (product) {
-	 const adminUser = await getAdminUserById(tenant.adminuserid!);
-	 console.log("adminUser", adminUser);
-	 const customer = await getCustomer(adminUser?.tenantuserid!,tenant.id!);
-	 console.log("customer", customer);
-	 if(customer){
-	   await addOwnership(product.id, customer.id!);
-	  }
-	}
 
     return {
       status: 200,
@@ -101,10 +92,9 @@ async function createProductInDb(input: {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  tenantid:string
+  tenantid:string;
+  tags?: string[],
 }) {
   const newProduct = await createProduct(input);
-
-  // Save to DB
   return newProduct;
 }
