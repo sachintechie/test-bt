@@ -97,7 +97,7 @@ async function updateReferences() {
           dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.dataTxHash;
         //  const status = await getKbStatus(project.knowledgebaseid, ref?.datasourceid ?? "");
             // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
-            const updateReference = await updateRefererncePostS3Data(ref.projectid ?? "",true,dataStoredToDb);
+            const updateReference = await updateRefererncePostS3Data(ref.id ?? "",true,dataStoredToDb);
             console.log("updatedRefs",updateReference);
 
             updatedRefs.push(updateReference);
