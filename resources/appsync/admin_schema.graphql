@@ -712,6 +712,17 @@ type GetOwnershipByInventoryIdData {
   inventoryid: String
 }
 
+input DeleteProductAttributesInput {
+  productId: String!
+  attributeIds: [String!]!
+}
+
+type DeleteProductAttributesResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
@@ -735,6 +746,7 @@ type Mutation {
   DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
   CreateProject(input: CreateProjectInput): CreateProjectResponse
   AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
+  DeleteProductAttributes(input:DeleteProductAttributesInput): DeleteProductAttributesResponse
 }
 
 type Query {

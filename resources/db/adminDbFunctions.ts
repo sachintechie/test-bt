@@ -599,6 +599,24 @@ export async function createProductAttributes(attributes: productattribute[]) {
   }
 }
 
+export async function deleteProductAttributes(productId: string, attributeIds:string[]) {
+  try {
+    const prisma = await getPrismaClient();
+    const deletedAttributes = await prisma.productattribute.deleteMany({
+      where:{
+        productid:productId,
+        id: {
+          in: attributeIds
+        }
+      }     
+    });
+
+    return deletedAttributes;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateCategory(categoryId: string, category: string) {
   try {
     const prisma = await getPrismaClient();
