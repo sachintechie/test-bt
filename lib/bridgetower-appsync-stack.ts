@@ -68,7 +68,8 @@
     "deleteRefToKnowledgeBase",
     "createProject",
     "addReference",
-    "addProjectAndReference"
+    "addProjectAndReference",
+    "deleteProductAttributes"
   ];
 
 
