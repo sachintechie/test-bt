@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import { tenant } from "../db/models";
-import { createBulkInventory, addOwnership } from "../db/adminDbFunctions";
-import { getAdminUserById, getCustomer } from "../db/dbFunctions";
+import { createBulkInventory, addOwnership,getAdminUserById } from "../db/adminDbFunctions";
+import {  getCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
