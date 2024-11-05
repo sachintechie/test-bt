@@ -470,8 +470,19 @@ type ProductData {
   updatedat: AWSDateTime
   productattributes: [ProductAttributeData!]!
   tags: [String]
+  productmedia: [MediaData]
   totalquantity: Int
   inventorystatus: String
+}
+
+type MediaData {
+  id:         String!   
+  entityid:   String
+  entitytype: String
+  url:        String
+  type:       String   
+  createdat:  AWSDateTime
+  updatedat:  AWSDateTime
 }
 
 type InventoryData {

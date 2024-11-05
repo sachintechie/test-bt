@@ -1491,7 +1491,8 @@ export async function getProducts(offset: number, limit: number, value?: string,
       include: {
         category: true,
         productattributes: true,
-        inventories: true
+        inventories: true,
+        productmedia:true
       },
       skip: offset,
       take: limit
