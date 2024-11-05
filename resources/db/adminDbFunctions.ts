@@ -1517,15 +1517,13 @@ export async function deleteMediaEntries(mediaUrls: string[], productId: string)
   }
 }
 
-export async function addOwnership(productId: string, customerId: string) {
+export async function addOwnership(inventoryId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
     await prisma.productownership.create({
       data: {
-        productid: productId,
-        customerid: customerId,
-        fractional: false,
-        fraction: 0
+        inventoryid: inventoryId,
+        customerid: customerId
       }
     });
   } catch (error: any) {
