@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 import { tenant } from "../db/models";
 import { createBulkInventory } from "../db/adminDbFunctions";
 
@@ -17,13 +17,13 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const buffer = Buffer.from(fileContent, 'base64');
+    const buffer = Buffer.from(fileContent, "base64");
     let workbook;
 
-    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
-      workbook = XLSX.read(buffer, { type: 'buffer', raw: true });
-    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
-      workbook = XLSX.read(buffer, { type: 'buffer' });
+    if (contentType === "text/csv" || fileName.endsWith(".csv")) {
+      workbook = XLSX.read(buffer, { type: "buffer", raw: true });
+    } else if (contentType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || fileName.endsWith(".xlsx")) {
+      workbook = XLSX.read(buffer, { type: "buffer" });
     } else {
       return {
         status: 400,
@@ -39,25 +39,16 @@ export const handler = async (event: any, context: any) => {
       const sheetData = XLSX.utils.sheet_to_json(sheet);
 
       const transformedData = sheetData.map((row: any) => {
-		console.log("row", row);
-        const {
-          productId,
-          inventoryId,
-          inventoryCategory,
-          price,
-          quantity,
-          ownershipNft,
-          smartContractAddress,
-          tokenId
-        } = row;
+        console.log("row", row);
+        const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId } = row;
 
         if (!productId || !inventoryId || !inventoryCategory || !price || !quantity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
 
-          const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') ? true : false;
+        const ownershipNftBoolean = typeof ownershipNft === "string" && ownershipNft.toLowerCase() === "true" ? true : false;
 
-		console.log("ownershipNftBoolean",ownershipNftBoolean);
+        console.log("ownershipNftBoolean", ownershipNftBoolean);
         return {
           inventoryid: inventoryId,
           productid: productId,
@@ -75,11 +66,11 @@ export const handler = async (event: any, context: any) => {
 
     const createdInventories = await createBulkInventory(inventoryDataArray);
 
-    console.log(`Successfully created ${createdInventories.count} inventories across all sheets`);
+    console.log(`Successfully created ${createdInventories.length} inventories across all sheets`);
 
     return {
       status: 200,
-      data: `Successfully created ${createdInventories.count} inventories across all sheets`,
+      data: `Successfully created ${createdInventories.length} inventories across all sheets`,
       error: null
     };
   } catch (error) {
