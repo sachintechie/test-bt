@@ -1,5 +1,11 @@
 type AddRefToKnowledgeBase {
   status: Int
+  data: [AddRefToKnowledgeBaseData]
+  error: AWSJSON
+}
+
+type DeleteRefToKnowledgeBase {
+  status: Int
   data: AddRefToKnowledgeBaseData
   error: AWSJSON
 }
@@ -23,12 +29,16 @@ type AddRefToKnowledgeBaseData {
   chainid: String
   projectid: String
   referencestage: String
+  completechunkhash: String
+  completechunktxhash: String
+  chunkshash:String
+  chunkstxhash:String
 }
 
 input AddRefToKnowledgeBaseInput {
   refType: String!
   projectId: String!
-  file: FileInput
+  files: [FileInput]!
   depth: Int
   websiteName: String
   websiteUrl: String
@@ -317,6 +327,10 @@ type ListRefData {
   chaintype: String
   chainid: String
   referencestage: String
+  completechunkhash: String
+  completechunktxhash: String
+  chunkshash:String
+  chunkstxhash:String
 }
 
 input ListRefInput {
@@ -690,7 +704,7 @@ type GetCategoriesResponse {
 
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
-  AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+  AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
   AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
   AdminTransfer(input: AdminTransferInput): AdminTransfer
   CreateTokenAccount(input: AdminTransferInput): AdminTransfer
@@ -708,7 +722,7 @@ type Mutation {
   BulkImportProduct(input: BulkImportInput): BulkImportResponse
   ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
   DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
-  DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+  DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
   CreateProject(input: CreateProjectInput): CreateProjectResponse
   AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
 

@@ -37,6 +37,12 @@ async function deleteReference(tenant: tenant, refId: string) {
     console.log("createUser", tenant.id);
     let data;
     const reference = await getReferenceById(tenant.id, refId);
+    if(reference == null){
+      return {
+        document: null,
+        error: "Reference not found"
+      };
+    }
     if (reference != null && reference.reftype == RefType.DOCUMENT) {
       data = await deleteFromS3(reference?.name ?? "");
       console.log("data", data);
@@ -51,6 +57,7 @@ async function deleteReference(tenant: tenant, refId: string) {
       }
       console.log("deleted dataSourceDetails", dataSourceDetails);
     }
+    
     const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
     console.log("syncKbResponse", syncKbResponse);
     const ref = await deleteRef(tenant.id, refId);
@@ -63,7 +70,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     console.log(`Not verified: ${e}`);
     return {
       document: null,
-      error: JSON.stringify(e)
+      error: e
     };
   }
 }

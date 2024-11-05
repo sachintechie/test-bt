@@ -79,6 +79,10 @@ enum ReferenceStage {
   DATA_SELECTION
   DATA_INGESTION
   DATA_STORAGE
+  DATA_CHUNKED
+  DATA_EMBEDDED
+  DATA_INDEX
+  DATA_PUBLISHED
 }
 
 enum ProjectStatusEnum {
@@ -134,8 +138,11 @@ model reference  {
   s3poststoretxhash String?
   chaintype         String?
   chainid           String?
+  completechunkhash String?
+  completechunktxhash String?
+  chunkshash        String?
+  chunkstxhash      String?
     
-    @@unique([name, url])
 
 }
 
@@ -373,7 +380,7 @@ model product {
   collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
   productownerships   productownership[]
   inventories         productinventory[]
-  productmedia        media[]    @relation("ProductMedia") 
+  productmedia        media[]    @relation("ProductMedia")  
 
   @@unique([categoryid, name, sku])
 }
