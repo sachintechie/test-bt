@@ -1,17 +1,14 @@
 import { RefType } from "../db/models";
-import { addDocumentReference,updateProjectStage } from "../db/adminDbFunctions";
+import { addDocumentReference, addRefTransaction, updateProjectStage } from "../db/adminDbFunctions";
 import { hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { addToS3Bucket } from "./addRefToKnowledgeBase";
-
+import { addToS3Bucket } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
-    const {  projectId, files, datasource_id, tenantId } = event;
+    const { projectId, files, datasource_id, tenantId } = event;
 
-    const data = await addReferences(
-      tenantId,  projectId, files, datasource_id
-    );
+    const data = await addReferences(tenantId, projectId, files, datasource_id);
 
     return {
       status: data ? 200 : 400,
@@ -24,7 +21,6 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-
 export async function addReferences(tenantId: string, projectId: string, files: any, datasource_id: string) {
   for (const file of files) {
     let data;
@@ -35,16 +31,19 @@ export async function addReferences(tenantId: string, projectId: string, files: 
       s3PostStoreHash: "",
       s3PostStoreTxHash: "",
       chainType: "",
-      chainId: ""
+      chainId: "",
+      status:""
     };
 
     const hashedData = {
       fileName: file.fileName,
       fileContent: file.fileContent
     };
-    const s3PreHashedData = await hashingAndStoreToBlockchain(hashedData,false);
+    const s3PreHashedData = await hashingAndStoreToBlockchain(hashedData, false);
     dataStoredToDb.chainType = s3PreHashedData.data?.chainType;
     dataStoredToDb.chainId = s3PreHashedData.data?.chainId;
+    dataStoredToDb.status = s3PreHashedData.data?.status;
+
     if (s3PreHashedData.error) {
       return {
         document: null,
@@ -56,6 +55,7 @@ export async function addReferences(tenantId: string, projectId: string, files: 
     dataStoredToDb.s3PreStoreTxHash = s3PreHashedData.data?.dataTxHash;
 
     console.log("s3PreStoreTxHash", s3PreHashedData.data?.dataTxHash);
+
     data = await addToS3Bucket(file.fileName, file.fileContent);
     if (data.data == null) {
       return {
@@ -73,7 +73,6 @@ export async function addReferences(tenantId: string, projectId: string, files: 
     // dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
     // dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.dataTxHash;
 
-
     // console.log("s3PostStorHash", s3PostHashedData.data?.dataHash);
     // console.log("s3PostStoreTxHash", s3PostHashedData.data?.dataTxHash);
     const ref = await addDocumentReference(
@@ -87,6 +86,13 @@ export async function addReferences(tenantId: string, projectId: string, files: 
       "null",
       dataStoredToDb
     );
+    if(ref.data != null){
+    const refTxHash = await addRefTransaction(tenantId,ref.data.id,dataStoredToDb.s3PreStoreHash, projectId,
+      dataStoredToDb.s3PreStoreTxHash,dataStoredToDb.chainId,dataStoredToDb.chainType,process.env["SOLANA_NETWORK"] ?? "",
+      dataStoredToDb.status);
+      console.log("trnasctionRefHash", refTxHash);
+
+    }
   }
 
   const updatedProject = await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
@@ -95,4 +101,3 @@ export async function addReferences(tenantId: string, projectId: string, files: 
 }
 
 
-  

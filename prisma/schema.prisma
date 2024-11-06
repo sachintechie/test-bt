@@ -333,6 +333,7 @@ model tenant {
   references       reference[]   
   organizations    organization[]
   projects         project[]
+  referencetransactions referencetransaction[]
 }
 
 enum productrarity {
@@ -434,6 +435,24 @@ model transaction {
   network               String?
   tenanttransactionid   String?
   callbackstatus        String?
+}
+
+model referencetransaction {
+  id                    String    @id @default(uuid())
+  tenantid              String
+  tenant                tenant?                     @relation(fields: [tenantid], references: [id])
+  walletaddress         String?
+  chaintype             String?
+  chainid               String?
+  txhash                String
+  status                String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  network               String?
+  refid                 String?
+  projectid             String?
+  hash                  String?
 }
 
 model contracttransaction {

@@ -133,17 +133,15 @@ model reference  {
   datasourceid      String?
   ingestionjobid    String?
   s3prestorehash    String?
-  s3prestoretxhash  String?
+  s3prestoretxhash  String? 
   s3poststorehash   String?
-  s3poststoretxhash String?
+  s3poststoretxhash String? 
   chaintype         String?
   chainid           String?
   completechunkhash String?
-  completechunktxhash String?
+  completechunktxhash String? 
   chunkshash        String?
-  chunkstxhash      String?
-    
-
+  chunkstxhash      String? 
 }
 
 model customer {

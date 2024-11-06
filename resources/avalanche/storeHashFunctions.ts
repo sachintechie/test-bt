@@ -280,7 +280,8 @@ export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean)
         dataHash,
         dataTxHash : dataTxHash?.data?.transactionId,
         chainId: dataTxHash?.data?.chainId,
-        chainType: dataTxHash?.data?.chainType
+        chainType: dataTxHash?.data?.chainType,
+        status: dataTxHash?.data?.status
       },
       error: null
     };

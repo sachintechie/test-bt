@@ -1,13 +1,8 @@
-import {  tenant } from "../db/models";
-import AWS from "aws-sdk";
+import { tenant } from "../db/models";
 
-const lambda = new AWS.Lambda();
-
-import {
-  createProject,
-  isProjectExist,
-} from "../db/adminDbFunctions";
-import {  ProjectType } from "@prisma/client";
+import { createProject, isProjectExist } from "../db/adminDbFunctions";
+import { ProjectType } from "@prisma/client";
+import { addReferencesLambda } from "../knowledgebase/commonFunctions";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
@@ -43,7 +38,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
- async function addProjectAndReference(
+async function addProjectAndReference(
   tenant: tenant,
   name: string,
   description: string,
@@ -68,10 +63,7 @@ export const handler = async (event: any, context: any) => {
     let datasource_id = BedRockDataSourceS3;
 
     if (project != null) {
-   
-          await addReferencesLambda(tenant.id, project.id, files, datasource_id);
-       
-       
+      await addReferencesLambda(tenant.id, project.id, files, datasource_id);
 
       return {
         project: project,
@@ -91,24 +83,3 @@ export const handler = async (event: any, context: any) => {
     };
   }
 }
-
-export async function addReferencesLambda(tenantId:string,projectId:string,files:any,datasource_id:string){
-  const event ={
-    tenantId: tenantId,
-    projectId: projectId,
-    files: files,
-    datasource_id: datasource_id
-  }
-
-  const params = {
-    FunctionName: "addReferences-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
-    InvocationType: "Event", // This makes the invocation asynchronous
-    Payload: JSON.stringify(event),
-  };
-
-  // Invoke the other Lambda function asynchronously
-  await lambda.invoke(params).promise();
-  
-
-}
-

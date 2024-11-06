@@ -1491,7 +1491,8 @@ export async function getProducts(offset: number, limit: number, value?: string,
       include: {
         category: true,
         productattributes: true,
-        inventories: true
+        inventories: true,
+        productmedia:true
       },
       skip: offset,
       take: limit
@@ -1759,6 +1760,7 @@ export async function createOrder(order: orders) {
   }
 }
 
+
 export async function getOrders(offset: number, itemsPerPage: number, value?: string, searchBy?: OrderFindBy, status?: string) {
   const prisma = await getPrismaClient();
 
@@ -1843,6 +1845,7 @@ export async function getOrders(offset: number, itemsPerPage: number, value?: st
     throw err;
   }
 }
+
 
 export async function updateOrderStatus(orderId: string, status: orderstatus) {
   const prisma = await getPrismaClient();
