@@ -1,800 +1,838 @@
-type AddRefToKnowledgeBase {
-  status: Int
-  data: [AddRefToKnowledgeBaseData]
-  error: AWSJSON
+input AddProjectAndReferenceInput {
+	name: String!
+	description: String
+	projectType: String!
+	organizationId: String!
+	files: [FileInput]
 }
 
-type DeleteRefToKnowledgeBase {
-  status: Int
-  data: AddRefToKnowledgeBaseData
-  error: AWSJSON
+type AddRefToKnowledgeBase {
+	status: Int
+	data: [AddRefToKnowledgeBaseData]
+	error: AWSJSON
 }
 
 type AddRefToKnowledgeBaseData {
-  id: String
-  createdat: String
-  depth: Int
-  size: String
-  ingested: Boolean
-  reftype: String
-  name: String
-  url: String
-  datasourceid: String
-  ingestionjobid: String
-  s3prestorehash: String
-  s3prestoretxhash: String
-  s3poststorehash: String
-  s3poststoretxhash: String
-  chaintype: String
-  chainid: String
-  projectid: String
-  referencestage: String
-  completechunkhash: String
-  completechunktxhash: String
-  chunkshash:String
-  chunkstxhash:String
+	id: String
+	createdat: String
+	depth: Int
+	size: String
+	ingested: Boolean
+	reftype: String
+	name: String
+	url: String
+	datasourceid: String
+	ingestionjobid: String
+	s3prestorehash: String
+	s3prestoretxhash: String
+	s3poststorehash: String
+	s3poststoretxhash: String
+	chaintype: String
+	chainid: String
+	projectid: String
+	referencestage: String
+	completechunkhash: String
+	completechunktxhash: String
+	chunkshash: String
+	chunkstxhash: String
 }
 
 input AddRefToKnowledgeBaseInput {
-  refType: String!
-  projectId: String!
-  files: [FileInput]!
-  depth: Int
-  websiteName: String
-  websiteUrl: String
+	refType: String!
+	projectId: String!
+	files: [FileInput]!
+	depth: Int
+	websiteName: String
+	websiteUrl: String
 }
 
 type AddSubAdmin {
-  status: Int
-  data: AddSubAdminData
-  error: AWSJSON
+	status: Int
+	data: AddSubAdminData
+	error: AWSJSON
 }
 
 type AddSubAdminData {
-  id: String
-  createdat: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
+	id: String
+	createdat: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
 }
 
 input AddSubAdminInput {
-  emailId: String!
-  name: String!
-  password: String!
+	emailId: String!
+	name: String!
+	password: String!
 }
 
 input AdminRecipient {
-  walletAddress: String
-  amount: Float
+	walletAddress: String
+	amount: Float
 }
 
 type AdminTransfer {
-  status: Int
-  data: AdminTransferData
-  error: AWSJSON
+	status: Int
+	data: AdminTransferData
+	error: AWSJSON
 }
 
 type AdminTransferData {
-  adminuserid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  status: String
-  transactionid: String
-  network: String
-  tenanttransactionid: String
+	adminuserid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	status: String
+	transactionid: String
+	network: String
+	tenanttransactionid: String
 }
 
 input AdminTransferInput {
-  senderWalletAddress: String!
-  recipients: [AdminRecipient]!
-  symbol: String!
-  chainType: String!
-  adminUserId: String!
-  tenantTransactionId: String!
+	senderWalletAddress: String!
+	recipients: [AdminRecipient]!
+	symbol: String!
+	chainType: String!
+	adminUserId: String!
+	tenantTransactionId: String!
 }
 
 type AdminUserData {
-  id: String
-  createdat: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
+	id: String
+	createdat: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
 }
 
 type AdminUserListData {
-  total: Int
-  totalPages: Int
-  users: [AdminUserData]
+	total: Int
+	totalPages: Int
+	users: [AdminUserData]
 }
 
 input BulkImportInput {
-  file: FileInput!
-}
-
-type CategoryData {
-  id: String!
-  name: String!
-  tenantid: String!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
-type CategoryResponse {
-  status: Int
-  data: CategoryData
-  error: AWSJSON
-}
-
-input CreateCategoryInput {
-  categoryName: String!
-}
-
-type CreateInventoryResponse {
-  status: Int
-  data: InventoryData
-  error: AWSJSON
-}
-
-input CreateProductInput {
-  name: String!
-  description: String
-  type: String
-  sku: String
-  categoryId: String!
-  rarity: ProductRarity
-  price: Float
-  isMintAble: Boolean
-  chainType: String
-  tokenType: String
-  quantity: Int
-  toAddress: String
-  contractAddress: String
-  metadata: AWSJSON
-  tokenId: Int
-  tags: [String]
-}
-
-input CreateProjectInput {
-  name: String!
-  description: String
-  projectType: String!
-  organizationId: String!
-}
-
-type CreateProjectResponse {
-  status: Int
-  data: ProjectData
-  error: AWSJSON
-}
-
-input CreateWalletInput {
-  tenantUserId: String!
-  chainType: String!
-}
-
-input DeleteInventoryInput {
-  inventoryId: String!
-}
-
-input DeleteProductInput {
-  productId: String
-}
-
-input GetAdminProductsInput {
-  page: Int
-  perPage: Int
-}
-
-input GetAdminTransactionInput {
-  tenantTransactionId: String!
-}
-
-type GetAdminWalletBalance {
-  status: Int
-  data: [GetAdminWalletBalanceData]
-  error: AWSJSON
-}
-
-type GetAdminWalletBalanceData {
-  walletaddress: String!
-  symbol: String
-  createdat: String
-  chaintype: String
-  contractaddress: String
-  balance: Float
-  tokenname: String
-}
-
-input GetAdminWalletBalanceInput {
-  walletAddress: String!
-  symbol: String
-}
-
-input GetCategoriesByTenantIdInput {
-  tenantId: String
-}
-
-input GetCategoryByIdInput {
-  categoryId: String
-}
-
-type GetInventoriesByProductIdIdResponse {
-  status: Int
-  data: [InventoryData]
-  error: AWSJSON
-  page: Int
-  perPage: Int
-  totalRecordsCount: Int
-  totalPageCount: Int
-}
-
-input GetInventoriesByProductIdInput {
-  productId: String!
-  page: Int
-  perPage: Int
-}
-
-input GetProductAttributesByProductIdInput {
-  productId: String!
-}
-
-type GetProductAttributesResponse {
-  status: Int
-  data: [ProductAttributeData]
-  error: AWSJSON
-}
-
-input GetProductByIdInput {
-  productId: String
-}
-
-input GetProductsByCategoryIdInput {
-  categoryId: String
-}
-
-type GetProductsResponse {
-  status: Int
-  data: [ProductData]
-  error: AWSJSON
-  page: Int
-  perPage: Int
-  totalRecordsCount: Int
-  totalPageCount: Int
-}
-
-type GetWallet {
-  status: Int
-  data: GetWalletData
-  error: AWSJSON
-}
-
-type GetWalletData {
-  customerid: String
-  walletaddress: String
-  createdat: String
-  chaintype: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
-}
-
-type ListAdminUsers {
-  status: Int
-  data: AdminUserListData
-  error: AWSJSON
-}
-
-type ListProject {
-  status: Int
-  data: ListProjectData
-  error: AWSJSON
-}
-
-type ListProjectData {
-  total: Int
-  totalPages: Int
-  projects: [ProjectData]
-}
-
-input ListProjectInput {
-  limit: Int!
-  pageNo: Int!
-  organizationId: String
-}
-
-type ListRefData {
-  id: String
-  createdat: String
-  depth: Int
-  size: String
-  ingested: Boolean
-  reftype: String
-  name: String
-  url: String
-  datasourceid: String
-  ingestionjobid: String
-  s3prestorehash: String
-  s3prestoretxhash: String
-  s3poststorehash: String
-  s3poststoretxhash: String
-  chaintype: String
-  chainid: String
-  referencestage: String
-  completechunkhash: String
-  completechunktxhash: String
-  chunkshash:String
-  chunkstxhash:String
-}
-
-input ListRefInput {
-  limit: Int!
-  pageNo: Int!
-  refType: String
-  projectId: String
-}
-
-type ListReference {
-  status: Int
-  data: ListReferenceData
-  error: AWSJSON
-}
-
-type ListReferenceData {
-  total: Int
-  totalPages: Int
-  refs: [ListRefData]
-}
-
-input ListWalletTokenInput {
-  walletAddress: String!
-  limit: Int!
-  pageNo: Int!
-}
-
-type ListWalletTransactions {
-  status: Int
-  data: TransactionListData
-  error: AWSJSON
-}
-
-input PaginationInput {
-  limit: Int!
-  pageNo: Int!
-}
-
-type ProductAttributeData {
-  id: String!
-  key: String!
-  value: String!
-  type: String!
-  productid: String!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-}
-
-input ProductAttributeInput {
-  productId: String!
-  data: [ProductAttributeInternalInput!]!
-}
-
-input ProductAttributeInternalInput {
-  key: String!
-  value: String!
-  type: String!
-}
-
-type ProductAttributeResponse {
-  status: Int
-  data: ProductAttributeData
-  error: AWSJSON
-}
-
-type CreateProductAttributeResponse {
-  status: Int
-  data: String
-  error: AWSJSON
-}
-
-type ProductData {
-  id: String!
-  name: String!
-  description: String
-  type: String
-  sku: String
-  categoryid: String!
-  rarity: ProductRarity
-  price: Float
-  status: ProductStatus
-  tenantid: String
-  isdeleted: Boolean
-  category: CategoryData!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
-  productattributes: [ProductAttributeData!]!
-  tags: [String]
-  productmedia: [MediaData]
-  totalquantity: Int
-  inventorystatus: String
-}
-
-type MediaData {
-  id:         String!   
-  entityid:   String
-  entitytype: String
-  url:        String
-  type:       String   
-  createdat:  AWSDateTime
-  updatedat:  AWSDateTime
-}
-
-enum ProductRarity {
-  NORMAL
-  RARE
-  EPIC
-  LEGENDARY
-  MYTHICAL
-}
-
-type ProductResponse {
-  status: Int
-  data: ProductData
-  error: AWSJSON
-}
-
-enum ProductStatus {
-  ACTIVE
-  INACTIVE
-}
-
-type ProjectData {
-  id: String
-  createdat: String
-  projecttype: String
-  projectstage: String
-  projectstatus: String
-  organizationid: String
-  name: String
-  description: String
-  isactive: Boolean
-  createdby: String
-}
-
-input FileInput {
-  fileName: String!
-  fileContent: String!
-  contentType: String!
-}
-
-input FilterInput {
-  operator: String!
-  value: Float!
-}
-
-input FilterInventoryInput {
-  filters: FilterInventoryInputData!
-}
-
-input FilterInventoryInputData {
-  inventoryId: String
-  productName: String
-  price: FilterInput
-  quantity: FilterInput
-}
-
-type SignIn {
-  status: Int
-  data: SignInData
-  error: AWSJSON
-}
-
-type SignInData {
-  id: String
-  createdat: String
-  tenantuserid: String
-  tenantid: String
-  emailid: String
-}
-
-input SigninInput {
-  tenantUserId: String!
-}
-
-type TransactionData {
-  customerid: String
-  walletaddress: String
-  receiverwalletaddress: String
-  chaintype: String
-  txhash: String
-  symbol: String
-  amount: Float
-  createdat: String
-  tokenid: String
-  tenantuserid: String
-  status: String
-  callbackstatus: String
-  id: String
-  network: String
-  tenanttransactionid: String
-}
-
-type TransactionListData {
-  total: Int
-  totalPages: Int
-  transactions: [TransactionData]
-}
-
-input UpdateCategoryInput {
-  categoryId: String!
-  categoryName: String!
-}
-
-type UpdateCategoryResponse {
-  status: Int
-  data: CategoryData
-  error: AWSJSON
-}
-
-input UpdateInventoryData {
-  inventoryCategory: String
-  price: Float
-  quantity: Int
-  ownershipNft: Boolean
-  smartContractAddress: String
-  tokenId: String
-}
-
-input UpdateInventoryInput {
-  inventoryId: String!
-  inventoryData: UpdateInventoryData!
-}
-
-input UpdateProductAttributeInput {
-  productId: String!
-  data: [UpdateProductAttributeInputData!]!
-}
-
-input UpdateProductAttributeInputData {
-  key: String!
-  value: String!
-}
-
-input UpdateProductInput {
-  productId: String!
-  productData: UpdateProductInputData!
-}
-
-input UpdateProductInputData {
-  name: String
-  description: String
-  type: String
-  sku: String
-  categoryId: String
-  rarity: ProductRarity
-  price: Float
-}
-
-type UpdateProductResponse {
-  status: Int
-  data: ProductData
-  error: AWSJSON
-}
-
-input UpdateProductStatusInput {
-  productId: String
-  status: ProductStatus
-}
-
-input CreateInventoryInput {
-  productId: String!
-  inventoryId: String!
-  inventoryCategory: String!
-  price: Float!
-  quantity: Int!
-  ownershipNft: Boolean
-  smartContractAddress: String
-  tokenId: String
-}
-
-type GetInventoryResponse {
-  status: Int
-  data: [InventoryData]
-  error: AWSJSON
-}
-
-type InventoryData {
-  id: String
-  inventoryid: String
-  productid: String
-  product: ProductData
-  inventorycategory: String
-  price: Float
-  quantity: Int
-  ownershipnft: Boolean
-  smartcontractaddress: String
-  tokenid: String
-  isdeleted: Boolean
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
+	file: FileInput!
 }
 
 type BulkImportResponse {
-  status: Int
-  data: String
-  error: AWSJSON
+	status: Int
+	data: String
+	error: AWSJSON
 }
 
-input SearchInventoryInput {
-  searchKeyword: String!
-}
-
-input DeleteRefToKnowledgeBaseInput {
-  refId: String!
-}
-
-input ManageProductMediaInput {
-  productId: String
-  filesToBeAdded: [FileInput!]
-  filesToBeDeleted: [String!]
-}
-
-type ManageProductMediaResponse {
-  status: Int
-  data: String
-  error: AWSJSON
-}
-
-input AddProjectAndReferenceInput {
-  name: String!
-  description: String
-  projectType: String!
-  organizationId: String!
-  files: [FileInput]
-}
-
-input ListProjectByIdInput {
-  projectId: String!
-  limit: Int!
-  pageNo: Int!
-}
-
-type ProjectAndReferenceResponse {
-  status: Int
-  data: ProjectAndReferenceData
-  error: AWSJSON
-}
-
-type ProjectAndReferenceData {
-  project: ProjectData
-  references: ListReferenceData
-}
-
-input GetProductsInput {
-  value: String
-  searchBy: ProductFindBy
-  status: ProductStatus
-  page: Int
-  perPage: Int
-}
-
-enum ProductFindBy {
-  PRODUCT
-  CATEGORY
-  TENANT
-}
-
-type GetProductsPaginationResponse {
-  status: Int
-  data: [ProductData]
-  page: Int
-  perPage: Int
-  totalRecordsCount: Int
-  totalPageCount: Int
-  error: AWSJSON
-}
-
-input GetCategoriesInput {
-  value: String
-  searchBy: CategoryFindBy
-  page: Int
-  perPage: Int
+type CategoryData {
+	id: String!
+	name: String!
+	tenantid: String!
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
 }
 
 enum CategoryFindBy {
-  CATEGORY
-  TENANT
+	CATEGORY
+	TENANT
 }
 
-type GetCategoriesResponse {
-  status: Int
-  data: [CategoryData]
-  page: Int
-  perPage: Int
-  totalRecordsCount: Int
-  totalPageCount: Int
-  error: AWSJSON
+type CategoryResponse {
+	status: Int
+	data: CategoryData
+	error: AWSJSON
 }
 
-input GetOwnershipByInventoryIdInput {
-  inventoryId: String!
+input CreateCategoryInput {
+	categoryName: String!
 }
 
-type GetOwnershipByInventoryIdResponse {
-  status: Int
-  data: GetOwnershipByInventoryIdData
-  error: AWSJSON
+input CreateInventoryInput {
+	productId: String!
+	inventoryId: String!
+	inventoryCategory: String!
+	price: Float!
+	quantity: Int!
+	ownershipNft: Boolean
+	smartContractAddress: String
+	tokenId: String
 }
 
-type GetOwnershipByInventoryIdData {
-  id: String
-  customerid: String
-  inventoryid: String
+type CreateInventoryResponse {
+	status: Int
+	data: InventoryData
+	error: AWSJSON
+}
+
+type CreateProductAttributeResponse {
+	status: Int
+	data: String
+	error: AWSJSON
+}
+
+input CreateProductInput {
+	name: String!
+	description: String
+	type: String
+	sku: String
+	categoryId: String!
+	rarity: ProductRarity
+	price: Float
+	isMintAble: Boolean
+	chainType: String
+	tokenType: String
+	quantity: Int
+	toAddress: String
+	contractAddress: String
+	metadata: AWSJSON
+	tokenId: Int
+	tags: [String]
+}
+
+input CreateProjectInput {
+	name: String!
+	description: String
+	projectType: String!
+	organizationId: String!
+}
+
+type CreateProjectResponse {
+	status: Int
+	data: ProjectData
+	error: AWSJSON
+}
+
+type CreateStageTypeData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+}
+
+input CreateStageTypeInput {
+	name: String!
+	description: String
+}
+
+type CreateStageTypeResponse {
+	status: Int
+	data: CreateStageTypeData
+	error: AWSJSON
+}
+
+type CreateStepTypeData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+}
+
+input CreateStepTypeInput {
+	name: String!
+	description: String
+}
+
+type CreateStepTypeResponse {
+	status: Int
+	data: CreateStepTypeData
+	error: AWSJSON
+}
+
+input CreateWalletInput {
+	tenantUserId: String!
+	chainType: String!
+}
+
+input DeleteInventoryInput {
+	inventoryId: String!
 }
 
 input DeleteProductAttributesInput {
-  productId: String!
-  attributeIds: [String!]!
+	productId: String!
+	attributeIds: [String!]!
 }
 
 type DeleteProductAttributesResponse {
-  status: Int
-  data: String
-  error: AWSJSON
+	status: Int
+	data: String
+	error: AWSJSON
+}
+
+input DeleteProductInput {
+	productId: String
+}
+
+type DeleteRefToKnowledgeBase {
+	status: Int
+	data: AddRefToKnowledgeBaseData
+	error: AWSJSON
+}
+
+input DeleteRefToKnowledgeBaseInput {
+	refId: String!
+}
+
+input FileInput {
+	fileName: String!
+	fileContent: String!
+	contentType: String!
+}
+
+input FilterInput {
+	operator: String!
+	value: Float!
+}
+
+input FilterInventoryInput {
+	filters: FilterInventoryInputData!
+}
+
+input FilterInventoryInputData {
+	inventoryId: String
+	productName: String
+	price: FilterInput
+	quantity: FilterInput
+}
+
+input GetAdminProductsInput {
+	page: Int
+	perPage: Int
+}
+
+input GetAdminTransactionInput {
+	tenantTransactionId: String!
+}
+
+type GetAdminWalletBalance {
+	status: Int
+	data: [GetAdminWalletBalanceData]
+	error: AWSJSON
+}
+
+type GetAdminWalletBalanceData {
+	walletaddress: String!
+	symbol: String
+	createdat: String
+	chaintype: String
+	contractaddress: String
+	balance: Float
+	tokenname: String
+}
+
+input GetAdminWalletBalanceInput {
+	walletAddress: String!
+	symbol: String
+}
+
+input GetCategoriesByTenantIdInput {
+	tenantId: String
+}
+
+input GetCategoriesInput {
+	value: String
+	searchBy: CategoryFindBy
+	page: Int
+	perPage: Int
+}
+
+type GetCategoriesResponse {
+	status: Int
+	data: [CategoryData]
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
+	error: AWSJSON
+}
+
+input GetCategoryByIdInput {
+	categoryId: String
+}
+
+type GetInventoriesByProductIdIdResponse {
+	status: Int
+	data: [InventoryData]
+	error: AWSJSON
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
+}
+
+input GetInventoriesByProductIdInput {
+	productId: String!
+	page: Int
+	perPage: Int
+}
+
+type GetInventoryResponse {
+	status: Int
+	data: [InventoryData]
+	error: AWSJSON
+}
+
+type GetOwnershipByInventoryIdData {
+	id: String
+	customerid: String
+	inventoryid: String
+}
+
+input GetOwnershipByInventoryIdInput {
+	inventoryId: String!
+}
+
+type GetOwnershipByInventoryIdResponse {
+	status: Int
+	data: GetOwnershipByInventoryIdData
+	error: AWSJSON
+}
+
+input GetProductAttributesByProductIdInput {
+	productId: String!
+}
+
+type GetProductAttributesResponse {
+	status: Int
+	data: [ProductAttributeData]
+	error: AWSJSON
+}
+
+input GetProductByIdInput {
+	productId: String
+}
+
+input GetProductsByCategoryIdInput {
+	categoryId: String
+}
+
+input GetProductsInput {
+	value: String
+	searchBy: ProductFindBy
+	status: ProductStatus
+	page: Int
+	perPage: Int
+}
+
+type GetProductsPaginationResponse {
+	status: Int
+	data: [ProductData]
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
+	error: AWSJSON
+}
+
+type GetProductsResponse {
+	status: Int
+	data: [ProductData]
+	error: AWSJSON
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
+}
+
+type GetWallet {
+	status: Int
+	data: GetWalletData
+	error: AWSJSON
+}
+
+type GetWalletData {
+	customerid: String
+	walletaddress: String
+	createdat: String
+	chaintype: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
+}
+
+type InventoryData {
+	id: String
+	inventoryid: String
+	productid: String
+	product: ProductData
+	inventorycategory: String
+	price: Float
+	quantity: Int
+	ownershipnft: Boolean
+	smartcontractaddress: String
+	tokenid: String
+	isdeleted: Boolean
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+}
+
+type ListAdminUsers {
+	status: Int
+	data: AdminUserListData
+	error: AWSJSON
+}
+
+type ListProject {
+	status: Int
+	data: ListProjectData
+	error: AWSJSON
+}
+
+input ListProjectByIdInput {
+	projectId: String!
+	limit: Int!
+	pageNo: Int!
+}
+
+type ListProjectData {
+	total: Int
+	totalPages: Int
+	projects: [ProjectData]
+}
+
+input ListProjectInput {
+	limit: Int!
+	pageNo: Int!
+	organizationId: String
+}
+
+type ListRefData {
+	id: String
+	createdat: String
+	depth: Int
+	size: String
+	ingested: Boolean
+	reftype: String
+	name: String
+	url: String
+	datasourceid: String
+	ingestionjobid: String
+	s3prestorehash: String
+	s3prestoretxhash: String
+	s3poststorehash: String
+	s3poststoretxhash: String
+	chaintype: String
+	chainid: String
+	referencestage: String
+	completechunkhash: String
+	completechunktxhash: String
+	chunkshash: String
+	chunkstxhash: String
+}
+
+input ListRefInput {
+	limit: Int!
+	pageNo: Int!
+	refType: String
+	projectId: String
+}
+
+type ListReference {
+	status: Int
+	data: ListReferenceData
+	error: AWSJSON
+}
+
+type ListReferenceData {
+	total: Int
+	totalPages: Int
+	refs: [ListRefData]
+}
+
+input ListWalletTokenInput {
+	walletAddress: String!
+	limit: Int!
+	pageNo: Int!
+}
+
+type ListWalletTransactions {
+	status: Int
+	data: TransactionListData
+	error: AWSJSON
+}
+
+input ManageProductMediaInput {
+	productId: String
+	filesToBeAdded: [FileInput!]
+	filesToBeDeleted: [String!]
+}
+
+type ManageProductMediaResponse {
+	status: Int
+	data: String
+	error: AWSJSON
+}
+
+type MediaData {
+	id: String!
+	entityid: String
+	entitytype: String
+	url: String
+	type: String
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+}
+
+input PaginationInput {
+	limit: Int!
+	pageNo: Int!
+}
+
+type ProductAttributeData {
+	id: String!
+	key: String!
+	value: String!
+	type: String!
+	productid: String!
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+}
+
+input ProductAttributeInput {
+	productId: String!
+	data: [ProductAttributeInternalInput!]!
+}
+
+input ProductAttributeInternalInput {
+	key: String!
+	value: String!
+	type: String!
+}
+
+type ProductAttributeResponse {
+	status: Int
+	data: ProductAttributeData
+	error: AWSJSON
+}
+
+type ProductData {
+	id: String!
+	name: String!
+	description: String
+	type: String
+	sku: String
+	categoryid: String!
+	rarity: ProductRarity
+	price: Float
+	status: ProductStatus
+	tenantid: String
+	isdeleted: Boolean
+	category: CategoryData!
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+	productattributes: [ProductAttributeData!]!
+	tags: [String]
+	productmedia: [MediaData]
+	totalquantity: Int
+	inventorystatus: String
+}
+
+enum ProductFindBy {
+	PRODUCT
+	CATEGORY
+	TENANT
+}
+
+enum ProductRarity {
+	NORMAL
+	RARE
+	EPIC
+	LEGENDARY
+	MYTHICAL
+}
+
+type ProductResponse {
+	status: Int
+	data: ProductData
+	error: AWSJSON
+}
+
+enum ProductStatus {
+	ACTIVE
+	INACTIVE
+}
+
+type ProjectAndReferenceData {
+	project: ProjectData
+	references: ListReferenceData
+}
+
+type ProjectAndReferenceResponse {
+	status: Int
+	data: ProjectAndReferenceData
+	error: AWSJSON
+}
+
+type ProjectData {
+	id: String
+	createdat: String
+	projecttype: String
+	projectstage: String
+	projectstatus: String
+	organizationid: String
+	name: String
+	description: String
+	isactive: Boolean
+	createdby: String
+}
+
+input SearchInventoryInput {
+	searchKeyword: String!
+}
+
+type SignIn {
+	status: Int
+	data: SignInData
+	error: AWSJSON
+}
+
+type SignInData {
+	id: String
+	createdat: String
+	tenantuserid: String
+	tenantid: String
+	emailid: String
+}
+
+input SigninInput {
+	tenantUserId: String!
+}
+
+type TransactionData {
+	customerid: String
+	walletaddress: String
+	receiverwalletaddress: String
+	chaintype: String
+	txhash: String
+	symbol: String
+	amount: Float
+	createdat: String
+	tokenid: String
+	tenantuserid: String
+	status: String
+	callbackstatus: String
+	id: String
+	network: String
+	tenanttransactionid: String
+}
+
+type TransactionListData {
+	total: Int
+	totalPages: Int
+	transactions: [TransactionData]
+}
+
+input UpdateCategoryInput {
+	categoryId: String!
+	categoryName: String!
+}
+
+type UpdateCategoryResponse {
+	status: Int
+	data: CategoryData
+	error: AWSJSON
+}
+
+input UpdateInventoryData {
+	inventoryCategory: String
+	price: Float
+	quantity: Int
+	ownershipNft: Boolean
+	smartContractAddress: String
+	tokenId: String
+}
+
+input UpdateInventoryInput {
+	inventoryId: String!
+	inventoryData: UpdateInventoryData!
+}
+
+input UpdateProductAttributeInput {
+	productId: String!
+	data: [UpdateProductAttributeInputData!]!
+}
+
+input UpdateProductAttributeInputData {
+	key: String!
+	value: String!
+}
+
+input UpdateProductInput {
+	productId: String!
+	productData: UpdateProductInputData!
+}
+
+input UpdateProductInputData {
+	name: String
+	description: String
+	type: String
+	sku: String
+	categoryId: String
+	rarity: ProductRarity
+	price: Float
+}
+
+type UpdateProductResponse {
+	status: Int
+	data: ProductData
+	error: AWSJSON
+}
+
+input UpdateProductStatusInput {
+	productId: String
+	status: ProductStatus
 }
 
 type Mutation {
-  AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
-  AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
-  AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
-  AdminTransfer(input: AdminTransferInput): AdminTransfer
-  CreateTokenAccount(input: AdminTransferInput): AdminTransfer
-  CreateCategory(input: CreateCategoryInput): CategoryResponse
-  CreateProduct(input: CreateProductInput): ProductResponse
-  CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
-  UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
-  UpdateProduct(input: UpdateProductInput): UpdateProductResponse
-  UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
-  UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
-  DeleteProduct(input: DeleteProductInput): ProductResponse
-  CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
-  UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
-  BulkImportInventory(input: BulkImportInput): BulkImportResponse
-  BulkImportProduct(input: BulkImportInput): BulkImportResponse
-  ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
-  DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
-  DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
-  CreateProject(input: CreateProjectInput): CreateProjectResponse
-  AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
-  DeleteProductAttributes(input:DeleteProductAttributesInput): DeleteProductAttributesResponse
+	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
+	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
+	AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+	AdminTransfer(input: AdminTransferInput): AdminTransfer
+	CreateTokenAccount(input: AdminTransferInput): AdminTransfer
+	CreateCategory(input: CreateCategoryInput): CategoryResponse
+	CreateProduct(input: CreateProductInput): ProductResponse
+	CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
+	UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
+	UpdateProduct(input: UpdateProductInput): UpdateProductResponse
+	UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
+	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
+	DeleteProduct(input: DeleteProductInput): ProductResponse
+	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
+	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportResponse
+	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
+	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
+	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
+	CreateProject(input: CreateProjectInput): CreateProjectResponse
+	AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
+	DeleteProductAttributes(input: DeleteProductAttributesInput): DeleteProductAttributesResponse
+	CreateStepType(input: CreateStepTypeInput): CreateStepTypeResponse
+	CreateStageType(input: CreateStageTypeInput): CreateStageTypeResponse
 }
 
 type Query {
-  AdminSignin(input: SigninInput): SignIn
-  CreateAdminWallet(input: CreateWalletInput): GetWallet
-  ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
-  ListAdminUsers(input: PaginationInput): ListAdminUsers
-  ListReference(input: ListRefInput): ListReference
-  GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
-  GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-  GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
-  GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
-  SearchInventory(input: SearchInventoryInput): GetInventoryResponse
-  FilterInventory(input: FilterInventoryInput): GetInventoryResponse
-  ListProject(input: ListProjectInput): ListProject
-  GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
-  GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
-  GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
-  GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-  GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
+	AdminSignin(input: SigninInput): SignIn
+	CreateAdminWallet(input: CreateWalletInput): GetWallet
+	ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+	ListAdminUsers(input: PaginationInput): ListAdminUsers
+	ListReference(input: ListRefInput): ListReference
+	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
+	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
+	GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
+	SearchInventory(input: SearchInventoryInput): GetInventoryResponse
+	FilterInventory(input: FilterInventoryInput): GetInventoryResponse
+	ListProject(input: ListProjectInput): ListProject
+	GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
+	GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
+	GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
+	GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 }
 
 schema {
-  query: Query
-  mutation: Mutation
+	query: Query
+	mutation: Mutation
 }
