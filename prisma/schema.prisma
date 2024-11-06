@@ -75,6 +75,14 @@ enum ProjectType {
   CUSTOM_CLOUD
 }
 
+enum ActionStatus {
+  INITIATED
+  ACTIVE
+  ERROR
+  CANCELLED
+  COMPLETED
+}
+
 enum ReferenceStage {
   DATA_SELECTION
   DATA_INGESTION
