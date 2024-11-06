@@ -43,7 +43,7 @@ export const newNodeJsFunction = (
     bundling: {
       minify: true, // Ensure code is minified
       externalModules: ['aws-sdk'], // Exclude AWS SDK from the bundled code
-      nodeModules: ["@prisma/client", "prisma"],
+      nodeModules: [],
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
           return []; // No additional commands before bundling
@@ -77,7 +77,7 @@ export const newMigrateNodeJsFunction = (scope: Construct, id: string, resourceP
     securityGroups: getSecurityGroups(scope),
     role: getLambdaRole(scope),
     bundling: {
-      nodeModules: ["@prisma/client", "prisma"],
+      nodeModules: [],
       minify: true,
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
