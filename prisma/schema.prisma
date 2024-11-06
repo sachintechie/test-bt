@@ -386,7 +386,7 @@ model product {
 
 model productattribute {
   id        String    @id @default(uuid())
-  key       String
+  key       String    @unique
   value     String
   type      String
   productid String
