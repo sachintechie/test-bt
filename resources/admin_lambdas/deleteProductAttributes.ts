@@ -1,12 +1,12 @@
-import { createProductAttributes } from "../db/adminDbFunctions";
+import { deleteProductAttributes } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const { productId, data } = event.arguments?.input;
+    const { productId, attributeIds } = event.arguments?.input;
 
-    if (!productId || !data || !Array.isArray(data) || data.length === 0) {
+    if (!productId || !attributeIds || !Array.isArray(attributeIds) || attributeIds.length === 0) {
       return {
         status: 400,
         data: null,
@@ -14,23 +14,16 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const attributes = data.map(({ key, value, type }) => ({
-      key,
-      value,
-      type,
-      productid: productId
-    }));
-
-    const result = await createProductAttributes(attributes);
+    const result = await deleteProductAttributes(productId, attributeIds);
     console.log(result);
 
     return {
       status: 200,
-      data: `Successfully created ${result.count} attributes`,
+      data: `Successfully deleted ${result.count} attributes`,
       error: null
     };
   } catch (error) {
-    console.error("Error creating attribute:", error);
+    console.error("Error deleting attributes:", error);
     let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;

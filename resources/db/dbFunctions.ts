@@ -1491,7 +1491,8 @@ export async function getProducts(offset: number, limit: number, value?: string,
       include: {
         category: true,
         productattributes: true,
-        inventories: true
+        inventories: true,
+        productmedia:true
       },
       skip: offset,
       take: limit
@@ -2292,10 +2293,7 @@ export async function getOwnershipByInventoryId(inventoryId: string) {
     throw new Error("No seller found for this inventory");
   }
 
-  return {
-    message: "Ownership transferred successfully",
-    sellerOwnership
-  };
+  return sellerOwnership
 }
 
 export async function getOwnershipDetailByCustomerId(customerId: string) {
