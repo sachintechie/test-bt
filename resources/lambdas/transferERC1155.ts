@@ -32,7 +32,7 @@ export const handler = async (event: any, context: any) => {
 
 };
 
-export const transferERC1155 = async (toAddress: string, tokenId: number, amount: number, chain: string, contractAddress: string, tenantId: string,provider:string,providerId:string) => {
+export const transferERC1155 = async (toAddress: string, tokenId: number, amount: number, chain: string, contractAddress: string, tenantId: string,provider?:string,providerId?:string) => {
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
@@ -87,8 +87,8 @@ export const transferERC1155 = async (toAddress: string, tokenId: number, amount
     data: {
       txhash: receipt.transactionHash.toString(),
       toaddress: toAddress,
-      provider:provider,
-      providerid:providerId,
+      provider:provider ?? "",
+      providerid:providerId ??"",
     }
   });
 

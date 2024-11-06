@@ -19,6 +19,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
+import { net } from "web3";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -822,6 +823,42 @@ export async function addReferenceToDb(
     };
   }
 }
+
+export async function addRefTransaction(tenantId: string, refId: string, hash: string,
+   projectId: string, txHash: string, chainId: string,chainType: string,network: string,status: string
+
+) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const newRefTx = await prisma.referencetransaction.create({
+      data: {
+        tenantid: tenantId as string,
+        projectid: projectId,
+        refid: refId,
+        hash: hash,
+        txhash: txHash,
+        chainid: chainId,
+        chaintype: chainType,
+        network:network,
+        status: status,
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString(),
+        isactive: true,
+      }
+    });
+    return {
+      data: newRefTx,
+      error: null
+    }
+  } catch (err) {
+    return {
+      data: null,
+      error: err
+    }
+  }
+}
+
 
 export async function addDocumentReference(
   tenantId: string,
