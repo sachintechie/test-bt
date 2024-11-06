@@ -1,15 +1,11 @@
 import {
-  AuthType,
   CallbackStatus,
   customer,
-  StakeAccountStatus,
   tenant,
   updatecustomer,
   product,
   productattribute,
   productcategory,
-  productfilter,
-  updateproductattribute,
   ProductStatus,
   RefType,
   productinventory,
@@ -19,7 +15,6 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
-import { net } from "web3";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -155,6 +150,112 @@ export async function createProject(
     throw err;
   }
 }
+
+export async function createStage(
+  tenant: tenant,
+  name: string,
+  description: string,stageTypeId:string,projectId:string
+) {
+  console.log("Creating admin stage", tenant.id);
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.stage.create({
+      data: {
+        name: name,
+        description: description,
+        tenantid: tenant.id,
+        isactive: true,
+        stagetypeid :stageTypeId,
+        status: ActionStatus.INITIATED,
+        projectid:projectId,
+        stageSequence: 1,
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createStep(
+  tenant: tenant,
+  name: string,
+  description: string,stepTypeId:string,stageId:string
+) {
+  console.log("Creating admin stage", tenant.id);
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.step.create({
+      data: {
+        name: name,
+        description: description,
+        tenantid: tenant.id,
+        isactive: true,
+        steptypeid :stepTypeId,
+        stageid:stageId,
+        status: ActionStatus.INITIATED,
+
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createStepType(
+  tenant: tenant,
+  name: string,
+  description: string
+) {
+  console.log("Creating admin stage", tenant.id);
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.steptype.create({
+      data: {
+        name: name,
+        description: description,
+        tenantid: tenant.id,
+        isactive: true,
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createStageType(
+  tenant: tenant,
+  name: string,
+  description: string
+) {
+  console.log("Creating admin stage", tenant.id);
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.stagetype.create({
+      data: {
+        name: name,
+        description: description,
+        tenantid: tenant.id,
+        isactive: true,
+        createdat: new Date().toISOString(),
+        createdby: tenant.adminuserid ?? ""
+      }
+    });
+    return newProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 
 export async function createWalletAndKey(org: any, cubistUserId: string, chainType: string, customerId: string, key?: any) {
   try {
@@ -967,6 +1068,86 @@ export async function isProjectExist(projectType: ProjectType, name: string, org
     return {
       isExist: true,
       error: "Project is already added with this name"
+    };
+  } else {
+    return {
+      isExist: false,
+      error: null
+    };
+  }
+}
+
+export async function isStageExist( name: string) {
+  const prisma = await getPrismaClient();
+  const existingProject = await prisma.stage.findFirst({
+    where: {
+      name: name
+    }
+  });
+  if (existingProject) {
+    return {
+      isExist: true,
+      error: "Stage is already added with this name"
+    };
+  } else {
+    return {
+      isExist: false,
+      error: null
+    };
+  }
+}
+
+export async function isStageTypeExist( name: string) {
+  const prisma = await getPrismaClient();
+  const existing = await prisma.stagetype.findFirst({
+    where: {
+      name: name
+    }
+  });
+  if (existing) {
+    return {
+      isExist: true,
+      error: "Stage Type is already added with this name"
+    };
+  } else {
+    return {
+      isExist: false,
+      error: null
+    };
+  }
+}
+
+export async function isStepExist( name: string) {
+  const prisma = await getPrismaClient();
+  const existing = await prisma.step.findFirst({
+    where: {
+      name: name
+    }
+  });
+  if (existing) {
+    return {
+      isExist: true,
+      error: "Step is already added with this name"
+    };
+  } else {
+    return {
+      isExist: false,
+      error: null
+    };
+  }
+}
+
+export async function isStepTypeExist( name: string) {
+  const prisma = await getPrismaClient();
+  const existing = await prisma.steptype.findFirst({
+    where: {
+      name: name
+    }
+  });
+  if (existing) {
+    return {
+      isExist: true,
+      error: "Step Type is already added with this name"
     };
   } else {
     return {
