@@ -204,12 +204,7 @@ jobs:
     if: github.ref == 'refs/heads/ai-sovereignty-dev'
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Clear temporary files
-        run:  sudo rm -rf /home/runner/work/_temp/*
-              sudo rm -rf /home/runner/work/_actions/*
-              sudo rm -rf /home/runner/_diag/*  
+        uses: actions/checkout@v3 
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
