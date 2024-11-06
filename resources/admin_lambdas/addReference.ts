@@ -4,6 +4,7 @@ import { S3 } from 'aws-sdk';
 import { Readable } from "stream";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 import { hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
+import { addToS3Bucket } from "../knowledgebase/commonFunctions";
 
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || '';
@@ -126,55 +127,7 @@ async function handleWebsiteReference(tenant: tenant, websiteUrl: string, websit
   };
 }
 
-async function addToS3Bucket(fileName: string, fileContent: string) {
-    try{
-  if (!fileName || !fileContent) throw new Error("File name or content is missing");
 
-  const params = { Bucket: bucketName, Key: fileName, Body: Buffer.from(fileContent, "base64") };
-  await s3.putObject(params).promise();
 
-  const s3Params = { Bucket: bucketName, Key: fileName };
-  const s3Details = await s3.getObject(s3Params).promise();
 
-  const objectContent = await handleS3Content(s3Details.Body);
-  const size = formatBytes(s3Details.ContentLength || 0);
-
-  return { data: { fileName, size, url: s3Details.ETag, s3Object: objectContent, contentType: s3Details.ContentType },error:null };
-    }catch(e){
-        console.log(e);
-        return {error:e};
-    }
-}
-
-async function handleS3Content(body: any) {
-  if (Buffer.isBuffer(body)) {
-    return body.toString('base64');
-  } else if (typeof body === "string") {
-    return Buffer.from(body).toString('base64');
-  } else if (body instanceof Readable) {
-    return (await streamToBuffer(body)).toString('base64');
-  }
-  throw new Error("Unexpected type for s3Details.Body");
-}
-
-// Helper function to convert stream to Buffer
-const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
-    const chunks: Uint8Array[] = [];
-    for await (const chunk of stream) {
-      chunks.push(chunk);
-    }
-    return Buffer.concat(chunks);
-  };
-  
-  // Helper function to format bytes
-  async function formatBytes(bytes: number, decimals = 2) {
-    if (bytes === 0) return "0 Bytes";
-  
-    const k = 1024;
-    const dm = decimals < 0 ? 0 : decimals;
-    const sizes = ["Bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-  
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + " " + sizes[i];
-  }
   
