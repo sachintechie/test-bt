@@ -14,7 +14,7 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
-import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
+import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -163,12 +163,11 @@ export async function createStage(
       data: {
         name: name,
         description: description,
-        tenantid: tenant.id,
         isactive: true,
         stagetypeid :stageTypeId,
         status: ActionStatus.INITIATED,
         projectid:projectId,
-        stageSequence: 1,
+        stagesequence: 1,
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
       }
@@ -191,12 +190,10 @@ export async function createStep(
       data: {
         name: name,
         description: description,
-        tenantid: tenant.id,
         isactive: true,
         steptypeid :stepTypeId,
         stageid:stageId,
         status: ActionStatus.INITIATED,
-
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
       }

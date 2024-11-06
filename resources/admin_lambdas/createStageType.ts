@@ -1,6 +1,6 @@
 import { tenant } from "../db/models";
-import { createProject, createStageType, isProjectExist, isStageExist, isStageTypeExist } from "../db/adminDbFunctions";
-import { ProjectType } from "@prisma/client";
+import {  createStageType, isStageTypeExist } from "../db/adminDbFunctions";
+
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {

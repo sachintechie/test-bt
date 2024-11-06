@@ -66,7 +66,64 @@ model project {
   createdby         String
   adminUsers        adminuser[]
   references        reference[]
+  stages            stage[]
 }
+
+model stage {
+  id                String             @id @default(uuid())
+  name              String       
+  description       String
+  stagetypeid       String
+  stagetype         stagetype @relation(fields: [stagetypeid], references: [id])
+  status            ActionStatus
+  projectid         String
+  project           project @relation(fields: [projectid], references: [id])
+  stagesequence     Int
+  isactive          Boolean
+  createdat         String
+  createdby         String
+  steps             step[]
+}
+
+model step {
+  id                String             @id @default(uuid())
+  name              String       
+  description       String
+  steptypeid        String
+  steptype          steptype @relation(fields: [steptypeid], references: [id])
+  status            ActionStatus
+  stageid           String
+  stage             stage  @relation(fields: [stageid],references:[id])
+  isactive          Boolean
+  createdat         String
+  createdby         String
+}
+
+model stagetype {
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  createdby         String
+  stages            stage[]
+}
+
+model steptype {
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  createdby         String
+  steps             step[]
+}
+
+
 
 enum ProjectType {
   ON_PREM
@@ -342,6 +399,8 @@ model tenant {
   organizations    organization[]
   projects         project[]
   referencetransactions referencetransaction[]
+  steptypes steptype[]
+  stagetypes stagetype[]
 }
 
 enum productrarity {
