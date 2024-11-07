@@ -80,6 +80,7 @@ model stage {
   project           project @relation(fields: [projectid], references: [id])
   stagesequence     Int
   isactive          Boolean
+  isdeleted         Boolean
   createdat         String
   createdby         String
   steps             step[]
@@ -95,6 +96,20 @@ model step {
   stageid           String
   stage             stage  @relation(fields: [stageid],references:[id])
   isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  stepdetails       stepdetail[]
+}
+
+model stepdetail {
+  id                String             @id @default(uuid())
+  stepid            String
+  step              step @relation(fields: [stepid], references: [id])
+  status            ActionStatus
+  metadata          String
+  isactive          Boolean
+  isdeleted         Boolean
   createdat         String
   createdby         String
 }
