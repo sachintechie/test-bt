@@ -172,6 +172,7 @@ model customer {
   productreviews    productreview[]
   collections       productcollection[] 
   productownerships productownership[]
+  cart              productcart[]
 }
 
 model adminuser {
@@ -611,6 +612,7 @@ model productinventory {
   updatedat            DateTime? @updatedAt
   ownerships           productownership[] @relation("InventoryOwnerships")
   orders               orderitem[]        @relation("InventoryOrderItems")
+  cart                 productcart[]      @relation("InventoryCart")
 }
 
 model orders {
