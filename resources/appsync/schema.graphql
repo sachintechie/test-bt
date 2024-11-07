@@ -1032,6 +1032,27 @@ type InventoryDetails {
   updatedat: AWSDateTime
 }
 
+input CartInput {
+inventoryId: String
+quantity: Int
+}
+
+type CartResponse {
+  status: Int
+  data: CartData
+  error: AWSJSON
+}
+
+type CartData {
+  id: String
+  inventoryid: String
+  buyerid: String
+  totalprice: Float
+  quantity: Int
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1048,6 +1069,7 @@ type Mutation {
   RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
   StoreHash(input: StoreHashInput): StoreHash
   StoreHashOnSubnet(input: StoreHashInput): StoreHash
+  AddToCart(input: CartInput): CartResponse
 }
 
 type Query {
