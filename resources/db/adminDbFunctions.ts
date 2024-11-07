@@ -152,11 +152,11 @@ export async function createProject(
 }
 
 export async function createStage(
-  tenant: tenant,
+  tenantUserId: string,
   name: string,
   description: string,stageTypeId:string,projectId:string
 ) {
-  console.log("Creating admin stage", tenant.id);
+  console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
     const newProject = await prisma.stage.create({
@@ -164,12 +164,13 @@ export async function createStage(
         name: name,
         description: description,
         isactive: true,
+        isdeleted: false,
         stagetypeid :stageTypeId,
         status: ActionStatus.INITIATED,
         projectid:projectId,
         stagesequence: 1,
         createdat: new Date().toISOString(),
-        createdby: tenant.adminuserid ?? ""
+        createdby: tenantUserId
       }
     });
     return newProject;
@@ -178,12 +179,71 @@ export async function createStage(
   }
 }
 
+export async function getStageType(name : string){
+  try {
+    const prisma = await getPrismaClient();
+    const stageType = await prisma.stagetype.findFirst({
+      where: {
+        name: name,
+        isdeleted: false
+      }
+    });
+    return stageType;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getStageDetails(projectId : string,stageTypeId:string){
+  try {
+    const prisma = await getPrismaClient();
+    const stage = await prisma.stage.findFirst({
+      where: {
+        projectid: projectId,
+        stagetypeid: stageTypeId
+      },include:{steps:true}
+    });
+    return stage;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getStepDetails(stepId : string){
+  try {
+    const prisma = await getPrismaClient();
+    const stage = await prisma.stepdetail.findMany({
+      where: {
+        stepid: stepId
+      }
+    });
+    return stage;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getStepType(name : string){
+  try {
+    const prisma = await getPrismaClient();
+    const stageType = await prisma.steptype.findFirst({
+      where: {
+        name: name,
+        isdeleted: false
+      }
+    });
+    return stageType;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function createStep(
-  tenant: tenant,
+  tenantUserId: string,
   name: string,
   description: string,stepTypeId:string,stageId:string
 ) {
-  console.log("Creating admin stage", tenant.id);
+  console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
     const newProject = await prisma.step.create({
@@ -191,11 +251,37 @@ export async function createStep(
         name: name,
         description: description,
         isactive: true,
+        isdeleted: false,
         steptypeid :stepTypeId,
         stageid:stageId,
         status: ActionStatus.INITIATED,
         createdat: new Date().toISOString(),
-        createdby: tenant.adminuserid ?? ""
+        createdby: tenantUserId
+      }
+    });
+    return newProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function createStepDetails(
+  tenantUserId: string,
+  metaData: string,
+  stepId: string
+) {
+  console.log("Creating admin stage");
+  try {
+    const prisma = await getPrismaClient();
+    const newProject = await prisma.stepdetail.create({
+      data: {
+        isactive: true,
+        stepid :stepId,
+        status: ActionStatus.INITIATED,
+        isdeleted: false,
+        metadata:metaData,
+        createdat: new Date().toISOString(),
+        createdby: tenantUserId
       }
     });
     return newProject;
