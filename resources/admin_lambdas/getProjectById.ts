@@ -8,11 +8,15 @@ export const handler = async (event: any) => {
     const data = await getProject(event.identity.resolverContext as tenant, event.arguments?.input?.projectId,
       event.arguments.input.limit, event.arguments.input.pageNo
     );
-    return {
+    const projectData = {
       status: data.project != null ? 200 : 400,
       data: data.project,
       error: data.project == null ? data.error : null
     };
+
+  console.log("project", projectData);
+  
+      return projectData;
   } catch (err) {
     console.log("In catch Block Error", err);
     return {
@@ -36,7 +40,7 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
     }
     else{
       return {
-        project: project.data,
+        project: project.data?.project,
         error: null
       };
     }

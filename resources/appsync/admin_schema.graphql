@@ -481,8 +481,6 @@ type ListProject {
 
 input ListProjectByIdInput {
 	projectId: String!
-	limit: Int!
-	pageNo: Int!
 }
 
 type ListProjectData {
@@ -538,6 +536,33 @@ type ListReferenceData {
 	total: Int
 	totalPages: Int
 	refs: [ListRefData]
+}
+
+type ListStageTypeAndStepTypeData {
+	total: Int
+	totalPages: Int
+	data: [ListStageTypeData]
+}
+
+input ListStageTypeAndStepTypeInput {
+	limit: Int!
+	pageNo: Int!
+	type: String!
+}
+
+type ListStageTypeAndStepTypeResponse {
+	status: Int
+	data: ListStageTypeAndStepTypeData
+	error: AWSJSON
+}
+
+type ListStageTypeData {
+	id: String
+	name: String
+	isactive: Boolean
+	isdeleted: Boolean
+	description: String
+	createdat: String
 }
 
 input ListWalletTokenInput {
@@ -653,14 +678,23 @@ enum ProductStatus {
 	INACTIVE
 }
 
-type ProjectAndReferenceData {
-	project: ProjectData
-	references: ListReferenceData
+type ProjectAndStepData {
+	id: String
+	createdat: String
+	projecttype: String
+	projectstage: String
+	projectstatus: String
+	organizationid: String
+	name: String
+	description: String
+	isactive: Boolean
+	createdby: String
+	stages: [StageData]
 }
 
-type ProjectAndReferenceResponse {
+type ProjectAndStepsResponse {
 	status: Int
-	data: ProjectAndReferenceData
+	data: ProjectAndStepData
 	error: AWSJSON
 }
 
@@ -697,6 +731,41 @@ type SignInData {
 
 input SigninInput {
 	tenantUserId: String!
+}
+
+type StageData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+	isactive: Boolean
+	isdeleted: Boolean
+	stagetypeid: String
+	status: String
+	stagesequence: Int
+	steps: [StepData]
+}
+
+type StepData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+	isactive: Boolean
+	isdeleted: Boolean
+	status: String
+	stageid: String
+	stepdetails: [StepDetailsData]
+}
+
+type StepDetailsData {
+	id: String
+	stepid: String
+	status: String
+	isactive: Boolean
+	isdeleted: Boolean
+	createdat: String
+	metadata: AWSJSON
 }
 
 type TransactionData {
@@ -825,41 +894,12 @@ type Query {
 	SearchInventory(input: SearchInventoryInput): GetInventoryResponse
 	FilterInventory(input: FilterInventoryInput): GetInventoryResponse
 	ListProject(input: ListProjectInput): ListProject
-	GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
+	GetProjectById(input: ListProjectByIdInput): ProjectAndStepsResponse
 	GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
 	GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
 	GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
-}
-
-input ListStageTypeAndStepTypeInput{
-limit: Int!
-pageNo: Int!
-type: String!
-}
-
-type ListStageTypeAndStepTypeResponse{
-status: Int
-data: ListStageTypeAndStepTypeData
-error: AWSJSON
-}
-
-
-
-type ListStageTypeAndStepTypeData {
-	total: Int
-	totalPages: Int
-	data: [ListStageTypeData]
-}
-
-type ListStageTypeData {
-	id: String
-	name: String
-	isactive: Boolean
-	isdeleted: Boolean
-	description: String
-	createdat: String
 }
 
 schema {
