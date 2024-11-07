@@ -6,9 +6,9 @@ import { syncKb } from "./scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 
-export async function addReferencesLambda(tenantId: string, projectId: string, files: any, datasource_id: string) {
+export async function addReferencesLambda(tenantUserId: string, projectId: string, files: any, datasource_id: string) {
   const event = {
-    tenantId: tenantId,
+    tenantUserId: tenantUserId,
     projectId: projectId,
     files: files,
     datasource_id: datasource_id

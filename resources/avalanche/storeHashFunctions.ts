@@ -139,7 +139,27 @@ export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean)
     };
   }
 }
+export async function hashing(data: any) {
+  try {
 
+    const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
+    console.log("dataHash", dataHash);
+    
+    return {
+      data: {
+        dataHash
+      },
+      error: null
+    };
+  } catch (error) {
+    // Handle any errors
+    console.log("Error: ", error);
+    return {
+      data: null,
+      error: error
+    };
+  }
+}
 
 export async function storeHashOnSubnet(hash: string) {
   try {

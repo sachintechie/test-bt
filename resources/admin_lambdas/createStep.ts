@@ -47,7 +47,7 @@ async function addStep(tenant: tenant, name: string, description: string,stepTyp
       };
     }
 
-    const step = await createStep(tenant, name, description,stepTypeId,stageId);
+    const step = await createStep(tenant.adminuserid ?? "", name, description,stepTypeId,stageId);
 
     return {
       step: step,

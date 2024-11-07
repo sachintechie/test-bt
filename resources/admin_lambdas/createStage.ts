@@ -48,7 +48,7 @@ async function addStage(tenant: tenant, name: string, description: string,stageT
       };
     }
 
-    const stage = await createStage(tenant, name, description,stageTypeId,projectId );
+    const stage = await createStage(tenant.adminuserid??"", name, description,stageTypeId,projectId );
 
     return {
       stage: stage,

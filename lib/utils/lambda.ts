@@ -43,6 +43,7 @@ export const newNodeJsFunction = (
     bundling: {
       minify: true, // Ensure code is minified
       nodeModules: [],
+      externalModules: [],
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
           return []; // No additional commands before bundling
@@ -77,6 +78,7 @@ export const newMigrateNodeJsFunction = (scope: Construct, id: string, resourceP
     role: getLambdaRole(scope),
     bundling: {
       nodeModules: [],
+      externalModules: [],
       minify: true,
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
