@@ -139,7 +139,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
 
 
             // Step 2: Hash the S3 file data
-            const s3File = { fileName: getDataFromS3?.data?.fileName, fileContent: getDataFromS3?.data?.s3Object };
+            const s3File = { fileName: getDataFromS3?.data?.fileName, fileContent: getDataFromS3?.data?.content };
             const hash = await hashing(s3File);
             const hashedData = {
               "hash": hash.data?.dataHash,
