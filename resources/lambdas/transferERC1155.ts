@@ -82,6 +82,9 @@ export const transferERC1155 = async (toAddress: string, tokenId: number, amount
       tokentype: "ERC1155",
     }
   });
+  if(!providerId && provider==='moonpay'){
+    providerId=receipt.transactionHash.toString()
+  }
 
   await prisma.paymenttransaction.create({
     data: {
