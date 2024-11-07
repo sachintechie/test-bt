@@ -54,6 +54,7 @@ export const newNodeJsFunction = (
         afterBundling(inputDir: string, outputDir: string): string[] {
           return [
             `npx prisma generate --schema=${outputDir}/prisma/schema.prisma`, // Generate Prisma client
+            `rm -rf ${outputDir}/node_modules/@prisma/engines`, // Remove unnecessary @prisma/engines folder
             `cp ${inputDir}/package.json ${outputDir}/node_modules/`, // Copy package.json
             `cp ${inputDir}/package-lock.json ${outputDir}/node_modules/`, // Copy package-lock.json
           ];
