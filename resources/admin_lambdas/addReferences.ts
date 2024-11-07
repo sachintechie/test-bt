@@ -60,8 +60,11 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
             await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
 
             // Step 2: Hash the file data
-            const hashedData = await hashing(fileData);
-            await createStepDetails(tenantUserId, JSON.stringify(hashedData.data?.dataHash), step2.id);
+            const hash = await hashing(fileData);
+            const hashedData = {
+              "hash": hash.data?.dataHash,
+            }
+            await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
             // Step 3: Store the hashed data on the blockchain
             const blockchainHashedData = await hashingAndStoreToBlockchain(fileData, false);
@@ -120,14 +123,19 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
           for (const stepDetail of stepDetails) {
             const data = JSON.parse(stepDetail.metadata);
             const getDataFromS3 = await getS3Data(data.fileName);
+            console.log("getDataFromS3", getDataFromS3);
 
             // Step 1: Read file from S3
             await createStepDetails(tenantUserId, JSON.stringify(getDataFromS3.data), step1.id);
 
+
             // Step 2: Hash the S3 file data
             const s3File = { fileName: getDataFromS3?.data?.fileName, fileContent: getDataFromS3?.data?.s3Object };
-            const hashedData = await hashing(s3File);
-            await createStepDetails(tenantUserId, JSON.stringify(hashedData.data?.dataHash), step2.id);
+            const hash = await hashing(s3File);
+            const hashedData = {
+              "hash": hash.data?.dataHash,
+            }
+            await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
             // Step 3: Store the hashed data on the blockchain
             const blockchainHashedData = await hashingAndStoreToBlockchain(s3File, false);

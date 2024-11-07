@@ -63,7 +63,7 @@ async function addProjectAndReference(
     let datasource_id = BedRockDataSourceS3;
 
     if (project != null) {
-      await addReferencesLambda(tenant.adminuserid??"", project.id, files, datasource_id);
+      await addReferencesLambda(tenant.adminuserid??"", project.id, files);
 
       return {
         project: project,
