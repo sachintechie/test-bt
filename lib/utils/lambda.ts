@@ -20,7 +20,7 @@ export const newNodeJsFunction = (
 ) => {
   // Add Prisma to a Lambda layer to avoid bundling Prisma in each Lambda function
   const prismaLayer = new lambda.LayerVersion(scope, `${id}-PrismaLayer`, {
-    code: lambda.Code.fromAsset(path.join(__dirname, "../layers/node_modules/@prisma/client")), // Assumed path to pre-built Prisma layer
+    code: lambda.Code.fromAsset(path.join(__dirname, "../layers/prisma")), // Assumed path to pre-built Prisma layer
     compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
     description: "Prisma ORM Layer for Lambda functions",
   });
