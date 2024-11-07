@@ -81,14 +81,22 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
     const stageType2 = await getStageType("Data Ingestion");
     if (stageType2) {
       const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId);
+        // Retrieve details from the previous ingestion stage
+        const sourceStageDetails = await getStageDetails(projectId, stageType?.id || "");
+        if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
+          const fileUploadStepId = sourceStageDetails.steps.filter(step => step.name === "File upload from frontend")[0].id;
+          const stepDetails = await getStepDetails(fileUploadStepId);
+
       if (stage2) {
         const stepType = await getStepType("Upload to S3");
 
         if (stepType) {
           const step1 = await createStep(tenantUserId, "Upload to S3", "Upload to S3", stepType.id, stage2.id);
-          for (const file of files) {
+          for (const stepDetail of stepDetails) {
+            const data = JSON.parse(stepDetail.metadata);
+
             // Upload file content to S3
-            const s3Data = await addToS3Bucket(file.fileName, file.fileContent);
+            const s3Data = await addToS3Bucket(data.fileName, data.fileContent);
             await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id);
           }
 
@@ -96,6 +104,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
           await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
         }
       }
+    }
     }
 
     // Stage 3: Data Storage
