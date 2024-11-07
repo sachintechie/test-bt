@@ -841,7 +841,7 @@ type: String!
 
 type ListStageTypeAndStepTypeResponse{
 status: Int
-data: [ListStageTypeAndStepTypeData]
+data: ListStageTypeAndStepTypeData
 error: AWSJSON
 }
 
@@ -850,7 +850,7 @@ error: AWSJSON
 type ListStageTypeAndStepTypeData {
 	total: Int
 	totalPages: Int
-	refs: [ListStageTypeData]
+	data: [ListStageTypeData]
 }
 
 type ListStageTypeData {

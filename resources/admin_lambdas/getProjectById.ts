@@ -1,4 +1,4 @@
-import { getAdminTransactionsById, getProjectByIdWithRef } from "../db/adminDbFunctions";
+import { getAdminTransactionsById, getProjectByIdWithRef, getProjectWithSteps } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
@@ -27,7 +27,7 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
   console.log("projectId", projectId);
 
   try {
-    const project = await getProjectByIdWithRef(projectId, limit,pageNo);
+    const project = await getProjectWithSteps(projectId, limit,pageNo);
     if(project.error){
       return {
         project: null,
@@ -49,3 +49,30 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
     }
   }
 }
+
+// async function getProject(tenant: tenant, projectId: string, limit: number, pageNo: number) {
+//   console.log("projectId", projectId);
+
+//   try {
+//    const project = await getProjectByIdWithRef(projectId, limit,pageNo);
+//     if(project.error){
+//       return {
+//         project: null,
+//         error: project.error
+//       };
+//     }
+//     else{
+//       return {
+//         project: project.data,
+//         error: null
+//       };
+//     }
+ 
+//   } catch (err) {
+//     console.log(err);
+//     return{
+//       project: null,
+//       error: err
+//     }
+//   }
+// }
