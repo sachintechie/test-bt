@@ -1391,7 +1391,7 @@ export async function getListOfStageTypeAndStepType(limit: number, pageNo: numbe
     const data = {
       total: refCount,
       totalPages: Math.ceil(refCount / limit),
-      refs: refs
+      data: refs
     };
 
     return data;
@@ -1425,7 +1425,7 @@ export async function getListOfStageTypeAndStepType(limit: number, pageNo: numbe
     const data = {
       total: refCount,
       totalPages: Math.ceil(refCount / limit),
-      refs: refs
+      data: refs
     };
 
     return data;
