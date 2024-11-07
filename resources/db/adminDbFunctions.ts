@@ -166,7 +166,7 @@ export async function createStage(
         isactive: true,
         isdeleted: false,
         stagetypeid :stageTypeId,
-        status: ActionStatus.INITIATED,
+        status: ActionStatus.COMPLETED,
         projectid:projectId,
         stagesequence: 1,
         createdat: new Date().toISOString(),
@@ -254,7 +254,7 @@ export async function createStep(
         isdeleted: false,
         steptypeid :stepTypeId,
         stageid:stageId,
-        status: ActionStatus.INITIATED,
+        status: ActionStatus.COMPLETED,
         createdat: new Date().toISOString(),
         createdby: tenantUserId
       }
@@ -277,7 +277,7 @@ export async function createStepDetails(
       data: {
         isactive: true,
         stepid :stepId,
-        status: ActionStatus.INITIATED,
+        status: ActionStatus.COMPLETED,
         isdeleted: false,
         metadata:metaData,
         createdat: new Date().toISOString(),
