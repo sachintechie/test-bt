@@ -122,11 +122,19 @@ export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean)
     
     return {
       data: {
-        dataHash,
-        dataTxHash : dataTxHash?.data?.transactionId,
+        hash:dataHash,
+        txHash : dataTxHash?.data?.transactionId,
         chainId: dataTxHash?.data?.chainId,
         chainType: dataTxHash?.data?.chainType,
-        status: dataTxHash?.data?.status
+        status: dataTxHash?.data?.status,
+        gasFee: dataTxHash?.data?.gas,
+        nonce: dataTxHash?.data?.nonce,
+        blockHash: dataTxHash?.data?.blockHash,
+        type: dataTxHash?.data?.type,
+        timestamp: dataTxHash?.data?.timestamp,
+        blockNumber: dataTxHash?.data?.blockNumber,
+        confirmations: dataTxHash?.data?.confirmations,
+
       },
       error: null
     };

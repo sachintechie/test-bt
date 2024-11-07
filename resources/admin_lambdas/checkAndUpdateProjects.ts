@@ -91,12 +91,12 @@ async function updateReferences() {
 
           const uploadedFile = {
             fileName: data?.data?.fileName,
-            fileContent: data?.data?.s3Object
+            fileContent: data?.data?.content
           };
           console.log("uploadedFile", uploadedFile);
           const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile, true);
-          dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.dataHash;
-          dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.dataTxHash;
+          dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.hash;
+          dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.txHash;
           //  const status = await getKbStatus(project.knowledgebaseid, ref?.datasourceid ?? "");
           // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
           const updateReference = await updateRefererncePostS3Data(ref.id ?? "", true, dataStoredToDb);
@@ -109,7 +109,7 @@ async function updateReferences() {
             chunksTxHash: ""
           };
           const chunksTxHash = await hashingAndStoreToBlockchain(ref.chunkshash, false);
-          dataStoredToDb.chunksTxHash = chunksTxHash.data?.dataTxHash;
+          dataStoredToDb.chunksTxHash = chunksTxHash.data?.txHash;
 
           if (ref.completechunkhash) {
             const completeChunkTxHash = await storeHash(ref.completechunkhash, false);

@@ -69,8 +69,9 @@ export async function addToS3Bucket(fileName: string, fileContent: string) {
       fileName: fileName,
       size: size,
       etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
-      s3Object: objectContent,
-      contentType: s3Details.ContentType
+      content: objectContent,
+      contentType: s3Details.ContentType,
+      lastModified: s3Details.LastModified
     };
     return {
       data: data,
@@ -148,8 +149,9 @@ export async function getS3Data(fileName: string) {
       fileName: fileName,
       size: size,
       url: s3Details.ETag,
-      s3Object: objectContent,
-      contentType: s3Details.ContentType
+      content: objectContent,
+      contentType: s3Details.ContentType,
+      lastModified: s3Details.LastModified
     };
     return {
       data: data,

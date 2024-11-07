@@ -92,19 +92,19 @@ async function handleDocumentReference(file: any, dataStoredToDb: any) {
 
   const uploadedFile = {
     fileName: data?.data?.fileName,
-    fileContent:  data?.data?.s3Object,
+    fileContent:  data?.data?.content,
   }
   const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
   Object.assign(dataStoredToDb, {
-    s3PostStoreHash: s3PostHashedData.data?.dataHash,
-    s3PostStoreTxHash: s3PostHashedData.data?.dataTxHash,
+    s3PostStoreHash: s3PostHashedData.data?.hash,
+    s3PostStoreTxHash: s3PostHashedData.data?.txHash,
     chainType: s3PostHashedData.data?.chainType,
     chainId: s3PostHashedData.data?.chainId
   });
 
   return {
-    s3PreStoreHash: s3PreHashedData.data?.dataHash,
-    s3PreStoreTxHash: s3PreHashedData.data?.dataTxHash,
+    s3PreStoreHash: s3PreHashedData.data?.hash,
+    s3PreStoreTxHash: s3PreHashedData.data?.txHash,
     uploadData: uploadedFile
   };
 }
