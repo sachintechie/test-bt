@@ -636,3 +636,15 @@ model orderitem {
   quantity       Int 
   price      Float?
 }
+
+model productcart {
+id             String           @id @default(uuid())
+inventoryid    String
+inventory      productinventory @relation("InventoryCart", fields: [inventoryid], references: [id])
+buyerid        String
+buyer          customer?    @relation(fields: [buyerid], references: [id])
+totalprice     Float
+quantity       Int
+createdat      DateTime @default(now())
+updatedat      DateTime @updatedAt
+}

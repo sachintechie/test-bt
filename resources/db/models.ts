@@ -165,6 +165,16 @@ export interface productinventory {
   updatedat?: string;
 }
 
+export interface productcart {
+  id?: string;
+  inventoryid: string;
+  buyerid:string;
+  totalprice?: number;
+  quantity: number;
+  createdat?: string;
+  updatedat?: string;
+}
+
 export interface inventoryfilter {
   inventoryid?: string;
   productname?: string;

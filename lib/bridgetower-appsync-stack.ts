@@ -70,7 +70,8 @@ const MUTATIONS = [
   "createProject",
   "addReference",
   "addProjectAndReference",
-  "deleteProductAttributes"
+  "deleteProductAttributes",
+  "addToCart",
 ];
 
 
