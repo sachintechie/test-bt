@@ -830,6 +830,36 @@ type Query {
 	GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
 	GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
+	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
+}
+
+input ListStageTypeAndStepTypeInput{
+limit: Int!
+pageNo: Int!
+type: String!
+}
+
+type ListStageTypeAndStepTypeResponse{
+status: Int
+data: [ListStageTypeAndStepTypeData]
+error: AWSJSON
+}
+
+
+
+type ListStageTypeAndStepTypeData {
+	total: Int
+	totalPages: Int
+	refs: [ListStageTypeData]
+}
+
+type ListStageTypeData {
+	id: String
+	name: String
+	isactive: Boolean
+	isdeleted: Boolean
+	description: String
+	createdat: String
 }
 
 schema {

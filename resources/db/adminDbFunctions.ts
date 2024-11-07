@@ -217,6 +217,7 @@ export async function createStepType(
         name: name,
         description: description,
         tenantid: tenant.id,
+        isdeleted: false,
         isactive: true,
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
@@ -241,6 +242,7 @@ export async function createStageType(
         name: name,
         description: description,
         tenantid: tenant.id,
+        isdeleted: false,
         isactive: true,
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
@@ -1269,6 +1271,87 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
     throw err;
   }
 }
+
+export async function getListOfStageTypeAndStepType(limit: number, pageNo: number, tenantId: string, type: string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    if(type == "STAGETYPE"){
+    const refCount = await prisma.stagetype.count({
+      where: {
+        tenantid: tenantId,
+        isdeleted: false,
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+    if (refCount == 0) {
+      return [];
+    }
+    const refs = await prisma.stagetype.findMany({
+      where: {
+        tenantid: tenantId,
+        isdeleted: false,
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: refCount,
+      totalPages: Math.ceil(refCount / limit),
+      refs: refs
+    };
+
+    return data;
+  }
+  else if(type == "STEPTYPE"){
+    const refCount = await prisma.steptype.count({
+      where: {
+        tenantid: tenantId,
+        isdeleted: false,
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+    if (refCount == 0) {
+      return [];
+    }
+    const refs = await prisma.steptype.findMany({
+      where: {
+        tenantid: tenantId,
+        isdeleted: false,
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: refCount,
+      totalPages: Math.ceil(refCount / limit),
+      refs: refs
+    };
+
+    return data;
+  }
+
+  return null;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 
 export async function getProjectList(limit: number, pageNo: number, organizationId: string) {
   try {

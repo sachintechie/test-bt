@@ -106,6 +106,7 @@ model stagetype {
   tenantid          String
   tenant            tenant @relation(fields: [tenantid], references: [id])
   isactive          Boolean
+  isdeleted         Boolean
   createdat         String
   createdby         String
   stages            stage[]
@@ -118,6 +119,7 @@ model steptype {
   tenantid          String
   tenant            tenant @relation(fields: [tenantid], references: [id])
   isactive          Boolean
+  isdeleted         Boolean
   createdat         String
   createdby         String
   steps             step[]
