@@ -737,5 +737,5 @@ model orderitem {
   inventoryid    String
   inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
   quantity       Int 
-  price      Float?
+  price          Float?
 }
