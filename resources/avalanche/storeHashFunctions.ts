@@ -1,6 +1,8 @@
 import { ethers } from "ethers";
 import { AvalancheTransactionStatus } from "../db/models";
 import * as crypto from "crypto";
+import contractAbi from "../abi/StoreHash.json";
+import subnetContractAbi from "../abi/StoreHashSubnet.json";
 
 // Environment variables (set in AWS Lambda or using dotenv)
 const AVAX_RPC_SUBNET_URL = process.env.AVAX_RPC_SUBNET_URL; // Infura or any RPC provider URL
@@ -10,166 +12,9 @@ const PRIVATE_KEY = process.env.AVAX_PRIVATE_KEY; // Private key of the wallet m
 const SUBNET_CONTRACT_ADDRESS = process.env.STORE_AVAX_SUBNET_CONTRACT_ADDRESS; // Deployed contract address
 
 const CONTRACT_ADDRESS = process.env.STORE_AVAX_CONTRACT_ADDRESS; // Deployed contract address
-const CONTRACT_ABI: any[] = [
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "user",
-        type: "address"
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "hash",
-        type: "bytes32"
-      },
-      {
-        indexed: false,
-        internalType: "bytes32",
-        name: "metadata",
-        type: "bytes32"
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256"
-      }
-    ],
-    name: "HashStored",
-    type: "event"
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "user",
-        type: "address"
-      }
-    ],
-    name: "getHashData",
-    outputs: [
-      {
-        internalType: "bytes32",
-        name: "dataHash",
-        type: "bytes32"
-      },
-      {
-        internalType: "bytes32",
-        name: "metadata",
-        type: "bytes32"
-      },
-      {
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256"
-      }
-    ],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes32",
-        name: "_dataHash",
-        type: "bytes32"
-      },
-      {
-        internalType: "bytes32",
-        name: "_metaData",
-        type: "bytes32"
-      }
-    ],
-    name: "storeHash",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function"
-  }
-];
-const SUBNET_CONTRACT_ABI: any[] =[
-  {
-      "anonymous": false,
-      "inputs": [
-          {
-              "indexed": true,
-              "internalType": "address",
-              "name": "user",
-              "type": "address"
-          },
-          {
-              "indexed": false,
-              "internalType": "bytes32",
-              "name": "hash",
-              "type": "bytes32"
-          },
-          {
-              "indexed": false,
-              "internalType": "bytes32",
-              "name": "metadata",
-              "type": "bytes32"
-          },
-          {
-              "indexed": false,
-              "internalType": "uint256",
-              "name": "timestamp",
-              "type": "uint256"
-          }
-      ],
-      "name": "HashStored",
-      "type": "event"
-  },
-  {
-      "inputs": [
-          {
-              "internalType": "address",
-              "name": "user",
-              "type": "address"
-          }
-      ],
-      "name": "getHashData",
-      "outputs": [
-          {
-              "internalType": "bytes32",
-              "name": "dataHash",
-              "type": "bytes32"
-          },
-          {
-              "internalType": "bytes32",
-              "name": "metadata",
-              "type": "bytes32"
-          },
-          {
-              "internalType": "uint256",
-              "name": "timestamp",
-              "type": "uint256"
-          }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-  },
-  {
-      "inputs": [
-          {
-              "internalType": "bytes32",
-              "name": "_dataHash",
-              "type": "bytes32"
-          },
-          {
-              "internalType": "bytes32",
-              "name": "_metaData",
-              "type": "bytes32"
-          }
-      ],
-      "name": "storeHash",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-  }
-];
+const CONTRACT_ABI: any[] =contractAbi.abi;
+
+const SUBNET_CONTRACT_ABI: any[] =subnetContractAbi.abi;
 
 export async function storeHash(hash: string,isSecondTx?:boolean) {
   try {
