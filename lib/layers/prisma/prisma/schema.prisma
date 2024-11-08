@@ -492,7 +492,6 @@ model token {
   transactions      transaction[]
   admintransactions admintransaction[]
   staketransaction  staketransaction[]
-  inventory         productinventory?
 }
 
 model transaction {

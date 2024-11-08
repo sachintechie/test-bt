@@ -21,7 +21,8 @@ import {
   OrderFindBy,
   productOwnership,
   productinventory,
-  productwithinventory
+  productwithinventory,
+  productcart
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
@@ -1748,7 +1749,11 @@ export async function createOrder(order: orders) {
             }
           });
         }
-
+        await prisma.productcart.deleteMany({
+          where: {
+             buyerid: order.buyerid
+          }
+         });
         return createdOrder;
       }
     );
@@ -2333,4 +2338,112 @@ export async function getOwnershipDetailByCustomerId(customerId: string) {
   });
 
   return inventoryDetails;
+}
+
+export async function addToCart(cart:productcart) {
+  const prisma = await getPrismaClient();
+  const {buyerid,inventoryid,quantity} = cart
+  const existingCartItem = await prisma.productcart.findFirst({
+    where: {
+      buyerid,
+      inventoryid
+    },
+    include: {
+      inventory: {
+        select: {
+          price: true,
+          quantity: true
+        },
+      },
+    },
+  });
+
+  console.log( "existingCartItem" ,existingCartItem);
+  if (existingCartItem?.inventory && existingCartItem?.inventory?.quantity < quantity) {
+       throw new Error("Inventory item not found");
+  }
+
+  const itemPrice = existingCartItem.inventory.price;
+  const availableInventory = existingCartItem.inventory.quantity;
+  const updatedQuantity = existingCartItem ? existingCartItem.quantity + quantity : quantity;
+  if (updatedQuantity > availableInventory) {
+    throw new Error(`Insufficient inventory. Only ${availableInventory} items available.`);
+  }
+  const totalPrice = updatedQuantity * itemPrice;
+  let item;
+
+  if (existingCartItem) {
+    item = await prisma.productcart.update({
+      where: {
+        id: existingCartItem.id,
+      },
+      data: {
+        quantity: updatedQuantity,
+        totalprice: totalPrice,
+        updatedat: new Date(),
+      },
+    });
+  }
+  else{
+  item = await prisma.productcart.create({
+      data: {
+        buyerid,
+        inventoryid,
+        quantity: quantity,
+        totalprice: totalPrice,
+        createdat: new Date(),
+        updatedat: new Date(),
+      },
+    });
+  }
+
+  return item
+}
+
+export async function removeFromCart(customerId: string, inventoryId: string) {
+  try {
+	 const prisma = await getPrismaClient();
+    // Check if the item exists in the cart
+    const existingCartItem = await prisma.productcart.findFirst({
+      where: {
+        buyerid: customerId,
+        inventoryid: inventoryId,
+      },
+    });
+
+    if (!existingCartItem) {
+      throw new Error("Item not found in cart.");
+    }
+
+    // Remove the item from the cart
+    await prisma.productcart.delete({
+      where: {
+        id: existingCartItem.id,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Item removed from cart successfully",
+    };
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+    throw new Error("Failed to remove item from cart");
+  }
+}
+
+export async function getUserCart(customerId: string) {
+  try {
+	 const prisma = await getPrismaClient();
+    const cartItems = await prisma.productcart.findMany({
+      where: {
+        buyerid: customerId,
+      },
+    });
+
+    return cartItems;
+  } catch (error) {
+    console.error("Error retrieving cart items:", error);
+    throw new Error("Failed to retrieve cart items");
+  }
 }
