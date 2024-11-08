@@ -847,6 +847,7 @@ input UpdateProductInputData {
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
+	tags: [String]
 }
 
 type UpdateProductResponse {
