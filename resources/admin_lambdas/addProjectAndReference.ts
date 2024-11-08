@@ -91,7 +91,7 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
    // Stage 1: Data Source
    const stageType = await getStageType("Data Source");
    if (stageType) {
-     const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId);
+     const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId,1);
      if (stage1) {
        // Fetch step types for each action in the stage
        const [stepType1, stepType2, stepType3] = await Promise.all([
@@ -103,9 +103,9 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
        if (stepType1 && stepType2 && stepType3) {
          // Create steps for stage 1
          const [step1, step2, step3] = await Promise.all([
-           createStep(tenantUserId, "File upload from frontend", "File upload from frontend", stepType1.id, stage1.id),
-           createStep(tenantUserId, "File hashing", "File hashing", stepType2.id, stage1.id),
-           createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage1.id)
+           createStep(tenantUserId, "File upload from frontend", "File upload from frontend", stepType1.id, stage1.id,1),
+           createStep(tenantUserId, "File hashing", "File hashing", stepType2.id, stage1.id,2),
+           createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage1.id,3)
          ]);
 
          for (const file of files) {

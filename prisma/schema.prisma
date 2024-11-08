@@ -95,6 +95,7 @@ model step {
   status            ActionStatus
   stageid           String
   stage             stage  @relation(fields: [stageid],references:[id])
+  stepsequence     Int
   isactive          Boolean
   isdeleted         Boolean
   createdat         String

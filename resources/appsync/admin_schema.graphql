@@ -689,7 +689,7 @@ type ProjectAndStepData {
 	description: String
 	isactive: Boolean
 	createdby: String
-	stages: [StageData]
+	stagedata: StagePaginationData
 }
 
 type ProjectAndStepsResponse {
@@ -731,6 +731,12 @@ type SignInData {
 
 input SigninInput {
 	tenantUserId: String!
+}
+
+type StagePaginationData {
+total: Int
+totalPages: Int
+stages: [StageData]
 }
 
 type StageData {

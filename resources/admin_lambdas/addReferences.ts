@@ -38,7 +38,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
     // Stage 2: Data Ingestion
     const stageType2 = await getStageType("Data Ingestion");
     if (stageType2) {
-      const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId);
+      const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId,2);
         // Retrieve details from the previous ingestion stage
         const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
         if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
@@ -49,7 +49,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
         const stepType = await getStepType("Upload to S3");
 
         if (stepType) {
-          const step1 = await createStep(tenantUserId, "Upload to S3", "Upload to S3", stepType.id, stage2.id);
+          const step1 = await createStep(tenantUserId, "Upload to S3", "Upload to S3", stepType.id, stage2.id,1);
           for (const stepDetail of stepDetails) {
             const data = JSON.parse(stepDetail.metadata);
 
@@ -68,7 +68,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
     // Stage 3: Data Storage
     const stageType3 = await getStageType("Data Storage");
     if (stageType3) {
-      const stage3 = await createStage(tenantUserId, "Data Storage", "Data Storage", stageType3.id, projectId);
+      const stage3 = await createStage(tenantUserId, "Data Storage", "Data Storage", stageType3.id, projectId,3);
 
       // Retrieve details from the previous ingestion stage
       const ingestionStageDetails = await getStageDetails(projectId, stageType2?.id || "");
@@ -82,9 +82,9 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
         if (stepType1 && stepType2 && stepType3) {
           const [step1, step2, step3] = await Promise.all([
-            createStep(tenantUserId, "Read file from s3", "Read file from s3", stepType1.id, stage3.id),
-            createStep(tenantUserId, "Hashing of s3 file", "Hashing of s3 file", stepType2.id, stage3.id),
-            createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage3.id)
+            createStep(tenantUserId, "Read file from s3", "Read file from s3", stepType1.id, stage3.id,1),
+            createStep(tenantUserId, "Hashing of s3 file", "Hashing of s3 file", stepType2.id, stage3.id,2),
+            createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage3.id,3)
           ]);
 
           for (const stepDetail of stepDetails) {
