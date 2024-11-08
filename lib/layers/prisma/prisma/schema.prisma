@@ -175,13 +175,13 @@ enum ProjectStatusEnum {
 }
 
 enum ProjectStage {
-  DATA_SELECTION
+  DATA_SOURCE
   DATA_INGESTION
   DATA_STORAGE
   DATA_PREPARATION
   LLM_FINE_TUNING
   VERSIONING
-  RAG
+  RAG_INGESTION
   PUBLISHED
 }
 
@@ -737,5 +737,5 @@ model orderitem {
   inventoryid    String
   inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
   quantity       Int 
-  price          Float?
+  price      Float?
 }

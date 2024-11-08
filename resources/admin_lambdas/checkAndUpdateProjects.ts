@@ -49,7 +49,7 @@ async function updateProjects() {
 
             updatedProjects.push(updateProject);
           }
-        } else if (project.projectstage == ProjectStage.DATA_SELECTION) {
+        } else if (project.projectstage == ProjectStage.DATA_SOURCE) {
           const status = await getKbStatus(project.knowledgebaseid, reference?.datasourceid ?? "");
           if (status == "AVAILABLE") {
             syncKbAsync(project.knowledgebaseid, reference?.datasourceid ?? "");
