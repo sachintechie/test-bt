@@ -118,11 +118,18 @@ type AdminUserListData {
 
 input BulkImportInput {
 	file: FileInput!
+	productId: String
 }
 
-type BulkImportResponse {
+type BulkImportInventoryResponse {
 	status: Int
-	data: String
+	data: [InventoryData]
+	error: AWSJSON
+}
+
+type BulkImportProductResponse {
+	status: Int
+	data: [ProductData]
 	error: AWSJSON
 }
 
@@ -869,8 +876,8 @@ type Mutation {
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
-	BulkImportInventory(input: BulkImportInput): BulkImportResponse
-	BulkImportProduct(input: BulkImportInput): BulkImportResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportInventoryResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportProductResponse
 	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
