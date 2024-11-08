@@ -14,10 +14,10 @@ import { addToS3Bucket, getS3Data } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
-    const { projectId, files, datasource_id, tenantUserId } = event;
+    const { projectId, tenantUserId } = event;
 
     // Calls function to handle adding stages and steps for file processing
-    const data = await addStageAndSteps(tenantUserId, projectId, files);
+    const data = await addStageAndSteps(tenantUserId, projectId);
 
     return {
       status: data ? 200 : 400,
@@ -31,58 +31,16 @@ export const handler = async (event: any, context: any) => {
 };
 
 // Function to add stages and steps for processing files in multiple stages
-export async function addStageAndSteps(tenantUserId: string, projectId: string, files: any) {
+export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
-    // Stage 1: Data Source
-    const stageType = await getStageType("Data Source");
-    if (stageType) {
-      const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId);
-      if (stage1) {
-        // Fetch step types for each action in the stage
-        const [stepType1, stepType2, stepType3] = await Promise.all([
-          getStepType("File upload from frontend"),
-          getStepType("File hashing"),
-          getStepType("Store to Blockchain")
-        ]);
-
-        if (stepType1 && stepType2 && stepType3) {
-          // Create steps for stage 1
-          const [step1, step2, step3] = await Promise.all([
-            createStep(tenantUserId, "File upload from frontend", "File upload from frontend", stepType1.id, stage1.id),
-            createStep(tenantUserId, "File hashing", "File hashing", stepType2.id, stage1.id),
-            createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage1.id)
-          ]);
-
-          for (const file of files) {
-            const fileData = { fileName: file.fileName, fileContent: file.fileContent };
-
-            // Step 1: File upload details
-            await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
-
-            // Step 2: Hash the file data
-            const hash = await hashing(fileData);
-            const hashedData = {
-              "hash": hash.data?.dataHash,
-            }
-            await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
-
-            // Step 3: Store the hashed data on the blockchain
-            const blockchainHashedData = await hashingAndStoreToBlockchain(fileData, false);
-            await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
-          }
-
-          // Update project to reflect data ingestion status
-          await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
-        }
-      }
-    }
+    const stageType1 = await getStageType("Data Source");   
 
     // Stage 2: Data Ingestion
     const stageType2 = await getStageType("Data Ingestion");
     if (stageType2) {
       const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId);
         // Retrieve details from the previous ingestion stage
-        const sourceStageDetails = await getStageDetails(projectId, stageType?.id || "");
+        const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
         if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
           const fileUploadStepId = sourceStageDetails.steps.filter(step => step.name === "File upload from frontend")[0].id;
           const stepDetails = await getStepDetails(fileUploadStepId);

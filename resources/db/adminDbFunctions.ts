@@ -139,7 +139,7 @@ export async function createProject(
         organizationid: organizationId,
         tenantid: tenant.id,
         isactive: true,
-        projectstage: ProjectStage.DATA_SELECTION,
+        projectstage: ProjectStage.DATA_SOURCE,
         projectstatus: ProjectStatusEnum.STARTED,
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
@@ -1536,7 +1536,7 @@ export async function getAllProjects() {
     const prisma = await getPrismaClient();
     const transactions = await prisma.project.findMany({
       where: {
-        projectstage: ProjectStage.DATA_SELECTION || ProjectStage.DATA_PREPARATION
+        projectstage: ProjectStage.DATA_SOURCE || ProjectStage.DATA_PREPARATION
       }
     });
     return transactions;
@@ -1550,7 +1550,7 @@ export async function getAllReferences() {
     const prisma = await getPrismaClient();
     const transactions = await prisma.reference.findMany({
       where: {
-        referencestage: ProjectStage.DATA_SELECTION
+        referencestage: ReferenceStage.DATA_STORAGE || ReferenceStage.DATA_SELECTION
       }
     });
     return transactions;
