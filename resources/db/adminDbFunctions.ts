@@ -1516,10 +1516,25 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     const project = await prisma.project.findFirst({
       where: {
         id: projectId
+      }
+    });
+
+    const stageCount = await prisma.stage.count({
+      where: {
+        projectid: projectId,
+        isdeleted: false
+      },
+         orderBy: {
+        stagesequence: "asc"
+      }
+    });
+
+    const stages = await prisma.stage.findMany({
+      where: {
+        projectid: projectId,
+        isdeleted: false
       },
       include: {
-        stages: {
-          include: {
             steps: {
               include: {
                 stepdetails: true
@@ -1529,17 +1544,29 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
               }
             }
           },
-          orderBy: {
-            stagesequence: 'asc'  // Sort stages by 'stagesequence' column
-          }
-        }
-      }
+         orderBy: {
+        stagesequence: "asc"
+      },
+      
+      take: limit,
+      skip: (pageNo - 1) * limit
     });
+
+
     if (project == null) {
       return { data: null, error: "Project not found" };
     }
+    const projectData = {
+      project: project,
+      stagedata: {
+        total: stageCount,
+        totalPages: Math.ceil(stageCount / limit),
+        stages: stages
+      }
+    }
     const data = {
-      project: project
+
+      project: projectData
     };
     console.log(data);
 
