@@ -42,7 +42,6 @@ export const newNodeJsFunction = (
     layers: [prismaLayer], // Attach the Prisma layer here
     bundling: {
       minify: true, // Ensure code is minified
-      externalModules: ['aws-sdk'], // Exclude AWS SDK from the bundled code
       nodeModules: [],
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
