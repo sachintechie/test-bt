@@ -21,6 +21,9 @@ export const getLambdaRole = (scope: Construct) => {
     // Grant Lambda role necessary permissions for VPC and CloudWatch logs
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaVPCAccessExecutionRole"));
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"));
+    lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AWSLambda_FullAccess"));
+    lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonS3FullAccess"));
+
   }
   return lambdaRoleSingleton;
 };
