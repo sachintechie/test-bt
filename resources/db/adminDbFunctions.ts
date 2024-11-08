@@ -1615,7 +1615,8 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
       skip: offset,
       take: limit,
       include: {
-        productmedia: true
+        productmedia: true,
+        inventories: true
       }
     });
 
@@ -1625,11 +1626,24 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
       }
     });
 
-    return { products, totalCount };
+    // Add totalquantity and inventorystatus for each product
+    const productsWithInventoryData = products.map((product: { inventories: any[] }) => {
+      const totalquantity = product.inventories.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
+      const inventorystatus = totalquantity > 0 ? "In Stock" : "Out of Stock";
+
+      return {
+        ...product,
+        totalquantity,
+        inventorystatus
+      };
+    });
+
+    return { products: productsWithInventoryData, totalCount };
   } catch (err) {
     throw err;
   }
 }
+
 
 export async function createInventory(inventoryData: productinventory) {
   try {
