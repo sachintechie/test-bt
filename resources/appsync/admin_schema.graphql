@@ -679,20 +679,11 @@ enum ProductStatus {
 	ACTIVE
 	INACTIVE
 }
+type ProjectAndStepData{
+project: ProjectData
+stagedata: StagePaginationData}
 
-type ProjectAndStepData {
-	id: String
-	createdat: String
-	projecttype: String
-	projectstage: String
-	projectstatus: String
-	organizationid: String
-	name: String
-	description: String
-	isactive: Boolean
-	createdby: String
-	stagedata: StagePaginationData
-}
+
 
 type ProjectAndStepsResponse {
 	status: Int
@@ -761,6 +752,7 @@ type StepData {
 	createdat: String
 	isactive: Boolean
 	isdeleted: Boolean
+	stepsequence: Int
 	status: String
 	stageid: String
 	stepdetails: [StepDetailsData]
