@@ -1749,7 +1749,11 @@ export async function createOrder(order: orders) {
             }
           });
         }
-
+        await prisma.productcart.deleteMany({
+          where: {
+             buyerid: order.buyerid
+          }
+         });
         return createdOrder;
       }
     );
@@ -2392,4 +2396,52 @@ export async function addToCart(cart:productcart) {
   }
 
   return item
+}
+
+export async function removeFromCart(customerId: string, inventoryId: string) {
+  try {
+	 const prisma = await getPrismaClient();
+    // Check if the item exists in the cart
+    const existingCartItem = await prisma.productcart.findFirst({
+      where: {
+        buyerid: customerId,
+        inventoryid: inventoryId,
+      },
+    });
+
+    if (!existingCartItem) {
+      throw new Error("Item not found in cart.");
+    }
+
+    // Remove the item from the cart
+    await prisma.productcart.delete({
+      where: {
+        id: existingCartItem.id,
+      },
+    });
+
+    return {
+      success: true,
+      message: "Item removed from cart successfully",
+    };
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+    throw new Error("Failed to remove item from cart");
+  }
+}
+
+export async function getUserCart(customerId: string) {
+  try {
+	 const prisma = await getPrismaClient();
+    const cartItems = await prisma.productcart.findMany({
+      where: {
+        buyerid: customerId,
+      },
+    });
+
+    return cartItems;
+  } catch (error) {
+    console.error("Error retrieving cart items:", error);
+    throw new Error("Failed to retrieve cart items");
+  }
 }

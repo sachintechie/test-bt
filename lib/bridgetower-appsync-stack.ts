@@ -76,6 +76,7 @@ const MUTATIONS = [
   "createStepType",
   "createStageType",
   "addToCart",
+  "removeFromCart"
 ];
 
 

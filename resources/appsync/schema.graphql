@@ -1053,6 +1053,16 @@ type CartData {
   updatedat: AWSDateTime
 }
 
+input RemoveFromCartInput {
+  inventoryId: String!
+}
+
+type RemoveFromCartResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1070,6 +1080,7 @@ type Mutation {
   StoreHash(input: StoreHashInput): StoreHash
   StoreHashOnSubnet(input: StoreHashInput): StoreHash
   AddToCart(input: CartInput): CartResponse
+  RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
 }
 
 type Query {
@@ -1116,6 +1127,7 @@ type Query {
   CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
   GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
+  GetUserCart: CartResponse
 }
 
 schema {
