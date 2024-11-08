@@ -197,6 +197,9 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
       case "Stellar":
         keyType = cs.Ed25519.Stellar;
         break;
+      case "Proveance":
+        keyType = cs.Ed25519.Tendermint;
+        break;  
       default:
         keyType = null;
     }
@@ -1761,6 +1764,7 @@ export async function createOrder(order: orders) {
   }
 }
 
+
 export async function getOrders(offset: number, itemsPerPage: number, value?: string, searchBy?: OrderFindBy, status?: string) {
   const prisma = await getPrismaClient();
 
@@ -1845,6 +1849,7 @@ export async function getOrders(offset: number, itemsPerPage: number, value?: st
     throw err;
   }
 }
+
 
 export async function updateOrderStatus(orderId: string, status: orderstatus) {
   const prisma = await getPrismaClient();

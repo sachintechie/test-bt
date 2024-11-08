@@ -66,13 +66,96 @@ model project {
   createdby         String
   adminUsers        adminuser[]
   references        reference[]
+  stages            stage[]
 }
+
+model stage {
+  id                String             @id @default(uuid())
+  name              String       
+  description       String
+  stagetypeid       String
+  stagetype         stagetype @relation(fields: [stagetypeid], references: [id])
+  status            ActionStatus
+  projectid         String
+  project           project @relation(fields: [projectid], references: [id])
+  stagesequence     Int
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  steps             step[]
+}
+
+model step {
+  id                String             @id @default(uuid())
+  name              String       
+  description       String
+  steptypeid        String
+  steptype          steptype @relation(fields: [steptypeid], references: [id])
+  status            ActionStatus
+  stageid           String
+  stage             stage  @relation(fields: [stageid],references:[id])
+  stepsequence     Int
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  stepdetails       stepdetail[]
+}
+
+model stepdetail {
+  id                String             @id @default(uuid())
+  stepid            String
+  step              step @relation(fields: [stepid], references: [id])
+  status            ActionStatus
+  metadata          String
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+}
+
+model stagetype {
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  stages            stage[]
+}
+
+model steptype {
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  steps             step[]
+}
+
+
 
 enum ProjectType {
   ON_PREM
   HYBRID
   CLOUD
   CUSTOM_CLOUD
+}
+
+enum ActionStatus {
+  INITIATED
+  ACTIVE
+  ERROR
+  CANCELLED
+  COMPLETED
 }
 
 enum ReferenceStage {
@@ -93,13 +176,13 @@ enum ProjectStatusEnum {
 }
 
 enum ProjectStage {
-  DATA_SELECTION
+  DATA_SOURCE
   DATA_INGESTION
   DATA_STORAGE
   DATA_PREPARATION
   LLM_FINE_TUNING
   VERSIONING
-  RAG
+  RAG_INGESTION
   PUBLISHED
 }
 
@@ -334,6 +417,9 @@ model tenant {
   references       reference[]   
   organizations    organization[]
   projects         project[]
+  referencetransactions referencetransaction[]
+  steptypes steptype[]
+  stagetypes stagetype[]
 }
 
 enum productrarity {
@@ -435,6 +521,24 @@ model transaction {
   network               String?
   tenanttransactionid   String?
   callbackstatus        String?
+}
+
+model referencetransaction {
+  id                    String    @id @default(uuid())
+  tenantid              String
+  tenant                tenant?                     @relation(fields: [tenantid], references: [id])
+  walletaddress         String?
+  chaintype             String?
+  chainid               String?
+  txhash                String
+  status                String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  network               String?
+  refid                 String?
+  projectid             String?
+  hash                  String?
 }
 
 model contracttransaction {
