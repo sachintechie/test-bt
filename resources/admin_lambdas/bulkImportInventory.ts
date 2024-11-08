@@ -10,6 +10,7 @@ export const handler = async (event: any, context: any) => {
     console.log("event", event, "context", context);
 
     const { fileContent, fileName, contentType } = event.arguments?.input?.file;
+	const { productId } = event.arguments?.input; 
     const tenantContext = event.identity.resolverContext as tenant;
 
     if (!fileContent) {
@@ -44,7 +45,6 @@ export const handler = async (event: any, context: any) => {
       const transformedData = sheetData.map((row: any) => {
         console.log("row", row);
         const {
-          productId,
           inventoryId,
           inventoryCategory,
           price,
@@ -58,7 +58,7 @@ export const handler = async (event: any, context: any) => {
           type
         } = row;
 
-        if (!productId || !inventoryId || !inventoryCategory || !price || !quantity) {
+        if ( !inventoryId || !inventoryCategory || !price || !quantity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
 
@@ -67,7 +67,6 @@ export const handler = async (event: any, context: any) => {
         console.log("ownershipNftBoolean", ownershipNftBoolean);
         return {
           inventoryid: inventoryId,
-          productid: productId,
           inventorycategory: inventoryCategory,
           price: parseFloat(price),
           quantity: parseInt(quantity),
@@ -84,7 +83,7 @@ export const handler = async (event: any, context: any) => {
       inventoryDataArray = [...inventoryDataArray, ...transformedData];
     });
 
-   const createdInventories = await createBulkInventory(inventoryDataArray);
+   const createdInventories = await createBulkInventory(inventoryDataArray, productId);
    console.log(`Successfully created ${createdInventories.length} inventories across all sheets`, createdInventories);
 
 	const adminUser = await getAdminUserById(tenantContext.adminuserid!);
@@ -99,7 +98,7 @@ export const handler = async (event: any, context: any) => {
 
     return {
       status: 200,
-      data: `Successfully created ${createdInventories.length} inventories and ownerships across all sheets`,
+      data: createdInventories,
       error: null
     };
   } catch (error) {

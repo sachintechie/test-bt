@@ -68,11 +68,11 @@ export const handler = async (event: any, context: any) => {
 
     const createdProducts = await createBulkProduct(productDataArray);
 
-    console.log(`Successfully created ${createdProducts.count} products across all sheets`);
+    console.log(`Successfully created ${createdProducts.length} products across all sheets`);
 
     return {
       status: 200,
-      data: `Successfully created ${createdProducts.count} products across all sheets`,
+      data: createdProducts,
       error: null
     };
   } catch (error) {

@@ -1725,7 +1725,7 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: productinventory[]) {
+export async function createBulkInventory(inventoryDataArray: productinventory[],productId:string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1733,7 +1733,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       await tx.productinventory.createMany({
         data: inventoryDataArray.map((inventoryData) => ({
           inventoryid: inventoryData.inventoryid,
-          productid: inventoryData.productid,
+          productid: productId,
           inventorycategory: inventoryData.inventorycategory,
           price: inventoryData.price,
           quantity: inventoryData.quantity,
@@ -1768,31 +1768,42 @@ export async function createBulkProduct(productDataArray: product[]) {
   try {
     const prisma = await getPrismaClient();
 
-    const createdProduct = await prisma.product.createMany({
-      data: productDataArray.map((productData) => ({
-        name: productData.name,
-        description: productData.description,
-        type: productData.type,
-        sku: productData.sku,
-        rarity: productData.rarity,
-        price: productData.price,
-        categoryid: productData.categoryid,
-        tenantid: productData.tenantid,
-        purchasedpercentage: 0,
-        availablepercentage: 100
-      })),
-      skipDuplicates: true
+    const createdProducts = await prisma.$transaction(async (tx) => {
+      // Step 1: Create products in bulk
+      await tx.product.createMany({
+        data: productDataArray.map((productData) => ({
+          name: productData.name,
+          description: productData.description,
+          type: productData.type,
+          sku: productData.sku,
+          rarity: productData.rarity,
+          price: productData.price,
+          categoryid: productData.categoryid,
+          tenantid: productData.tenantid,
+        })),
+        skipDuplicates: true
+      });
+
+      // Step 2: Fetch the created products using their names or SKUs
+      return tx.product.findMany({
+        where: {
+          sku: {
+            in: productDataArray.map((data) => data.sku)
+          }
+        }
+      });
     });
 
-    return createdProduct;
+    return createdProducts;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while adding the product");
+      throw new Error(error.message || "An error occurred while adding the products");
     } else {
       throw new Error("An unexpected error occurred.");
     }
   }
 }
+
 
 export async function deleteInventory(inventoryId: string) {
   try {
