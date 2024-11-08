@@ -139,7 +139,7 @@ export async function createProject(
         organizationid: organizationId,
         tenantid: tenant.id,
         isactive: true,
-        projectstage: ProjectStage.DATA_SELECTION,
+        projectstage: ProjectStage.DATA_SOURCE,
         projectstatus: ProjectStatusEnum.STARTED,
         createdat: new Date().toISOString(),
         createdby: tenant.adminuserid ?? ""
@@ -151,7 +151,8 @@ export async function createProject(
   }
 }
 
-export async function createStage(tenantUserId: string, name: string, description: string, stageTypeId: string, projectId: string) {
+export async function createStage(tenantUserId: string, name: string, description: string,
+   stageTypeId: string, projectId: string,stageSequence:number) {
   console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
@@ -164,7 +165,7 @@ export async function createStage(tenantUserId: string, name: string, descriptio
         stagetypeid: stageTypeId,
         status: ActionStatus.COMPLETED,
         projectid: projectId,
-        stagesequence: 1,
+        stagesequence: stageSequence,
         createdat: new Date().toISOString(),
         createdby: tenantUserId
       }
@@ -235,7 +236,7 @@ export async function getStepType(name: string) {
   }
 }
 
-export async function createStep(tenantUserId: string, name: string, description: string, stepTypeId: string, stageId: string) {
+export async function createStep(tenantUserId: string, name: string, description: string, stepTypeId: string, stageId: string,stepSequence:number) {
   console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
@@ -247,6 +248,7 @@ export async function createStep(tenantUserId: string, name: string, description
         isdeleted: false,
         steptypeid: stepTypeId,
         stageid: stageId,
+        stepsequence: stepSequence,
         status: ActionStatus.COMPLETED,
         createdat: new Date().toISOString(),
         createdby: tenantUserId
@@ -1514,14 +1516,57 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     const project = await prisma.project.findFirst({
       where: {
         id: projectId
-      },
-      include: { stages: { include: { steps: { include: { stepdetails: true } } } } }
+      }
     });
+
+    const stageCount = await prisma.stage.count({
+      where: {
+        projectid: projectId,
+        isdeleted: false
+      },
+         orderBy: {
+        stagesequence: "asc"
+      }
+    });
+
+    const stages = await prisma.stage.findMany({
+      where: {
+        projectid: projectId,
+        isdeleted: false
+      },
+      include: {
+            steps: {
+              include: {
+                stepdetails: true
+              },
+              orderBy: {
+                stepsequence: 'asc'  // Sort steps within each stage by 'stepsequence' column
+              }
+            }
+          },
+         orderBy: {
+        stagesequence: "asc"
+      },
+      
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+
     if (project == null) {
       return { data: null, error: "Project not found" };
     }
+    const projectData = {
+      project: project,
+      stagedata: {
+        total: stageCount,
+        totalPages: Math.ceil(stageCount / limit),
+        stages: stages
+      }
+    }
     const data = {
-      project: project
+
+      project: projectData
     };
     console.log(data);
 
@@ -1536,7 +1581,7 @@ export async function getAllProjects() {
     const prisma = await getPrismaClient();
     const transactions = await prisma.project.findMany({
       where: {
-        projectstage: ProjectStage.DATA_SELECTION || ProjectStage.DATA_PREPARATION
+        projectstage: ProjectStage.DATA_SOURCE || ProjectStage.DATA_PREPARATION
       }
     });
     return transactions;
@@ -1550,7 +1595,7 @@ export async function getAllReferences() {
     const prisma = await getPrismaClient();
     const transactions = await prisma.reference.findMany({
       where: {
-        referencestage: ProjectStage.DATA_SELECTION
+        referencestage: ReferenceStage.DATA_STORAGE || ReferenceStage.DATA_SELECTION
       }
     });
     return transactions;

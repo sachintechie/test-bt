@@ -481,6 +481,8 @@ type ListProject {
 
 input ListProjectByIdInput {
 	projectId: String!
+	pageNo: Int!
+	limit: Int!
 }
 
 type ListProjectData {
@@ -677,20 +679,11 @@ enum ProductStatus {
 	ACTIVE
 	INACTIVE
 }
+type ProjectAndStepData{
+project: ProjectData
+stagedata: StagePaginationData}
 
-type ProjectAndStepData {
-	id: String
-	createdat: String
-	projecttype: String
-	projectstage: String
-	projectstatus: String
-	organizationid: String
-	name: String
-	description: String
-	isactive: Boolean
-	createdby: String
-	stages: [StageData]
-}
+
 
 type ProjectAndStepsResponse {
 	status: Int
@@ -733,6 +726,12 @@ input SigninInput {
 	tenantUserId: String!
 }
 
+type StagePaginationData {
+total: Int
+totalPages: Int
+stages: [StageData]
+}
+
 type StageData {
 	id: String
 	name: String
@@ -753,6 +752,7 @@ type StepData {
 	createdat: String
 	isactive: Boolean
 	isdeleted: Boolean
+	stepsequence: Int
 	status: String
 	stageid: String
 	stepdetails: [StepDetailsData]
@@ -765,7 +765,7 @@ type StepDetailsData {
 	isactive: Boolean
 	isdeleted: Boolean
 	createdat: String
-	metadata: AWSJSON
+	metadata: String
 }
 
 type TransactionData {

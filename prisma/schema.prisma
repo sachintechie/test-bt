@@ -95,6 +95,7 @@ model step {
   status            ActionStatus
   stageid           String
   stage             stage  @relation(fields: [stageid],references:[id])
+  stepsequence     Int
   isactive          Boolean
   isdeleted         Boolean
   createdat         String
@@ -175,13 +176,13 @@ enum ProjectStatusEnum {
 }
 
 enum ProjectStage {
-  DATA_SELECTION
+  DATA_SOURCE
   DATA_INGESTION
   DATA_STORAGE
   DATA_PREPARATION
   LLM_FINE_TUNING
   VERSIONING
-  RAG
+  RAG_INGESTION
   PUBLISHED
 }
 
