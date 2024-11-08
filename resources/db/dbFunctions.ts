@@ -196,6 +196,9 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
       case "Stellar":
         keyType = cs.Ed25519.Stellar;
         break;
+      case "Proveance":
+        keyType = cs.Ed25519.Tendermint;
+        break;  
       default:
         keyType = null;
     }

@@ -481,6 +481,8 @@ type ListProject {
 
 input ListProjectByIdInput {
 	projectId: String!
+	pageNo: Int!
+	limit: Int!
 }
 
 type ListProjectData {
