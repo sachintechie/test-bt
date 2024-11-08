@@ -1,13 +1,9 @@
-import {  tenant } from "../db/models";
-import AWS from "aws-sdk";
+import { tenant } from "../db/models";
 
-const lambda = new AWS.Lambda();
-
-import {
-  createProject,
-  isProjectExist,
-} from "../db/adminDbFunctions";
-import {  ProjectType } from "@prisma/client";
+import { createProject, createStage, createStep, createStepDetails, getStageType, getStepType, isProjectExist, updateProjectStage } from "../db/adminDbFunctions";
+import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
+import { addReferencesLambda } from "../knowledgebase/commonFunctions";
+import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
@@ -43,7 +39,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
- async function addProjectAndReference(
+async function addProjectAndReference(
   tenant: tenant,
   name: string,
   description: string,
@@ -68,10 +64,9 @@ export const handler = async (event: any, context: any) => {
     let datasource_id = BedRockDataSourceS3;
 
     if (project != null) {
-   
-          await addReferencesLambda(tenant.id, project.id, files, datasource_id);
-       
-       
+
+     const stage1 = await addStage_1(tenant.adminuserid??"", project.id, files);
+      await addReferencesLambda(tenant.adminuserid??"", project.id);
 
       return {
         project: project,
@@ -92,23 +87,48 @@ export const handler = async (event: any, context: any) => {
   }
 }
 
-export async function addReferencesLambda(tenantId:string,projectId:string,files:any,datasource_id:string){
-  const event ={
-    tenantId: tenantId,
-    projectId: projectId,
-    files: files,
-    datasource_id: datasource_id
-  }
+export async function addStage_1(tenantUserId: string, projectId: string, files: any) {
+   // Stage 1: Data Source
+   const stageType = await getStageType("Data Source");
+   if (stageType) {
+     const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId,1);
+     if (stage1) {
+       // Fetch step types for each action in the stage
+       const [stepType1, stepType2, stepType3] = await Promise.all([
+         getStepType("File upload from frontend"),
+         getStepType("File hashing"),
+         getStepType("Store to Blockchain")
+       ]);
 
-  const params = {
-    FunctionName: "addReferences-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
-    InvocationType: "Event", // This makes the invocation asynchronous
-    Payload: JSON.stringify(event),
-  };
+       if (stepType1 && stepType2 && stepType3) {
+         // Create steps for stage 1
+         const [step1, step2, step3] = await Promise.all([
+           createStep(tenantUserId, "File upload from frontend", "File upload from frontend", stepType1.id, stage1.id,1),
+           createStep(tenantUserId, "File hashing", "File hashing", stepType2.id, stage1.id,2),
+           createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage1.id,3)
+         ]);
 
-  // Invoke the other Lambda function asynchronously
-  await lambda.invoke(params).promise();
-  
+         for (const file of files) {
+           const fileData = { fileName: file.fileName, fileContent: file.fileContent };
 
+           // Step 1: File upload details
+           await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
+
+           // Step 2: Hash the file data
+           const hash = await hashing(fileData);
+           const hashedData = {
+             "hash": hash.data?.dataHash,
+           }
+           await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
+
+           // Step 3: Store the hashed data on the blockchain
+           const blockchainHashedData = await hashingAndStoreToBlockchain(fileData, false);
+           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
+         }
+
+         // Update project to reflect data ingestion status
+         await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
+       }
+     }
+   }
 }
-

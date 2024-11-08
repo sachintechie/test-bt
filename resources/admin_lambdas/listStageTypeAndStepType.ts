@@ -1,16 +1,15 @@
-import { getReferenceList } from "../db/adminDbFunctions";
+import {  getListOfStageTypeAndStepType } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const tokens = await getRefs(
+    const tokens = await getData(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.limit,
       event.arguments?.input?.pageNo,
-      event.arguments?.input?.refType,
-      event.arguments?.input?.projectId
+      event.arguments?.input?.type
 
     );
     return {
@@ -28,9 +27,9 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getRefs(tenant: tenant, limit: number, pageNo: number,refType: string,projectId:string) {
+async function getData(tenant: tenant, limit: number, pageNo: number,type: string) {
   try {
-    const refs = await getReferenceList(limit, pageNo,tenant.id, refType,projectId);
+    const refs = await getListOfStageTypeAndStepType(limit, pageNo,tenant.id, type);
     console.log(refs, "refs");
     return refs;
   } catch (err) {
