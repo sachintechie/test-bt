@@ -1649,6 +1649,7 @@ export async function createInventory(inventoryData: productinventory) {
   try {
     const prisma = await getPrismaClient();
 
+    // Create the main product inventory entry
     const newInventory = await prisma.productinventory.create({
       data: {
         inventoryid: inventoryData.inventoryid,
@@ -1660,8 +1661,10 @@ export async function createInventory(inventoryData: productinventory) {
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
         isdeleted: false
-      }
+      },
     });
+
+    // Create the sensory data if provided
     if (inventoryData.sensorydata) {
       const sensor = inventoryData.sensorydata;
       await prisma.productsensorydata.create({
@@ -1676,10 +1679,18 @@ export async function createInventory(inventoryData: productinventory) {
         },
       });
     }
-    return newInventory;
+
+    // Fetch the newly created inventory along with its sensory data
+    const inventoryWithSensoryData = await prisma.productinventory.findUnique({
+      where: { id: newInventory.id },
+      include: { sensorydata: true },
+    });
+
+    return inventoryWithSensoryData;
   } catch (error) {
+    console.error("Error in createInventory:", error);
     if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while adding the inventory");
+      throw new Error(error.message || "An error occurred while creating the inventory");
     } else {
       throw new Error("An unexpected error occurred.");
     }
