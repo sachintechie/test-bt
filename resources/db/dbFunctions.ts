@@ -2357,8 +2357,10 @@ export async function addToCart(cart:productcart) {
       },
     },
   });
-  if (!existingCartItem?.inventory) {
-    throw new Error("Inventory item not found");
+
+  console.log( "existingCartItem" ,existingCartItem);
+  if (existingCartItem?.inventory && existingCartItem?.inventory?.quantity < quantity) {
+       throw new Error("Inventory item not found");
   }
 
   const itemPrice = existingCartItem.inventory.price;
