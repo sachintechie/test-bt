@@ -717,7 +717,7 @@ model productinventory {
   ownerships           productownership[] @relation("InventoryOwnerships")
   orders               orderitem[]        @relation("InventoryOrderItems")
   cart                 productcart[]      @relation("InventoryCart")
-  sensorydata          productsensorydata?    @relation("InventorySensorData", fields: [id], references: [inventoryid])\
+  sensorydata          productsensorydata?    @relation("InventorySensorData", fields: [id], references: [inventoryid])
 }
 
 model orders {
