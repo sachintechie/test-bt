@@ -55,7 +55,9 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
             // Upload file content to S3
             const s3Data = await addToS3Bucket(data.fileName, data.fileContent);
+
             await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id);
+            
           }
 
           // Update project to reflect data storage status
@@ -110,7 +112,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
           }
 
           // Update project to reflect data preparation status
-          await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
+          await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
         }
       }
     }
