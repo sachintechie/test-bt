@@ -163,7 +163,22 @@ export interface productinventory {
   isdeleted?: boolean;
   createdat?: string;
   updatedat?: string;
+  sensorydata?: productsensorydata;
 }
+
+export interface productsensorydata {
+  id?: string;
+  inventoryid: string;
+  temprature?: number;
+  oxygen?: number;
+  humidity?: number;
+  ph?: number;
+  alcohol?: number;
+  location?: string;
+  createdat?: string;
+  updatedat?: string;
+}
+
 
 export interface productcart {
   id?: string;

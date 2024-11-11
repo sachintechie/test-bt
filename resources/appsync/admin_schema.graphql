@@ -164,7 +164,29 @@ input CreateInventoryInput {
 	quantity: Int!
 	ownershipNft: Boolean
 	smartContractAddress: String
-	tokenId: String
+	tokenId: String,
+	sensoryData: SensoryDataInput
+}
+
+input SensoryDataInput {
+  temprature: Float
+  oxygen: Float
+  humidity: Float
+  ph: Float
+  alcohol: Float
+  location: String
+}
+
+type SensoryData {
+  id: String
+  temprature: Float
+  oxygen: Float
+  humidity: Float
+  ph: Float
+  alcohol: Float
+  location: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 type CreateInventoryResponse {
@@ -470,6 +492,7 @@ type InventoryData {
 	smartcontractaddress: String
 	tokenid: String
 	isdeleted: Boolean
+	sensorydata: SensoryData
 	createdat: AWSDateTime
 	updatedat: AWSDateTime
 }
@@ -822,6 +845,8 @@ input UpdateInventoryData {
 input UpdateInventoryInput {
 	inventoryId: String!
 	inventoryData: UpdateInventoryData!
+	sensoryData: SensoryDataInput
+
 }
 
 input UpdateProductAttributeInput {
@@ -847,6 +872,7 @@ input UpdateProductInputData {
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
+	tags: [String]
 }
 
 type UpdateProductResponse {
