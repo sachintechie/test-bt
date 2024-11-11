@@ -9,7 +9,8 @@ import {
   ProductStatus,
   RefType,
   productinventory,
-  inventoryfilter
+  inventoryfilter,
+  productsensorydata
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -1644,7 +1645,6 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
   }
 }
 
-
 export async function createInventory(inventoryData: productinventory) {
   try {
     const prisma = await getPrismaClient();
@@ -1662,7 +1662,20 @@ export async function createInventory(inventoryData: productinventory) {
         isdeleted: false
       }
     });
-
+    if (inventoryData.sensorydata) {
+      const sensor = inventoryData.sensorydata;
+      await prisma.productsensorydata.create({
+        data: {
+          inventoryid: newInventory.id,
+          temprature: sensor.temprature,
+          oxygen: sensor.oxygen,
+          humidity: sensor.humidity,
+          ph: sensor.ph,
+          alcohol: sensor.alcohol,
+          location: sensor.location,
+        },
+      });
+    }
     return newInventory;
   } catch (error) {
     if (error instanceof Error) {
@@ -1696,6 +1709,9 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
         productid: productId,
         isdeleted: false
       },
+      include: {
+        sensorydata: true
+      },
       skip: offset,
       take: limit
     });
@@ -1721,13 +1737,44 @@ export async function updateInventory(inventoryId: string, updateData: productin
   const prisma = await getPrismaClient();
 
   try {
+    const sensoryData: productsensorydata | undefined = updateData.sensorydata;
+
     const updatedInventory = await prisma.productinventory.update({
       where: {
         id: inventoryId
       },
       data: updateData
     });
-
+    if (sensoryData) {
+      const existingSensoryData = await prisma.productsensorydata.findUnique({
+        where: { inventoryid: inventoryId }
+      });
+      if (existingSensoryData) {
+        await prisma.productsensorydata.update({
+          where: { id: existingSensoryData.id },
+          data: {
+            ...(sensoryData.temprature !== undefined && { temprature: sensoryData.temprature }),
+            ...(sensoryData.oxygen !== undefined && { oxygen: sensoryData.oxygen }),
+            ...(sensoryData.humidity !== undefined && { humidity: sensoryData.humidity }),
+            ...(sensoryData.ph !== undefined && { ph: sensoryData.ph }),
+            ...(sensoryData.alcohol !== undefined && { alcohol: sensoryData.alcohol }),
+            ...(sensoryData.location !== undefined && { location: sensoryData.location }),
+          },
+        });
+      } else {
+        await prisma.productsensorydata.create({
+          data: {
+            inventoryid: inventoryId,
+            temprature: sensoryData.temprature,
+            oxygen: sensoryData.oxygen,
+            humidity: sensoryData.humidity,
+            ph: sensoryData.ph,
+            alcohol: sensoryData.alcohol,
+            location: sensoryData.location,
+          },
+        });
+      }
+    }
     return updatedInventory;
   } catch (error) {
     console.error("Error in updateInventory:", error);
@@ -1855,7 +1902,8 @@ export async function searchInventory(searchKeyword: string) {
         ]
       },
       include: {
-        product: true
+        product: true,
+        sensorydata:true
       }
     });
 
@@ -1926,7 +1974,8 @@ export async function filterInventory(filters: inventoryfilter) {
     const filteredResult = await prisma.productinventory.findMany({
       where: whereClause,
       include: {
-        product: true
+        product: true,
+        sensorydata:true
       }
     });
 
