@@ -112,7 +112,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
           }
 
           // Update project to reflect data preparation status
-          await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
+          await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
         }
       }
     }
