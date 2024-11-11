@@ -1611,7 +1611,8 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 
     const products = await prisma.product.findMany({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+		isdeleted: false
       },
       skip: offset,
       take: limit,
@@ -1623,7 +1624,8 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 
     const totalCount = await prisma.product.count({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+		isdeleted: false
       }
     });
 
@@ -1797,7 +1799,7 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: productinventory[],productId:string) {
+export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1812,22 +1814,26 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
           ownershipnft: inventoryData.ownershipnft ?? false,
           smartcontractaddress: inventoryData.smartcontractaddress,
           tokenid: inventoryData.tokenid,
-          isdeleted: false
+          isdeleted: false,
         })),
-        skipDuplicates: true
+        skipDuplicates: true,
       });
 
-      return tx.productinventory.findMany({
+      const createdInventoryIds = await tx.productinventory.findMany({
         where: {
+          productid: productId,
           inventoryid: {
-            in: inventoryDataArray.map((data) => data.inventoryid)
-          }
-        }
+            in: inventoryDataArray.map((data) => data.inventoryid),
+          },
+        },
       });
+
+      return createdInventoryIds;
     });
 
     return createdInventories;
   } catch (error) {
+    console.error("Error in createBulkInventory:", error);
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the inventory");
     } else {
