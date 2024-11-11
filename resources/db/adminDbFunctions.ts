@@ -1799,11 +1799,19 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string) {
+export async function createBulkInventory(
+  inventoryDataArray: productinventory[],
+  productId: string
+) {
   try {
     const prisma = await getPrismaClient();
 
+    //  current timestamp
+    const creationTimestamp = new Date();
+
+  
     const createdInventories = await prisma.$transaction(async (tx) => {
+      
       await tx.productinventory.createMany({
         data: inventoryDataArray.map((inventoryData) => ({
           inventoryid: inventoryData.inventoryid,
@@ -1815,20 +1823,26 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
           smartcontractaddress: inventoryData.smartcontractaddress,
           tokenid: inventoryData.tokenid,
           isdeleted: false,
+          createdat: new Date(),
+          updatedat: new Date(),
         })),
         skipDuplicates: true,
       });
 
-      const createdInventoryIds = await tx.productinventory.findMany({
+      
+      const newlyCreatedInventories = await tx.productinventory.findMany({
         where: {
           productid: productId,
           inventoryid: {
             in: inventoryDataArray.map((data) => data.inventoryid),
           },
+          createdat: {
+            gt: creationTimestamp,
+          },
         },
       });
 
-      return createdInventoryIds;
+      return newlyCreatedInventories;
     });
 
     return createdInventories;
