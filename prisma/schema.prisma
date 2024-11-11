@@ -717,7 +717,8 @@ model productinventory {
   ownerships           productownership[] @relation("InventoryOwnerships")
   orders               orderitem[]        @relation("InventoryOrderItems")
   cart                 productcart[]      @relation("InventoryCart")
-  sensorydata          productsensorydata?    @relation("InventorySensorData", fields: [id], references: [inventoryid])
+  sensorydata          productsensorydata?    @relation("InventorySensorData")
+
 }
 
 model orders {
@@ -758,7 +759,7 @@ updatedat      DateTime @updatedAt
 
 model productsensorydata {
   id                   String          @id @default(uuid())
-  inventoryid          String                 @unique
+ inventoryid          String                 @unique
   inventory            productinventory       @relation("InventorySensorData", fields: [inventoryid], references: [id], onDelete: Cascade)
   temprature           Float?
   oxygen               Float?
