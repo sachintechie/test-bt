@@ -47,8 +47,8 @@ export async function provenanceTransfer(
         };
       } else {
         for (const token of wallet) {
-          if (token.symbol == symbol && symbol === "SOL" && token.customerid != null) {
-            console.log(token, "SOL data");
+          if (token.symbol == symbol && symbol === "HASH" && token.customerid != null) {
+            console.log(token, "HASH data");
             balance = await getSolBalance(senderWalletAddress);
             token.balance = balance;
             console.log("Balance", balance);
@@ -79,7 +79,7 @@ export async function provenanceTransfer(
             } else {
               return {
                 transaction: null,
-                error: "Insufficient SOL balance"
+                error: "Insufficient HASH balance"
               };
             }
           } 
@@ -111,6 +111,8 @@ async function transferPROV(
     }
     // Just grab the first key for the user
     const keys = await oidcClient.sessionKeys();
+    const fromKey = await oidcClient.apiClient.keyGetByMaterialId(cs.Secp256k1.Cosmos, senderWalletAddress);
+
     console.log("Keys", keys);
     const key = keys.filter((key: cs.Key) => {
       console.log(key.materialId);

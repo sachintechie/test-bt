@@ -109,20 +109,22 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
          ]);
 
          for (const file of files) {
-           const fileData = { fileName: file.fileName, fileContent: file.fileContent };
+           const fileDataForHash = { fileName: file.fileName, fileContent: file.fileContent };
+           const fileData = { fileName: file.fileName, fileContent: file.fileContent,contentType: file.contentType };
+
 
            // Step 1: File upload details
            await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
 
            // Step 2: Hash the file data
-           const hash = await hashing(fileData);
+           const hash = await hashing(fileDataForHash);
            const hashedData = {
              "hash": hash.data?.dataHash,
            }
            await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
            // Step 3: Store the hashed data on the blockchain
-           const blockchainHashedData = await hashingAndStoreToBlockchain(fileData, false);
+           const blockchainHashedData = await hashingAndStoreToBlockchain(fileDataForHash, false);
            await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
          }
 
