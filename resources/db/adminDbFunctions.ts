@@ -152,8 +152,14 @@ export async function createProject(
   }
 }
 
-export async function createStage(tenantUserId: string, name: string, description: string,
-   stageTypeId: string, projectId: string,stageSequence:number) {
+export async function createStage(
+  tenantUserId: string,
+  name: string,
+  description: string,
+  stageTypeId: string,
+  projectId: string,
+  stageSequence: number
+) {
   console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
@@ -237,7 +243,14 @@ export async function getStepType(name: string) {
   }
 }
 
-export async function createStep(tenantUserId: string, name: string, description: string, stepTypeId: string, stageId: string,stepSequence:number) {
+export async function createStep(
+  tenantUserId: string,
+  name: string,
+  description: string,
+  stepTypeId: string,
+  stageId: string,
+  stepSequence: number
+) {
   console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
@@ -1525,7 +1538,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
         projectid: projectId,
         isdeleted: false
       },
-         orderBy: {
+      orderBy: {
         stagesequence: "asc"
       }
     });
@@ -1536,23 +1549,22 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
         isdeleted: false
       },
       include: {
-            steps: {
-              include: {
-                stepdetails: true
-              },
-              orderBy: {
-                stepsequence: 'asc'  // Sort steps within each stage by 'stepsequence' column
-              }
-            }
+        steps: {
+          include: {
+            stepdetails: true
           },
-         orderBy: {
+          orderBy: {
+            stepsequence: "asc" // Sort steps within each stage by 'stepsequence' column
+          }
+        }
+      },
+      orderBy: {
         stagesequence: "asc"
       },
-      
+
       take: limit,
       skip: (pageNo - 1) * limit
     });
-
 
     if (project == null) {
       return { data: null, error: "Project not found" };
@@ -1564,9 +1576,8 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
         totalPages: Math.ceil(stageCount / limit),
         stages: stages
       }
-    }
+    };
     const data = {
-
       project: projectData
     };
     console.log(data);
@@ -1612,7 +1623,7 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
     const products = await prisma.product.findMany({
       where: {
         tenantid: tenantId,
-		isdeleted: false
+        isdeleted: false
       },
       skip: offset,
       take: limit,
@@ -1625,7 +1636,7 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
     const totalCount = await prisma.product.count({
       where: {
         tenantid: tenantId,
-		isdeleted: false
+        isdeleted: false
       }
     });
 
@@ -1663,7 +1674,7 @@ export async function createInventory(inventoryData: productinventory) {
         smartcontractaddress: inventoryData.smartcontractaddress,
         tokenid: inventoryData.tokenid,
         isdeleted: false
-      },
+      }
     });
 
     // Create the sensory data if provided
@@ -1677,15 +1688,15 @@ export async function createInventory(inventoryData: productinventory) {
           humidity: sensor.humidity,
           ph: sensor.ph,
           alcohol: sensor.alcohol,
-          location: sensor.location,
-        },
+          location: sensor.location
+        }
       });
     }
 
     // Fetch the newly created inventory along with its sensory data
     const inventoryWithSensoryData = await prisma.productinventory.findUnique({
       where: { id: newInventory.id },
-      include: { sensorydata: true },
+      include: { sensorydata: true }
     });
 
     return inventoryWithSensoryData;
@@ -1771,8 +1782,8 @@ export async function updateInventory(inventoryId: string, updateData: productin
             ...(sensoryData.humidity !== undefined && { humidity: sensoryData.humidity }),
             ...(sensoryData.ph !== undefined && { ph: sensoryData.ph }),
             ...(sensoryData.alcohol !== undefined && { alcohol: sensoryData.alcohol }),
-            ...(sensoryData.location !== undefined && { location: sensoryData.location }),
-          },
+            ...(sensoryData.location !== undefined && { location: sensoryData.location })
+          }
         });
       } else {
         await prisma.productsensorydata.create({
@@ -1783,8 +1794,8 @@ export async function updateInventory(inventoryId: string, updateData: productin
             humidity: sensoryData.humidity,
             ph: sensoryData.ph,
             alcohol: sensoryData.alcohol,
-            location: sensoryData.location,
-          },
+            location: sensoryData.location
+          }
         });
       }
     }
@@ -1799,19 +1810,14 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(
-  inventoryDataArray: productinventory[],
-  productId: string
-) {
+export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string) {
   try {
     const prisma = await getPrismaClient();
 
     //  current timestamp
     const creationTimestamp = new Date();
 
-  
     const createdInventories = await prisma.$transaction(async (tx) => {
-      
       await tx.productinventory.createMany({
         data: inventoryDataArray.map((inventoryData) => ({
           inventoryid: inventoryData.inventoryid,
@@ -1824,22 +1830,21 @@ export async function createBulkInventory(
           tokenid: inventoryData.tokenid,
           isdeleted: false,
           createdat: new Date(),
-          updatedat: new Date(),
+          updatedat: new Date()
         })),
-        skipDuplicates: true,
+        skipDuplicates: true
       });
 
-      
       const newlyCreatedInventories = await tx.productinventory.findMany({
         where: {
           productid: productId,
           inventoryid: {
-            in: inventoryDataArray.map((data) => data.inventoryid),
+            in: inventoryDataArray.map((data) => data.inventoryid)
           },
           createdat: {
-            gt: creationTimestamp,
-          },
-        },
+            gt: creationTimestamp
+          }
+        }
       });
 
       return newlyCreatedInventories;
@@ -1871,7 +1876,7 @@ export async function createBulkProduct(productDataArray: product[]) {
           rarity: productData.rarity,
           price: productData.price,
           categoryid: productData.categoryid,
-          tenantid: productData.tenantid,
+          tenantid: productData.tenantid
         })),
         skipDuplicates: true
       });
@@ -1895,7 +1900,6 @@ export async function createBulkProduct(productDataArray: product[]) {
     }
   }
 }
-
 
 export async function deleteInventory(inventoryId: string) {
   try {
@@ -1934,7 +1938,7 @@ export async function searchInventory(searchKeyword: string) {
       },
       include: {
         product: true,
-        sensorydata:true
+        sensorydata: true
       }
     });
 
@@ -2006,7 +2010,7 @@ export async function filterInventory(filters: inventoryfilter) {
       where: whereClause,
       include: {
         product: true,
-        sensorydata:true
+        sensorydata: true
       }
     });
 
