@@ -607,6 +607,7 @@ model wallet {
   walletid      String?
   isactive      Boolean?
   createdat     String?
+  publickey     String?
 }
 
 model adminwallet {

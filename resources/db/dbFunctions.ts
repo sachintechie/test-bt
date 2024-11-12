@@ -229,7 +229,7 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
         customerid: customerId as string,
         walletaddress: displayAddress,
         walletid: key.id,
-        publicAddress: key.materialId,
+        publickey: key.materialId,
         chaintype: chainType,
         wallettype: keyType.toString(),
         isactive: true,
@@ -855,7 +855,10 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
       where: {
-        walletaddress: walletAddress
+        OR: [
+          { publickey: walletAddress },
+          { walletaddress: walletAddress }
+        ]
       }
     });
     let tokens;
