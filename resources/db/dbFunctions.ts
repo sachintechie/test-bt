@@ -203,6 +203,7 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
       case "Provenance":
         keyType = cs.Secp256k1.Cosmos;
         break;
+
       default:
         keyType = null;
     }
@@ -226,9 +227,9 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: key.materialId,
+        walletaddress: displayAddress,
         walletid: key.id,
-        publicAddress: displayAddress,
+        publicAddress: key.materialId,
         chaintype: chainType,
         wallettype: keyType.toString(),
         isactive: true,
