@@ -2,7 +2,7 @@ import { tenant } from "../db/models";
 
 import { createProject, createStage, createStep, createStepDetails, getStageType, getStepType, isProjectExist, updateProjectStage } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
-import { addReferencesLambda } from "../knowledgebase/commonFunctions";
+import { addReferencesLambda, formatBytes } from "../knowledgebase/commonFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
@@ -109,9 +109,10 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
          ]);
 
          for (const file of files) {
-           const fileDataForHash = { fileName: file.fileName, fileContent: file.fileContent };
-           const fileData = { fileName: file.fileName, fileContent: file.fileContent,contentType: file.contentType };
+          const fileSize = await getFileSizeFromBase64(file.fileContent)
 
+           const fileDataForHash = { fileName: file.fileName, fileContent: file.fileContent };
+           const fileData = { fileName: file.fileName, fileContent: file.fileContent,contentType: file.contentType,fileSize: fileSize };
 
            // Step 1: File upload details
            await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
@@ -133,4 +134,12 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
        }
      }
    }
+}
+
+async function getFileSizeFromBase64(base64String: string) {
+
+  // Calculate the file size in bytes
+  const fileSizeInBytes = (base64String.length * 3) / 4 - (base64String.endsWith('==') ? 2 : base64String.endsWith('=') ? 1 : 0);
+ const size = await formatBytes(fileSizeInBytes);
+  return size;
 }
