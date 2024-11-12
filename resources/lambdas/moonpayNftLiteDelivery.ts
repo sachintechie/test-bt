@@ -11,7 +11,7 @@ export const handler = async (event: any, context: any) => {
   // Listing ID is tenantId
   console.log("Retrieving metadata for listingId/tenantId:", listingId);
   const tokenIdInt = parseInt(tokenId);
-  const receipt=await transferERC1155(buyerWalletAddress,tokenIdInt,quantity,'AVAX',contractAddress,listingId)
+  const receipt=await transferERC1155(buyerWalletAddress,tokenIdInt,quantity,'AVAX',contractAddress,listingId,"moonpay")
   return {
     status: 200,
     message: "retrieved successfully",
