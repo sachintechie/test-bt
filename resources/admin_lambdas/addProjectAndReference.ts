@@ -112,7 +112,7 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
           const fileSize = await getFileSizeFromBase64(file.fileContent)
 
            const fileDataForHash = { fileName: file.fileName, fileContent: file.fileContent };
-           const fileData = { fileName: file.fileName, fileContent: file.fileContent,contentType: file.contentType,fileSize: fileSize };
+           const fileData = { fileName: file.fileName, fileContent: file.fileContent,contentType: file.contentType,size: fileSize };
 
            // Step 1: File upload details
            await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
