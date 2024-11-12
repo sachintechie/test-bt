@@ -86,6 +86,10 @@ export const handler = async (event: any, context: any) => {
    const createdInventories = await createBulkInventory(inventoryDataArray, productId);
    console.log(`Successfully created ${createdInventories.length} inventories across all sheets`, createdInventories);
 
+   console.log(`Start creating Stripe products for ${createdInventories.length} inventories`);
+   await createMultipleStripeProducts(inventoryDataArray,tenantContext.id!);
+   console.log(`Complete creating Stripe products for ${createdInventories.length} inventories`);
+
 	const adminUser = await getAdminUserById(tenantContext.adminuserid!);
 	const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
 
@@ -147,6 +151,7 @@ interface InventoryData {
  */
 async function createMultipleStripeProducts(inventoryDataArray: InventoryData[],tenantIdParam:string) {
   const createdProducts: Array<{ product: Stripe.Product; price: Stripe.Price }> = [];
+  console.log('inventoryDataArray', inventoryDataArray);
 
   for (const inventoryData of inventoryDataArray) {
     // Map inventory data fields to Stripe product fields
@@ -161,6 +166,7 @@ async function createMultipleStripeProducts(inventoryDataArray: InventoryData[],
     const contract = inventoryData.smartcontractaddress || '';
     const tenantId = tenantIdParam; // Replace with actual tenant ID if applicable
     const type = inventoryData.type || 'N/A';
+    console.log('inventoryData', inventoryData);
 
     try {
       // Create a Stripe product and price for each inventory item
@@ -201,6 +207,7 @@ async function createMultipleStripeProducts(inventoryDataArray: InventoryData[],
  */
 async function createStripeProductWithOneTimePrice(name: string, description: string, unitAmount: number, currency: string, tokenId: string, chain: string, contract: string, tenantId: string, type: string): Promise<{ product: Stripe.Product|null; price: Stripe.Price|null }>{
   try {
+    console.log('Creating product and price:', name, unitAmount, currency, tokenId, chain, contract, tenantId, type)
     // Step 1: Create the product with metadata
     const product = await stripe.products.create({
       name,
@@ -217,7 +224,10 @@ async function createStripeProductWithOneTimePrice(name: string, description: st
 
     console.log('Product created:', product);
 
+
+
     // Step 2: Create a one-time price for the product
+    console.log('Creating price for product:', product.id);
     const price = await stripe.prices.create({
       product: product.id,
       unit_amount: unitAmount,
