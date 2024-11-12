@@ -1039,7 +1039,7 @@ quantity: Int
 
 type CartResponse {
   status: Int
-  data: CartData
+  data: [CartData]
   error: AWSJSON
 }
 
