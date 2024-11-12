@@ -37,91 +37,111 @@ model cubistconfig {
 }
 
 model organization {
-  id          String      @id @default(uuid())
-  name        String
-  description String
-  tenantid    String?
-  tenant      tenant?     @relation(fields: [tenantid], references: [id])
-  isactive    Boolean
-  createdat   String
-  adminusers  adminuser[]
-  projects    project[]
+  id                String            @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String?
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  adminusers        adminuser[]
+  projects          project[]
 }
 
 model project {
-  id              String            @id @default(uuid())
-  name            String
-  description     String
-  projecttype     ProjectType
-  projectstatus   ProjectStatusEnum
-  projectstage    ProjectStage
-  projectmetadata projectdataitem[]
-  knowledgebaseid String
-  organization    organization      @relation(fields: [organizationid], references: [id])
-  organizationid  String
-  tenantid        String
-  tenant          tenant            @relation(fields: [tenantid], references: [id])
-  isactive        Boolean
-  createdat       String
-  createdby       String
-  adminUsers      adminuser[]
-  references      reference[]
-  stages          stage[]
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  projecttype       ProjectType
+  projectstatus     ProjectStatusEnum
+  projectstage      ProjectStage
+  projectmetadata   projectdataitem[]
+  knowledgebaseid   String
+  organization      organization @relation(fields: [organizationid], references: [id])
+  organizationid    String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  createdat         String
+  createdby         String
+  adminUsers        adminuser[]
+  references        reference[]
+  stages            stage[]
 }
 
 model stage {
-  id            String       @id @default(uuid())
-  name          String
-  description   String
-  stagetypeid   String
-  stagetype     stagetype    @relation(fields: [stagetypeid], references: [id])
-  status        ActionStatus
-  projectid     String
-  project       project      @relation(fields: [projectid], references: [id])
-  stagesequence Int
-  isactive      Boolean
-  createdat     String
-  createdby     String
-  steps         step[]
+  id                String             @id @default(uuid())
+  name              String       
+  description       String
+  stagetypeid       String
+  stagetype         stagetype @relation(fields: [stagetypeid], references: [id])
+  status            ActionStatus
+  projectid         String
+  project           project @relation(fields: [projectid], references: [id])
+  stagesequence     Int
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  steps             step[]
 }
 
 model step {
-  id          String       @id @default(uuid())
-  name        String
-  description String
-  steptypeid  String
-  steptype    steptype     @relation(fields: [steptypeid], references: [id])
-  status      ActionStatus
-  stageid     String
-  stage       stage        @relation(fields: [stageid], references: [id])
-  isactive    Boolean
-  createdat   String
-  createdby   String
+  id                String             @id @default(uuid())
+  name              String       
+  description       String
+  steptypeid        String
+  steptype          steptype @relation(fields: [steptypeid], references: [id])
+  status            ActionStatus
+  stageid           String
+  stage             stage  @relation(fields: [stageid],references:[id])
+  stepsequence     Int
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  stepdetails       stepdetail[]
+}
+
+model stepdetail {
+  id                String             @id @default(uuid())
+  stepid            String
+  step              step @relation(fields: [stepid], references: [id])
+  status            ActionStatus
+  metadata          String
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
 }
 
 model stagetype {
-  id          String  @id @default(uuid())
-  name        String
-  description String
-  tenantid    String
-  tenant      tenant  @relation(fields: [tenantid], references: [id])
-  isactive    Boolean
-  createdat   String
-  createdby   String
-  stages      stage[]
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  stages            stage[]
 }
 
 model steptype {
-  id          String  @id @default(uuid())
-  name        String
-  description String
-  tenantid    String
-  tenant      tenant  @relation(fields: [tenantid], references: [id])
-  isactive    Boolean
-  createdat   String
-  createdby   String
-  steps       step[]
+  id                String             @id @default(uuid())
+  name              String
+  description       String
+  tenantid          String
+  tenant            tenant @relation(fields: [tenantid], references: [id])
+  isactive          Boolean
+  isdeleted         Boolean
+  createdat         String
+  createdby         String
+  steps             step[]
 }
+
+
 
 enum ProjectType {
   ON_PREM
@@ -167,49 +187,53 @@ enum ProjectStage {
 }
 
 model projectdataitem {
-  id        String  @id @default(uuid())
-  projectid String
-  project   project @relation(fields: [projectid], references: [id])
-  name      String
-  value     String
-  createdat String
+  id              String          @id @default(uuid())
+  projectid       String
+  project         project         @relation(fields: [projectid], references: [id])
+  name            String
+  value           String
+  createdat       String
 }
 
-model reference {
-  id                  String         @id @default(uuid())
-  tenantid            String
-  tenant              tenant         @relation(fields: [tenantid], references: [id])
-  projectid           String?
-  project             project?       @relation(fields: [projectid], references: [id])
-  referencestage      ReferenceStage
-  name                String?
-  reftype             String?
-  url                 String?
-  size                String?
-  depth               Int?
-  ingested            Boolean
-  isdeleted           Boolean        @default(false)
-  isactive            Boolean
-  createdat           String?
-  datasourceid        String?
-  ingestionjobid      String?
-  s3prestorehash      String?
-  s3prestoretxhash    String?
-  s3poststorehash     String?
-  s3poststoretxhash   String?
-  chaintype           String?
-  chainid             String?
-  completechunkhash   String?
+
+
+model reference  {
+  id                String             @id @default(uuid())
+  tenantid          String
+  tenant            tenant            @relation(fields: [tenantid], references: [id])
+  projectid         String?
+  project           project?            @relation(fields: [projectid], references: [id])
+  referencestage    ReferenceStage
+  name              String?            
+  reftype           String?
+  url               String? 
+  size              String?
+  depth             Int?
+  ingested          Boolean  
+  isdeleted         Boolean          @default(false)    
+  isactive          Boolean
+  createdat         String?
+  datasourceid      String?
+  ingestionjobid    String?
+  s3prestorehash    String?
+  s3prestoretxhash  String?
+  s3poststorehash   String?
+  s3poststoretxhash String?
+  chaintype         String?
+  chainid           String?
+  completechunkhash String?
   completechunktxhash String?
-  chunkshash          String?
-  chunkstxhash        String?
+  chunkshash        String?
+  chunkstxhash      String?
+    
+
 }
 
 model customer {
-  id                String              @id @default(uuid())
+  id                String             @id @default(uuid())
   tenantuserid      String?
   tenantid          String?
-  tenant            tenant?             @relation(fields: [tenantid], references: [id])
+  tenant            tenant?            @relation(fields: [tenantid], references: [id])
   emailid           String?
   name              String?
   cubistuserid      String?
@@ -229,7 +253,7 @@ model customer {
   sellerorders      orders[]            @relation("SellerOrders")
   buyerorders       orders[]            @relation("BuyerOrders")
   productreviews    productreview[]
-  collections       productcollection[]
+  collections       productcollection[] 
   productownerships productownership[]
   cart              productcart[]
 }
@@ -246,7 +270,7 @@ model adminuser {
   createdat         String?
   iss               String?
   organizationid    String?
-  organization      organization?      @relation(fields: [organizationid], references: [id])
+  organization      organization? @relation(fields: [organizationid], references: [id])
   isbonuscredit     Boolean?
   adminwallets      adminwallet[]
   admintransactions admintransaction[]
@@ -367,35 +391,35 @@ model sumsubconfig {
 }
 
 model tenant {
-  id                    String                 @id @default(uuid())
-  name                  String?
-  apikey                String?
-  logo                  String?
-  isactive              Boolean?
-  createdat             String?
-  tenantsecret          String?
-  tenantheaderkey       String?
-  callbackurl           String?
-  cubistorgid           String?
-  userpoolid            String?
-  cognitoclientid       String?
-  iscognitoactive       Boolean?
-  iscubistactive        Boolean?
-  cubistconfig          cubistconfig[]
-  customer              customer[]
-  adminuser             adminuser[]
-  customerkyc           customerkyc[]
-  gaspayerwallet        gaspayerwallet[]
-  stakeaccount          stakeaccount[]
-  staketransaction      staketransaction[]
-  categories            productcategory[]
-  products              product[]
-  references            reference[]
-  organizations         organization[]
-  projects              project[]
+  id               String             @id @default(uuid())
+  name             String?
+  apikey           String?
+  logo             String?
+  isactive         Boolean?
+  createdat        String?
+  tenantsecret     String?
+  tenantheaderkey  String?
+  callbackurl      String?
+  cubistorgid      String?
+  userpoolid       String?
+  cognitoclientid  String?
+  iscognitoactive  Boolean?
+  iscubistactive  Boolean?
+  cubistconfig     cubistconfig[]
+  customer         customer[]
+  adminuser        adminuser[]
+  customerkyc      customerkyc[]
+  gaspayerwallet   gaspayerwallet[]
+  stakeaccount     stakeaccount[]
+  staketransaction staketransaction[]
+  categories       productcategory[]
+  products         product[]
+  references       reference[]   
+  organizations    organization[]
+  projects         project[]
   referencetransactions referencetransaction[]
-  steptypes             steptype[]
-  stagetypes            stagetype[]
+  steptypes steptype[]
+  stagetypes stagetype[]
 }
 
 enum productrarity {
@@ -405,6 +429,7 @@ enum productrarity {
   LEGENDARY
   MYTHICAL
 }
+
 
 model productcategory {
   id        String    @id @default(uuid())
@@ -419,29 +444,29 @@ model productcategory {
 }
 
 model product {
-  id                String                      @id @default(uuid())
-  name              String
-  description       String
-  type              String
-  sku               String
-  categoryid        String
-  tags              String[]
-  category          productcategory             @relation(fields: [categoryid], references: [id])
-  rarity            productrarity?              @default(NORMAL)
-  price             Float?
-  tenantid          String?
-  tenant            tenant?                     @relation(fields: [tenantid], references: [id])
-  status            ProductStatus?              @default(ACTIVE)
-  isdeleted         Boolean?
-  createdat         DateTime?                   @default(now())
-  updatedat         DateTime?                   @updatedAt
-  transactions      transaction[]
-  productattributes productattribute[]
-  wishlists         productwishlist[]
-  productreviews    productreview[]
-  collections       productcollectionproducts[] @relation("productcollectionproductsproduct")
-  inventories       productinventory[]
-  productmedia      media[]                     @relation("ProductMedia")
+  id                  String                      @id @default(uuid())
+  name                String
+  description         String
+  type                String
+  sku                 String
+  categoryid          String
+  tags                String[]
+  category            productcategory             @relation(fields: [categoryid], references: [id])
+  rarity              productrarity?              @default(NORMAL)
+  price               Float?
+  tenantid            String?
+  tenant              tenant?                     @relation(fields: [tenantid], references: [id])
+  status              ProductStatus?              @default(ACTIVE)
+  isdeleted           Boolean?
+  createdat           DateTime?                   @default(now())
+  updatedat           DateTime?                   @updatedAt
+  transactions        transaction[]
+  productattributes   productattribute[]
+  wishlists           productwishlist[]
+  productreviews      productreview[]
+  collections         productcollectionproducts[] @relation("productcollectionproductsproduct")
+  inventories         productinventory[]
+  productmedia        media[]    @relation("ProductMedia")  
 
   @@unique([categoryid, name, sku])
 }
@@ -458,7 +483,7 @@ model productattribute {
 }
 
 model token {
-  id                String             @id @default(uuid())
+  id                String              @id @default(uuid())
   name              String?
   chaintype         String
   contractaddress   String
@@ -499,21 +524,21 @@ model transaction {
 }
 
 model referencetransaction {
-  id            String   @id @default(uuid())
-  tenantid      String
-  tenant        tenant?  @relation(fields: [tenantid], references: [id])
-  walletaddress String?
-  chaintype     String?
-  chainid       String?
-  txhash        String
-  status        String?
-  isactive      Boolean?
-  createdat     String?
-  updatedat     String?
-  network       String?
-  refid         String?
-  projectid     String?
-  hash          String?
+  id                    String    @id @default(uuid())
+  tenantid              String
+  tenant                tenant?                     @relation(fields: [tenantid], references: [id])
+  walletaddress         String?
+  chaintype             String?
+  chainid               String?
+  txhash                String
+  status                String?
+  isactive              Boolean?
+  createdat             String?
+  updatedat             String?
+  network               String?
+  refid                 String?
+  projectid             String?
+  hash                  String?
 }
 
 model contracttransaction {
@@ -529,10 +554,10 @@ model contracttransaction {
 }
 
 model paymenttransaction {
-  id         String  @id @default(uuid())
+  id         String @id @default(uuid())
   txhash     String
-  provider   String?
-  providerid String?
+  provider   String
+  providerid String
   toaddress  String
 }
 
@@ -616,35 +641,34 @@ enum orderstatus {
 }
 
 model productreview {
-  id         String    @id @default(uuid())
-  comment    String?
-  rating     Float?
+  id          String       @id @default(uuid())
+  comment     String?
+  rating      Float?
   customerid String
-  customer   customer? @relation(fields: [customerid], references: [id])
-  productid  String?
-  product    product?  @relation(fields: [productid], references: [id])
-  orderid    String?
-  orders     orders?   @relation(fields: [orderid], references: [id])
-  createdat  DateTime  @default(now())
-  updatedat  DateTime  @updatedAt
+  customer   customer?    @relation(fields: [customerid], references: [id])
+  productid   String?
+  product     product?     @relation(fields: [productid], references: [id])
+  orderid     String?
+  orders      orders?     @relation(fields: [orderid], references: [id])
+  createdat   DateTime     @default(now())
+  updatedat   DateTime    @updatedAt
 }
 
 model productcollection {
-  id          String                      @id @default(uuid())
-  customerid  String?
-  customer    customer?                   @relation(fields: [customerid], references: [id])
-  products    productcollectionproducts[] @relation("productcollectionproductscollection")
+  id          String       @id @default(uuid())
+  customerid String?
+  customer   customer?    @relation(fields: [customerid], references: [id])
+  products               productcollectionproducts[] @relation("productcollectionproductscollection")
   title       String?
   description String?
-  createdat   DateTime                    @default(now())
-  updatedat   DateTime                    @updatedAt
+  createdat   DateTime     @default(now())
+  updatedat   DateTime    @updatedAt
 }
-
 model productcollectionproducts {
-  productcollectionid String
-  productcollection   productcollection @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
-  productid           String
-  product             product           @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
+  productcollectionid     String
+  productcollection       productcollection          @relation(fields: [productcollectionid], references: [id], name: "productcollectionproductscollection")
+  productid               String
+  product                 product                    @relation(fields: [productid], references: [id], name: "productcollectionproductsproduct")
 
   @@id([productcollectionid, productid])
 }
@@ -658,37 +682,38 @@ model productownership {
   isdeleted   Boolean?
 }
 
+
 enum ProductStatus {
-  ACTIVE
-  INACTIVE
+ACTIVE
+INACTIVE
 }
 
 model media {
   id         String   @id @default(uuid())
-  entityid   String
+  entityid   String 
   entitytype String
   url        String
-  type       String?
+  type       String?   
   createdat  DateTime @default(now())
   updatedat  DateTime @updatedAt
   product    product? @relation("ProductMedia", fields: [entityid], references: [id])
 }
 
 model productinventory {
-  id                   String             @id @default(uuid())
+  id                   String    @id @default(uuid())
   productid            String
-  product              product            @relation(fields: [productid], references: [id])
-  inventoryid          String             @unique
+  product              product   @relation(fields: [productid], references: [id])
+  inventoryid          String    @unique
   isdeleted            Boolean?
   inventorycategory    String
   price                Float
   quantity             Int
   ownershipnft         Boolean
   smartcontractaddress String?
-  tokenid              String?            @unique
-  token                token?             @relation(fields: [tokenid], references: [id])
-  createdat            DateTime?          @default(now())
-  updatedat            DateTime?          @updatedAt
+  tokenid              String?   @unique
+  token                token?    @relation(fields: [tokenid], references: [id])
+  createdat            DateTime? @default(now())
+  updatedat            DateTime? @updatedAt
   ownerships           productownership[] @relation("InventoryOwnerships")
   orders               orderitem[]        @relation("InventoryOrderItems")
   cart                 productcart[]      @relation("InventoryCart")
@@ -697,25 +722,51 @@ model productinventory {
 }
 
 model orders {
-  id             String          @id @default(uuid())
-  sellerid       String?
-  seller         customer?       @relation("SellerOrders", fields: [sellerid], references: [id])
-  buyerid        String?
-  buyer          customer?       @relation("BuyerOrders", fields: [buyerid], references: [id])
-  totalprice     Float?
-  status         orderstatus
+  id         String       @id @default(uuid())
+  sellerid   String?
+  seller     customer?    @relation("SellerOrders", fields: [sellerid], references: [id])
+  buyerid    String?
+  buyer      customer?    @relation("BuyerOrders", fields: [buyerid], references: [id])
+  totalprice      Float?
+  status     orderstatus
   productreviews productreview[]
-  orderItems     orderitem[]     @relation("OrderItems")
-  createdat      DateTime        @default(now())
-  updatedat      DateTime        @updatedAt
+  orderItems     orderitem[]   @relation("OrderItems")
+  createdat  DateTime   @default(now())
+  updatedat  DateTime   @updatedAt
 }
 
 model orderitem {
-  id          String           @id @default(uuid())
-  orderid     String
-  order       orders           @relation("OrderItems", fields: [orderid], references: [id])
-  inventoryid String
-  inventory   productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
-  quantity    Int
-  price       Float?
+  id             String           @id @default(uuid())
+  orderid        String
+  order          orders           @relation("OrderItems", fields: [orderid], references: [id])
+  inventoryid    String
+  inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
+  quantity       Int 
+  price      Float?
+}
+
+model productcart {
+id             String           @id @default(uuid())
+inventoryid    String
+inventory      productinventory @relation("InventoryCart", fields: [inventoryid], references: [id])
+buyerid        String
+buyer          customer?    @relation(fields: [buyerid], references: [id])
+totalprice     Float
+quantity       Int
+createdat      DateTime @default(now())
+updatedat      DateTime @updatedAt
+}
+
+model productsensorydata {
+  id                   String          @id @default(uuid())
+ inventoryid          String                 @unique
+  inventory            productinventory       @relation("InventorySensorData", fields: [inventoryid], references: [id], onDelete: Cascade)
+  temprature           Float?
+  oxygen               Float?
+  humidity             Float?
+  ph                   Float?
+  alcohol              Float?
+  location             String?
+  createdat            DateTime         @default(now())
+  updatedat            DateTime         @updatedAt
 }
