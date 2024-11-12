@@ -83,26 +83,31 @@ export const handler = async (event: any, context: any) => {
       inventoryDataArray = [...inventoryDataArray, ...transformedData];
     });
 
-   const createdInventories = await createBulkInventory(inventoryDataArray, productId);
-   console.log(`Successfully created ${createdInventories.length} inventories across all sheets`, createdInventories);
+      const { created, skipped, message } = await createBulkInventory(inventoryDataArray, productId);
+    
+    console.log(`Successfully created ${created.length} inventories, skipped ${skipped.length} due to duplication`);
 
-   console.log(`Start creating Stripe products for ${createdInventories.length} inventories`);
+
+   console.log(`Start creating Stripe products for ${created.length} inventories`);
    await createMultipleStripeProducts(inventoryDataArray,tenantContext.id!);
-   console.log(`Complete creating Stripe products for ${createdInventories.length} inventories`);
+   console.log(`Complete creating Stripe products for ${created.length} inventories`);
 
 	const adminUser = await getAdminUserById(tenantContext.adminuserid!);
 	const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
 
 	if (customer) {
-  		for (const inventory of createdInventories) {
-    	await addOwnership(inventory.id, customer.id!);
-    	}
-	}
- 
+      for (const inventory of created) {
+        await addOwnership(inventory.id, customer.id!);
+      }
+    }
 
-    return {
+  return {
       status: 200,
-      data: createdInventories,
+      data: {
+        created,
+        skipped,
+        message: message || "Inventory items processed successfully"
+      },
       error: null
     };
   } catch (error) {
