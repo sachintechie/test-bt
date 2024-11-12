@@ -2340,9 +2340,11 @@ export async function getOwnershipDetailByCustomerId(customerId: string) {
   return inventoryDetails;
 }
 
-export async function addToCart(cart:productcart) {
+export async function addToCart(cart: productcart) {
   const prisma = await getPrismaClient();
-  const {buyerid,inventoryid,quantity} = cart
+  const { buyerid, inventoryid, quantity } = cart;
+
+  // Fetch existing cart item with associated inventory
   const existingCartItem = await prisma.productcart.findFirst({
     where: {
       buyerid,
@@ -2358,20 +2360,26 @@ export async function addToCart(cart:productcart) {
     },
   });
 
-  console.log( "existingCartItem" ,existingCartItem);
-  if (existingCartItem?.inventory && existingCartItem?.inventory?.quantity < quantity) {
-       throw new Error("Inventory item not found");
+  console.log("existingCartItem", existingCartItem);
+
+  // Handle case where existingCartItem or its inventory is null
+  if (!existingCartItem || !existingCartItem.inventory) {
+    throw new Error("Inventory item not found");
   }
 
   const itemPrice = existingCartItem.inventory.price;
   const availableInventory = existingCartItem.inventory.quantity;
-  const updatedQuantity = existingCartItem ? existingCartItem.quantity + quantity : quantity;
+  const updatedQuantity = existingCartItem.quantity + quantity;
+
+
   if (updatedQuantity > availableInventory) {
     throw new Error(`Insufficient inventory. Only ${availableInventory} items available.`);
   }
+
   const totalPrice = updatedQuantity * itemPrice;
   let item;
 
+  
   if (existingCartItem) {
     item = await prisma.productcart.update({
       where: {
@@ -2383,9 +2391,8 @@ export async function addToCart(cart:productcart) {
         updatedat: new Date(),
       },
     });
-  }
-  else{
-  item = await prisma.productcart.create({
+  } else {
+    item = await prisma.productcart.create({
       data: {
         buyerid,
         inventoryid,
@@ -2397,8 +2404,9 @@ export async function addToCart(cart:productcart) {
     });
   }
 
-  return item
+  return item;
 }
+
 
 export async function removeFromCart(customerId: string, inventoryId: string) {
   try {
