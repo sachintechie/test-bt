@@ -12,6 +12,7 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.description,
       event.arguments?.input?.stepTypeId,
       event.arguments?.input?.stageId,
+      event.arguments?.input?.stepSequence
     );
     console.log("data", data);
 
@@ -33,7 +34,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addStep(tenant: tenant, name: string, description: string,stepTypeId:string,stageId:string) {
+async function addStep(tenant: tenant, name: string, description: string,stepTypeId:string,stageId:string,stepSequence: number) {
   console.log("Creating admin step");
 
   try {
@@ -47,7 +48,7 @@ async function addStep(tenant: tenant, name: string, description: string,stepTyp
       };
     }
 
-    const step = await createStep(tenant.adminuserid ?? "", name, description,stepTypeId,stageId);
+    const step = await createStep(tenant.adminuserid ?? "", name, description,stepTypeId,stageId,stepSequence);
 
     return {
       step: step,

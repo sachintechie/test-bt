@@ -1,5 +1,6 @@
 import { getTransactionByTenantTransactionId } from "../db/dbFunctions";
 import { tenant } from "../db/models";
+import { provenanceTransfer } from "../provenance/commonFunctions";
 import { solanaTransfer } from "../solana/solanaTransfer";
 
 export const handler = async (event: any) => {
@@ -30,7 +31,29 @@ export const handler = async (event: any) => {
         };
         console.log("Wallet", response);
         return response;
-      } else {
+      } else if (event.arguments?.input?.chainType === "Provenance") {
+        const data = await provenanceTransfer(
+          event.identity.resolverContext as tenant,
+          event.arguments?.input?.senderWalletAddress,
+          event.arguments?.input?.receiverWalletAddress,
+          event.arguments?.input?.amount,
+          event.arguments?.input?.symbol,
+          event.headers?.identity,
+          event.arguments?.input?.tenantUserId,
+          event.arguments?.input?.chainType,
+          event.arguments?.input?.tenantTransactionId
+        );
+
+        const response = {
+          status: data?.transaction != null ? 200 : 400,
+          data: data?.transaction,
+          error: data?.error
+        };
+        console.log("Wallet", response);
+        return response;
+      } 
+      
+      else {
         return {
           status: 400,
           data: null,
