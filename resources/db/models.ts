@@ -72,9 +72,9 @@ export interface product {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  tenantid:string;
-  description: string;   
-  type: string;           
+  tenantid: string;
+  description: string;
+  type: string;
   sku: string;
   tags?: string[];
 }
@@ -108,7 +108,7 @@ export interface orders {
   buyerid: string;
   totalprice: number;
   status?: orderstatus;
-  inventoryItems: { inventoryId: string, quantity: number, price:number }[]
+  inventoryItems: { inventoryId: string; quantity: number; price: number }[];
 }
 
 export interface productwishlist {
@@ -179,11 +179,10 @@ export interface productsensorydata {
   updatedat?: string;
 }
 
-
 export interface productcart {
   id?: string;
   inventoryid: string;
-  buyerid:string;
+  buyerid: string;
   totalprice?: number;
   quantity: number;
   createdat?: string;
@@ -209,8 +208,6 @@ export interface productwithinventory {
   totalquantity: number;
   status: string;
 }
-
-
 
 export enum TransactionStatus {
   SUCCESS = "SUCCESS",
@@ -269,30 +266,30 @@ export enum ProductStatus {
   INACTIVE = "INACTIVE"
 }
 
-export enum RefType{
+export enum RefType {
   DOCUMENT = "DOCUMENT",
   WEBSITE = "WEBSITE"
 }
 
 export enum ProductFindBy {
-  PRODUCT = 'PRODUCT',
-  CATEGORY = 'CATEGORY',
-  TENANT = 'TENANT'
+  PRODUCT = "PRODUCT",
+  CATEGORY = "CATEGORY",
+  TENANT = "TENANT"
 }
 
 export enum ReviewsFindBy {
-  PRODUCT = 'PRODUCT',
-  CUSTOMER = 'CUSTOMER'
+  PRODUCT = "PRODUCT",
+  CUSTOMER = "CUSTOMER"
 }
 
 export enum CategoryFindBy {
-  CATEGORY = 'CATEGORY',
-  TENANT = 'TENANT'
+  CATEGORY = "CATEGORY",
+  TENANT = "TENANT"
 }
 
 export enum CollectionFindBy {
-  COLLECTION = 'COLLECTION',
-  CUSTOMER = 'CUSTOMER'
+  COLLECTION = "COLLECTION",
+  CUSTOMER = "CUSTOMER"
 }
 
 export enum OrderFindBy {
