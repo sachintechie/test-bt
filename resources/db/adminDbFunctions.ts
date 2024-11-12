@@ -1814,12 +1814,27 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
   try {
     const prisma = await getPrismaClient();
 
-    // Current timestamp to track newly created entries
-    const creationTimestamp = new Date();
+    // Step 1: Fetch existing inventory items for the given IDs
+    const existingInventories = await prisma.productinventory.findMany({
+      where: {
+        productid: productId,
+        inventoryid: {
+          in: inventoryDataArray.map((data) => data.inventoryid),
+        },
+      },
+      select: { inventoryid: true }
+    });
 
-    // Step 1: Insert inventory data using createMany with skipDuplicates
-    await prisma.productinventory.createMany({
-      data: inventoryDataArray.map((inventoryData) => ({
+    const existingIds = new Set(existingInventories.map(item => item.inventoryid));
+
+    // Step 2: Filter out the inventories that already exist
+    const newInventories = inventoryDataArray.filter(
+      (data) => !existingIds.has(data.inventoryid)
+    );
+
+    // Step 3: Insert only new inventories
+    const createdInventories = await prisma.productinventory.createMany({
+      data: newInventories.map((inventoryData) => ({
         inventoryid: inventoryData.inventoryid,
         productid: productId,
         inventorycategory: inventoryData.inventorycategory,
@@ -1835,28 +1850,13 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       skipDuplicates: true,
     });
 
-    // Step 2: Fetch newly created inventories after the current timestamp
-    const newlyCreatedInventories = await prisma.productinventory.findMany({
-      where: {
-        productid: productId,
-        inventoryid: {
-          in: inventoryDataArray.map((data) => data.inventoryid),
-        },
-        createdat: {
-          gt: creationTimestamp,
-        },
-      },
-    });
-
-    // Step 3: Calculate skipped IDs by comparing input and created IDs
-    const createdIds = new Set(newlyCreatedInventories.map((item) => item.inventoryid));
+    // Step 4: Return created and skipped inventories
     const skippedIds = inventoryDataArray
       .map((data) => data.inventoryid)
-      .filter((id) => !createdIds.has(id));
+      .filter((id) => existingIds.has(id));
 
-    // Step 4: Return response with created items and skipped IDs
     return {
-      created: newlyCreatedInventories,
+      created: newInventories,
       skipped: skippedIds,
       message: skippedIds.length
         ? `Some items were not created due to duplication: ${skippedIds.join(', ')}`
@@ -1871,6 +1871,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
     }
   }
 }
+
 
 export async function createBulkProduct(productDataArray: product[]) {
   try {
