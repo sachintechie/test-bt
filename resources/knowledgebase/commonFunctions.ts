@@ -68,7 +68,7 @@ export async function addToS3Bucket(fileName: string, fileContent: string) {
       fileName: fileName,
       size: size,
       etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
-      content: objectContent,
+      fileContent: objectContent,
       contentType: s3Details.ContentType,
       lastModified: s3Details.LastModified
     };

@@ -92,7 +92,7 @@ async function handleDocumentReference(file: any, dataStoredToDb: any) {
 
   const uploadedFile = {
     fileName: data?.data?.fileName,
-    fileContent:  data?.data?.content,
+    fileContent:  data?.data?.fileContent,
   }
   const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile);
   Object.assign(dataStoredToDb, {
