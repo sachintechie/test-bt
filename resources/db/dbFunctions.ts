@@ -2405,7 +2405,7 @@ export async function addToCart(cart: productcart) {
   }
 
   // created for the first time
-  const inventory = await prisma.inventory.findUnique({
+  const inventory = await prisma.productinventory.findUnique({
     where: {
       id: inventoryid,
     },
