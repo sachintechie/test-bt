@@ -6,12 +6,10 @@ import { syncKb } from "./scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 
-export async function addReferencesLambda(tenantId: string, projectId: string, files: any, datasource_id: string) {
+export async function addReferencesLambda(tenantUserId: string, projectId: string) {
   const event = {
-    tenantId: tenantId,
-    projectId: projectId,
-    files: files,
-    datasource_id: datasource_id
+    tenantUserId: tenantUserId,
+    projectId: projectId
   };
 
   const params = {
@@ -69,9 +67,10 @@ export async function addToS3Bucket(fileName: string, fileContent: string) {
     const data = {
       fileName: fileName,
       size: size,
-      url: s3Details.ETag,
-      s3Object: objectContent,
-      contentType: s3Details.ContentType
+      etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
+      content: objectContent,
+      contentType: s3Details.ContentType,
+      lastModified: s3Details.LastModified
     };
     return {
       data: data,
@@ -149,8 +148,9 @@ export async function getS3Data(fileName: string) {
       fileName: fileName,
       size: size,
       url: s3Details.ETag,
-      s3Object: objectContent,
-      contentType: s3Details.ContentType
+      content: objectContent,
+      contentType: s3Details.ContentType,
+      lastModified: s3Details.LastModified
     };
     return {
       data: data,

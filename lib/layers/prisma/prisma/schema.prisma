@@ -156,13 +156,13 @@ enum ProjectStatusEnum {
 }
 
 enum ProjectStage {
-  DATA_SELECTION
+  DATA_SOURCE
   DATA_INGESTION
   DATA_STORAGE
   DATA_PREPARATION
   LLM_FINE_TUNING
   VERSIONING
-  RAG
+  RAG_INGESTION
   PUBLISHED
 }
 
@@ -468,7 +468,6 @@ model token {
   transactions      transaction[]
   admintransactions admintransaction[]
   staketransaction  staketransaction[]
-  inventory         productinventory?
 }
 
 model transaction {

@@ -50,7 +50,7 @@ async function addReference(
   try {
     let datasource_id = BedRockDataSourceS3;
     console.log("createUser", tenant.id, refType);
-    await addReferencesLambda(tenant.id, projectId, files, datasource_id);
+    await addReferencesLambda(tenant.adminuserid??"", projectId, files, datasource_id);
     const updatedProject = await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
     console.log("updatedProject", updatedProject);
 

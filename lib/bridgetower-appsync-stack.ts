@@ -74,7 +74,9 @@ const MUTATIONS = [
   "addProjectAndReference",
   "deleteProductAttributes",
   "createStepType",
-  "createStageType"
+  "createStageType",
+  "addToCart",
+  "removeFromCart"
 ];
 
 

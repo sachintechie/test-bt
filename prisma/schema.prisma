@@ -156,13 +156,13 @@ enum ProjectStatusEnum {
 }
 
 enum ProjectStage {
-  DATA_SELECTION
+  DATA_SOURCE
   DATA_INGESTION
   DATA_STORAGE
   DATA_PREPARATION
   LLM_FINE_TUNING
   VERSIONING
-  RAG
+  RAG_INGESTION
   PUBLISHED
 }
 
@@ -231,6 +231,7 @@ model customer {
   productreviews    productreview[]
   collections       productcollection[]
   productownerships productownership[]
+  cart              productcart[]
 }
 
 model adminuser {
@@ -690,6 +691,9 @@ model productinventory {
   updatedat            DateTime?          @updatedAt
   ownerships           productownership[] @relation("InventoryOwnerships")
   orders               orderitem[]        @relation("InventoryOrderItems")
+  cart                 productcart[]      @relation("InventoryCart")
+  sensorydata          productsensorydata?    @relation("InventorySensorData")
+
 }
 
 model orders {

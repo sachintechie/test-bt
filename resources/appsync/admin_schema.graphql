@@ -118,11 +118,18 @@ type AdminUserListData {
 
 input BulkImportInput {
 	file: FileInput!
+	productId: String
 }
 
-type BulkImportResponse {
+type BulkImportInventoryResponse {
 	status: Int
-	data: String
+	data: [InventoryData]
+	error: AWSJSON
+}
+
+type BulkImportProductResponse {
+	status: Int
+	data: [ProductData]
 	error: AWSJSON
 }
 
@@ -157,7 +164,29 @@ input CreateInventoryInput {
 	quantity: Int!
 	ownershipNft: Boolean
 	smartContractAddress: String
-	tokenId: String
+	tokenId: String,
+	sensoryData: SensoryDataInput
+}
+
+input SensoryDataInput {
+  temprature: Float
+  oxygen: Float
+  humidity: Float
+  ph: Float
+  alcohol: Float
+  location: String
+}
+
+type SensoryData {
+  id: String
+  temprature: Float
+  oxygen: Float
+  humidity: Float
+  ph: Float
+  alcohol: Float
+  location: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 type CreateInventoryResponse {
@@ -463,6 +492,7 @@ type InventoryData {
 	smartcontractaddress: String
 	tokenid: String
 	isdeleted: Boolean
+	sensorydata: SensoryData
 	createdat: AWSDateTime
 	updatedat: AWSDateTime
 }
@@ -481,8 +511,8 @@ type ListProject {
 
 input ListProjectByIdInput {
 	projectId: String!
-	limit: Int!
 	pageNo: Int!
+	limit: Int!
 }
 
 type ListProjectData {
@@ -538,6 +568,33 @@ type ListReferenceData {
 	total: Int
 	totalPages: Int
 	refs: [ListRefData]
+}
+
+type ListStageTypeAndStepTypeData {
+	total: Int
+	totalPages: Int
+	data: [ListStageTypeData]
+}
+
+input ListStageTypeAndStepTypeInput {
+	limit: Int!
+	pageNo: Int!
+	type: String!
+}
+
+type ListStageTypeAndStepTypeResponse {
+	status: Int
+	data: ListStageTypeAndStepTypeData
+	error: AWSJSON
+}
+
+type ListStageTypeData {
+	id: String
+	name: String
+	isactive: Boolean
+	isdeleted: Boolean
+	description: String
+	createdat: String
 }
 
 input ListWalletTokenInput {
@@ -652,15 +709,15 @@ enum ProductStatus {
 	ACTIVE
 	INACTIVE
 }
+type ProjectAndStepData{
+project: ProjectData
+stagedata: StagePaginationData}
 
-type ProjectAndReferenceData {
-	project: ProjectData
-	references: ListReferenceData
-}
 
-type ProjectAndReferenceResponse {
+
+type ProjectAndStepsResponse {
 	status: Int
-	data: ProjectAndReferenceData
+	data: ProjectAndStepData
 	error: AWSJSON
 }
 
@@ -697,6 +754,48 @@ type SignInData {
 
 input SigninInput {
 	tenantUserId: String!
+}
+
+type StagePaginationData {
+total: Int
+totalPages: Int
+stages: [StageData]
+}
+
+type StageData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+	isactive: Boolean
+	isdeleted: Boolean
+	stagetypeid: String
+	status: String
+	stagesequence: Int
+	steps: [StepData]
+}
+
+type StepData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+	isactive: Boolean
+	isdeleted: Boolean
+	stepsequence: Int
+	status: String
+	stageid: String
+	stepdetails: [StepDetailsData]
+}
+
+type StepDetailsData {
+	id: String
+	stepid: String
+	status: String
+	isactive: Boolean
+	isdeleted: Boolean
+	createdat: String
+	metadata: String
 }
 
 type TransactionData {
@@ -746,6 +845,8 @@ input UpdateInventoryData {
 input UpdateInventoryInput {
 	inventoryId: String!
 	inventoryData: UpdateInventoryData!
+	sensoryData: SensoryDataInput
+
 }
 
 input UpdateProductAttributeInput {
@@ -771,6 +872,7 @@ input UpdateProductInputData {
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
+	tags: [String]
 }
 
 type UpdateProductResponse {
@@ -800,8 +902,8 @@ type Mutation {
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
-	BulkImportInventory(input: BulkImportInput): BulkImportResponse
-	BulkImportProduct(input: BulkImportInput): BulkImportResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportInventoryResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportProductResponse
 	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
@@ -825,11 +927,12 @@ type Query {
 	SearchInventory(input: SearchInventoryInput): GetInventoryResponse
 	FilterInventory(input: FilterInventoryInput): GetInventoryResponse
 	ListProject(input: ListProjectInput): ListProject
-	GetProjectById(input: ListProjectByIdInput): ProjectAndReferenceResponse
+	GetProjectById(input: ListProjectByIdInput): ProjectAndStepsResponse
 	GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
 	GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
 	GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
+	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
 }
 
 schema {

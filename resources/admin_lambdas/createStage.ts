@@ -11,7 +11,8 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.name,
       event.arguments?.input?.description,
       event.arguments?.input?.stageTypeId,
-      event.arguments?.input?.projectId
+      event.arguments?.input?.projectId,
+      event.arguments?.input?.stageSequence
 
     );
     console.log("data", data);
@@ -34,7 +35,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addStage(tenant: tenant, name: string, description: string,stageTypeId:string,projectId:string) {
+async function addStage(tenant: tenant, name: string, description: string,stageTypeId:string,projectId:string,stageSequence: number) {
   console.log("Creating admin addStage");
 
   try {
@@ -48,7 +49,7 @@ async function addStage(tenant: tenant, name: string, description: string,stageT
       };
     }
 
-    const stage = await createStage(tenant, name, description,stageTypeId,projectId );
+    const stage = await createStage(tenant.adminuserid??"", name, description,stageTypeId,projectId,stageSequence );
 
     return {
       stage: stage,

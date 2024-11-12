@@ -200,28 +200,37 @@ jobs:
           CDK_ENV: "playground-dev"
         run: npx cdk deploy --context env=playground-dev --all --require-approval never
   cdk-deploy-ai-sovereignty-dev:
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/ai-sovereignty-dev'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3 
+   runs-on: ubuntu-latest
+   if: github.ref == 'refs/heads/ai-sovereignty-dev'
+   steps:
+    - name: Clear GitHub Actions cache and temporary files
+      run: |
+        sudo rm -rf /home/runner/work/_temp/*
+        sudo rm -rf /home/runner/_diag/*
+        sudo rm -rf /home/runner/.npm/_cacache
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+    - name: Checkout code
+      uses: actions/checkout@v3 
 
-      - name: Set up AWS credentials for ai-sovereignty-dev
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_AI_Sovereignty_DEV }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AI_Sovereignty_DEV }}
-          aws-region: ${{ secrets.AWS_REGION_AI_Sovereignty_DEV }}
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
 
-      - name: Install dependencies
-        run: npm install
+    - name: Set up AWS credentials for ai-sovereignty-dev
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_AI_Sovereignty_DEV }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_AI_Sovereignty_DEV }}
+        aws-region: ${{ secrets.AWS_REGION_AI_Sovereignty_DEV }}
 
-      - name: Deploy to ai-sovereignty-dev
-        env:
-          CDK_ENV: "ai-sovereignty-dev"
-        run: npx cdk deploy --context env=ai-sovereignty-dev --all --require-approval never
+    - name: Remove unused Docker containers and images
+      run: docker system prune --all --force --volumes    
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Deploy to ai-sovereignty-dev
+      env:
+        CDK_ENV: "ai-sovereignty-dev"
+      run: npx cdk deploy --context env=ai-sovereignty-dev --all --require-approval never

@@ -13,7 +13,7 @@ export const getLambdaRole = (scope: Construct) => {
     // Grant Lambda role access to all RDS instances and Secrets Manager secrets
     lambdaRoleSingleton.addToPolicy(
       new iam.PolicyStatement({
-        actions: ["rds:*", "rds-data:*", "secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret", "dynamodb:*"],
+        actions: ["rds:*", "rds-data:*", "secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret", "dynamodb:*","lambda:InvokeFunction","s3:GetObject", "s3:PutObject"],
         resources: ["*"] // Allow access to all RDS instances and Secrets Manager secrets
       })
     );
@@ -21,6 +21,7 @@ export const getLambdaRole = (scope: Construct) => {
     // Grant Lambda role necessary permissions for VPC and CloudWatch logs
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaVPCAccessExecutionRole"));
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"));
+
   }
   return lambdaRoleSingleton;
 };
