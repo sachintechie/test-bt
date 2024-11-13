@@ -5,6 +5,7 @@ import { storeMetadataInDynamoDB } from "../utils/dynamodb";
 import { tenant } from "../db/models";
 import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import { getPrismaClient } from "../db/dbFunctions";
+import { NFTUtilities, Party, Scope } from "../provenance/nftUtilities";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -98,3 +99,27 @@ export const mintNFT = async (
 
   return receipt;
 };
+
+export const mintNftProvenance = async (
+  scope_specification_uuid: string,
+  party: Party,
+  scope: Scope,
+  uuid: string,
+  tenantId: string,
+) => {
+
+  const nftUtilities = new NFTUtilities(process.env.PROVENANCE_API_ENDPOINT!, process.env.PROVENANCE_API_KEY!);
+
+  const payerKey = await getPayerCsSignerKey("Provenance", tenantId);
+
+  const data = await nftUtilities.mintScope(
+    scope_specification_uuid,
+    {
+      party: party,
+      scope: scope,
+      uuid: uuid,
+      records: {},
+    }
+
+
+  );

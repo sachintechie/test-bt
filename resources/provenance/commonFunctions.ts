@@ -2,7 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "../db/models";
 import { getCubistConfig, getWalletAndTokenByWalletAddressBySymbol, insertTransaction } from "../db/dbFunctions";
 import { oidcLogin } from "../cubist/CubeSignerClient";
-import { logWithTrace } from "../utils/utils";
+import { CHAIN_TO_CHAIN_NAME_MAPPING, deriveDisplayAddressForCustomChains, logWithTrace } from "../utils/utils";
 import { ProvenanceClient } from "./provenanceClient";
 
 const env: any = {
@@ -76,7 +76,7 @@ export async function provenanceTransfer(
     const keys = await oidcClient.sessionKeys();
 
     // find the key that matches the wallet address
-    const key = keys.find((key: cs.Key) => key.materialId === senderWalletAddress);
+    const key = keys.find((key: cs.Key) => deriveDisplayAddressForCustomChains(CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE, key) === senderWalletAddress);
 
     if (!key) {
       return {
