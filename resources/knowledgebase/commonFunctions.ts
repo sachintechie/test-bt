@@ -97,14 +97,16 @@ export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
 
 export async function generatePresignedUrl(files: any) {
 
-  const urls = await Promise.all(files.map(async (file: { fileName: any; }) => {
+  const urls = await Promise.all(files.map(async (file: {
+    contentType: any; fileName: any; 
+}) => {
     const key = file.fileName;
 
     const params = {
       Bucket: bucketName,
       Key: key,
-      Expires: 60, // URL expiration time in seconds
-      ContentType: 'application/octet-stream', // Adjust the content type if needed
+      Expires: 180, // URL expiration time in seconds
+      ContentType: file.contentType, // Adjust the content type if needed
     };
 
     const url = await s3.getSignedUrlPromise('putObject', params);
