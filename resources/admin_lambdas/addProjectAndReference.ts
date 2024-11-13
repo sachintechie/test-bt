@@ -75,6 +75,7 @@ async function addProjectAndReference(
     if (project != null) {
       const stage1 = await addStage_1(tenant.adminuserid ?? "", project.id, files);
       const urls = await generatePresignedUrl(files);
+      console.log("urls", urls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
       if (projectData.error) {
         return {
