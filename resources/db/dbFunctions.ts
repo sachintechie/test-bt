@@ -861,7 +861,7 @@ export async function getWalletAndTokenByWalletAddressBySymbol(walletAddress: st
           // This is specifically added for Provenance chain. We need this because cubesigner returns cosmos standard address
           // however for all the transactions on provenance chains we use bech32 address with prefix tp or pb based on the network
           // so we need to check both the addresses
-          { publicAddress: walletAddress },
+          { publickey: walletAddress },
           { walletaddress: walletAddress }
         ]
       }
