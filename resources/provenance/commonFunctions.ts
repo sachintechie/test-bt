@@ -1,10 +1,9 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "../db/models";
 import { getCubistConfig, getWalletAndTokenByWalletAddressBySymbol, insertTransaction } from "../db/dbFunctions";
-import { LAMPORTS_PER_SOL, PublicKey, SystemProgram, Transaction } from "@solana/web3.js";
 import { oidcLogin } from "../cubist/CubeSignerClient";
-import { getSolBalance, getSolConnection, verifySolanaTransaction } from "../solana/solanaFunctions";
 import { logWithTrace } from "../utils/utils";
+import { ProvenanceClient } from "./provenanceClient";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -29,130 +28,107 @@ export async function provenanceTransfer(
         wallet: null,
         error: "Please provide an identity token for verification"
       };
-    } else {
-      const cubistConfig = await getCubistConfig(tenant.id);
-      if (cubistConfig == null) {
-        return {
-          transaction: null,
-          error: "Cubist Configuration not found for the given tenant"
-        };
-      }
-      const wallet = await getWalletAndTokenByWalletAddressBySymbol(senderWalletAddress, tenant, symbol);
-      let balance = 0;
-      logWithTrace(wallet, "Wallet");
-      if (wallet.length == 0) {
-        return {
-          transaction: null,
-          error: "Wallet not found for the given wallet address"
-        };
-      } else {
-        for (const token of wallet) {
-          if (token.symbol == symbol && symbol === "HASH" && token.customerid != null) {
-            console.log(token, "HASH data");
-            balance = await getSolBalance(senderWalletAddress);
-            token.balance = balance;
-            console.log("Balance", balance);
-            if (balance >= amount) {
-              const trx = await transferPROV(senderWalletAddress, receiverWalletAddress, amount, oidcToken, cubistConfig.orgid);
-              if (trx.trxHash != null) {
-                const transactionStatus = await verifySolanaTransaction(trx.trxHash);
-                const txStatus = transactionStatus === "finalized" ? TransactionStatus.SUCCESS : TransactionStatus.PENDING;
-                const transaction = await insertTransaction(
-                  senderWalletAddress,
-                  receiverWalletAddress,
-                  amount,
-                  chainType,
-                  symbol,
-                  trx.trxHash,
-                  tenant.id,
-                  token.customerid,
-                  token.tokenid,
-                  tenantUserId,
-                  process.env["SOLANA_NETWORK"] ?? "",
-                  txStatus,
-                  tenantTransactionId
-                );
-                return { transaction, error: null };
-              } else {
-                return { transaction: null, error: trx.error };
-              }
-            } else {
-              return {
-                transaction: null,
-                error: "Insufficient HASH balance"
-              };
-            }
-          } 
-        
-        }
-        return { transaction: null, error: "Wallet not found" };
-      }
     }
-  } catch (err) {
-    console.log(err);
-    return { transaction: null, error: err };
-  }
-}
 
-async function transferPROV(
-  senderWalletAddress: string,
-  receiverWalletAddress: string,
-  amount: number,
-  oidcToken: string,
-  cubistOrgId: string
-) {
-  try {
-    const oidcClient = await oidcLogin(env, cubistOrgId, oidcToken, ["sign:*"]);
+    const cubistConfig = await getCubistConfig(tenant.id);
+    if (cubistConfig == null) {
+      return {
+        transaction: null,
+        error: "Cubist Configuration not found for the given tenant"
+      };
+    }
+
+    // Fetch the wallet and tokens owned by it
+    const wallet = await getWalletAndTokenByWalletAddressBySymbol(senderWalletAddress, tenant, symbol);
+    let balance = "0";
+    logWithTrace(wallet, "Wallet");
+
+    if (wallet.length == 0) {
+      return {
+        transaction: null,
+        error: "Wallet not found for the given wallet address"
+      };
+    }
+
+    // check if the token is available in the wallet
+    const isTokenAvailable = wallet.some((token) => token.symbol == symbol && token.customerid != null);
+
+    if (!isTokenAvailable) {
+      return {
+        transaction: null,
+        error: "Token not found in the wallet"
+      };
+    }
+
+    // Transfer Tokens on Provenance Chain
+
+    // get the oidc client
+    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
+
     if (!oidcClient) {
       return {
         trxHash: null,
         error: "Please send a valid identity token for verification"
       };
     }
-    // Just grab the first key for the user
+
+    // fetch all the keys for the user
     const keys = await oidcClient.sessionKeys();
-    const fromKey = await oidcClient.apiClient.keyGetByMaterialId(cs.Secp256k1.Cosmos, senderWalletAddress);
 
-    console.log("Keys", keys);
-    const key = keys.filter((key: cs.Key) => {
-      console.log(key.materialId);
-      return key.materialId === senderWalletAddress;
-    });
+    // find the key that matches the wallet address
+    const key = keys.find((key: cs.Key) => key.materialId === senderWalletAddress);
 
-    if (key.length === 0) {
+    if (!key) {
       return {
         trxHash: null,
         error: "Given identity token is not the owner of given wallet address"
       };
-    } else {
-      const connection = await getSolConnection();
-      const fromPubkey = new PublicKey(senderWalletAddress);
-      const toPubkey = new PublicKey(receiverWalletAddress);
-      const sendingAmount = parseFloat(amount.toString());
-      const tx = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey,
-          toPubkey,
-          lamports: sendingAmount * LAMPORTS_PER_SOL
-        })
-      );
-      tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-      tx.feePayer = fromPubkey;
-      const base64 = tx.serializeMessage().toString("base64");
-      const resp = await key[0].signSolana({ message_base64: base64 });
-      const sig = resp.data().signature;
-      // conver the signature 0x... to bytes
-      const sigBytes = Buffer.from(sig.slice(2), "hex");
-      tx.addSignature(fromPubkey, sigBytes);
+    }
 
-      // send transaction
-      const txHash = await connection.sendRawTransaction(tx.serialize());
-      await connection.confirmTransaction(txHash);
-      console.log(`txHash: ${txHash}`);
-      return { trxHash: txHash, error: null };
+    const provenanceClient = new ProvenanceClient("https://rpc.test.provenance.io:443/", key);
+
+    // check if sender address has enough balance
+    balance = await provenanceClient.getBalance(senderWalletAddress, symbol);
+
+    if (Number(balance) < amount) {
+      return {
+        transaction: null,
+        error: "Insufficient balance"
+      };
+    }
+
+    try {
+      const result = await provenanceClient.sendTokens(senderWalletAddress, receiverWalletAddress, amount.toString(), symbol);
+
+      const transaction = await insertTransaction(
+        senderWalletAddress,
+        receiverWalletAddress,
+        amount,
+        chainType,
+        symbol,
+        result.data.transactionId,
+        tenant.id,
+        wallet[0].customerid,
+        wallet[0].tokenid,
+        tenantUserId,
+        "Provenance",
+        TransactionStatus.SUCCESS,
+        tenantTransactionId
+      );
+      return {
+        transaction: transaction,
+        error: null
+      };
+    } catch (err) {
+      return {
+        transaction: null,
+        error: err
+      };
     }
   } catch (err) {
-    console.log(err);
-    return { trxHash: null, error: err };
+    return {
+      transaction: null,
+      error: err
+    };
   }
 }

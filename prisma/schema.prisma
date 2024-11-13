@@ -255,6 +255,7 @@ model customer {
   productreviews    productreview[]
   collections       productcollection[] 
   productownerships productownership[]
+  cart              productcart[]
 }
 
 model adminuser {
@@ -715,6 +716,9 @@ model productinventory {
   updatedat            DateTime? @updatedAt
   ownerships           productownership[] @relation("InventoryOwnerships")
   orders               orderitem[]        @relation("InventoryOrderItems")
+  cart                 productcart[]      @relation("InventoryCart")
+  sensorydata          productsensorydata?    @relation("InventorySensorData")
+
 }
 
 model orders {
@@ -739,4 +743,30 @@ model orderitem {
   inventory      productinventory @relation("InventoryOrderItems", fields: [inventoryid], references: [id])
   quantity       Int 
   price      Float?
+}
+
+model productcart {
+id             String           @id @default(uuid())
+inventoryid    String
+inventory      productinventory @relation("InventoryCart", fields: [inventoryid], references: [id])
+buyerid        String
+buyer          customer?    @relation(fields: [buyerid], references: [id])
+totalprice     Float
+quantity       Int
+createdat      DateTime @default(now())
+updatedat      DateTime @updatedAt
+}
+
+model productsensorydata {
+  id                   String          @id @default(uuid())
+ inventoryid          String                 @unique
+  inventory            productinventory       @relation("InventorySensorData", fields: [inventoryid], references: [id], onDelete: Cascade)
+  temprature           Float?
+  oxygen               Float?
+  humidity             Float?
+  ph                   Float?
+  alcohol              Float?
+  location             String?
+  createdat            DateTime         @default(now())
+  updatedat            DateTime         @updatedAt
 }
