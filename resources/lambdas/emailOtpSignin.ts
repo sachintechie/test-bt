@@ -2,6 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
 import { createWalletAndKey, getEmailOtpCustomer, updateCustomerCubistData } from "../db/dbFunctions";
+import { getKeyTypeBasedOnChainId } from "../utils/utils";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -148,6 +149,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
     const { org, orgId } = await getCsClient(tenant.id);
     const oidcClient = await oidcLogin(env, orgId || "", oidcToken, ["sign:*"]);
     const cubistUser = await oidcClient?.user();
+    const keyType = getKeyTypeBasedOnChainId(chainType);
     console.log("Created cubesigner user", oidcClient, cubistUser);
     if (oidcClient == null || (cubistUser != null && cubistUser.email != customer.emailid)) {
       return {
@@ -155,7 +157,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
         error: "Please send a valid identity token for given tenantuserid"
       };
     }
-    const key = await getKey(oidcClient, chainType, customer.cubistuserid);
+    const key = await getKey(oidcClient, keyType, customer.cubistuserid);
     console.log("getKey cubesigner user", key, customer.cubistuserid);
     const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType, customer.id, key);
     const newWallet = {

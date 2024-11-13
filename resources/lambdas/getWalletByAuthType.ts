@@ -9,6 +9,7 @@ import {
   updateCustomerCubistData
 } from "../db/dbFunctions";
 import { customer } from "@prisma/client";
+import { getKeyTypeBasedOnChainId } from "../utils/utils";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -181,7 +182,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
         error: "Invalid identity token provided. Please check your token and try again."
       };
     }
-    const key = await getKey(oidcClient, chainType, cubistUser?.user_id);
+    const key = await getKey(oidcClient, getKeyTypeBasedOnChainId(chainType), cubistUser?.user_id);
     console.log("getKey cubesigner user", key, cubistUser?.user_id);
 
     const wallet = await createWalletAndKey(org, cubistUser?.user_id, chainType, customer.id, key);
