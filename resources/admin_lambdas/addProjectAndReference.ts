@@ -134,7 +134,7 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
 
         for (const file of files) {
           // const fileSize = await getFileSizeFromBase64(file.fileContent)
-          const downloadUrl = await generateSignedUrl(file.fileName)
+          const downloadUrl = await generateSignedUrl(file)
 
           const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details
