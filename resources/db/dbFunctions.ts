@@ -2360,6 +2360,8 @@ export async function getOwnershipDetailByCustomerId(customerId: string) {
 export async function addToCart(cart: productcart) {
   const prisma = await getPrismaClient();
   const { buyerid, inventoryid, quantity } = cart;
+
+  // Fetch existing cart item with associated inventory
   const existingCartItem = await prisma.productcart.findFirst({
     where: {
       buyerid,
@@ -2370,51 +2372,74 @@ export async function addToCart(cart: productcart) {
         select: {
           price: true,
           quantity: true
-        }
-      }
-    }
+        },
+      },
+    },
   });
 
   console.log("existingCartItem", existingCartItem);
-  if (existingCartItem?.inventory && existingCartItem?.inventory?.quantity < quantity) {
-    throw new Error("Inventory item not found");
-  }
 
-  const itemPrice = existingCartItem.inventory.price;
-  const availableInventory = existingCartItem.inventory.quantity;
-  const updatedQuantity = existingCartItem ? existingCartItem.quantity + quantity : quantity;
-  if (updatedQuantity > availableInventory) {
-    throw new Error(`Insufficient inventory. Only ${availableInventory} items available.`);
-  }
-  const totalPrice = updatedQuantity * itemPrice;
-  let item;
-
+  // If the cart item exists
   if (existingCartItem) {
-    item = await prisma.productcart.update({
+    if (!existingCartItem.inventory) {
+      throw new Error("Inventory data not found for the cart item");
+    }
+
+    if (existingCartItem.inventory.quantity < quantity) {
+      throw new Error(`Insufficient inventory. Only ${existingCartItem.inventory.quantity} items available.`);
+    }
+
+    const updatedQuantity = existingCartItem.quantity + quantity;
+    const totalPrice = updatedQuantity * existingCartItem.inventory.price;
+
+    // Update existing cart item
+    const updatedItem = await prisma.productcart.update({
       where: {
-        id: existingCartItem.id
+        id: existingCartItem.id,
       },
       data: {
         quantity: updatedQuantity,
         totalprice: totalPrice,
-        updatedat: new Date()
-      }
+        updatedat: new Date(),
+      },
     });
-  } else {
-    item = await prisma.productcart.create({
-      data: {
-        buyerid,
-        inventoryid,
-        quantity: quantity,
-        totalprice: totalPrice,
-        createdat: new Date(),
-        updatedat: new Date()
-      }
-    });
+
+    return updatedItem;
   }
 
-  return item;
+  // created for the first time
+  const inventory = await prisma.productinventory.findUnique({
+    where: {
+      id: inventoryid,
+    },
+    select: {
+      price: true,
+      quantity: true,
+    },
+  });
+
+ 
+  if (!inventory || inventory.quantity < quantity) {
+    throw new Error(`Insufficient inventory. Only ${inventory?.quantity || 0} items available.`);
+  }
+
+  const totalPrice = quantity * inventory.price;
+
+ 
+  const newItem = await prisma.productcart.create({
+    data: {
+      buyerid,
+      inventoryid,
+      quantity,
+      totalprice: totalPrice,
+      createdat: new Date(),
+      updatedat: new Date(),
+    },
+  });
+
+  return newItem;
 }
+
 
 export async function removeFromCart(customerId: string, inventoryId: string) {
   try {

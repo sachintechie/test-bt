@@ -122,9 +122,15 @@ input BulkImportInput {
 }
 
 type BulkImportInventoryResponse {
-	status: Int
-	data: [InventoryData]
-	error: AWSJSON
+  status: Int
+  data: InventoryResponseData
+  error: AWSJSON
+}
+
+type InventoryResponseData {
+  created: [InventoryData]
+  skipped: [String]
+  message: String
 }
 
 type BulkImportProductResponse {

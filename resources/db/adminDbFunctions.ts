@@ -1814,43 +1814,54 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
   try {
     const prisma = await getPrismaClient();
 
-    //  current timestamp
-    const creationTimestamp = new Date();
-
-    const createdInventories = await prisma.$transaction(async (tx) => {
-      await tx.productinventory.createMany({
-        data: inventoryDataArray.map((inventoryData) => ({
-          inventoryid: inventoryData.inventoryid,
-          productid: productId,
-          inventorycategory: inventoryData.inventorycategory,
-          price: inventoryData.price,
-          quantity: inventoryData.quantity,
-          ownershipnft: inventoryData.ownershipnft ?? false,
-          smartcontractaddress: inventoryData.smartcontractaddress,
-          tokenid: inventoryData.tokenid,
-          isdeleted: false,
-          createdat: new Date(),
-          updatedat: new Date()
-        })),
-        skipDuplicates: true
-      });
-
-      const newlyCreatedInventories = await tx.productinventory.findMany({
-        where: {
-          productid: productId,
-          inventoryid: {
-            in: inventoryDataArray.map((data) => data.inventoryid)
-          },
-          createdat: {
-            gt: creationTimestamp
-          }
-        }
-      });
-
-      return newlyCreatedInventories;
+    // Step 1: Fetch existing inventory items for the given IDs
+    const existingInventories = await prisma.productinventory.findMany({
+      where: {
+        productid: productId,
+        inventoryid: {
+          in: inventoryDataArray.map((data) => data.inventoryid),
+        },
+      },
+      select: { inventoryid: true }
     });
 
-    return createdInventories;
+    const existingIds = new Set(existingInventories.map(item => item.inventoryid));
+
+    // Step 2: Filter out the inventories that already exist
+    const newInventories = inventoryDataArray.filter(
+      (data) => !existingIds.has(data.inventoryid)
+    );
+
+    // Step 3: Insert only new inventories
+    const createdInventories = await prisma.productinventory.createMany({
+      data: newInventories.map((inventoryData) => ({
+        inventoryid: inventoryData.inventoryid,
+        productid: productId,
+        inventorycategory: inventoryData.inventorycategory,
+        price: inventoryData.price,
+        quantity: inventoryData.quantity,
+        ownershipnft: inventoryData.ownershipnft ?? false,
+        smartcontractaddress: inventoryData.smartcontractaddress,
+        tokenid: inventoryData.tokenid,
+        isdeleted: false,
+        createdat: new Date(),
+        updatedat: new Date(),
+      })),
+      skipDuplicates: true,
+    });
+
+    // Step 4: Return created and skipped inventories
+    const skippedIds = inventoryDataArray
+      .map((data) => data.inventoryid)
+      .filter((id) => existingIds.has(id));
+
+    return {
+      created: newInventories,
+      skipped: skippedIds,
+      message: skippedIds.length
+        ? `Some items were not created due to duplication: ${skippedIds.join(', ')}`
+        : "All items created successfully.",
+    };
   } catch (error) {
     console.error("Error in createBulkInventory:", error);
     if (error instanceof Error) {
@@ -1860,6 +1871,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
     }
   }
 }
+
 
 export async function createBulkProduct(productDataArray: product[]) {
   try {
