@@ -29,11 +29,29 @@ export interface Party {
     role: string;
 }
 
+
+/**
+ * Represents the scope of an NFT utility.
+ * 
+ * @interface Scope
+ * @property {string[]} data_access - An array of strings representing the data access permissions.
+ * @property {string} value_owner_address - The address of the value owner.
+ * @property {number} usd_mills - The value in USD mills.
+ */
 export interface Scope {
     data_access: string[];
     value_owner_address: string;
     usd_mills: number;
 }
+/**
+ * Represents a request to mint a new scope.
+ * 
+ * @interface ScopeMintRequest
+ * @property {Party} party - The party involved in the minting request.
+ * @property {Scope} scope - The scope of the minting request.
+ * @property {Object} records - The records associated with the minting request.
+ * @property {string} uuid - The unique identifier for the minting request.
+ */
 export interface ScopeMintRequest {
     party: Party;
     scope: Scope;
@@ -41,10 +59,28 @@ export interface ScopeMintRequest {
     uuid: string;
 }
 
+/**
+ * Interface representing the response from a Scope Mint operation.
+ */
 export interface ScopeMintResponse {
+    /**
+     * The transaction hash of the mint operation.
+     */
     tx_hash: string;
+
+    /**
+     * The block height at which the transaction was included.
+     */
     height: number;
+
+    /**
+     * The unique identifier for the mint operation.
+     */
     uuid: string;
+
+    /**
+     * The unique identifier for the scope associated with the mint operation.
+     */
     scope_uuid: string;
 }
 
