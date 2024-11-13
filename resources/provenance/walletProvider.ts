@@ -69,7 +69,7 @@ export class CosmosSecp256k1CubeSigner implements OfflineDirectSigner {
   static keyToAccountData(key: cs.Key): AccountData {
     return {
       algo: "secp256k1",
-      address: "tp120crp04k8g5tkwjynvjjecw93d2dha3awcw0x2",
+      address: toBech32("tp", rawSecp256k1PubkeyToRawAddress(Secp256k1.compressPubkey(Buffer.from(key.publicKey.slice(2), "hex")))),
       pubkey: Secp256k1.compressPubkey(Buffer.from(key.publicKey.slice(2), "hex"))
     };
   }
