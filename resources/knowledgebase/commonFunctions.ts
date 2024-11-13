@@ -123,7 +123,7 @@ export async function generateSignedUrl(file: any) {
   const downloadParams = {
     Bucket: bucketName,  // Replace with your S3 bucket name
     Key: file.fileName,  // The key (file name) of the uploaded file
-    Expires: 60 * 15,  // Expiry time for the download URL (in seconds)
+    Expires: 7 * 24 * 60 * 60,  // Expiry time for the download URL (in seconds)
   };
 
  
