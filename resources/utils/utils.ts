@@ -79,4 +79,5 @@ export function deriveDisplayAddressForCustomChains(chainType: string, key: cs.K
     default:
       displayAddress = key.materialId
   }
+  return displayAddress;
 }
