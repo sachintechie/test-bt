@@ -704,6 +704,11 @@ type ProjectAndStepsResponse {
 
 type ProjectAndUrlData {
 	project: ProjectAndStepData
+	urls: [S3PreSignedUrlData]
+}
+
+type S3PreSignedUrlData {
+	key: String
 	url: String
 }
 

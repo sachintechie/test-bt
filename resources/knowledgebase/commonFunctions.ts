@@ -98,7 +98,7 @@ export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
 export async function generatePresignedUrl(files: any) {
 
   const urls = await Promise.all(files.map(async (file: { fileName: any; }) => {
-    const key = `uploads/${file.fileName}`;
+    const key = file.fileName;
 
     const params = {
       Bucket: bucketName,
