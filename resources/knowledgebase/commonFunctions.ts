@@ -93,6 +93,27 @@ export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   return Buffer.concat(chunks);
 };
 
+export async function generatePresignedUrl(files: any) {
+
+  const urls = await Promise.all(files.map(async (file: { fileName: any; }) => {
+    const key = `uploads/${file.fileName}`;
+
+    const params = {
+      Bucket: bucketName,
+      Key: key,
+      Expires: 60, // URL expiration time in seconds
+      ContentType: 'application/octet-stream', // Adjust the content type if needed
+    };
+
+    const url = await s3.getSignedUrlPromise('putObject', params);
+
+    return { url, key };
+  }));
+
+  return urls;
+
+}
+
 // Helper function to format bytes
 export async function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return "0 Bytes";
