@@ -1043,6 +1043,12 @@ type CartResponse {
   error: AWSJSON
 }
 
+type GetUserCartResponse {
+  status: Int
+  data: [CartData]
+  error: AWSJSON
+}
+
 type CartData {
   id: String
   inventoryid: String
@@ -1127,7 +1133,7 @@ type Query {
   CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
   GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
-  GetUserCart: CartResponse
+  GetUserCart: GetUserCartResponse
 }
 
 schema {
