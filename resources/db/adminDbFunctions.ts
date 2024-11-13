@@ -13,7 +13,7 @@ import {
   productsensorydata
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { logWithTrace } from "../utils/utils";
+import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
@@ -341,20 +341,22 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     if (key == null) {
-      key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
+      key = await org.createKey(keyType, cubistUserId);
     }
 
     logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: key.materialId,
+        walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
         walletid: key.id,
         chaintype: chainType,
-        wallettype: cs.Ed25519.Solana.toString(),
+        wallettype: keyType.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        publickey: key.materialId
       }
     });
 
@@ -369,29 +371,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
 export async function createAdminWallet(org: cs.Org, cubistUserId: string, chainType: string, tenantId: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
-    var keyType: any;
-    switch (chainType) {
-      case "Ethereum":
-        keyType = cs.Secp256k1.Evm;
-        break;
-      case "Bitcoin":
-        keyType = cs.Secp256k1.Btc;
-        break;
-      case "Avalanche":
-        keyType = cs.Secp256k1.AvaTest;
-        break;
-      case "Cardano":
-        keyType = cs.Ed25519.Cardano;
-        break;
-      case "Solana":
-        keyType = cs.Ed25519.Solana;
-        break;
-      case "Stellar":
-        keyType = cs.Ed25519.Stellar;
-        break;
-      default:
-        keyType = null;
-    }
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     console.log("Creating wallet", keyType);
     if (keyType != null) {
       const key = await org.createKey(keyType, cubistUserId);
@@ -404,13 +384,14 @@ export async function createAdminWallet(org: cs.Org, cubistUserId: string, chain
       const newWallet = await prisma.adminwallet.create({
         data: {
           adminuserid: customerId as string,
-          walletaddress: key.materialId,
+          walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
           walletid: key.id,
           chaintype: chainType,
           wallettype: keyType.toString(),
           isactive: true,
           createdat: new Date().toISOString(),
-          tenantid: tenantId
+          tenantid: tenantId,
+          publickey: key.materialId
         }
       });
       return { data: newWallet, error: null };
