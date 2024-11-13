@@ -10,7 +10,7 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { getS3Data } from "../knowledgebase/commonFunctions";
+import { getS3Data, getS3DataWithoutContent } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -54,7 +54,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
             const data = JSON.parse(stepDetail.metadata);
 
             // Upload file content to S3
-            const s3Data = await getS3Data(data.fileName);
+            const s3Data = await getS3DataWithoutContent(data.fileName);
 
             await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id);
             
