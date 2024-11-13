@@ -1855,8 +1855,10 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         },
         productid: productId,
       },
-      select: { id: true, inventoryid: true }
+    //   select: { id: true, inventoryid: true }
     });
+
+	console.log(createdInventoryRecords);
 
 
     const skippedIds = inventoryDataArray
