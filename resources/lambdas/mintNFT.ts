@@ -120,6 +120,4 @@ export const mintNftProvenance = async (
       uuid: uuid,
       records: {},
     }
-
-
-  );
+  )};
