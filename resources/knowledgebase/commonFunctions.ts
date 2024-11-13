@@ -72,6 +72,8 @@ export async function addToS3Bucket(fileName: string, fileContent: string) {
       contentType: s3Details.ContentType,
       lastModified: s3Details.LastModified
     };
+
+    
     return {
       data: data,
       error: null
@@ -168,7 +170,7 @@ export async function getS3Data(fileName: string) {
     const data = {
       fileName: fileName,
       size: size,
-      url: s3Details.ETag,
+      etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
       content: objectContent,
       contentType: s3Details.ContentType,
       lastModified: s3Details.LastModified

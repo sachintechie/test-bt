@@ -74,7 +74,8 @@ const MUTATIONS = [
   "addProjectAndReference",
   "deleteProductAttributes",
   "createStepType",
-  "createStageType"
+  "createStageType",
+  "updateProjectStatus"
 ];
 
 
