@@ -1832,7 +1832,6 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
   try {
     const prisma = await getPrismaClient();
 
-    // Step 1: Fetch existing inventory items for the given IDs
     const existingInventories = await prisma.productinventory.findMany({
       where: {
         productid: productId,
@@ -1843,15 +1842,14 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       select: { inventoryid: true }
     });
 
-    const existingIds = new Set(existingInventories.map(item => item.inventoryid));
+    const existingIds = new Set(existingInventories.map((item: { inventoryid: any; }) => item.inventoryid));
 
-    // Step 2: Filter out the inventories that already exist
+
     const newInventories = inventoryDataArray.filter(
       (data) => !existingIds.has(data.inventoryid)
     );
 
-    // Step 3: Insert only new inventories
-    const createdInventories = await prisma.productinventory.createMany({
+    await prisma.productinventory.createMany({
       data: newInventories.map((inventoryData) => ({
         inventoryid: inventoryData.inventoryid,
         productid: productId,
@@ -1868,13 +1866,25 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       skipDuplicates: true,
     });
 
-    // Step 4: Return created and skipped inventories
+    const createdInventoryRecords = await prisma.productinventory.findMany({
+      where: {
+        inventoryid: {
+          in: newInventories.map(data => data.inventoryid),
+        },
+        productid: productId,
+      },
+    //   select: { id: true, inventoryid: true }
+    });
+
+	console.log(createdInventoryRecords);
+
+
     const skippedIds = inventoryDataArray
       .map((data) => data.inventoryid)
       .filter((id) => existingIds.has(id));
 
     return {
-      created: newInventories,
+      created: createdInventoryRecords,
       skipped: skippedIds,
       message: skippedIds.length
         ? `Some items were not created due to duplication: ${skippedIds.join(', ')}`
