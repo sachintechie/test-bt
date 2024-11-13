@@ -166,6 +166,15 @@ export async function getS3Data(fileName: string) {
     } else {
       throw new Error("Unexpected type for s3Details.Body");
     }
+    const downloadParams = {
+      Bucket: bucketName,  // Replace with your S3 bucket name
+      Key: fileName,  // The key (file name) of the uploaded file
+      Expires: 60 * 15,  // Expiry time for the download URL (in seconds)
+    };
+  
+   
+      // Generate the pre-signed URL for downloading
+      const signedUrl = s3.getSignedUrl('getObject', downloadParams);
     //const objectContent = await streamToBuffer(s3Details.Body as Readable);
     const size = await formatBytes(s3Details.ContentLength || 0);
     console.log("File uploaded to s3Details", s3Details, size);
@@ -175,7 +184,9 @@ export async function getS3Data(fileName: string) {
       etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
       content: objectContent,
       contentType: s3Details.ContentType,
-      lastModified: s3Details.LastModified
+      lastModified: s3Details.LastModified,
+      downloadUrl: signedUrl
+
     };
     return {
       data: data,
@@ -189,3 +200,57 @@ export async function getS3Data(fileName: string) {
     };
   }
 }
+
+export async function getS3DataWithoutContent(fileName: string) {
+  try {
+    if (!fileName) {
+      return {
+        data: null,
+        error: JSON.stringify({ message: "File name  is missing" })
+      };
+    }
+
+    const s3Params = {
+      Bucket: bucketName,
+      Key: fileName
+    };
+    const s3Details = await s3.getObject(s3Params).promise();
+    console.log("s3Details", s3Details);
+    // Check the type of Body
+
+    //const objectContent = await streamToBuffer(s3Details.Body as Readable);
+
+    const downloadParams = {
+      Bucket: bucketName,  // Replace with your S3 bucket name
+      Key: fileName,  // The key (file name) of the uploaded file
+      Expires: 60 * 15,  // Expiry time for the download URL (in seconds)
+    };
+  
+   
+      // Generate the pre-signed URL for downloading
+      const signedUrl = s3.getSignedUrl('getObject', downloadParams);
+    const size = await formatBytes(s3Details.ContentLength || 0);
+    console.log("File uploaded to s3Details", s3Details, size);
+    const data = {
+      fileName: fileName,
+      size: size,
+      etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
+     // content: objectContent,
+      contentType: s3Details.ContentType,
+      lastModified: s3Details.LastModified,
+      downloadUrl: signedUrl
+    };
+    return {
+      data: data,
+      error: null
+    };
+  } catch (e) {
+    console.log(`data not uploded to s3: ${e}`);
+    return {
+      data: null,
+      error: e
+    };
+  }
+}
+
+
