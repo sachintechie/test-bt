@@ -93,9 +93,18 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
             const data = JSON.parse(stepDetail.metadata);
             const getDataFromS3 = await getS3Data(data.fileName);
             console.log("getDataFromS3", getDataFromS3);
+            const s3data = {
+              fileName: getDataFromS3.data?.fileName,
+              size: getDataFromS3.data?.size,
+              etag: getDataFromS3.data?.etag,
+              contentType: getDataFromS3.data?.contentType,
+              lastModified: getDataFromS3.data?.lastModified,
+              downloadUrl: getDataFromS3.data?.downloadUrl
+        
+            };
 
             // Step 1: Read file from S3
-            await createStepDetails(tenantUserId, JSON.stringify(getDataFromS3.data), step1.id);
+            await createStepDetails(tenantUserId, JSON.stringify(s3data), step1.id);
 
 
             // Step 2: Hash the S3 file data

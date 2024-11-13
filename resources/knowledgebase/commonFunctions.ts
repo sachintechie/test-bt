@@ -118,6 +118,27 @@ export async function generatePresignedUrl(files: any) {
 
 }
 
+export async function generateSignedUrl(file: any) {
+
+  const downloadParams = {
+    Bucket: bucketName,  // Replace with your S3 bucket name
+    Key: file.fileName,  // The key (file name) of the uploaded file
+    Expires: 60 * 15,  // Expiry time for the download URL (in seconds)
+  };
+
+ 
+    // Generate the pre-signed URL for downloading
+    const signedUrl = s3.getSignedUrl('getObject', downloadParams);
+ 
+
+    return signedUrl;
+
+
+
+
+}
+
+
 // Helper function to format bytes
 export async function formatBytes(bytes: number, decimals = 2) {
   if (bytes === 0) return "0 Bytes";
