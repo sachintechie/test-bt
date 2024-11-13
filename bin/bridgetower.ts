@@ -28,6 +28,7 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   auroraStack: auroraStack,
 });
 
+
 //new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   //env: envConfig,
 //  lambdaFolder: "../../resources/admin_lambdas",
