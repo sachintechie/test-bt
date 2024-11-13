@@ -63,6 +63,7 @@ export function getKeyTypeBasedOnChainId(chainType: string): any {
       break;
     case CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE:
       keyType = cs.Secp256k1.Cosmos;
+      break;
     default:
       keyType = null;
   }
