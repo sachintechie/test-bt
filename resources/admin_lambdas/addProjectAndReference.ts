@@ -12,7 +12,7 @@ import {
   updateProjectStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
-import { addReferencesLambda, formatBytes, generatePresignedUrl } from "../knowledgebase/commonFunctions";
+import { addReferencesLambda, formatBytes, generatePresignedUrl, generateSignedUrl } from "../knowledgebase/commonFunctions";
 import { hashing, hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
@@ -134,9 +134,9 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
 
         for (const file of files) {
           // const fileSize = await getFileSizeFromBase64(file.fileContent)
+          const downloadUrl = await generateSignedUrl(file.fileName)
 
-          const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize };
-
+          const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details
           await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
 
