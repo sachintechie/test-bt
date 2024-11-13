@@ -149,7 +149,9 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
+
     if (key == null) {
+      
       key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
     }
 
