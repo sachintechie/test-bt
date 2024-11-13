@@ -1524,6 +1524,23 @@ export async function getProjectByIdWithRef(projectId: string, limit: number, pa
   }
 }
 
+export async function getProjectById(projectId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId
+      }
+    });
+    if (project == null) {
+      return { data: null, error: "Project not found" };
+    }
+    return { data: project, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
 export async function getProjectWithSteps(projectId: string, limit: number, pageNo: number) {
   try {
     const prisma = await getPrismaClient();
@@ -1571,6 +1588,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     }
     const projectData = {
       project: project,
+      urls:"",
       stagedata: {
         total: stageCount,
         totalPages: Math.ceil(stageCount / limit),

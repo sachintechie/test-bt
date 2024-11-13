@@ -75,6 +75,7 @@ const MUTATIONS = [
   "deleteProductAttributes",
   "createStepType",
   "createStageType",
+  "updateProjectStatus",
   "addToCart",
   "removeFromCart"
 ];

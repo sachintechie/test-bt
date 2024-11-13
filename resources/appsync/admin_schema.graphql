@@ -3,7 +3,13 @@ input AddProjectAndReferenceInput {
 	description: String
 	projectType: String!
 	organizationId: String!
-	files: [FileInput]
+	files: [ProjectFileInput]
+}
+
+type AddProjectAndReferenceResponse {
+	status: Int
+	data: ProjectAndUrlData
+	error: AWSJSON
 }
 
 type AddRefToKnowledgeBase {
@@ -313,6 +319,11 @@ input FileInput {
 	fileName: String!
 	fileContent: String!
 	contentType: String!
+}
+
+input FileStatusInput {
+	fileName: String!
+	status: String!
 }
 
 input FilterInput {
@@ -715,16 +726,26 @@ enum ProductStatus {
 	ACTIVE
 	INACTIVE
 }
-type ProjectAndStepData{
-project: ProjectData
-stagedata: StagePaginationData}
 
-
+type ProjectAndStepData {
+	project: ProjectData
+	stagedata: StagePaginationData
+}
 
 type ProjectAndStepsResponse {
 	status: Int
 	data: ProjectAndStepData
 	error: AWSJSON
+}
+
+type ProjectAndUrlData {
+	project: ProjectAndStepData
+	urls: [S3PreSignedUrlData]
+}
+
+type S3PreSignedUrlData {
+	key: String
+	url: String
 }
 
 type ProjectData {
@@ -738,6 +759,13 @@ type ProjectData {
 	description: String
 	isactive: Boolean
 	createdby: String
+}
+
+input ProjectFileInput {
+	fileName: String!
+	fileSize: String!
+	contentType: String!
+	hash: String!
 }
 
 input SearchInventoryInput {
@@ -762,12 +790,6 @@ input SigninInput {
 	tenantUserId: String!
 }
 
-type StagePaginationData {
-total: Int
-totalPages: Int
-stages: [StageData]
-}
-
 type StageData {
 	id: String
 	name: String
@@ -779,6 +801,12 @@ type StageData {
 	status: String
 	stagesequence: Int
 	steps: [StepData]
+}
+
+type StagePaginationData {
+	total: Int
+	totalPages: Int
+	stages: [StageData]
 }
 
 type StepData {
@@ -892,6 +920,11 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
+input UpdateProjectStatusInput {
+	projectId: String!
+	fileStatus: [FileStatusInput]
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -914,10 +947,11 @@ type Mutation {
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
 	CreateProject(input: CreateProjectInput): CreateProjectResponse
-	AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
+	AddProjectAndReference(input: AddProjectAndReferenceInput): AddProjectAndReferenceResponse
 	DeleteProductAttributes(input: DeleteProductAttributesInput): DeleteProductAttributesResponse
 	CreateStepType(input: CreateStepTypeInput): CreateStepTypeResponse
 	CreateStageType(input: CreateStageTypeInput): CreateStageTypeResponse
+	UpdateProjectStatus(input: UpdateProjectStatusInput): CreateProjectResponse
 }
 
 type Query {
