@@ -1,10 +1,9 @@
-import {fetch} from 'fetch';
-
+import fetch from 'node-fetch';
 
 /**
  * Interface for Scope Specifcation request
  */
-interface ScopeSpecificationRequest {
+export interface ScopeSpecificationRequest {
     description: string | null;
     icon_url: string | null;
     name: string; // required
@@ -14,7 +13,7 @@ interface ScopeSpecificationRequest {
     website_url: string | null;
 }
 
-interface ScopeSpecificationResponse {
+export interface ScopeSpecificationResponse {
     tx_hash: string;
     height: number;
     uuid: string;
@@ -25,24 +24,24 @@ interface ScopeSpecificationResponse {
  * Interface for Scope (NFT) minting request
  */
 
-interface Party {
+export interface Party {
     address: string;
     role: string;
 }
 
-interface Scope {
+export interface Scope {
     data_access: string[];
     value_owner_address: string;
     usd_mills: number;
 }
-interface ScopeMintRequest {
+export interface ScopeMintRequest {
     party: Party;
     scope: Scope;
     records: Object;
     uuid: string;
 }
 
-interface ScopeMintResponse {
+export interface ScopeMintResponse {
     tx_hash: string;
     height: number;
     uuid: string;
@@ -56,15 +55,18 @@ export class NFTUtilities {
      * Provenance labs API endpoint
      */
     private readonly apiEndpoint: string;
+    private readonly apiKey: string;
 
 
     /**
      * Create a new NFT utilities object.
      * @param {string} apiEndpoint - The API endpoint to use.
+     * @param {string} apiKey - The API key to use.
      */
 
-    constructor(apiEndpoint: string) {
+    constructor(apiEndpoint: string, apiKey: string) {
         this.apiEndpoint = apiEndpoint;
+        this.apiKey = apiKey;
     }
 
     /**
@@ -76,10 +78,11 @@ export class NFTUtilities {
 
     ): Promise<ScopeSpecificationResponse> {
 
-        const response = await fetch(`${this.apiEndpoint}/metadata/scope-specification`, {
+        const response = await fetch(`${this.apiEndpoint}/vault/metadata/scope-specification`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'apiKey': this.apiKey,
             },
             body: JSON.stringify(request),
         });
@@ -104,10 +107,11 @@ export class NFTUtilities {
     
         ): Promise<ScopeMintResponse> {
     
-            const response = await fetch(`${this.apiEndpoint}/metadata/scope-specification/${scope_specification_uuid}/session`, {
+            const response = await fetch(`${this.apiEndpoint}/vault/metadata/scope-specification/${scope_specification_uuid}/session`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'apiKey': this.apiKey,
                 },
                 body: JSON.stringify(request),
             });
@@ -120,7 +124,6 @@ export class NFTUtilities {
             return data
     
         }
-    )
 
 
 }

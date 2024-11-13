@@ -38,6 +38,7 @@ const MUTATIONS = [
   "createCategory",
   "createProduct",
   "createProductAttribute",
+  "createScopeSpecification",
   "createWallet",
   "unstaking",
   "mergeStake",

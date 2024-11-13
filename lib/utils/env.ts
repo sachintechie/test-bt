@@ -63,6 +63,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         ...commonEnvs,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
+        PROVENANCE_API_URL: "https://api.test.provlabs.io",
+        PROVENANCE_API_KEY: "JVYvLJcMzno##TaNF^AblY&i4W!5mh",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
         AVAX_RPC_SUBNET_URL: "http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
@@ -72,6 +74,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         KB_BUCKET_NAME: "knowledgebasedocument",
         KB_ID: "WIKF9ALZ52",
         BEDROCK_DATASOURCE_S3: "ZZWKIZUS20"
+
       };
     case "ai-sovereignty-dev":
       return {

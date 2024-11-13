@@ -892,6 +892,27 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
+input CreateScopeSpecificationInput {
+	description: String
+	icon_url: String
+	name: String
+	owner_addresses: [String]
+	parties_involved: [String]
+	website_url: String
+}
+
+type CreateScopeSpecificationResponseData {
+	txn_hash: String
+	height: Int
+	uuid: String
+}
+
+type CreateScopeSpecificationResponse {
+	status: Int
+	data: CreateScopeSpecificationResponseData
+	error: AWSJSON
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -918,6 +939,7 @@ type Mutation {
 	DeleteProductAttributes(input: DeleteProductAttributesInput): DeleteProductAttributesResponse
 	CreateStepType(input: CreateStepTypeInput): CreateStepTypeResponse
 	CreateStageType(input: CreateStageTypeInput): CreateStageTypeResponse
+	CreateScopeSpecification(input: CreateScopeSpecificationInput): CreateScopeSpecificationResponse
 }
 
 type Query {
