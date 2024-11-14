@@ -173,6 +173,8 @@ enum ProjectStatusEnum {
   PAUSED
   CANCELLED
   ACTIVE
+  INITIATED
+
 }
 
 enum ProjectStage {
