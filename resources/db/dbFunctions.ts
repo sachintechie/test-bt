@@ -21,11 +21,15 @@ import {
   OrderFindBy,
   productOwnership,
   productinventory,
-  productwithinventory
+  productwithinventory,
+  productcart
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace } from "../utils/utils";
+import { toBech32 } from "@cosmjs/encoding";
+import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
+import { Secp256k1 } from "@cosmjs/crypto";
 
 let prismaClient: PrismaClient;
 
@@ -199,36 +203,42 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
         keyType = cs.Ed25519.Stellar;
         break;
       case "Provenance":
-        keyType = cs.Ed25519.Tendermint;
+        keyType = cs.Secp256k1.Cosmos;
+        break;
 
-        break;  
       default:
         keyType = null;
     }
     console.log("Creating wallet", keyType);
-    if (keyType != null) {
-      const key = await org.createKey(keyType, cubistUserId);
 
-      // if (keyType == cs.Ed25519.Solana) {
-      //   const role = await org.getRole(OPERATION_ROLE_ID);
-      //   role.addKey(key);
-      // }
-      const prisma = await getPrismaClient();
-      const newWallet = await prisma.wallet.create({
-        data: {
-          customerid: customerId as string,
-          walletaddress: key.materialId,
-          walletid: key.id,
-          chaintype: chainType,
-          wallettype: keyType.toString(),
-          isactive: true,
-          createdat: new Date().toISOString()
-        }
-      });
-      return { data: newWallet, error: null };
-    } else {
+    if (keyType == null) {
       return { data: null, error: "Chain type not supported for key generation" };
     }
+
+    const key = await org.createKey(keyType, cubistUserId);
+    const displayAddress =
+      keyType == cs.Secp256k1.Cosmos
+        ? toBech32("tp", rawSecp256k1PubkeyToRawAddress(Secp256k1.compressPubkey(Buffer.from(key.publicKey.slice(2), "hex"))))
+        : key.materialId;
+
+    // if (keyType == cs.Ed25519.Solana) {
+    //   const role = await org.getRole(OPERATION_ROLE_ID);
+    //   role.addKey(key);
+    // }
+    const prisma = await getPrismaClient();
+    const newWallet = await prisma.wallet.create({
+      data: {
+        customerid: customerId as string,
+        walletaddress: displayAddress,
+        walletid: key.id,
+        publicAddress: key.materialId,
+        chaintype: chainType,
+        wallettype: keyType.toString(),
+        isactive: true,
+        createdat: new Date().toISOString()
+      }
+    });
+    return { data: newWallet, error: null };
   } catch (err) {
     throw err;
   }
@@ -878,7 +888,13 @@ export async function getWalletAndTokenByWalletAddressBySymbol(walletAddress: st
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
       where: {
-        walletaddress: walletAddress
+        OR: [
+          // This is specifically added for Provenance chain. We need this because cubesigner returns cosmos standard address
+          // however for all the transactions on provenance chains we use bech32 address with prefix tp or pb based on the network
+          // so we need to check both the addresses
+          { publicAddress: walletAddress },
+          { walletaddress: walletAddress }
+        ]
       }
     });
     const tokens = await prisma.token.findMany({
@@ -1498,7 +1514,7 @@ export async function getProducts(offset: number, limit: number, value?: string,
         category: true,
         productattributes: true,
         inventories: true,
-        productmedia:true
+        productmedia: true
       },
       skip: offset,
       take: limit
@@ -1751,7 +1767,11 @@ export async function createOrder(order: orders) {
             }
           });
         }
-
+        await prisma.productcart.deleteMany({
+          where: {
+            buyerid: order.buyerid
+          }
+        });
         return createdOrder;
       }
     );
@@ -1765,7 +1785,6 @@ export async function createOrder(order: orders) {
     }
   }
 }
-
 
 export async function getOrders(offset: number, itemsPerPage: number, value?: string, searchBy?: OrderFindBy, status?: string) {
   const prisma = await getPrismaClient();
@@ -1851,7 +1870,6 @@ export async function getOrders(offset: number, itemsPerPage: number, value?: st
     throw err;
   }
 }
-
 
 export async function updateOrderStatus(orderId: string, status: orderstatus) {
   const prisma = await getPrismaClient();
@@ -2301,7 +2319,7 @@ export async function getOwnershipByInventoryId(inventoryId: string) {
     throw new Error("No seller found for this inventory");
   }
 
-  return sellerOwnership
+  return sellerOwnership;
 }
 
 export async function getOwnershipDetailByCustomerId(customerId: string) {
@@ -2336,4 +2354,136 @@ export async function getOwnershipDetailByCustomerId(customerId: string) {
   });
 
   return inventoryDetails;
+}
+
+export async function addToCart(cart: productcart) {
+  const prisma = await getPrismaClient();
+  const { buyerid, inventoryid, quantity } = cart;
+
+  // Fetch existing cart item with associated inventory
+  const existingCartItem = await prisma.productcart.findFirst({
+    where: {
+      buyerid,
+      inventoryid
+    },
+    include: {
+      inventory: {
+        select: {
+          price: true,
+          quantity: true
+        },
+      },
+    },
+  });
+
+  console.log("existingCartItem", existingCartItem);
+
+  // If the cart item exists
+  if (existingCartItem) {
+    if (!existingCartItem.inventory) {
+      throw new Error("Inventory data not found for the cart item");
+    }
+
+    if (existingCartItem.inventory.quantity < quantity) {
+      throw new Error(`Insufficient inventory. Only ${existingCartItem.inventory.quantity} items available.`);
+    }
+
+    const updatedQuantity = existingCartItem.quantity + quantity;
+    const totalPrice = updatedQuantity * existingCartItem.inventory.price;
+
+    // Update existing cart item
+    const updatedItem = await prisma.productcart.update({
+      where: {
+        id: existingCartItem.id,
+      },
+      data: {
+        quantity: updatedQuantity,
+        totalprice: totalPrice,
+        updatedat: new Date(),
+      },
+    });
+
+    return updatedItem;
+  }
+
+  // created for the first time
+  const inventory = await prisma.productinventory.findUnique({
+    where: {
+      id: inventoryid,
+    },
+    select: {
+      price: true,
+      quantity: true,
+    },
+  });
+
+ 
+  if (!inventory || inventory.quantity < quantity) {
+    throw new Error(`Insufficient inventory. Only ${inventory?.quantity || 0} items available.`);
+  }
+
+  const totalPrice = quantity * inventory.price;
+
+ 
+  const newItem = await prisma.productcart.create({
+    data: {
+      buyerid,
+      inventoryid,
+      quantity,
+      totalprice: totalPrice,
+      createdat: new Date(),
+      updatedat: new Date(),
+    },
+  });
+
+  return newItem;
+}
+
+
+export async function removeFromCart(customerId: string, inventoryId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    // Check if the item exists in the cart
+    const existingCartItem = await prisma.productcart.findFirst({
+      where: {
+        buyerid: customerId,
+        inventoryid: inventoryId
+      }
+    });
+
+    if (!existingCartItem) {
+      throw new Error("Item not found in cart.");
+    }
+
+    // Remove the item from the cart
+    await prisma.productcart.delete({
+      where: {
+        id: existingCartItem.id
+      }
+    });
+
+    return {
+      success: true,
+      message: "Item removed from cart successfully"
+    };
+  } catch (error) {
+    console.error("Error removing item from cart:", error);
+    throw new Error("Failed to remove item from cart");
+  }
+}
+
+export async function getUserCart(customerId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const cartItems = await prisma.productcart.findMany({
+      where: {
+        buyerid: customerId
+      }
+    });
+
+    return cartItems;
+  } catch (error) {
+    console.error("Error retrieving cart items:", error);
+    throw new Error("Failed to retrieve cart items");
+  }
 }
