@@ -278,6 +278,7 @@ type GetWalletBalanceData {
 input GetWalletBalanceInput {
   walletAddress: String!
   symbol: String
+  chain: String
 }
 
 type GetWalletData {

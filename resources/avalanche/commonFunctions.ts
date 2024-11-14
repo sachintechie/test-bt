@@ -1,6 +1,8 @@
 import { avm, pvm, evm } from "@avalabs/avalanchejs";
 import { ethers } from "ethers";
 import { AvalancheTransactionStatus } from "../db/models";
+import Web3 from "web3";
+import contractAbi from "../abi/BridgeUsdc.json";
 const CONTRACT_ABI: any[] = [
   {
     anonymous: false,
@@ -83,6 +85,13 @@ const CONTRACT_ABI: any[] = [
 ];
 // Environment variables (set in AWS Lambda or using dotenv)
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL; // Infura or any RPC provider URL
+const ETH_RPC_URL = process.env.ETH_RPC_URL!;
+
+const web3Avax = new Web3(AVAX_RPC_URL);
+const web3Eth = new Web3(ETH_RPC_URL);
+
+const USDC_CONTRACT_ABI = contractAbi.abi;
+const USDC_CONTRACT_ADDRESS = contractAbi.address;
 export async function getAvaxBalance(address: string) {
   try {
     const pAddress: string = "P-" + address;
@@ -182,3 +191,18 @@ export async function getHashTransactionDetails(txID: string) {
     };
   }
 }
+
+
+export const getUsdcBalance = async (chain: string, address: string) => {
+  // Select the appropriate web3 instance based on the chain
+  const web3 = chain === "AVAX" ? web3Avax : web3Eth;
+
+  // Create a contract instance for the USDC contract
+  const contract = new web3.eth.Contract(USDC_CONTRACT_ABI, USDC_CONTRACT_ADDRESS);
+
+  // Call the balanceOf function to get the balance of the specified address
+  const balance = (await contract.methods.balanceOf(address).call()) as BigInt;
+
+  return Number(balance);
+};
+
