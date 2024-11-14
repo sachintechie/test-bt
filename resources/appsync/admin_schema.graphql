@@ -124,11 +124,24 @@ type AdminUserListData {
 
 input BulkImportInput {
 	file: FileInput!
+	productId: String
 }
 
-type BulkImportResponse {
+type BulkImportInventoryResponse {
+  status: Int
+  data: InventoryResponseData
+  error: AWSJSON
+}
+
+type InventoryResponseData {
+  created: [InventoryData]
+  skipped: [String]
+  message: String
+}
+
+type BulkImportProductResponse {
 	status: Int
-	data: String
+	data: [ProductData]
 	error: AWSJSON
 }
 
@@ -163,7 +176,29 @@ input CreateInventoryInput {
 	quantity: Int!
 	ownershipNft: Boolean
 	smartContractAddress: String
-	tokenId: String
+	tokenId: String,
+	sensoryData: SensoryDataInput
+}
+
+input SensoryDataInput {
+  temprature: Float
+  oxygen: Float
+  humidity: Float
+  ph: Float
+  alcohol: Float
+  location: String
+}
+
+type SensoryData {
+  id: String
+  temprature: Float
+  oxygen: Float
+  humidity: Float
+  ph: Float
+  alcohol: Float
+  location: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 type CreateInventoryResponse {
@@ -474,6 +509,7 @@ type InventoryData {
 	smartcontractaddress: String
 	tokenid: String
 	isdeleted: Boolean
+	sensorydata: SensoryData
 	createdat: AWSDateTime
 	updatedat: AWSDateTime
 }
@@ -843,6 +879,8 @@ input UpdateInventoryData {
 input UpdateInventoryInput {
 	inventoryId: String!
 	inventoryData: UpdateInventoryData!
+	sensoryData: SensoryDataInput
+
 }
 
 input UpdateProductAttributeInput {
@@ -868,6 +906,7 @@ input UpdateProductInputData {
 	categoryId: String
 	rarity: ProductRarity
 	price: Float
+	tags: [String]
 }
 
 type UpdateProductResponse {
@@ -902,8 +941,8 @@ type Mutation {
 	DeleteProduct(input: DeleteProductInput): ProductResponse
 	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
 	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
-	BulkImportInventory(input: BulkImportInput): BulkImportResponse
-	BulkImportProduct(input: BulkImportInput): BulkImportResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportInventoryResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportProductResponse
 	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
 	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
 	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase

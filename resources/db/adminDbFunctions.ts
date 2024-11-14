@@ -9,7 +9,8 @@ import {
   ProductStatus,
   RefType,
   productinventory,
-  inventoryfilter
+  inventoryfilter,
+  productsensorydata
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -151,8 +152,14 @@ export async function createProject(
   }
 }
 
-export async function createStage(tenantUserId: string, name: string, description: string,
-   stageTypeId: string, projectId: string,stageSequence:number) {
+export async function createStage(
+  tenantUserId: string,
+  name: string,
+  description: string,
+  stageTypeId: string,
+  projectId: string,
+  stageSequence: number
+) {
   console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
@@ -236,7 +243,14 @@ export async function getStepType(name: string) {
   }
 }
 
-export async function createStep(tenantUserId: string, name: string, description: string, stepTypeId: string, stageId: string,stepSequence:number) {
+export async function createStep(
+  tenantUserId: string,
+  name: string,
+  description: string,
+  stepTypeId: string,
+  stageId: string,
+  stepSequence: number
+) {
   console.log("Creating admin stage");
   try {
     const prisma = await getPrismaClient();
@@ -1541,7 +1555,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
         projectid: projectId,
         isdeleted: false
       },
-         orderBy: {
+      orderBy: {
         stagesequence: "asc"
       }
     });
@@ -1552,23 +1566,22 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
         isdeleted: false
       },
       include: {
-            steps: {
-              include: {
-                stepdetails: true
-              },
-              orderBy: {
-                stepsequence: 'asc'  // Sort steps within each stage by 'stepsequence' column
-              }
-            }
+        steps: {
+          include: {
+            stepdetails: true
           },
-         orderBy: {
+          orderBy: {
+            stepsequence: "asc" // Sort steps within each stage by 'stepsequence' column
+          }
+        }
+      },
+      orderBy: {
         stagesequence: "asc"
       },
-      
+
       take: limit,
       skip: (pageNo - 1) * limit
     });
-
 
     if (project == null) {
       return { data: null, error: "Project not found" };
@@ -1581,9 +1594,8 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
         totalPages: Math.ceil(stageCount / limit),
         stages: stages
       }
-    }
+    };
     const data = {
-
       project: projectData
     };
     console.log(data);
@@ -1628,22 +1640,37 @@ export async function getAdminProductsByTenantId(offset: number, limit: number, 
 
     const products = await prisma.product.findMany({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+        isdeleted: false
       },
       skip: offset,
       take: limit,
       include: {
-        productmedia: true
+        productmedia: true,
+        inventories: true
       }
     });
 
     const totalCount = await prisma.product.count({
       where: {
-        tenantid: tenantId
+        tenantid: tenantId,
+        isdeleted: false
       }
     });
 
-    return { products, totalCount };
+    // Add totalquantity and inventorystatus for each product
+    const productsWithInventoryData = products.map((product: { inventories: any[] }) => {
+      const totalquantity = product.inventories.reduce((sum: number, inventory: productinventory) => sum + inventory.quantity, 0);
+      const inventorystatus = totalquantity > 0 ? "In Stock" : "Out of Stock";
+
+      return {
+        ...product,
+        totalquantity,
+        inventorystatus
+      };
+    });
+
+    return { products: productsWithInventoryData, totalCount };
   } catch (err) {
     throw err;
   }
@@ -1653,6 +1680,7 @@ export async function createInventory(inventoryData: productinventory) {
   try {
     const prisma = await getPrismaClient();
 
+    // Create the main product inventory entry
     const newInventory = await prisma.productinventory.create({
       data: {
         inventoryid: inventoryData.inventoryid,
@@ -1667,10 +1695,33 @@ export async function createInventory(inventoryData: productinventory) {
       }
     });
 
-    return newInventory;
+    // Create the sensory data if provided
+    if (inventoryData.sensorydata) {
+      const sensor = inventoryData.sensorydata;
+      await prisma.productsensorydata.create({
+        data: {
+          inventoryid: newInventory.id,
+          temprature: sensor.temprature,
+          oxygen: sensor.oxygen,
+          humidity: sensor.humidity,
+          ph: sensor.ph,
+          alcohol: sensor.alcohol,
+          location: sensor.location
+        }
+      });
+    }
+
+    // Fetch the newly created inventory along with its sensory data
+    const inventoryWithSensoryData = await prisma.productinventory.findUnique({
+      where: { id: newInventory.id },
+      include: { sensorydata: true }
+    });
+
+    return inventoryWithSensoryData;
   } catch (error) {
+    console.error("Error in createInventory:", error);
     if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while adding the inventory");
+      throw new Error(error.message || "An error occurred while creating the inventory");
     } else {
       throw new Error("An unexpected error occurred.");
     }
@@ -1700,6 +1751,9 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
         productid: productId,
         isdeleted: false
       },
+      include: {
+        sensorydata: true
+      },
       skip: offset,
       take: limit
     });
@@ -1725,13 +1779,44 @@ export async function updateInventory(inventoryId: string, updateData: productin
   const prisma = await getPrismaClient();
 
   try {
+    const sensoryData: productsensorydata | undefined = updateData.sensorydata;
+
     const updatedInventory = await prisma.productinventory.update({
       where: {
         id: inventoryId
       },
       data: updateData
     });
-
+    if (sensoryData) {
+      const existingSensoryData = await prisma.productsensorydata.findUnique({
+        where: { inventoryid: inventoryId }
+      });
+      if (existingSensoryData) {
+        await prisma.productsensorydata.update({
+          where: { id: existingSensoryData.id },
+          data: {
+            ...(sensoryData.temprature !== undefined && { temprature: sensoryData.temprature }),
+            ...(sensoryData.oxygen !== undefined && { oxygen: sensoryData.oxygen }),
+            ...(sensoryData.humidity !== undefined && { humidity: sensoryData.humidity }),
+            ...(sensoryData.ph !== undefined && { ph: sensoryData.ph }),
+            ...(sensoryData.alcohol !== undefined && { alcohol: sensoryData.alcohol }),
+            ...(sensoryData.location !== undefined && { location: sensoryData.location })
+          }
+        });
+      } else {
+        await prisma.productsensorydata.create({
+          data: {
+            inventoryid: inventoryId,
+            temprature: sensoryData.temprature,
+            oxygen: sensoryData.oxygen,
+            humidity: sensoryData.humidity,
+            ph: sensoryData.ph,
+            alcohol: sensoryData.alcohol,
+            location: sensoryData.location
+          }
+        });
+      }
+    }
     return updatedInventory;
   } catch (error) {
     console.error("Error in updateInventory:", error);
@@ -1743,37 +1828,60 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: productinventory[]) {
+export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string) {
   try {
     const prisma = await getPrismaClient();
 
-    const createdInventories = await prisma.$transaction(async (tx) => {
-      await tx.productinventory.createMany({
-        data: inventoryDataArray.map((inventoryData) => ({
-          inventoryid: inventoryData.inventoryid,
-          productid: inventoryData.productid,
-          inventorycategory: inventoryData.inventorycategory,
-          price: inventoryData.price,
-          quantity: inventoryData.quantity,
-          ownershipnft: inventoryData.ownershipnft ?? false,
-          smartcontractaddress: inventoryData.smartcontractaddress,
-          tokenid: inventoryData.tokenid,
-          isdeleted: false
-        })),
-        skipDuplicates: true
-      });
-
-      return tx.productinventory.findMany({
-        where: {
-          inventoryid: {
-            in: inventoryDataArray.map((data) => data.inventoryid)
-          }
-        }
-      });
+    // Step 1: Fetch existing inventory items for the given IDs
+    const existingInventories = await prisma.productinventory.findMany({
+      where: {
+        productid: productId,
+        inventoryid: {
+          in: inventoryDataArray.map((data) => data.inventoryid),
+        },
+      },
+      select: { inventoryid: true }
     });
 
-    return createdInventories;
+    const existingIds = new Set(existingInventories.map(item => item.inventoryid));
+
+    // Step 2: Filter out the inventories that already exist
+    const newInventories = inventoryDataArray.filter(
+      (data) => !existingIds.has(data.inventoryid)
+    );
+
+    // Step 3: Insert only new inventories
+    const createdInventories = await prisma.productinventory.createMany({
+      data: newInventories.map((inventoryData) => ({
+        inventoryid: inventoryData.inventoryid,
+        productid: productId,
+        inventorycategory: inventoryData.inventorycategory,
+        price: inventoryData.price,
+        quantity: inventoryData.quantity,
+        ownershipnft: inventoryData.ownershipnft ?? false,
+        smartcontractaddress: inventoryData.smartcontractaddress,
+        tokenid: inventoryData.tokenid,
+        isdeleted: false,
+        createdat: new Date(),
+        updatedat: new Date(),
+      })),
+      skipDuplicates: true,
+    });
+
+    // Step 4: Return created and skipped inventories
+    const skippedIds = inventoryDataArray
+      .map((data) => data.inventoryid)
+      .filter((id) => existingIds.has(id));
+
+    return {
+      created: newInventories,
+      skipped: skippedIds,
+      message: skippedIds.length
+        ? `Some items were not created due to duplication: ${skippedIds.join(', ')}`
+        : "All items created successfully.",
+    };
   } catch (error) {
+    console.error("Error in createBulkInventory:", error);
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the inventory");
     } else {
@@ -1782,30 +1890,41 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
   }
 }
 
+
 export async function createBulkProduct(productDataArray: product[]) {
   try {
     const prisma = await getPrismaClient();
 
-    const createdProduct = await prisma.product.createMany({
-      data: productDataArray.map((productData) => ({
-        name: productData.name,
-        description: productData.description,
-        type: productData.type,
-        sku: productData.sku,
-        rarity: productData.rarity,
-        price: productData.price,
-        categoryid: productData.categoryid,
-        tenantid: productData.tenantid,
-        purchasedpercentage: 0,
-        availablepercentage: 100
-      })),
-      skipDuplicates: true
+    const createdProducts = await prisma.$transaction(async (tx) => {
+      // Step 1: Create products in bulk
+      await tx.product.createMany({
+        data: productDataArray.map((productData) => ({
+          name: productData.name,
+          description: productData.description,
+          type: productData.type,
+          sku: productData.sku,
+          rarity: productData.rarity,
+          price: productData.price,
+          categoryid: productData.categoryid,
+          tenantid: productData.tenantid
+        })),
+        skipDuplicates: true
+      });
+
+      // Step 2: Fetch the created products using their names or SKUs
+      return tx.product.findMany({
+        where: {
+          sku: {
+            in: productDataArray.map((data) => data.sku)
+          }
+        }
+      });
     });
 
-    return createdProduct;
+    return createdProducts;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(error.message || "An error occurred while adding the product");
+      throw new Error(error.message || "An error occurred while adding the products");
     } else {
       throw new Error("An unexpected error occurred.");
     }
@@ -1848,7 +1967,8 @@ export async function searchInventory(searchKeyword: string) {
         ]
       },
       include: {
-        product: true
+        product: true,
+        sensorydata: true
       }
     });
 
@@ -1919,7 +2039,8 @@ export async function filterInventory(filters: inventoryfilter) {
     const filteredResult = await prisma.productinventory.findMany({
       where: whereClause,
       include: {
-        product: true
+        product: true,
+        sensorydata: true
       }
     });
 

@@ -1100,6 +1100,42 @@ type ProjectData {
 	description: String
 	isactive: Boolean
 	createdby: String
+
+input CartInput {
+inventoryId: String
+quantity: Int
+}
+
+type CartResponse {
+  status: Int
+  data: CartData
+  error: AWSJSON
+}
+
+type GetUserCartResponse {
+  status: Int
+  data: [CartData]
+  error: AWSJSON
+}
+
+type CartData {
+  id: String
+  inventoryid: String
+  buyerid: String
+  totalprice: Float
+  quantity: Int
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+input RemoveFromCartInput {
+  inventoryId: String!
+}
+
+type RemoveFromCartResponse {
+  status: Int
+  data: String
+  error: AWSJSON
 }
 
 type Mutation {
@@ -1118,6 +1154,8 @@ type Mutation {
   RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
   StoreHash(input: StoreHashInput): StoreHash
   StoreHashOnSubnet(input: StoreHashInput): StoreHash
+  AddToCart(input: CartInput): CartResponse
+  RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
 }
 
 type Query {
@@ -1166,6 +1204,7 @@ type Query {
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
   GetProjectById(input: ListProjectByIdInput): ProjectAndStepsResponse
 
+  GetUserCart: GetUserCartResponse
 }
 
 schema {
