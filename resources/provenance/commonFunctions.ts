@@ -63,7 +63,7 @@ export async function provenanceTransfer(
     // Transfer Tokens on Provenance Chain
 
     // get the oidc client
-    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
+    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*", "ManageKeyGet"]);
 
     if (!oidcClient) {
       return {
