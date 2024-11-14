@@ -796,9 +796,9 @@ export async function createProduct(product: product) {
 	 await addActivityLog({
       title: 'Product Created',
       description: `Product ${newProduct.name} was created successfully.`,
-      loggedBy: product.tenantid 
+      loggedBy: product.customerid!,
     });
-	
+
     return newProduct;
   } catch (error) {
     if (error instanceof Error) {

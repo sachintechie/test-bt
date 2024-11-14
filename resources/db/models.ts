@@ -76,7 +76,8 @@ export interface product {
   description: string;
   type: string;
   sku: string;
-  tags?: string[];
+  tags?: string[]; 
+  customerid?: string
 }
 
 export interface productcategory {
