@@ -1164,7 +1164,7 @@ type Query {
   CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
   GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
-  GetProjectById(input: ListProjectByIdInput): ProjectAndStepsResponse
+  GetProjectAndStepById(input: ListProjectByIdInput): ProjectAndStepsResponse
 
 }
 
