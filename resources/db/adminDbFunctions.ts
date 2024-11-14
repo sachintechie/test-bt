@@ -2121,6 +2121,7 @@ export async function getAdminUserById(userId: string) {
 }
 
 export async function addActivityLog(logData: activitylogs) {
+	console.log("logData", logData);
   try {
     const prisma = await getPrismaClient();
 
@@ -2129,9 +2130,6 @@ export async function addActivityLog(logData: activitylogs) {
         title: logData.title,
         description: logData.description,
         loggedby: logData.loggedBy,
-        customer: {
-          connect: { id: logData.loggedBy }
-        }
       }
     });
   } catch (error: any) {
