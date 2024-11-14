@@ -189,6 +189,15 @@ export interface productcart {
   updatedat?: string;
 }
 
+export interface activitylogs {
+  id?: string;
+  title: string;
+  description: string;
+  createdAt?: string;
+  loggedBy: string;
+}
+
+
 export interface inventoryfilter {
   inventoryid?: string;
   productname?: string;
