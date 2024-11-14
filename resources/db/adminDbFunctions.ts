@@ -871,6 +871,12 @@ export async function updateProduct(id: string, product: Partial<product>) {
       data: product
     });
 
+	await addActivityLog({
+	  title: 'Product Updated',
+	  description: `Product ${updatedProduct.name} was updated successfully.`,
+	  loggedBy: product.customerid!,
+	});
+
     return updatedProduct;
   } catch (err) {
     throw err;
@@ -2116,11 +2122,19 @@ export async function getAdminUserById(userId: string) {
 
 export async function addActivityLog(logData: activitylogs) {
   try {
-	const prisma = await getPrismaClient();
-	await prisma.activitylogs.create({
-	  data: logData
-	});
+    const prisma = await getPrismaClient();
+
+    await prisma.activitylogs.create({
+      data: {
+        title: logData.title,
+        description: logData.description,
+        loggedby: logData.loggedBy,
+        customer: {
+          connect: { id: logData.loggedBy }
+        }
+      }
+    });
   } catch (error: any) {
-	throw new Error(`Error adding activity log: ${error.message}`);
+    throw new Error(`Error adding activity log: ${error.message}`);
   }
 }

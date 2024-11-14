@@ -775,10 +775,10 @@ model productsensorydata {
 model activitylogs {
   id                 String           @id @default(uuid())
   title              String
-  description        String?
+  description        String
   createdat          DateTime         @default(now())
   loggedby           String
-  customer           customer         @relation("CustomerActivity", fields: [loggedby], references: [id])
+  customer           customer?         @relation("CustomerActivity", fields: [loggedby], references: [id])
 
   @@index([loggedby])
 }
