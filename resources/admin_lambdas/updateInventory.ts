@@ -1,10 +1,11 @@
 import { updateInventory } from "../db/adminDbFunctions";
+import { productsensorydata } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const { inventoryId, inventoryData } = event.arguments?.input;
+    const { inventoryId, inventoryData, sensoryData } = event.arguments?.input;
 
     // Validate the input
     if (!inventoryId || !inventoryData) {
@@ -48,9 +49,25 @@ export const handler = async (event: any, context: any) => {
       updatedInventoryData.ownershipnft = inventoryData.ownershipNft;
       delete updatedInventoryData.ownershipNft;
     }
+    let sensoryDataToUpdate: productsensorydata | undefined = undefined;
+
+    if (sensoryData) {
+      sensoryDataToUpdate = {
+        inventoryid: inventoryId,
+        temprature: sensoryData.temprature,
+        oxygen: sensoryData.oxygen,
+        humidity: sensoryData.humidity,
+        ph: sensoryData.ph,
+        alcohol: sensoryData.alcohol,
+        location: sensoryData.location
+      };
+    }
 
     // Update the inventory in the database
-    const updatedInventory = await updateInventory(inventoryId, updatedInventoryData);
+    const updatedInventory = await updateInventory(inventoryId, {
+      ...updatedInventoryData,
+      sensorydata: sensoryDataToUpdate
+    });
 
     return {
       status: 200,

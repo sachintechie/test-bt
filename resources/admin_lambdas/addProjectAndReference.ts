@@ -1,9 +1,19 @@
 import { tenant } from "../db/models";
 
-import { createProject, createStage, createStep, createStepDetails, getStageType, getStepType, isProjectExist, updateProjectStage } from "../db/adminDbFunctions";
+import {
+  createProject,
+  createStage,
+  createStep,
+  createStepDetails,
+  getProjectWithSteps,
+  getStageType,
+  getStepType,
+  isProjectExist,
+  updateProjectStage
+} from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
-import { addReferencesLambda } from "../knowledgebase/commonFunctions";
-import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
+import { addReferencesLambda, formatBytes, generatePresignedUrl, generateSignedUrl } from "../knowledgebase/commonFunctions";
+import { hashing, hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
@@ -61,17 +71,31 @@ async function addProjectAndReference(
     }
 
     const project = await createProject(tenant, name, description, projectType, organizationId, kb_id);
-    let datasource_id = BedRockDataSourceS3;
 
     if (project != null) {
+      const stage1 = await addStage_1(tenant.adminuserid ?? "", project.id, files);
+      const urls = await generatePresignedUrl(files);
+      console.log("urls", urls);
+      var projectData = await getProjectWithSteps(project.id, 1, 1);
+      if (projectData.error) {
+        return {
+          project: null,
+          error: projectData.error
+        };
+      } else {
 
-     const stage1 = await addStage_1(tenant.adminuserid??"", project.id, files);
-      await addReferencesLambda(tenant.adminuserid??"", project.id);
+        const data = {
+          project: projectData.data?.project,
+          urls: urls
+        }
 
-      return {
-        project: project,
-        error: null
-      };
+        return {
+
+          project: data,
+          error: null
+        };
+      }
+      // await addReferencesLambda(tenant.adminuserid??"", project.id);
     } else {
       return {
         project: null,
@@ -88,47 +112,55 @@ async function addProjectAndReference(
 }
 
 export async function addStage_1(tenantUserId: string, projectId: string, files: any) {
-   // Stage 1: Data Source
-   const stageType = await getStageType("Data Source");
-   if (stageType) {
-     const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId,1);
-     if (stage1) {
-       // Fetch step types for each action in the stage
-       const [stepType1, stepType2, stepType3] = await Promise.all([
-         getStepType("File upload from frontend"),
-         getStepType("File hashing"),
-         getStepType("Store to Blockchain")
-       ]);
+  // Stage 1: Data Source
+  const stageType = await getStageType("Data Source");
+  if (stageType) {
+    const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId, 1);
+    if (stage1) {
+      // Fetch step types for each action in the stage
+      const [stepType1, stepType2, stepType3] = await Promise.all([
+        getStepType("File upload from frontend"),
+        getStepType("File hashing"),
+        getStepType("Store to Blockchain")
+      ]);
 
-       if (stepType1 && stepType2 && stepType3) {
-         // Create steps for stage 1
-         const [step1, step2, step3] = await Promise.all([
-           createStep(tenantUserId, "File upload from frontend", "File upload from frontend", stepType1.id, stage1.id,1),
-           createStep(tenantUserId, "File hashing", "File hashing", stepType2.id, stage1.id,2),
-           createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage1.id,3)
-         ]);
+      if (stepType1 && stepType2 && stepType3) {
+        // Create steps for stage 1
+        const [step1, step2, step3] = await Promise.all([
+          createStep(tenantUserId, "File upload from frontend", "File upload from frontend", stepType1.id, stage1.id, 1),
+          createStep(tenantUserId, "File hashing", "File hashing", stepType2.id, stage1.id, 2),
+          createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage1.id, 3)
+        ]);
 
-         for (const file of files) {
-           const fileData = { fileName: file.fileName, fileContent: file.fileContent };
+        for (const file of files) {
+          // const fileSize = await getFileSizeFromBase64(file.fileContent)
+          const downloadUrl = await generateSignedUrl(file)
 
-           // Step 1: File upload details
-           await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
+          const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
+          // Step 1: File upload details
+          await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
 
-           // Step 2: Hash the file data
-           const hash = await hashing(fileData);
-           const hashedData = {
-             "hash": hash.data?.dataHash,
-           }
-           await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
+          // Step 2: Hash the file data
+          const hashedData = {
+            hash: file.hash
+          };
+          await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
-           // Step 3: Store the hashed data on the blockchain
-           const blockchainHashedData = await hashingAndStoreToBlockchain(fileData, false);
-           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
-         }
+          // Step 3: Store the hashed data on the blockchain
+          const blockchainHashedData = await storeHash(file.hash, false);
+          await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
+        }
 
-         // Update project to reflect data ingestion status
-         await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
-       }
-     }
-   }
+        // Update project to reflect data ingestion status
+        await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
+      }
+    }
+  }
+}
+
+async function getFileSizeFromBase64(base64String: string) {
+  // Calculate the file size in bytes
+  const fileSizeInBytes = (base64String.length * 3) / 4 - (base64String.endsWith("==") ? 2 : base64String.endsWith("=") ? 1 : 0);
+  const size = await formatBytes(fileSizeInBytes);
+  return size;
 }

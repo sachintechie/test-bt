@@ -12,19 +12,19 @@ const PRIVATE_KEY = process.env.AVAX_PRIVATE_KEY; // Private key of the wallet m
 const SUBNET_CONTRACT_ADDRESS = process.env.STORE_AVAX_SUBNET_CONTRACT_ADDRESS; // Deployed contract address
 
 const CONTRACT_ADDRESS = process.env.STORE_AVAX_CONTRACT_ADDRESS; // Deployed contract address
-const CONTRACT_ABI: any[] =contractAbi.abi;
+const CONTRACT_ABI: any[] = contractAbi.abi;
 
-const SUBNET_CONTRACT_ABI: any[] =subnetContractAbi.abi;
+const SUBNET_CONTRACT_ABI: any[] = subnetContractAbi.abi;
 
-export async function storeHash(hash: string,isSecondTx?:boolean) {
+export async function storeHash(hash: string, isSecondTx?: boolean) {
   try {
     const provider = new ethers.providers.JsonRpcProvider(AVAX_RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY!, provider);
-      // Get the current nonce for the wallet address
-  let currentNonce = await provider.getTransactionCount(wallet.address, "pending");
-  if(isSecondTx){
-    currentNonce = currentNonce + 1;
-  }
+    // Get the current nonce for the wallet address
+    let currentNonce = await provider.getTransactionCount(wallet.address, "pending");
+    if (isSecondTx) {
+      currentNonce = currentNonce + 1;
+    }
 
     // Dynamically get the current gas price
     const gasPrice = await provider.getGasPrice();
@@ -42,17 +42,16 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
     const gasLimit = ethers.BigNumber.from("50000");
     //const gasLimit = estimatedGasLimit.mul(120).div(100); // Adding a 20% buffer
 
-  // Set custom options, including the nonce
-  const options = {
-    gasLimit,
-    gasPrice,
-    nonce: currentNonce,
-    // gasLimit: ethers.utils.hexlify(100000), // Adjust gas limit as needed
-    // gasPrice: ethers.utils.parseUnits("25", "gwei") // Adjust gas price based on network conditions
-  };
+    // Set custom options, including the nonce
+    const options = {
+      gasLimit,
+      gasPrice,
+      nonce: currentNonce
+      // gasLimit: ethers.utils.hexlify(100000), // Adjust gas limit as needed
+      // gasPrice: ethers.utils.parseUnits("25", "gwei") // Adjust gas price based on network conditions
+    };
 
-
-    const tx = await contract.storeHash(_hash, _metadata,options);
+    const tx = await contract.storeHash(_hash, _metadata, options);
     console.log("Transaction sent:", tx.hash);
 
     const receipt = await tx.wait();
@@ -80,24 +79,18 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
 
     return {
       data: {
-        message: "Transaction successful!",
-        transactionId: transactionReceipt.transactionHash,
-        status: status,
         hash: parsedTransaction.args._dataHash.split("0x")[1],
-        metaData: parsedTransaction.args._metaData,
+        txHash: transactionReceipt.transactionHash,
+        chainId: transaction.chainId,
+        chainType: "Avalanche",
+        status: status,
+        gasFee: gas.toString(),
+        nonce: transaction.nonce,
         blockHash: transaction.blockHash,
+        blockNumber: transaction.blockNumber,
         type: transaction.type,
         timestamp: transactionTimestamp,
-        blockNumber: transaction.blockNumber,
-        confirmations: transaction.confirmations,
-        from: transaction.from,
-        to: transaction.to,
-        gasLimit: transaction.gasLimit.toString(),
-        gasPrice: transaction.gasPrice?.toString(),
-        gas: gas.toString(),
-        nonce: transaction.nonce,
-        chainId: transaction.chainId,
-        chainType: "Avalanche"
+        confirmations: transaction.confirmations
       },
       error: null
     };
@@ -111,30 +104,27 @@ export async function storeHash(hash: string,isSecondTx?:boolean) {
   }
 }
 
-
-export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean) {
+export async function hashingAndStoreToBlockchain(data: any, isSecondTx?: boolean) {
   try {
-
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
     console.log("dataHash", dataHash);
-    const dataTxHash = await storeHash(dataHash,isSecondTx);
+    const dataTxHash = await storeHash(dataHash, isSecondTx);
     console.log("dataTxHash", dataTxHash);
-    
+
     return {
       data: {
-        hash:dataHash,
-        txHash : dataTxHash?.data?.transactionId,
+        hash: dataHash,
+        txHash: dataTxHash?.data?.txHash,
         chainId: dataTxHash?.data?.chainId,
         chainType: dataTxHash?.data?.chainType,
         status: dataTxHash?.data?.status,
-        gasFee: dataTxHash?.data?.gas,
+        gasFee: dataTxHash?.data?.gasFee,
         nonce: dataTxHash?.data?.nonce,
         blockHash: dataTxHash?.data?.blockHash,
         type: dataTxHash?.data?.type,
         timestamp: dataTxHash?.data?.timestamp,
         blockNumber: dataTxHash?.data?.blockNumber,
-        confirmations: dataTxHash?.data?.confirmations,
-
+        confirmations: dataTxHash?.data?.confirmations
       },
       error: null
     };
@@ -149,10 +139,9 @@ export async function hashingAndStoreToBlockchain(data: any,isSecondTx?:boolean)
 }
 export async function hashing(data: any) {
   try {
-
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
     console.log("dataHash", dataHash);
-    
+
     return {
       data: {
         dataHash
