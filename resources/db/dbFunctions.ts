@@ -231,7 +231,7 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
         customerid: customerId as string,
         walletaddress: displayAddress,
         walletid: key.id,
-        publicAddress: key.materialId,
+        publickey: key.materialId,
         chaintype: chainType,
         wallettype: keyType.toString(),
         isactive: true,
