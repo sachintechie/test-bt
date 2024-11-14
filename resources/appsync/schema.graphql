@@ -1026,6 +1026,82 @@ type InventoryDetails {
   updatedat: AWSDateTime
 }
 
+input ListProjectByIdInput {
+	projectId: String!
+	pageNo: Int!
+	limit: Int!
+}
+
+
+
+type ProjectAndStepsResponse {
+	status: Int
+	data: ProjectAndStepData
+	error: AWSJSON
+}
+
+type ProjectAndStepData {
+	project: ProjectData
+	stagedata: StagePaginationData
+}
+
+
+
+type StagePaginationData {
+	total: Int
+	totalPages: Int
+	stages: [StageData]
+}
+
+type StageData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+	isactive: Boolean
+	isdeleted: Boolean
+	stagetypeid: String
+	status: String
+	stagesequence: Int
+	steps: [StepData]
+}
+
+type StepData {
+	id: String
+	name: String
+	description: String
+	createdat: String
+	isactive: Boolean
+	isdeleted: Boolean
+	stepsequence: Int
+	status: String
+	stageid: String
+	stepdetails: [StepDetailsData]
+}
+
+type StepDetailsData {
+	id: String
+	stepid: String
+	status: String
+	isactive: Boolean
+	isdeleted: Boolean
+	createdat: String
+	metadata: String
+}
+
+type ProjectData {
+	id: String
+	createdat: String
+	projecttype: String
+	projectstage: String
+	projectstatus: String
+	organizationid: String
+	name: String
+	description: String
+	isactive: Boolean
+	createdby: String
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1088,6 +1164,8 @@ type Query {
   CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
   GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
+  GetProjectById(input: ListProjectByIdInput): ProjectAndStepsResponse
+
 }
 
 schema {
