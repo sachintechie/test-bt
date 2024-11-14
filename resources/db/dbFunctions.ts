@@ -2476,6 +2476,11 @@ export async function getUserCart(customerId: string) {
     const cartItems = await prisma.productcart.findMany({
       where: {
         buyerid: customerId
+      },
+      include: {
+        inventory: {
+          include:{product:true}
+        }
       }
     });
 

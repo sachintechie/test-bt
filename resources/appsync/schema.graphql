@@ -489,6 +489,7 @@ type InventoryData {
   id: String
   inventoryid: String
   productid: String
+  product: ProductData
   inventorycategory: String
   price: Float
   quantity: Int
@@ -1052,6 +1053,7 @@ type GetUserCartResponse {
 type CartData {
   id: String
   inventoryid: String
+  inventory:InventoryData
   buyerid: String
   totalprice: Float
   quantity: Int
