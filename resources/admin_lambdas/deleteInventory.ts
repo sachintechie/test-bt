@@ -1,8 +1,10 @@
-import { deleteInventory } from "../db/adminDbFunctions";
-
+import { tenant } from "../db/models";
+import { deleteInventory, getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
+    const tenant = event.identity.resolverContext as tenant;
 
     const inventoryId = event.arguments?.input?.inventoryId;
 
@@ -14,7 +16,13 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const deletedInventory = await deleteInventory(inventoryId);
+    const adminUser = await getAdminUserById(tenant.adminuserid!);
+    console.log("adminUser", adminUser);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
+    console.log("customer", customer);
+    const customerId  = customer.id
+
+    const deletedInventory = await deleteInventory(inventoryId,customerId);
 
     return {
       status: 200,

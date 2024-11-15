@@ -834,7 +834,7 @@ export async function createProductAttributes(attributes: productattribute[]) {
   }
 }
 
-export async function deleteProductAttributes(productId: string, attributeIds: string[]) {
+export async function deleteProductAttributes(productId: string, attributeIds: string[], customerId:string) {
   try {
     const prisma = await getPrismaClient();
     const deletedAttributes = await prisma.productattribute.deleteMany({
@@ -845,7 +845,11 @@ export async function deleteProductAttributes(productId: string, attributeIds: s
         }
       }
     });
-
+    await addActivityLog({
+      title: 'Product Attributes Deleted',
+      description: `Product Attributes for product ${productId} were deleted successfully.`,
+      loggedBy: customerId
+    });
     return deletedAttributes;
   } catch (err) {
     throw err;
@@ -950,13 +954,19 @@ export async function updateProductStatus(productId: string, status: ProductStat
   }
 }
 
-export async function deleteProduct(productId: string) {
+export async function deleteProduct(productId: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
 
     const deletedProduct = await prisma.product.update({
       where: { id: productId },
       data: { isdeleted: true }
+    });
+
+    await addActivityLog({
+      title: 'Product Deleted',
+      description: `Product ${productId} was deleted successfully.`,
+      loggedBy: customerId,
     });
 
     return deletedProduct;
@@ -1954,7 +1964,7 @@ export async function createBulkProduct(productDataArray: product[]) {
   }
 }
 
-export async function deleteInventory(inventoryId: string) {
+export async function deleteInventory(inventoryId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1963,6 +1973,11 @@ export async function deleteInventory(inventoryId: string) {
       data: { isdeleted: true }
     });
 
+    await addActivityLog({
+      title: 'Inventory Deleted',
+      description: `Inventory ${inventoryId} was deleted successfully.`,
+      loggedBy: customerId!,
+    });
     return deletedInventory;
   } catch (err) {
     throw err;
