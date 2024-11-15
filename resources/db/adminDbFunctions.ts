@@ -904,7 +904,7 @@ export async function updateProduct(id: string, product: Partial<product>, custo
   }
 }
 
-export async function updateProductAttributes(productId: string, attributes: productattribute[]) {
+export async function updateProductAttributes(productId: string, attributes: productattribute[], customerid: string) {
   try {
     const prisma = await getPrismaClient();
     const results = [];
@@ -930,6 +930,12 @@ export async function updateProductAttributes(productId: string, attributes: pro
         }
       });
 
+	await addActivityLog({
+	  title: 'Product Attributes Updated',
+	  description: `Product Attributes for product ${productId} were updated successfully.`,
+	  loggedBy: customerid,
+	});
+
       if (updatedAttribute) {
         results.push(updatedAttribute);
       }
@@ -942,7 +948,7 @@ export async function updateProductAttributes(productId: string, attributes: pro
   }
 }
 
-export async function updateProductStatus(productId: string, status: ProductStatus) {
+export async function updateProductStatus(productId: string, status: ProductStatus, customerid: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -953,6 +959,12 @@ export async function updateProductStatus(productId: string, status: ProductStat
         updatedat: new Date().toISOString()
       }
     });
+
+	await addActivityLog({
+	  title: 'Product Status Updated',
+	  description: `Product ${updatedProduct.name} status was updated successfully.`,
+	  loggedBy: customerid,
+	});
 
     return updatedProduct;
   } catch (err) {
@@ -2187,5 +2199,24 @@ export async function addActivityLog(logData: activitylogs) {
     });
   } catch (error: any) {
     throw new Error(`Error adding activity log: ${error.message}`);
+  }
+}
+
+export async function getActivityLogs() {
+  try {
+	const prisma = await getPrismaClient();
+	const activityLogs = prisma.activitylog.findMany({
+      include: {
+        loggedBy: true 
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 10
+    });
+
+	return activityLogs;
+  } catch (error: any) {
+	throw new Error(`Error fetching activity logs: ${error.message}`);
   }
 }
