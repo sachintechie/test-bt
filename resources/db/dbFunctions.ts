@@ -152,7 +152,9 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     console.log("Creating wallet", cubistUserId, customerId, key);
     var keyType = getKeyTypeBasedOnChainId(chainType);
     if (key == null) {
-      key = await org.createKey(keyType, cubistUserId);
+      key = await org.createKey(keyType, cubistUserId, {
+        policy: ["AllowRawBlobSigning"] as any
+      });
     }
 
     logWithTrace("Created key", key.materialId);
