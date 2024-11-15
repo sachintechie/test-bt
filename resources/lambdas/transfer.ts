@@ -51,7 +51,6 @@ export const handler = async (event: any) => {
           data: data?.transaction,
           error: data?.error
         };
-        console.log("Wallet", response);
         return response;
       } 
       

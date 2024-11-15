@@ -22,7 +22,7 @@ export class CosmosSecp256k1CubeSigner implements OfflineDirectSigner {
   constructor(key: cs.Key) {
     this.account = CosmosSecp256k1CubeSigner.keyToAccountData(key);
     this.key = key;
-    this.key.appendPolicy(["AllowRawBlobSigning"])
+    this.key.
   }
 
   /** inheritdoc */
