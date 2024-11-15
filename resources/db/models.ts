@@ -83,6 +83,8 @@ export interface product {
 export interface productcategory {
   name: string;
   tenantid: string;
+  customerid?: string
+
 }
 
 export interface updateproductattribute {
@@ -95,6 +97,7 @@ export interface productattribute {
   value: string;
   type: string;
   productid: string;
+  customerid?: string
 }
 
 export interface productfilter {
@@ -165,6 +168,8 @@ export interface productinventory {
   createdat?: string;
   updatedat?: string;
   sensorydata?: productsensorydata;
+  customerid?: string
+
 }
 
 export interface productsensorydata {

@@ -757,7 +757,14 @@ export async function createCategory(category: productcategory) {
       }
     });
 
+    await addActivityLog({
+      title: 'Category Created',
+      description: `Category ${newCategory.name} was created successfully.`,
+      loggedBy: category.customerid!,
+    });
+
     return newCategory;
+
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the category");
@@ -816,7 +823,11 @@ export async function createProductAttributes(attributes: productattribute[]) {
       data: attributes,
       skipDuplicates: true
     });
-
+    await addActivityLog({
+      title: 'Product Attributes Added',
+      description: `Product Attributes were created successfully.`,
+      loggedBy: attributes[0].customerid!
+    });
     return newAttribute;
   } catch (err) {
     throw err;
@@ -1713,6 +1724,12 @@ export async function createInventory(inventoryData: productinventory) {
       include: { sensorydata: true }
     });
 
+    await addActivityLog({
+      title: 'Inventory Created',
+      description: `Inventory ${newInventory.id} was created successfully.`,
+      loggedBy: inventoryData.customerid!,
+    });
+
     return inventoryWithSensoryData;
   } catch (error) {
     console.error("Error in createInventory:", error);
@@ -2103,6 +2120,14 @@ export async function addOwnership(inventoryId: string, customerId: string) {
         customerid: customerId
       }
     });
+
+    await addActivityLog({
+      title: 'Ownership Added',
+      description: `Ownership against inventory ${inventoryId} was created successfully.`,
+      loggedBy: customerId!,
+    });
+
+
   } catch (error: any) {
     throw new Error(`Error adding ownership: ${error.message}`);
   }
