@@ -10,7 +10,8 @@ import {
   RefType,
   productinventory,
   inventoryfilter,
-  productsensorydata
+  productsensorydata,
+  activitylogs
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace } from "../utils/utils";
@@ -791,6 +792,13 @@ export async function createProduct(product: product) {
         price: product.price
       }
     });
+
+	 await addActivityLog({
+      title: 'Product Created',
+      description: `Product ${newProduct.name} was created successfully.`,
+      loggedBy: product.customerid!,
+    });
+
     return newProduct;
   } catch (error) {
     if (error instanceof Error) {
@@ -862,6 +870,12 @@ export async function updateProduct(id: string, product: Partial<product>) {
       },
       data: product
     });
+
+	await addActivityLog({
+	  title: 'Product Updated',
+	  description: `Product ${updatedProduct.name} was updated successfully.`,
+	  loggedBy: product.customerid!,
+	});
 
     return updatedProduct;
   } catch (err) {
@@ -2103,5 +2117,22 @@ export async function getAdminUserById(userId: string) {
     return adminUser;
   } catch (error: any) {
     throw new Error(`Error retrieving admin user with ID ${userId}: ${error.message}`);
+  }
+}
+
+export async function addActivityLog(logData: activitylogs) {
+	console.log("logData", logData);
+  try {
+    const prisma = await getPrismaClient();
+
+    await prisma.activitylogs.create({
+      data: {
+        title: logData.title,
+        description: logData.description,
+        loggedby: logData.loggedBy,
+      }
+    });
+  } catch (error: any) {
+    throw new Error(`Error adding activity log: ${error.message}`);
   }
 }

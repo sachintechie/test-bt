@@ -76,7 +76,8 @@ export interface product {
   description: string;
   type: string;
   sku: string;
-  tags?: string[];
+  tags?: string[]; 
+  customerid?: string
 }
 
 export interface productcategory {
@@ -188,6 +189,15 @@ export interface productcart {
   createdat?: string;
   updatedat?: string;
 }
+
+export interface activitylogs {
+  id?: string;
+  title: string;
+  description: string;
+  createdAt?: string;
+  loggedBy: string;
+}
+
 
 export interface inventoryfilter {
   inventoryid?: string;
