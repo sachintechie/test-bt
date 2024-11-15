@@ -856,7 +856,7 @@ export async function deleteProductAttributes(productId: string, attributeIds: s
   }
 }
 
-export async function updateCategory(categoryId: string, category: string) {
+export async function updateCategory(categoryId: string, category: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
     const updated = await prisma.productcategory.update({
@@ -869,13 +869,19 @@ export async function updateCategory(categoryId: string, category: string) {
       }
     });
 
+	await addActivityLog({
+	  title: 'Category Updated',
+	  description: `Category ${updated.name} was updated successfully.`,
+	  loggedBy: customerId
+	});
+
     return updated;
   } catch (err) {
     throw err;
   }
 }
 
-export async function updateProduct(id: string, product: Partial<product>) {
+export async function updateProduct(id: string, product: Partial<product>, customerid: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -889,7 +895,7 @@ export async function updateProduct(id: string, product: Partial<product>) {
 	await addActivityLog({
 	  title: 'Product Updated',
 	  description: `Product ${updatedProduct.name} was updated successfully.`,
-	  loggedBy: product.customerid!,
+	  loggedBy: customerid,
 	});
 
     return updatedProduct;
@@ -1798,7 +1804,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
   }
 }
 
-export async function updateInventory(inventoryId: string, updateData: productinventory) {
+export async function updateInventory(inventoryId: string, updateData: productinventory,  customerid: string) {
   const prisma = await getPrismaClient();
 
   try {
@@ -1840,6 +1846,13 @@ export async function updateInventory(inventoryId: string, updateData: productin
         });
       }
     }
+
+	await addActivityLog({
+	  title: 'Inventory Updated',
+	  description: `Inventory ${inventoryId} was updated successfully.`,
+	  loggedBy: customerid,
+	});
+	
     return updatedInventory;
   } catch (error) {
     console.error("Error in updateInventory:", error);

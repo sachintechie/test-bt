@@ -46,9 +46,7 @@ export const handler = async (event: any, context: any) => {
     }
 
 	const adminUser = await getAdminUserById(tenant.adminuserid!);
-    console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
-    console.log("customer", customer);
 
     const product = await createProductInDb({
       name: input.name,
