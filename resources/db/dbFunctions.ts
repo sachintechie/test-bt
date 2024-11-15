@@ -152,7 +152,9 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     console.log("Creating wallet", cubistUserId, customerId, key);
     var keyType = getKeyTypeBasedOnChainId(chainType);
     if (key == null) {
-      key = await org.createKey(keyType, cubistUserId);
+      key = await org.createKey(keyType, cubistUserId, {
+        policy: ["AllowRawBlobSigning"] as any
+      });
     }
 
     logWithTrace("Created key", key.materialId);
@@ -186,7 +188,9 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
       return { data: null, error: "Chain type not supported for key generation" };
     }
 
-    const key = await org.createKey(keyType, cubistUserId);
+    const key = await org.createKey(keyType, cubistUserId, {
+      policy: ["AllowRawBlobSigning"] as any
+    });
     // if (keyType == cs.Ed25519.Solana) {
     //   const role = await org.getRole(OPERATION_ROLE_ID);
     //   role.addKey(key);
