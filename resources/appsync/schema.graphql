@@ -416,6 +416,10 @@ input MintNFTInput {
   chain: String!
   contractAddress: String!
   metadata: AWSJSON
+  scopeSpecificationUUID: String
+  uuid: String
+  party: AWSJSON
+  scope: AWSJSON
 }
 
 type OrderData {

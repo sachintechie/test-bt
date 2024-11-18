@@ -17,12 +17,12 @@ const web3Eth = new Web3(ETH_RPC_URL);
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 export const handler = async (event: any, context: any) => {
-  const { toAddress, numberOfTokens, chain, contractAddress, metadata } = event.arguments?.input;
-
+  const { chain } = event.arguments?.input;
+  const tenant = event.identity.resolverContext as tenant;
+  const tenantId = tenant.id;
   if (chain === CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
     try {
-      const tenant = event.identity.resolverContext as tenant;
-      const tenantId = tenant.id;
+      const { toAddress, numberOfTokens, chain, contractAddress, metadata } = event.arguments?.input;
       const receipt = await mintNFT(toAddress, numberOfTokens, chain, contractAddress, metadata, tenantId);
 
       return {
@@ -39,9 +39,9 @@ export const handler = async (event: any, context: any) => {
     }
   } else if (chain === CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE) {
     try {
-      const { scope_specification_uuid, party, scope, uuid } = event.arguments?.input;
+      const { scopeSpecificationUUID, party, scope, uuid, metadata } = event.arguments?.input;
 
-      const data = await mintNftProvenance(scope_specification_uuid, party, scope, uuid, event.identity.resolverContext.id);
+      const data = await mintNftProvenance(scopeSpecificationUUID, party, scope, uuid, metadata, tenantId);
 
       return {
         status: 200,
@@ -124,7 +124,14 @@ export const mintNFT = async (
   return receipt;
 };
 
-export const mintNftProvenance = async (scope_specification_uuid: string, party: Party, scope: Scope, uuid: string, tenantId: string) => {
+export const mintNftProvenance = async (
+  scope_specification_uuid: string,
+  party: Party,
+  scope: Scope,
+  uuid: string,
+  metadata: any,
+  tenantId: string
+) => {
   const nftUtilities = new NFTUtilities(process.env.PROVENANCE_API_ENDPOINT!, process.env.PROVENANCE_API_KEY!);
 
   const data = await nftUtilities.mintScope(scope_specification_uuid, {
@@ -135,6 +142,33 @@ export const mintNftProvenance = async (scope_specification_uuid: string, party:
   });
 
   console.log(data);
+
+  // storing metadata to dynamodb
+  await storeMetadataInDynamoDB(dynamoDB, scope_specification_uuid, data.scope_uuid, metadata);
+  const prisma = await getPrismaClient();
+
+  console.log("Storing contract transaction");
+  await prisma.contracttransaction.create({
+    data: {
+      txhash: data.tx_hash,
+      contractaddress: scope_specification_uuid,
+      chain: "Provenance",
+      fromaddress: party.address,
+      toaddress: scope.value_owner_address,
+      tokenid: data.scope_uuid,
+      amount: 1,
+      tokentype: "NFT"
+    }
+  });
+  console.log("Storing payment transaction");
+  await prisma.paymenttransaction.create({
+    data: {
+      txhash: data.tx_hash,
+      toaddress: scope.value_owner_address,
+      provider: "admin",
+      providerid: "admin"
+    }
+  });
 
   return data;
 };
