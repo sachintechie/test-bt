@@ -10,12 +10,9 @@ type AddProjectAndReferenceResponse {
 	status: Int
 	data: ProjectAndUrlData
 	error: AWSJSON
-  name: String!
-  description: String
-  projectType: String!
-  organizationId: String!
-  files: [FileInput]
 }
+
+
 
 type AddRefToKnowledgeBase {
   status: Int
@@ -731,10 +728,6 @@ enum ProductStatus {
   ACTIVE
   INACTIVE
 }
-type ProjectAndStepData {
-  project: ProjectData
-  stagedata: StagePaginationData
-}
 
 type ProjectAndStepData {
 	project: ProjectData
@@ -982,8 +975,6 @@ type Mutation {
 	CreateStageType(input: CreateStageTypeInput): CreateStageTypeResponse
 	UpdateProjectStatus(input: UpdateProjectStatusInput): CreateProjectResponse
 	CreateScopeSpecification(input: CreateScopeSpecificationInput): CreateScopeSpecificationResponse
-
-  
 }
 
 type Query {
