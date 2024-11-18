@@ -30,6 +30,7 @@ import { logWithTrace } from "../utils/utils";
 import { toBech32 } from "@cosmjs/encoding";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
 import { Secp256k1 } from "@cosmjs/crypto";
+import {addActivityLog} from "./adminDbFunctions";
 
 let prismaClient: PrismaClient;
 
@@ -2278,7 +2279,11 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
       }
     });
 
-    console.log("newOwnership", newOwnership);
+	await addActivityLog({
+	  title: 'Ownership Transferred',
+	  description: `Ownership against inventory ${inventoryid} was transferred successfully.`,
+	  loggedBy: buyerid!,
+	});
 
     await prisma.productownership.update({
       where: { id: sellerOwnership.id },
