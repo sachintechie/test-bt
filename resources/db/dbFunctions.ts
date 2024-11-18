@@ -163,13 +163,17 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
-        customerid: customerId as string,
         walletaddress: key.materialId,
         walletid: key.id,
         chaintype: chainType,
         wallettype: cs.Ed25519.Solana.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        customer: {
+          connect: {
+            id: customerId
+          }
+        }
       }
     });
 
