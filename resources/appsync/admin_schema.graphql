@@ -892,6 +892,29 @@ input UpdateProductStatusInput {
 	status: ProductStatus
 }
 
+type GetActivityLogsResponse {
+	status: Int
+	data: [ActivityLogData]
+	error: AWSJSON
+}
+
+type CustomerData {
+    emailid: String
+    name: String
+    isactive: Boolean
+    usertype: String
+    iss: String
+}
+
+
+type ActivityLogData {
+    id: String
+    title: String
+    description: String
+    createdat: String
+    loggedby: CustomerData
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -939,6 +962,7 @@ type Query {
 	GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
+	GetActivityLogs: GetActivityLogsResponse
 }
 
 schema {

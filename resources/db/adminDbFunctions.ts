@@ -856,7 +856,7 @@ export async function deleteProductAttributes(productId: string, attributeIds: s
   }
 }
 
-export async function updateCategory(categoryId: string, category: string) {
+export async function updateCategory(categoryId: string, category: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
     const updated = await prisma.productcategory.update({
@@ -869,13 +869,19 @@ export async function updateCategory(categoryId: string, category: string) {
       }
     });
 
+	await addActivityLog({
+	  title: 'Category Updated',
+	  description: `Category ${updated.name} was updated successfully.`,
+	  loggedBy: customerId
+	});
+
     return updated;
   } catch (err) {
     throw err;
   }
 }
 
-export async function updateProduct(id: string, product: Partial<product>) {
+export async function updateProduct(id: string, product: Partial<product>, customerid: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -889,7 +895,7 @@ export async function updateProduct(id: string, product: Partial<product>) {
 	await addActivityLog({
 	  title: 'Product Updated',
 	  description: `Product ${updatedProduct.name} was updated successfully.`,
-	  loggedBy: product.customerid!,
+	  loggedBy: customerid,
 	});
 
     return updatedProduct;
@@ -898,7 +904,7 @@ export async function updateProduct(id: string, product: Partial<product>) {
   }
 }
 
-export async function updateProductAttributes(productId: string, attributes: productattribute[]) {
+export async function updateProductAttributes(productId: string, attributes: productattribute[], customerid: string) {
   try {
     const prisma = await getPrismaClient();
     const results = [];
@@ -924,6 +930,12 @@ export async function updateProductAttributes(productId: string, attributes: pro
         }
       });
 
+	await addActivityLog({
+	  title: 'Product Attributes Updated',
+	  description: `Product Attributes for product ${productId} were updated successfully.`,
+	  loggedBy: customerid,
+	});
+
       if (updatedAttribute) {
         results.push(updatedAttribute);
       }
@@ -936,7 +948,7 @@ export async function updateProductAttributes(productId: string, attributes: pro
   }
 }
 
-export async function updateProductStatus(productId: string, status: ProductStatus) {
+export async function updateProductStatus(productId: string, status: ProductStatus, customerid: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -947,6 +959,12 @@ export async function updateProductStatus(productId: string, status: ProductStat
         updatedat: new Date().toISOString()
       }
     });
+
+	await addActivityLog({
+	  title: 'Product Status Updated',
+	  description: `Product ${updatedProduct.name} status was updated successfully.`,
+	  loggedBy: customerid,
+	});
 
     return updatedProduct;
   } catch (err) {
@@ -1798,7 +1816,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
   }
 }
 
-export async function updateInventory(inventoryId: string, updateData: productinventory) {
+export async function updateInventory(inventoryId: string, updateData: productinventory,  customerid: string) {
   const prisma = await getPrismaClient();
 
   try {
@@ -1840,6 +1858,13 @@ export async function updateInventory(inventoryId: string, updateData: productin
         });
       }
     }
+
+	await addActivityLog({
+	  title: 'Inventory Updated',
+	  description: `Inventory ${inventoryId} was updated successfully.`,
+	  loggedBy: customerid,
+	});
+	
     return updatedInventory;
   } catch (error) {
     console.error("Error in updateInventory:", error);
@@ -2161,7 +2186,6 @@ export async function getAdminUserById(userId: string) {
 }
 
 export async function addActivityLog(logData: activitylogs) {
-	console.log("logData", logData);
   try {
     const prisma = await getPrismaClient();
 
@@ -2174,5 +2198,24 @@ export async function addActivityLog(logData: activitylogs) {
     });
   } catch (error: any) {
     throw new Error(`Error adding activity log: ${error.message}`);
+  }
+}
+
+export async function getActivityLogs() {
+  try {
+	const prisma = await getPrismaClient();
+	const activityLogs = prisma.activitylogs.findMany({
+      include: {
+        loggedBy: true 
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: 10
+    });
+
+	return activityLogs;
+  } catch (error: any) {
+	throw new Error(`Error fetching activity logs: ${error.message}`);
   }
 }
