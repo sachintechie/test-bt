@@ -2267,10 +2267,10 @@ export async function getActivityLogs() {
 	const prisma = await getPrismaClient();
 	const activityLogs = prisma.activitylogs.findMany({
       include: {
-        loggedBy: true 
+        loggedby: true 
       },
       orderBy: {
-        createdAt: 'desc'
+        createdat: 'desc'
       },
       take: 10
     });
