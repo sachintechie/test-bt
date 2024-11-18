@@ -214,6 +214,30 @@ export async function getStageDetails(projectId: string, stageTypeId: string) {
   }
 }
 
+export async function getStageDetailsByProjectId(projectId: string) {
+
+  const prisma = await getPrismaClient();
+
+const stepDetails = await prisma.stepdetail.findMany({
+  where: {
+    step: {
+      name: 'Read file from s3',
+      stage: {
+        projectid: projectId,
+        name: 'Data Storage',
+      },
+    },
+  },
+  select: {
+    id: true,
+    metadata: true,
+  },
+});
+
+return stepDetails;
+
+}
+
 export async function getStepDetails(stepId: string) {
   try {
     const prisma = await getPrismaClient();
