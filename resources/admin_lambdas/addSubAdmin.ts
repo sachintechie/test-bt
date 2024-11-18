@@ -69,7 +69,6 @@ async function createUser(tenant: tenant, emailId: string, username: string, pas
             Username: emailId ? emailId : "",
             Password: password,
             Permanent: true
-            
           };
 
           await cognito.adminSetUserPassword(setPasswordParams).promise();

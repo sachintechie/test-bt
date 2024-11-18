@@ -11,22 +11,16 @@ import { DatabaseInfo } from "./aurora";
 import * as iam from "aws-cdk-lib/aws-iam";
 
 // Function to create a new Node.js Lambda function with the Prisma layer for reducing deployment size
-export const newNodeJsFunction = (
-  scope: Construct,
-  id: string,
-  resourcePath: string,
-  dataInfo: DatabaseInfo,
-  memorySize: number = 512
-) => {
+export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dataInfo: DatabaseInfo, memorySize: number = 512) => {
   // Add Prisma to a Lambda layer to avoid bundling Prisma in each Lambda function
   const prismaLayer = new lambda.LayerVersion(scope, `${id}-PrismaLayer`, {
     code: lambda.Code.fromAsset(path.join(__dirname, "../layers/prisma")), // Assumed path to pre-built Prisma layer
     compatibleRuntimes: [lambda.Runtime.NODEJS_18_X],
-    description: "Prisma ORM Layer for Lambda functions",
-  }); 
+    description: "Prisma ORM Layer for Lambda functions"
+  });
 
   // Return the new Nodejs Lambda function
-  const lambdaFunction= new NodejsFunction(scope, env`${id}`, {
+  const lambdaFunction = new NodejsFunction(scope, env`${id}`, {
     functionName: env`${id}-function`,
     description: getDescription(),
     runtime: lambda.Runtime.NODEJS_18_X,
@@ -34,7 +28,7 @@ export const newNodeJsFunction = (
     timeout: cdk.Duration.minutes(15),
     memorySize,
     environment: {
-      ...getEnvConfig(dataInfo),
+      ...getEnvConfig(dataInfo)
     },
     vpc: getVpcConfig(scope),
     securityGroups: getSecurityGroups(scope),
@@ -56,16 +50,22 @@ export const newNodeJsFunction = (
             `npx prisma generate --schema=${outputDir}/prisma/schema.prisma`, // Generate Prisma client
             `rm -rf ${outputDir}/node_modules/@prisma/engines`, // Remove unnecessary @prisma/engines folder
             `cp ${inputDir}/package.json ${outputDir}/node_modules/`, // Copy package.json
-            `cp ${inputDir}/package-lock.json ${outputDir}/node_modules/`, // Copy package-lock.json
+            `cp ${inputDir}/package-lock.json ${outputDir}/node_modules/` // Copy package-lock.json
           ];
-        },
-      },
-    },
+        }
+      }
+    }
   });
   return lambdaFunction;
 };
 
-export const newMigrateNodeJsFunction = (scope: Construct, id: string, resourcePath: string, dataInfo: DatabaseInfo, memorySize: number = 512) => {
+export const newMigrateNodeJsFunction = (
+  scope: Construct,
+  id: string,
+  resourcePath: string,
+  dataInfo: DatabaseInfo,
+  memorySize: number = 512
+) => {
   return new NodejsFunction(scope, env`${id}`, {
     functionName: env`${id}-function`,
     description: getDescription(),

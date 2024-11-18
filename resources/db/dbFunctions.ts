@@ -26,11 +26,10 @@ import {
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
-import { logWithTrace } from "../utils/utils";
 import { toBech32 } from "@cosmjs/encoding";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
 import { Secp256k1 } from "@cosmjs/crypto";
-
+import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 let prismaClient: PrismaClient;
 
 export async function getPrismaClient() {
@@ -153,22 +152,24 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
-
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     if (key == null) {
-      
-      key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
+      key = await org.createKey(keyType, cubistUserId, {
+        policy: ["AllowRawBlobSigning"] as any
+      });
     }
 
     logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: key.materialId,
+        walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
         walletid: key.id,
         chaintype: chainType,
-        wallettype: cs.Ed25519.Solana.toString(),
+        wallettype: keyType.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        publickey: key.materialId
       }
     });
 
@@ -182,45 +183,16 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
 export async function createWallet(org: cs.Org, cubistUserId: string, chainType: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
-    var keyType: any;
-    switch (chainType) {
-      case "Ethereum":
-        keyType = cs.Secp256k1.Evm;
-        break;
-      case "Bitcoin":
-        keyType = cs.Secp256k1.Btc;
-        break;
-      case "Avalanche":
-        keyType = cs.Secp256k1.AvaTest;
-        break;
-      case "Cardano":
-        keyType = cs.Ed25519.Cardano;
-        break;
-      case "Solana":
-        keyType = cs.Ed25519.Solana;
-        break;
-      case "Stellar":
-        keyType = cs.Ed25519.Stellar;
-        break;
-      case "Provenance":
-        keyType = cs.Secp256k1.Cosmos;
-        break;
-
-      default:
-        keyType = null;
-    }
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     console.log("Creating wallet", keyType);
 
     if (keyType == null) {
       return { data: null, error: "Chain type not supported for key generation" };
     }
 
-    const key = await org.createKey(keyType, cubistUserId);
-    const displayAddress =
-      keyType == cs.Secp256k1.Cosmos
-        ? toBech32("tp", rawSecp256k1PubkeyToRawAddress(Secp256k1.compressPubkey(Buffer.from(key.publicKey.slice(2), "hex"))))
-        : key.materialId;
-
+    const key = await org.createKey(keyType, cubistUserId, {
+      policy: ["AllowRawBlobSigning"] as any
+    });
     // if (keyType == cs.Ed25519.Solana) {
     //   const role = await org.getRole(OPERATION_ROLE_ID);
     //   role.addKey(key);
@@ -229,7 +201,7 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: displayAddress,
+        walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
         walletid: key.id,
         publickey: key.materialId,
         chaintype: chainType,
@@ -857,7 +829,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
       where: {
-        walletaddress: walletAddress
+        OR: [{ publickey: walletAddress }, { walletaddress: walletAddress }]
       }
     });
     let tokens;
@@ -892,7 +864,7 @@ export async function getWalletAndTokenByWalletAddressBySymbol(walletAddress: st
           // This is specifically added for Provenance chain. We need this because cubesigner returns cosmos standard address
           // however for all the transactions on provenance chains we use bech32 address with prefix tp or pb based on the network
           // so we need to check both the addresses
-          { publicAddress: walletAddress },
+          { publickey: walletAddress },
           { walletaddress: walletAddress }
         ]
       }
@@ -2371,9 +2343,9 @@ export async function addToCart(cart: productcart) {
         select: {
           price: true,
           quantity: true
-        },
-      },
-    },
+        }
+      }
+    }
   });
 
   console.log("existingCartItem", existingCartItem);
@@ -2394,13 +2366,13 @@ export async function addToCart(cart: productcart) {
     // Update existing cart item
     const updatedItem = await prisma.productcart.update({
       where: {
-        id: existingCartItem.id,
+        id: existingCartItem.id
       },
       data: {
         quantity: updatedQuantity,
         totalprice: totalPrice,
-        updatedat: new Date(),
-      },
+        updatedat: new Date()
+      }
     });
 
     return updatedItem;
@@ -2409,22 +2381,20 @@ export async function addToCart(cart: productcart) {
   // created for the first time
   const inventory = await prisma.productinventory.findUnique({
     where: {
-      id: inventoryid,
+      id: inventoryid
     },
     select: {
       price: true,
-      quantity: true,
-    },
+      quantity: true
+    }
   });
 
- 
   if (!inventory || inventory.quantity < quantity) {
     throw new Error(`Insufficient inventory. Only ${inventory?.quantity || 0} items available.`);
   }
 
   const totalPrice = quantity * inventory.price;
 
- 
   const newItem = await prisma.productcart.create({
     data: {
       buyerid,
@@ -2432,13 +2402,12 @@ export async function addToCart(cart: productcart) {
       quantity,
       totalprice: totalPrice,
       createdat: new Date(),
-      updatedat: new Date(),
-    },
+      updatedat: new Date()
+    }
   });
 
   return newItem;
 }
-
 
 export async function removeFromCart(customerId: string, inventoryId: string) {
   try {

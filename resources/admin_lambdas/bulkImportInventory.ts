@@ -1,8 +1,8 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 import { tenant } from "../db/models";
-import { createBulkInventory, addOwnership,getAdminUserById } from "../db/adminDbFunctions";
-import {  getCustomer } from "../db/dbFunctions";
-import Stripe from 'stripe';
+import { createBulkInventory, addOwnership, getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
+import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET!);
 
 export const handler = async (event: any, context: any) => {
@@ -10,7 +10,7 @@ export const handler = async (event: any, context: any) => {
     console.log("event", event, "context", context);
 
     const { fileContent, fileName, contentType } = event.arguments?.input?.file;
-	const { productId } = event.arguments?.input; 
+    const { productId } = event.arguments?.input;
     const tenantContext = event.identity.resolverContext as tenant;
 
     if (!fileContent) {
@@ -21,13 +21,13 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const buffer = Buffer.from(fileContent, 'base64');
+    const buffer = Buffer.from(fileContent, "base64");
     let workbook;
 
-    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
-      workbook = XLSX.read(buffer, { type: 'buffer', raw: true });
-    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
-      workbook = XLSX.read(buffer, { type: 'buffer' });
+    if (contentType === "text/csv" || fileName.endsWith(".csv")) {
+      workbook = XLSX.read(buffer, { type: "buffer", raw: true });
+    } else if (contentType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || fileName.endsWith(".xlsx")) {
+      workbook = XLSX.read(buffer, { type: "buffer" });
     } else {
       return {
         status: 400,
@@ -58,11 +58,11 @@ export const handler = async (event: any, context: any) => {
           type
         } = row;
 
-        if ( !inventoryId || !inventoryCategory || !price || !quantity) {
+        if (!inventoryId || !inventoryCategory || !price || !quantity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
         }
 
-        const ownershipNftBoolean = (typeof ownershipNft === 'string' && ownershipNft.toLowerCase() === 'true') ? true : false;
+        const ownershipNftBoolean = typeof ownershipNft === "string" && ownershipNft.toLowerCase() === "true" ? true : false;
 
         console.log("ownershipNftBoolean", ownershipNftBoolean);
         return {
@@ -83,25 +83,24 @@ export const handler = async (event: any, context: any) => {
       inventoryDataArray = [...inventoryDataArray, ...transformedData];
     });
 
-      const { created, skipped, message } = await createBulkInventory(inventoryDataArray, productId);
-    
+    const { created, skipped, message } = await createBulkInventory(inventoryDataArray, productId);
+
     console.log(`Successfully created ${created.length} inventories, skipped ${skipped.length} due to duplication`);
 
+    console.log(`Start creating Stripe products for ${created.length} inventories`);
+    await createMultipleStripeProducts(inventoryDataArray, tenantContext.id!);
+    console.log(`Complete creating Stripe products for ${created.length} inventories`);
 
-   console.log(`Start creating Stripe products for ${created.length} inventories`);
-   await createMultipleStripeProducts(inventoryDataArray,tenantContext.id!);
-   console.log(`Complete creating Stripe products for ${created.length} inventories`);
+    const adminUser = await getAdminUserById(tenantContext.adminuserid!);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
 
-	const adminUser = await getAdminUserById(tenantContext.adminuserid!);
-	const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
-
-	if (customer) {
+    if (customer) {
       for (const inventory of created) {
         await addOwnership(inventory.id, customer.id!);
       }
     }
 
-  return {
+    return {
       status: 200,
       data: {
         created,
@@ -123,7 +122,6 @@ export const handler = async (event: any, context: any) => {
     };
   }
 };
-
 
 interface InventoryData {
   inventoryid: string;
@@ -154,24 +152,24 @@ interface InventoryData {
  * for each item to create the corresponding Stripe product and price. Finally, it
  * collects and returns an array of all created products and prices.
  */
-async function createMultipleStripeProducts(inventoryDataArray: InventoryData[],tenantIdParam:string) {
+async function createMultipleStripeProducts(inventoryDataArray: InventoryData[], tenantIdParam: string) {
   const createdProducts: Array<{ product: Stripe.Product; price: Stripe.Price }> = [];
-  console.log('inventoryDataArray', inventoryDataArray);
+  console.log("inventoryDataArray", inventoryDataArray);
 
   for (const inventoryData of inventoryDataArray) {
     // Map inventory data fields to Stripe product fields
-    const name = inventoryData.name || 'No name';
-    const description = inventoryData.description || 'No description';
+    const name = inventoryData.name || "No name";
+    const description = inventoryData.description || "No description";
     const unitAmount = inventoryData.price; // Convert price to cents
-    const currency = 'usd'; // Assuming USD, change as needed
+    const currency = "usd"; // Assuming USD, change as needed
 
     // Extract metadata fields
-    const tokenId = inventoryData.tokenid || 'N/A';
-    const chain = inventoryData.chain || '';
-    const contract = inventoryData.smartcontractaddress || '';
+    const tokenId = inventoryData.tokenid || "N/A";
+    const chain = inventoryData.chain || "";
+    const contract = inventoryData.smartcontractaddress || "";
     const tenantId = tenantIdParam; // Replace with actual tenant ID if applicable
-    const type = inventoryData.type || 'N/A';
-    console.log('inventoryData', inventoryData);
+    const type = inventoryData.type || "N/A";
+    console.log("inventoryData", inventoryData);
 
     try {
       // Create a Stripe product and price for each inventory item
@@ -186,8 +184,7 @@ async function createMultipleStripeProducts(inventoryDataArray: InventoryData[],
         tenantId,
         type
       );
-      if(product && price)
-      createdProducts.push({ product, price });
+      if (product && price) createdProducts.push({ product, price });
     } catch (error) {
       console.error(`Error creating product for inventory item ${inventoryData.productid}:`, error);
     }
@@ -195,7 +192,6 @@ async function createMultipleStripeProducts(inventoryDataArray: InventoryData[],
 
   return createdProducts;
 }
-
 
 /**
  * Creates a Stripe product with a one-time price
@@ -210,41 +206,49 @@ async function createMultipleStripeProducts(inventoryDataArray: InventoryData[],
  * @param {string} type - The type of token (e.g., 'ERC1155') to be included in the metadata
  * @returns {object} - The created product and price objects
  */
-async function createStripeProductWithOneTimePrice(name: string, description: string, unitAmount: number, currency: string, tokenId: string, chain: string, contract: string, tenantId: string, type: string): Promise<{ product: Stripe.Product|null; price: Stripe.Price|null }>{
+async function createStripeProductWithOneTimePrice(
+  name: string,
+  description: string,
+  unitAmount: number,
+  currency: string,
+  tokenId: string,
+  chain: string,
+  contract: string,
+  tenantId: string,
+  type: string
+): Promise<{ product: Stripe.Product | null; price: Stripe.Price | null }> {
   try {
-    console.log('Creating product and price:', name, unitAmount, currency, tokenId, chain, contract, tenantId, type)
+    console.log("Creating product and price:", name, unitAmount, currency, tokenId, chain, contract, tenantId, type);
     // Step 1: Create the product with metadata
     const product = await stripe.products.create({
       name,
       description,
       active: true, // Product is active by default
       metadata: {
-        id: tokenId,       // Token ID
-        chain,             // Blockchain network
-        contract,          // Contract address
+        id: tokenId, // Token ID
+        chain, // Blockchain network
+        contract, // Contract address
         tenant_id: tenantId, // Tenant ID
-        type               // Token type
+        type // Token type
       }
     });
 
-    console.log('Product created:', product);
-
-
+    console.log("Product created:", product);
 
     // Step 2: Create a one-time price for the product
-    console.log('Creating price for product:', product.id);
+    console.log("Creating price for product:", product.id);
     const price = await stripe.prices.create({
       product: product.id,
       unit_amount: unitAmount,
       currency,
-      metadata: { price_type: 'one_time' } // Optional metadata for price
+      metadata: { price_type: "one_time" } // Optional metadata for price
     });
 
-    console.log('Price created:', price);
+    console.log("Price created:", price);
 
     return { product, price };
   } catch (error) {
-    console.error('Error creating product or price:', error);
-    return {product:null,price:null};
+    console.error("Error creating product or price:", error);
+    return { product: null, price: null };
   }
 }

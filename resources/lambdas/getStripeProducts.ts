@@ -1,4 +1,4 @@
-import Stripe from 'stripe';
+import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET!);
 
 export const handler = async (event: any) => {
@@ -21,13 +21,13 @@ export const handler = async (event: any) => {
         description: product.description,
         active: product.active,
         metadata: product.metadata, // Include product metadata
-        prices: prices.data.map(price => ({
+        prices: prices.data.map((price) => ({
           id: price.id,
           unit_amount: price.unit_amount,
           currency: price.currency,
-          recurring: price.recurring ? price.recurring.interval : 'one_time',
-          metadata: price.metadata, // Include price metadata
-        })),
+          recurring: price.recurring ? price.recurring.interval : "one_time",
+          metadata: price.metadata // Include price metadata
+        }))
       };
 
       // Add product data to the array

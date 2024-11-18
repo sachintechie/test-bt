@@ -51,10 +51,9 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
           let iss;
           let email;
           let name;
-          console.log("Creating tenant",tenant);
-          console.log("Creating tenant",(tenant.iscubistactive == 'true'));
-          if ( tenant.iscubistactive == 'true') {
-
+          console.log("Creating tenant", tenant);
+          console.log("Creating tenant", tenant.iscubistactive == "true");
+          if (tenant.iscubistactive == "true") {
             const { client, org, orgId } = await getCsClient(tenant.id);
             if (client == null || org == null) {
               return {
@@ -63,7 +62,7 @@ async function createUser(tenant: tenant, tenantuserid: string, oidcToken: strin
               };
             }
             console.log("Created cubesigner client", client);
-            console.log("Created cubesigner org", env,orgId);
+            console.log("Created cubesigner org", env, orgId);
             const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
 
             console.log("Verifying identity", proof);

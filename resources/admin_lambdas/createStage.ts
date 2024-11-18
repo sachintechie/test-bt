@@ -1,6 +1,5 @@
 import { tenant } from "../db/models";
-import {  createStage, isStageExist } from "../db/adminDbFunctions";
-
+import { createStage, isStageExist } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -13,7 +12,6 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.stageTypeId,
       event.arguments?.input?.projectId,
       event.arguments?.input?.stageSequence
-
     );
     console.log("data", data);
 
@@ -35,13 +33,13 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addStage(tenant: tenant, name: string, description: string,stageTypeId:string,projectId:string,stageSequence: number) {
+async function addStage(tenant: tenant, name: string, description: string, stageTypeId: string, projectId: string, stageSequence: number) {
   console.log("Creating admin addStage");
 
   try {
     console.log("stage", tenant.id);
 
-    const isExist = await isStageExist( name);
+    const isExist = await isStageExist(name);
     if (isExist.isExist) {
       return {
         project: null,
@@ -49,7 +47,7 @@ async function addStage(tenant: tenant, name: string, description: string,stageT
       };
     }
 
-    const stage = await createStage(tenant.adminuserid??"", name, description,stageTypeId,projectId,stageSequence );
+    const stage = await createStage(tenant.adminuserid ?? "", name, description, stageTypeId, projectId, stageSequence);
 
     return {
       stage: stage,

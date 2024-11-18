@@ -1,6 +1,5 @@
 import { tenant } from "../db/models";
-import {   createStepType, isStepTypeExist } from "../db/adminDbFunctions";
-
+import { createStepType, isStepTypeExist } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -10,7 +9,6 @@ export const handler = async (event: any, context: any) => {
       event.identity.resolverContext as tenant,
       event.arguments?.input?.name,
       event.arguments?.input?.description
-
     );
     console.log("data", data);
 
@@ -38,7 +36,7 @@ async function addStepType(tenant: tenant, name: string, description: string) {
   try {
     console.log("steptype", tenant.id);
 
-    const isExist = await isStepTypeExist( name);
+    const isExist = await isStepTypeExist(name);
     if (isExist.isExist) {
       return {
         project: null,

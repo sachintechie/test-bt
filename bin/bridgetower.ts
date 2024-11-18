@@ -9,7 +9,6 @@ const app = new cdk.App();
 let auroraStack: AuroraStack | undefined;
 
 if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
-
   auroraStack = new AuroraStack(app, env`BTAuroraStack`, {
     env: envConfig
   });
@@ -37,5 +36,5 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   hasApiGateway: false,
   apiName: "AdminApi",
   needMigrate: false,
-  auroraStack: auroraStack,
+  auroraStack: auroraStack
 });

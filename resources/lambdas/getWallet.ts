@@ -2,6 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant } from "../db/models";
 import { getCsClient, getKey, oidcLogin } from "../cubist/CubeSignerClient";
 import { createCustomer, createWalletAndKey, getCustomerAndWallet } from "../db/dbFunctions";
+import { getKeyTypeBasedOnChainId } from "../utils/utils";
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
@@ -153,7 +154,7 @@ async function createWalletByKey(tenant: tenant, tenantuserid: string, oidcToken
         error: "Please send a valid identity token for given tenantuserid"
       };
     }
-    const key = await getKey(oidcClient, chainType, customer.cubistuserid);
+    const key = await getKey(oidcClient, getKeyTypeBasedOnChainId(chainType), customer.cubistuserid);
     console.log("getKey cubesigner user", key, customer.cubistuserid);
     const wallet = await createWalletAndKey(org, customer.cubistuserid, chainType, customer.id, key);
     const newWallet = {

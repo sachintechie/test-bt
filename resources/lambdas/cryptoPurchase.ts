@@ -1,10 +1,10 @@
-import {getPrismaClient, getWalletByCustomer} from "../db/dbFunctions";
+import { getPrismaClient, getWalletByCustomer } from "../db/dbFunctions";
 import { tenant } from "../db/models";
-import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
+import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import contractAbi from "../abi/BridgeUsdc.json";
 import Web3 from "web3";
-import {BigNumber, ethers} from "ethers";
-import {transferERC1155} from "./transferERC1155";
+import { BigNumber, ethers } from "ethers";
+import { transferERC1155 } from "./transferERC1155";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -17,15 +17,15 @@ const web3Eth = new Web3(ETH_RPC_URL);
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    const {inventoryId,chain,tenantUserId,quantity}=event.arguments?.input;
-    const tenant=event.identity.resolverContext as tenant
+    const { inventoryId, chain, tenantUserId, quantity } = event.arguments?.input;
+    const tenant = event.identity.resolverContext as tenant;
     const prisma = await getPrismaClient();
-    const inventory=await prisma.productinventory.findFirst({
+    const inventory = await prisma.productinventory.findFirst({
       where: {
         inventoryid: inventoryId
       }
     });
-    if(!inventory) {
+    if (!inventory) {
       return {
         status: 400,
         data: null,
@@ -33,31 +33,31 @@ export const handler = async (event: any) => {
       };
     }
     const payerKey = await getPayerCsSignerKey("Ethereum", tenant.id);
-    const bigIntValue = ethers.utils.parseUnits((quantity*inventory.price).toString(), 18);
+    const bigIntValue = ethers.utils.parseUnits((quantity * inventory.price).toString(), 18);
 
-    const wallet=await getWalletByCustomer(tenantUserId,'Ethereum',tenant);
-    if(!wallet?.walletaddress) {
+    const wallet = await getWalletByCustomer(tenantUserId, "Ethereum", tenant);
+    if (!wallet?.walletaddress) {
       return {
         status: 400,
         data: null,
         error: "Wallet not found"
       };
     }
-    if(!inventory?.tokenid) {
+    if (!inventory?.tokenid) {
       return {
         status: 400,
         data: null,
         error: "TokenId not found"
       };
     }
-    if(!inventory?.smartcontractaddress) {
+    if (!inventory?.smartcontractaddress) {
       return {
         status: 400,
         data: null,
         error: "SmartContractAddress not found"
       };
     }
-    if(!inventory?.quantity) {
+    if (!inventory?.quantity) {
       return {
         status: 400,
         data: null,
@@ -65,8 +65,17 @@ export const handler = async (event: any) => {
       };
     }
 
-    const receipt=await transferUsdcIn(chain,tenant.id,payerKey.key?.materialId!,bigIntValue);
-    const transferReceipt=await transferERC1155(wallet?.walletaddress!,parseInt(inventory.tokenid!),inventory.quantity,chain,inventory.smartcontractaddress!,tenant.id,"crypto",receipt.transactionHash.toString());
+    const receipt = await transferUsdcIn(chain, tenant.id, payerKey.key?.materialId!, bigIntValue);
+    const transferReceipt = await transferERC1155(
+      wallet?.walletaddress!,
+      parseInt(inventory.tokenid!),
+      inventory.quantity,
+      chain,
+      inventory.smartcontractaddress!,
+      tenant.id,
+      "crypto",
+      receipt.transactionHash.toString()
+    );
 
     return {
       status: 200,
@@ -83,7 +92,7 @@ export const handler = async (event: any) => {
   }
 };
 
-const transferUsdcIn=async(chain:string,tenantId:string,masterAddress:string,amount:BigNumber)=>{
+const transferUsdcIn = async (chain: string, tenantId: string, masterAddress: string, amount: BigNumber) => {
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
@@ -107,5 +116,5 @@ const transferUsdcIn=async(chain:string,tenantId:string,masterAddress:string,amo
 
   const signedTx = await payerKey.key?.signEvm({ tx, chain_id: 43113 });
   const receipt = await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || "");
-  return receipt
-}
+  return receipt;
+};

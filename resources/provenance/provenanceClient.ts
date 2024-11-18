@@ -41,13 +41,7 @@ export class ProvenanceClient {
   }
 
   async getSigningStargateClient(): Promise<SigningStargateClient> {
-    return await SigningStargateClient.connectWithSigner(this.rpcUrl, new CosmosSecp256k1CubeSigner(this.key), {
-      // TODO: Set gas price to a reasonable value
-      gasPrice: {
-        amount: "0.025" as any,
-        denom: "nhash"
-      }
-    });
+    return await SigningStargateClient.connectWithSigner(this.rpcUrl, new CosmosSecp256k1CubeSigner(this.key));
   }
 
   async getBalance(address: string, denom: string): Promise<string> {
@@ -68,7 +62,10 @@ export class ProvenanceClient {
             amount: amount
           }
         ],
-        "auto",
+        {
+          amount: [{ denom: "nhash", amount: "1905000000" }],
+          gas: "100000"
+        },
         "Provenance Transfer"
       );
 
