@@ -5,7 +5,7 @@ import { Readable } from "stream";
 import { syncKb } from "./scanDataSource";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
-
+import pdfParse from 'pdf-parse'; // Import pdf-parse for text extraction
 export async function addReferencesLambda(tenantUserId: string, projectId: string) {
   const event = {
     tenantUserId: tenantUserId,
@@ -21,6 +21,65 @@ export async function addReferencesLambda(tenantUserId: string, projectId: strin
   // Invoke the other Lambda function asynchronously
   await lambda.invoke(params).promise();
 }
+
+export async function lambdaCallForCombineChunks( file_embeddings: any) {
+  const event = {
+    chunks: file_embeddings
+  };
+
+  const params = {
+    FunctionName : 'arn:aws:lambda:us-east-1:084828599845:function:combine_chunks',
+    InvocationType : 'RequestResponse',
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  const response = await lambda.invoke(params).promise();
+
+    const responsePayload = response.Payload as Buffer;
+
+    // Convert the buffer to string (UTF-8 encoded)
+    const responseStr = responsePayload.toString('utf-8');
+
+    // Parse the string into a JSON object
+    const combinedResponse = JSON.parse(responseStr);
+
+    console.log('Decoded response:', combinedResponse);
+    
+    return combinedResponse; // Or process further as needed
+}
+
+export async function lambdaCallForIndexing( all_embeddings_with_metadata: any) {
+  const event = {
+    all_embeddings_with_metadata: all_embeddings_with_metadata
+  };
+
+  const params = {
+    FunctionName : 'arn:aws:lambda:us-east-1:084828599845:function:ai_sov_indexing',
+    InvocationType : 'RequestResponse',
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  const response = await lambda.invoke(params).promise();
+
+    const responsePayload = response.Payload as Buffer;
+
+    // Convert the buffer to string (UTF-8 encoded)
+    const responseStr = responsePayload.toString('utf-8');
+
+    // Parse the string into a JSON object
+    const combinedResponse = JSON.parse(responseStr);
+
+    console.log('Decoded response:', combinedResponse);
+    
+    return combinedResponse; // Or process further as needed
+}
+
+
+
+
+
 
 export async function addToS3Bucket(fileName: string, fileContent: string) {
   try {
@@ -176,7 +235,16 @@ export async function getS3Data(fileName: string) {
     console.log("s3Details", s3Details);
     // Check the type of Body
     let objectContent;
-    if (Buffer.isBuffer(s3Details.Body)) {
+    if (fileName.endsWith(".pdf")) {
+      // const pdfBytes = s3Details.Body as Buffer;
+      // const pdfDoc = await PDFDocument.load(pdfBytes);
+      // const numberOfPages = pdfDoc.getPages().length;
+      const pdfBytes = s3Details.Body as Buffer;
+      const pdfData = await pdfParse(pdfBytes);
+      objectContent = pdfData.text; // Extract text content from the PDF
+
+    }
+    else if (Buffer.isBuffer(s3Details.Body)) {
       objectContent = s3Details.Body.toString("base64");
     } else if (typeof s3Details.Body === "string") {
       objectContent = Buffer.from(s3Details.Body); // Convert string to Buffer
