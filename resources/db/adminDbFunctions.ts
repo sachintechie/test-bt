@@ -1915,7 +1915,7 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string) {
+export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1970,6 +1970,12 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       .map((data) => data.inventoryid)
       .filter((id) => existingIds.has(id));
 
+      await addActivityLog({
+        title: 'Bulk Inventory created',
+        description: `Bulk Inventory against product id ${productId} created successfully.`,
+        loggedBy: customerId!,
+      });
+
     return {
       created: createdInventoryRecords,
       skipped: skippedIds,
@@ -1988,7 +1994,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
 }
 
 
-export async function createBulkProduct(productDataArray: product[]) {
+export async function createBulkProduct(productDataArray: product[], customerId:string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -2016,6 +2022,12 @@ export async function createBulkProduct(productDataArray: product[]) {
           }
         }
       });
+    });
+
+    await addActivityLog({
+      title: 'Bulk Products created',
+      description: `Bulk Products created successfully.`,
+      loggedBy: customerId!,
     });
 
     return createdProducts;
