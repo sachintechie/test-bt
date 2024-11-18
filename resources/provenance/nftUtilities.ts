@@ -141,7 +141,7 @@ export class NFTUtilities {
     if (response.status === 200) {
       throw new Error(`Failed to mint scope: ${response.statusText}`);
     }
-
+    console.log(response.data);
     const data = await response.data;
     return data;
   }

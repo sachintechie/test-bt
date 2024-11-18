@@ -134,7 +134,7 @@ export const mintNftProvenance = async (
   tenantId: string
 ) => {
   const nftUtilities = new NFTUtilities(process.env.PROVENANCE_API_ENDPOINT!, process.env.PROVENANCE_API_KEY!);
-
+  console.log(process.env.PROVENANCE_API_ENDPOINT, process.env.PROVENANCE_API_KEY);
   const data = await nftUtilities.mintScope(scope_specification_uuid, {
     party: party,
     scope: scope,
