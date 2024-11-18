@@ -898,6 +898,7 @@ input CryptoPurchaseInput {
   chain: String!
   tenantUserId: String!
   quantity: Int!
+  senderWalletAddress: String!
 }
 
 enum ReviewsFindBy {
