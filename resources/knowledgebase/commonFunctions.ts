@@ -3,9 +3,9 @@ const lambda = new AWS.Lambda();
 import { S3 } from "aws-sdk";
 import { Readable } from "stream";
 import { syncKb } from "./scanDataSource";
+import pdfParse from 'pdf-parse';
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
-import pdfParse from 'pdf-parse'; // Import pdf-parse for text extraction
 export async function addReferencesLambda(tenantUserId: string, projectId: string) {
   const event = {
     tenantUserId: tenantUserId,
@@ -341,5 +341,7 @@ export async function getS3DataWithoutContent(fileName: string) {
     };
   }
 }
+
+
 
 
