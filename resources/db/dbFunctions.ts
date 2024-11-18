@@ -1777,6 +1777,12 @@ export async function createOrder(order: orders) {
       }
     );
 
+	await addActivityLog({
+		title: 'Order Created',
+		description: `Order ${newOrder.id} created by ${order.buyerid}`,
+		loggedBy: order.buyerid
+	})
+
     return newOrder;
   } catch (err) {
     if (err instanceof Error) {
@@ -1918,6 +1924,12 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
       }
     }
 
+	await addActivityLog({
+		title: "Order Status Updated",
+		description: `Order with id ${orderId} has been updated to ${status}`,
+		loggedBy: updatedOrder.buyerid
+	})
+
     return {
       message: "Order status updated successfully",
       order: {
@@ -2048,6 +2060,12 @@ export async function createCollection(createcollection: createcollection) {
       }
     });
 
+	await addActivityLog({
+	  title: 'Collection Created',
+	  description: `Collection ${newCollection.title} was created successfully.`,
+	  loggedBy: customerid!
+	});
+
     return newCollection;
   } catch (error) {
     if (error instanceof Error) {
@@ -2117,6 +2135,12 @@ export async function addProductToCollection(productcollection: addtocollection)
       }
     });
 
+	await addActivityLog({
+	  title: 'Product Added to Collection',
+	  description: `Product ${productid} was added to collection ${collectionid} successfully.`,
+	  loggedBy: customerid!
+	});
+
     return updatedCollection;
   } catch (error) {
     if (error instanceof Error) {
@@ -2173,6 +2197,12 @@ export async function removeProductFromCollection(productcollection: addtocollec
         products: true // Include the updated products list
       }
     });
+
+	await addActivityLog({
+	  title: 'Product Removed from Collection',
+	  description: `Product ${productid} was removed from collection ${collectionid} successfully.`,
+	  loggedBy: customerid!
+	});
 
     return updatedCollection;
   } catch (error) {
