@@ -34,6 +34,7 @@ type BatchMintCnftData {
 type CategoryData {
   id: String!
   name: String!
+  isdeleted: Boolean
   tenantid: String!
   createdat: AWSDateTime
   updatedat: AWSDateTime

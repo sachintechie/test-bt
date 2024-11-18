@@ -148,6 +148,7 @@ type BulkImportProductResponse {
 type CategoryData {
 	id: String!
 	name: String!
+	isdeleted: Boolean
 	tenantid: String!
 	createdat: AWSDateTime
 	updatedat: AWSDateTime
@@ -303,6 +304,10 @@ type DeleteProductAttributesResponse {
 
 input DeleteProductInput {
 	productId: String
+}
+
+input DeleteCategoryInput {
+	categoryId: String
 }
 
 type DeleteRefToKnowledgeBase {
@@ -958,6 +963,7 @@ type Mutation {
 	CreateProduct(input: CreateProductInput): ProductResponse
 	CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
 	UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
+	DeleteCategory(input: DeleteCategoryInput): CategoryResponse
 	UpdateProduct(input: UpdateProductInput): UpdateProductResponse
 	UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse

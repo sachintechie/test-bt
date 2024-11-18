@@ -993,6 +993,27 @@ export async function deleteProduct(productId: string, customerId:string) {
   }
 }
 
+export async function deleteCategory(categoryId: string, customerId:string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const deletedCategory = await prisma.productcategory.update({
+      where: { id: categoryId },
+      data: { isdeleted: true }
+    });
+
+    await addActivityLog({
+      title: 'Category Deleted',
+      description: `Category ${categoryId} was deleted successfully.`,
+      loggedBy: customerId,
+    });
+
+    return deletedCategory;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function addReferenceToDb(
   tenantId: string,
   file: any,

@@ -435,6 +435,7 @@ enum productrarity {
 model productcategory {
   id        String    @id @default(uuid())
   name      String
+  isdeleted           Boolean?
   tenantid  String
   tenant    tenant    @relation(fields: [tenantid], references: [id])
   createdat DateTime? @default(now())
