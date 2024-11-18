@@ -14,12 +14,13 @@ import {
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
 import { addReferencesLambda, formatBytes, generatePresignedUrl, generateSignedUrl } from "../knowledgebase/commonFunctions";
 import { hashing, hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
+import { logWithTrace } from "../utils/utils";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log(event, context);
+    logWithTrace(event, context);
 
     const data = await addProjectAndReference(
       event.identity.resolverContext as tenant,
@@ -40,7 +41,7 @@ export const handler = async (event: any, context: any) => {
 
     return response;
   } catch (err) {
-    console.log("In catch Block Error", err);
+    logWithTrace("In catch Block Error", err);
     return {
       status: 400,
       data: null,
@@ -57,10 +58,10 @@ async function addProjectAndReference(
   organizationId: string,
   files: any
 ) {
-  console.log("Creating admin project");
+  logWithTrace("Creating admin project");
 
   try {
-    console.log("project", tenant.id, projectType);
+    logWithTrace("project", tenant.id, projectType);
 
     const isExist = await isProjectExist(projectType, name, organizationId);
     if (isExist.isExist) {
