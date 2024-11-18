@@ -1068,6 +1068,22 @@ type RemoveFromCartResponse {
   error: AWSJSON
 }
 
+input GetInventoriesByProductInput {
+	productId: String!
+	page: Int
+	perPage: Int
+}
+
+type GetInventoriesByProductResponse {
+	status: Int
+	data: [InventoryData]
+	error: AWSJSON
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
+}
+
 type Mutation {
   CreateWallet(input: CreateWalletInput): GetWallet
   Unstaking(input: UnStakingInput): Staking
@@ -1133,6 +1149,7 @@ type Query {
   GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
   GetUserCart: GetUserCartResponse
+  GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
 }
 
 schema {
