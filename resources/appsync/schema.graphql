@@ -980,6 +980,10 @@ type StoreHashData {
 	nonce: String
 	blockHash: String
 	blockNumber: String
+	confirmations: String
+	message: String
+	from: String
+	to: String
 	type: String
 	timestamp: String
 }
