@@ -12,11 +12,10 @@ import {
   updateProjectStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
-import { addReferencesLambda, formatBytes, generatePresignedUrl, generateSignedUrl } from "../knowledgebase/commonFunctions";
-import { hashing, hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
+import {  formatBytes, generatePresignedUrl, generateSignedUrl } from "../knowledgebase/commonFunctions";
+import {  storeHash } from "../avalanche/storeHashFunctions";
 import { logWithTrace } from "../utils/utils";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
-const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
   try {

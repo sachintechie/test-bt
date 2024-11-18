@@ -2,7 +2,6 @@ import { getTransactionByTenantTransactionId } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import { provenanceTransfer } from "../provenance/commonFunctions";
 import { solanaTransfer } from "../solana/solanaTransfer";
-import { provenanceTransfer } from "../provenance/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
