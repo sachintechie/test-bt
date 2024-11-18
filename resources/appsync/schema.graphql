@@ -655,22 +655,16 @@ type StoreHash {
 }
 
 type StoreHashData {
-  message: String
-  transactionId: String
+  txHash: String
   hash: String
-  metaData: String
-  blockHash: String
-  type: String
-  blockNumber: String
-  confirmations: String
-  from: String
-  to: String
-  status: String
-  gas: String
-  nonce: String
   chainId: String
-  gasLimit: String
-  gasPrice: String
+  chainType: String
+  status: String
+  gasFee: String
+  nonce: String
+  blockHash: String
+  blockNumber: String
+  type: String
   timestamp: String
 }
 

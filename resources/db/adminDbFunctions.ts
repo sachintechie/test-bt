@@ -1577,6 +1577,23 @@ export async function getProjectByIdWithRef(projectId: string, limit: number, pa
   }
 }
 
+export async function getProjectById(projectId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId
+      }
+    });
+    if (project == null) {
+      return { data: null, error: "Project not found" };
+    }
+    return { data: project, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
 export async function getProjectWithSteps(projectId: string, limit: number, pageNo: number) {
   try {
     const prisma = await getPrismaClient();
@@ -1624,6 +1641,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     }
     const projectData = {
       project: project,
+      urls:"",
       stagedata: {
         total: stageCount,
         totalPages: Math.ceil(stageCount / limit),
@@ -2125,11 +2143,16 @@ export async function getProductById(productId: string) {
   }
 }
 
-export async function insertMediaEntries(mediaData: any[]) {
+export async function insertMediaEntries(mediaData: any[], customerId:string) {
   try {
     const prisma = await getPrismaClient();
     const newMediaEntries = await prisma.media.createMany({
       data: mediaData
+    });
+    await addActivityLog({
+      title: 'Media Inserted',
+      description: `Media Inserted successfully.`,
+      loggedBy: customerId
     });
     return newMediaEntries;
   } catch (error: any) {
@@ -2137,7 +2160,7 @@ export async function insertMediaEntries(mediaData: any[]) {
   }
 }
 
-export async function deleteMediaEntries(mediaUrls: string[], productId: string) {
+export async function deleteMediaEntries(mediaUrls: string[], productId: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
     await prisma.media.deleteMany({
@@ -2145,6 +2168,11 @@ export async function deleteMediaEntries(mediaUrls: string[], productId: string)
         entityid: productId,
         url: { in: mediaUrls }
       }
+    });
+    await addActivityLog({
+      title: 'Media Entries Deleted',
+      description: `Media Entries for product ${productId} were deleted successfully.`,
+      loggedBy: customerId
     });
   } catch (error: any) {
     throw new Error(`Error deleting media entries: ${error.message}`);

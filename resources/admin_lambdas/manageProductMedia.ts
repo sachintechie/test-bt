@@ -1,5 +1,7 @@
+import { tenant } from "../db/models";
 import { S3, GuardDuty } from 'aws-sdk';
-import { getProductById, insertMediaEntries, deleteMediaEntries } from '../db/adminDbFunctions';
+import { getProductById, insertMediaEntries, deleteMediaEntries, getAdminUserById } from '../db/adminDbFunctions';
+import { getCustomer } from "../db/dbFunctions";
 
 const s3 = new S3();
 const guardDuty = new GuardDuty();
@@ -13,6 +15,7 @@ if (!bucketName) {
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
+    const tenant = event.identity.resolverContext as tenant;
 
     const { productId, filesToBeAdded, filesToBeDeleted } = event.arguments?.input;
 
@@ -25,14 +28,19 @@ export const handler = async (event: any, context: any) => {
       throw new Error(`Product with ID ${productId} not found.`);
     }
 
+    const adminUser = await getAdminUserById(tenant.adminuserid!);
+    console.log("adminUser", adminUser);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
+    console.log("customer", customer);
+    const customerId  = customer.id
 
     if (filesToBeDeleted && filesToBeDeleted.length > 0) {
-      await deleteFilesFromS3AndDB(filesToBeDeleted, productId);
+      await deleteFilesFromS3AndDB(filesToBeDeleted, productId, customerId);
     }
 
     let newMediaEntries: { entityid: string; entitytype: string; url: string; type: any; }[] = [];
     if (filesToBeAdded && filesToBeAdded.length > 0) {
-      newMediaEntries = await handleMultipleFiles(filesToBeAdded, productId);
+      newMediaEntries = await handleMultipleFiles(filesToBeAdded, productId, customerId);
     }
 
     const response = {
@@ -52,7 +60,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function handleMultipleFiles(files: any[], productId: string) {
+async function handleMultipleFiles(files: any[], productId: string, customerId:string) {
   const uploadPromises = files.map(async (file) => {
     try {
       const fileUploadData = await addToS3Bucket(file.fileName, file.fileContent);
@@ -71,7 +79,7 @@ async function handleMultipleFiles(files: any[], productId: string) {
   const mediaData = await Promise.all(uploadPromises);
   const filteredMediaData = mediaData.filter((entry) => entry !== null);
   if (filteredMediaData.length > 0) {
-    await insertMediaEntries(filteredMediaData);
+    await insertMediaEntries(filteredMediaData, customerId);
   }
 
   return filteredMediaData;
@@ -114,7 +122,7 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
   }
 }
 
-async function deleteFilesFromS3AndDB(filesToBeDeleted: string[], productId: string): Promise<void> {
+async function deleteFilesFromS3AndDB(filesToBeDeleted: string[], productId: string, customerId:string): Promise<void> {
   try {
     const deletePromises = filesToBeDeleted.map(async (fileUrl) => {
       const fileName = fileUrl.split('/').pop();
@@ -122,7 +130,7 @@ async function deleteFilesFromS3AndDB(filesToBeDeleted: string[], productId: str
       await s3.deleteObject(params).promise();
     });
     await Promise.all(deletePromises);
-    await deleteMediaEntries(filesToBeDeleted, productId);
+    await deleteMediaEntries(filesToBeDeleted, productId, customerId);
 
   } catch (err: any) {
     console.log(`Error deleting files from S3: ${err.message}`);
