@@ -38,9 +38,10 @@ export const handler = async (event: any, context: any) => {
       };
     }
   } else if (chain === CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE) {
+    console.log("Executing mintNftProvenance");
     try {
       const { scopeSpecificationUUID, party, scope, uuid, metadata } = event.arguments?.input;
-
+      console.log(scopeSpecificationUUID, party, scope, uuid, metadata);
       const data = await mintNftProvenance(scopeSpecificationUUID, party, scope, uuid, metadata, tenantId);
 
       return {

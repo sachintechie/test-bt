@@ -127,7 +127,8 @@ export class NFTUtilities {
    *
    */
   async mintScope(scope_specification_uuid: string, request: ScopeMintRequest): Promise<ScopeMintResponse> {
-    const response = await fetch(`${this.apiEndpoint}/vault/metadata/scope-specification/${scope_specification_uuid}/session`, {
+    console.log("mintScope", scope_specification_uuid, request);
+    const response = await fetch(new URL(`/vault/metadata/scope-specification/${scope_specification_uuid}/session`, this.apiEndpoint), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
