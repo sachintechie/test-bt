@@ -233,14 +233,18 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     const prisma = await getPrismaClient();
     const newWallet = await prisma.wallet.create({
       data: {
-        customerid: customerId as string,
         walletaddress: displayAddress,
         walletid: key.id,
         publicAddress: key.materialId,
         chaintype: chainType,
         wallettype: keyType.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        customer: {
+          connect: {
+            id: customerId
+          }
+        }
       }
     });
     return { data: newWallet, error: null };
