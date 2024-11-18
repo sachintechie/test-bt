@@ -18,7 +18,8 @@ export async function provenanceTransfer(
   oidcToken: string,
   tenantUserId: string,
   chainType: string,
-  tenantTransactionId: string
+  tenantTransactionId: string,
+  checkToken: boolean = true
 ) {
   logWithTrace("Wallet Address", senderWalletAddress, symbol, "symbol");
 
@@ -53,7 +54,7 @@ export async function provenanceTransfer(
     // check if the token is available in the wallet
     const isTokenAvailable = wallet.some((token) => token.symbol == symbol && token.customerid != null);
 
-    if (!isTokenAvailable) {
+    if (!isTokenAvailable && checkToken) {
       return {
         transaction: null,
         error: "Token not found in the wallet"

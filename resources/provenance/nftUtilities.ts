@@ -129,14 +129,14 @@ export class NFTUtilities {
   async mintScope(scope_specification_uuid: string, request: ScopeMintRequest): Promise<ScopeMintResponse> {
     console.log("mintScope", scope_specification_uuid, request);
     const response = await axios.post(
-        `${this.apiEndpoint}/vault/metadata/scope-specification/${scope_specification_uuid}/session`,
-        request,
-        {
-            headers: {
-                "Content-Type": "application/json",
-                apiKey: this.apiKey
-            }
+      `${this.apiEndpoint}/vault/metadata/scope-specification/${scope_specification_uuid}/session`,
+      request,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          apiKey: this.apiKey
         }
+      }
     );
     if (response.status === 200) {
       throw new Error(`Failed to mint scope: ${response.statusText}`);
