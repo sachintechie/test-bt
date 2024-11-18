@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import axios from "axios";
 
 /**
  * Interface for Scope Specifcation request
@@ -128,20 +128,21 @@ export class NFTUtilities {
    */
   async mintScope(scope_specification_uuid: string, request: ScopeMintRequest): Promise<ScopeMintResponse> {
     console.log("mintScope", scope_specification_uuid, request);
-    const response = await fetch(new URL(`/vault/metadata/scope-specification/${scope_specification_uuid}/session`, this.apiEndpoint), {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        apiKey: this.apiKey
-      },
-      body: JSON.stringify(request)
-    });
-
-    if (!response.ok) {
+    const response = await axios.post(
+        `${this.apiEndpoint}/vault/metadata/scope-specification/${scope_specification_uuid}/session`,
+        request,
+        {
+            headers: {
+                "Content-Type": "application/json",
+                apiKey: this.apiKey
+            }
+        }
+    );
+    if (response.status === 200) {
       throw new Error(`Failed to mint scope: ${response.statusText}`);
     }
 
-    const data = await response.json();
+    const data = await response.data;
     return data;
   }
 }
