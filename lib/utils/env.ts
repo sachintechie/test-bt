@@ -63,7 +63,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         ...commonEnvs,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
-        PROVENANCE_API_URL: "https://api.test.provlabs.io",
+        PROVENANCE_API_ENDPOINT: "https://api.test.provlabs.io",
         PROVENANCE_API_KEY: "JVYvLJcMzno##TaNF^AblY&i4W!5mh",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",

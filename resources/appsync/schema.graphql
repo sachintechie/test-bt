@@ -747,6 +747,7 @@ input TransferInput {
 }
 
 input TransferNFTInput {
+  fromAddress: String!
   toAddress: String!
   tokenIds: [Int!]
   chain: String!
