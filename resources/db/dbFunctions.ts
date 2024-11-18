@@ -30,6 +30,7 @@ import { logWithTrace } from "../utils/utils";
 import { toBech32 } from "@cosmjs/encoding";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
 import { Secp256k1 } from "@cosmjs/crypto";
+import {addActivityLog} from "./adminDbFunctions";
 
 let prismaClient: PrismaClient;
 
@@ -162,13 +163,17 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
-        customerid: customerId as string,
         walletaddress: key.materialId,
         walletid: key.id,
         chaintype: chainType,
         wallettype: cs.Ed25519.Solana.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        customer: {
+          connect: {
+            id: customerId
+          }
+        }
       }
     });
 
@@ -228,14 +233,18 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     const prisma = await getPrismaClient();
     const newWallet = await prisma.wallet.create({
       data: {
-        customerid: customerId as string,
         walletaddress: displayAddress,
         walletid: key.id,
         publicAddress: key.materialId,
         chaintype: chainType,
         wallettype: keyType.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        customer: {
+          connect: {
+            id: customerId
+          }
+        }
       }
     });
     return { data: newWallet, error: null };
@@ -1637,6 +1646,12 @@ export async function addToWishlist(customerId: string, productId: string) {
       }
     });
 
+	await addActivityLog({
+		title: "Product added to wishlist",
+		description: `Product ${productId} was added to wishlist for customer ${customerId} successfully.`,
+		loggedBy: customerId
+	})
+
     return newWishlistItem;
   } catch (error) {
     if (error instanceof Error) {
@@ -1666,6 +1681,12 @@ export async function removeFromWishlist(customerId: string, productId: string) 
         id: existingWishlistItem.id
       }
     });
+
+	await addActivityLog({
+		title: "Product removed from wishlist",
+		description: `Product ${productId} was removed from wishlist for customer ${customerId} successfully.`,
+		loggedBy: customerId
+	})
 
     return existingWishlistItem;
   } catch (error) {
@@ -1775,6 +1796,12 @@ export async function createOrder(order: orders) {
         return createdOrder;
       }
     );
+
+	await addActivityLog({
+		title: 'Order Created',
+		description: `Order ${newOrder.id} created by ${order.buyerid}`,
+		loggedBy: order.buyerid
+	})
 
     return newOrder;
   } catch (err) {
@@ -1917,6 +1944,12 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
       }
     }
 
+	await addActivityLog({
+		title: "Order Status Updated",
+		description: `Order with id ${orderId} has been updated to ${status}`,
+		loggedBy: updatedOrder.buyerid
+	})
+
     return {
       message: "Order status updated successfully",
       order: {
@@ -1974,6 +2007,12 @@ export async function addReview(productReview: productreview) {
         updatedat: new Date().toISOString()
       }
     });
+
+	await addActivityLog({
+	  title: "Product Reviewed",
+	  description: `Product with id ${productid} has been reviewed by ${customerid}`,
+	  loggedBy: customerid
+	})
 
     return newReview;
   } catch (error) {
@@ -2047,6 +2086,12 @@ export async function createCollection(createcollection: createcollection) {
       }
     });
 
+	await addActivityLog({
+	  title: 'Collection Created',
+	  description: `Collection ${newCollection.title} was created successfully.`,
+	  loggedBy: customerid!
+	});
+
     return newCollection;
   } catch (error) {
     if (error instanceof Error) {
@@ -2116,6 +2161,12 @@ export async function addProductToCollection(productcollection: addtocollection)
       }
     });
 
+	await addActivityLog({
+	  title: 'Product Added to Collection',
+	  description: `Product ${productid} was added to collection ${collectionid} successfully.`,
+	  loggedBy: customerid!
+	});
+
     return updatedCollection;
   } catch (error) {
     if (error instanceof Error) {
@@ -2172,6 +2223,12 @@ export async function removeProductFromCollection(productcollection: addtocollec
         products: true // Include the updated products list
       }
     });
+
+	await addActivityLog({
+	  title: 'Product Removed from Collection',
+	  description: `Product ${productid} was removed from collection ${collectionid} successfully.`,
+	  loggedBy: customerid!
+	});
 
     return updatedCollection;
   } catch (error) {
@@ -2278,7 +2335,11 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
       }
     });
 
-    console.log("newOwnership", newOwnership);
+	await addActivityLog({
+	  title: 'Ownership Transferred',
+	  description: `Ownership against inventory ${inventoryid} was transferred successfully.`,
+	  loggedBy: buyerid!,
+	});
 
     await prisma.productownership.update({
       where: { id: sellerOwnership.id },
@@ -2376,7 +2437,6 @@ export async function addToCart(cart: productcart) {
     },
   });
 
-  console.log("existingCartItem", existingCartItem);
 
   // If the cart item exists
   if (existingCartItem) {
@@ -2436,6 +2496,13 @@ export async function addToCart(cart: productcart) {
     },
   });
 
+
+  await addActivityLog({
+	title: 'Item Added To Cart',
+	description: `Item ${inventoryid} was added to cart successfully by ${buyerid}.`,
+	loggedBy: buyerid!,
+  });
+
   return newItem;
 }
 
@@ -2462,6 +2529,13 @@ export async function removeFromCart(customerId: string, inventoryId: string) {
       }
     });
 
+
+	await addActivityLog({
+		title: 'Item Removed From Cart',
+		description: `Item ${inventoryId} was removed from cart successfully by ${customerId}.`,
+		loggedBy: customerId!,
+	  });
+
     return {
       success: true,
       message: "Item removed from cart successfully"
@@ -2478,6 +2552,11 @@ export async function getUserCart(customerId: string) {
     const cartItems = await prisma.productcart.findMany({
       where: {
         buyerid: customerId
+      },
+      include: {
+        inventory: {
+          include:{product:true}
+        }
       }
     });
 

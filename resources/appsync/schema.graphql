@@ -34,6 +34,7 @@ type BatchMintCnftData {
 type CategoryData {
   id: String!
   name: String!
+  isdeleted: Boolean
   tenantid: String!
   createdat: AWSDateTime
   updatedat: AWSDateTime
@@ -278,6 +279,7 @@ type GetWalletBalanceData {
 input GetWalletBalanceInput {
   walletAddress: String!
   symbol: String
+  chain: String
 }
 
 type GetWalletData {
@@ -489,6 +491,7 @@ type InventoryData {
   id: String
   inventoryid: String
   productid: String
+  product: ProductData
   inventorycategory: String
   price: Float
   quantity: Int
@@ -895,6 +898,7 @@ input CryptoPurchaseInput {
   chain: String!
   tenantUserId: String!
   quantity: Int!
+  senderWalletAddress: String!
 }
 
 enum ReviewsFindBy {
@@ -1046,6 +1050,7 @@ type GetUserCartResponse {
 type CartData {
   id: String
   inventoryid: String
+  inventory:InventoryData
   buyerid: String
   totalprice: Float
   quantity: Int
@@ -1061,6 +1066,22 @@ type RemoveFromCartResponse {
   status: Int
   data: String
   error: AWSJSON
+}
+
+input GetInventoriesByProductInput {
+	productId: String!
+	page: Int
+	perPage: Int
+}
+
+type GetInventoriesByProductResponse {
+	status: Int
+	data: [InventoryData]
+	error: AWSJSON
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
 }
 
 type Mutation {
@@ -1128,6 +1149,7 @@ type Query {
   GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
   GetUserCart: GetUserCartResponse
+  GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
 }
 
 schema {

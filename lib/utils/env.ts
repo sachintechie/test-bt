@@ -71,7 +71,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
         KB_BUCKET_NAME: "knowledgebasedocument",
         KB_ID: "WIKF9ALZ52",
-        BEDROCK_DATASOURCE_S3: "ZZWKIZUS20"
+        BEDROCK_DATASOURCE_S3: "ZZWKIZUS20",
+        GUARDDUTY_DETECTOR_ID:"1ec994d56fb63de9f5be128666b53702"
       };
     case "ai-sovereignty-dev":
       return {
@@ -129,7 +130,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
         AVAX_NETWORK_ID: "43113",
-        PRODUCT_BUCKET_NAME: "meadowlandproductbucket"
+        PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
+        GUARDDUTY_DETECTOR_ID:"1ec994d56fb63de9f5be128666b53702"
       };
   }
 };

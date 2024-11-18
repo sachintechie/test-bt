@@ -148,6 +148,7 @@ type BulkImportProductResponse {
 type CategoryData {
 	id: String!
 	name: String!
+	isdeleted: Boolean
 	tenantid: String!
 	createdat: AWSDateTime
 	updatedat: AWSDateTime
@@ -303,6 +304,10 @@ type DeleteProductAttributesResponse {
 
 input DeleteProductInput {
 	productId: String
+}
+
+input DeleteCategoryInput {
+	categoryId: String
 }
 
 type DeleteRefToKnowledgeBase {
@@ -925,6 +930,29 @@ input UpdateProjectStatusInput {
 	fileStatus: [FileStatusInput]
 }
 
+type GetActivityLogsResponse {
+	status: Int
+	data: [ActivityLogData]
+	error: AWSJSON
+}
+
+type CustomerData {
+    emailid: String
+    name: String
+    isactive: Boolean
+    usertype: String
+    iss: String
+}
+
+
+type ActivityLogData {
+    id: String
+    title: String
+    description: String
+    createdat: String
+    loggedby: CustomerData
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -935,6 +963,7 @@ type Mutation {
 	CreateProduct(input: CreateProductInput): ProductResponse
 	CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
 	UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
+	DeleteCategory(input: DeleteCategoryInput): CategoryResponse
 	UpdateProduct(input: UpdateProductInput): UpdateProductResponse
 	UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
 	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
@@ -973,6 +1002,7 @@ type Query {
 	GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
 	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
+	GetActivityLogs: GetActivityLogsResponse
 }
 
 schema {

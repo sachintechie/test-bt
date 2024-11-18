@@ -1,6 +1,6 @@
 import { tenant } from "../db/models";
-import { getCategoryById } from "../db/dbFunctions";
-import { updateCategory } from "../db/adminDbFunctions";
+import { getCategoryById,getCustomer} from "../db/dbFunctions";
+import { updateCategory,getAdminUserById } from "../db/adminDbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -25,8 +25,9 @@ export const handler = async (event: any, context: any) => {
         error: "Unauthorized: Tenant mismatch"
       };
     }
-
-    const updatedCategory = await updateCategoryInDb(categoryId, categoryName);
+	const adminUser = await getAdminUserById(tenantContext.adminuserid!);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
+    const updatedCategory = await updateCategoryInDb(categoryId, categoryName, customer.id);
 
     return {
       status: 200,
@@ -47,7 +48,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function updateCategoryInDb(categoryId: string, categoryName: string) {
-  const updatedCategory = await updateCategory(categoryId, categoryName);
+async function updateCategoryInDb(categoryId: string, categoryName: string, customerId:string) {
+  const updatedCategory = await updateCategory(categoryId, categoryName, customerId);
   return updatedCategory;
 }

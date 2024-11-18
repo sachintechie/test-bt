@@ -1,11 +1,14 @@
-import { updateProductStatus } from "../db/adminDbFunctions";
+import { updateProductStatus,getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
+import { tenant } from "../db/models";
+
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
     const {productId, status}  = event.arguments?.input;
-
+	  const tenant = event.identity?.resolverContext as tenant;
     if (!productId || !status) {
       return {
         status: 400,
@@ -13,7 +16,9 @@ export const handler = async (event: any, context: any) => {
         error: "Product ID and status is required"
       };
     }
-    const updatedStatus = await updateProductStatus(productId,status);
+	const adminUser = await getAdminUserById(tenant.adminuserid!);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
+    const updatedStatus = await updateProductStatus(productId,status, customer.id);
 
     return {
       status: 200,

@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import { tenant } from "../db/models";
-import { createBulkProduct } from "../db/adminDbFunctions";
+import { createBulkProduct,getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -15,6 +16,11 @@ export const handler = async (event: any, context: any) => {
         error: "File content is missing"
       };
     }
+    const adminUser = await getAdminUserById(tenantContext.adminuserid!);
+    console.log("adminUser", adminUser);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
+    console.log("customer", customer);
+    const customerId  = customer.id
 
     const buffer = Buffer.from(fileContent, 'base64');
     let workbook;
@@ -66,7 +72,7 @@ export const handler = async (event: any, context: any) => {
       productDataArray = [...productDataArray, ...transformedData];
     });
 
-    const createdProducts = await createBulkProduct(productDataArray);
+    const createdProducts = await createBulkProduct(productDataArray, customerId);
 
     console.log(`Successfully created ${createdProducts.length} products across all sheets`);
 

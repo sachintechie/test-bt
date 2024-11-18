@@ -1,18 +1,18 @@
 import { tenant } from "../db/models";
-import { deleteProduct, getAdminUserById } from "../db/adminDbFunctions";
+import { deleteCategory, getAdminUserById } from "../db/adminDbFunctions";
 import { getCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
     const tenant = event.identity.resolverContext as tenant;
-    const productId  = event.arguments?.input?.productId;
+    const categoryId  = event.arguments?.input?.categoryId;
 
-    if (!productId) {
+    if (!categoryId) {
       return {
         status: 400,
         data: null,
-        error: "Product ID is required"
+        error: "Category ID is required"
       };
     }
 
@@ -22,15 +22,15 @@ export const handler = async (event: any, context: any) => {
     console.log("customer", customer);
     const customerId  = customer.id
 
-    const deletedProduct = await deleteProduct(productId, customerId);
+    const deletedCategory = await deleteCategory(categoryId, customerId);
 
     return {
       status: 200,
-      data: deletedProduct,
+      data: deletedCategory,
       error: null
     };
   } catch (error) {
-    console.error("Error deleting product", error);
+    console.error("Error deleting category", error);
     let errorMessage = "An unknown error occurred.";
     if (error instanceof Error) {
       errorMessage = error.message;
