@@ -3,7 +3,6 @@ const lambda = new AWS.Lambda();
 import { S3 } from "aws-sdk";
 import { Readable } from "stream";
 import { syncKb } from "./scanDataSource";
-import pdfParse from 'pdf-parse';
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 export async function addReferencesLambda(tenantUserId: string, projectId: string) {
@@ -235,16 +234,8 @@ export async function getS3Data(fileName: string) {
     console.log("s3Details", s3Details);
     // Check the type of Body
     let objectContent;
-    if (fileName.endsWith(".pdf")) {
-      // const pdfBytes = s3Details.Body as Buffer;
-      // const pdfDoc = await PDFDocument.load(pdfBytes);
-      // const numberOfPages = pdfDoc.getPages().length;
-      const pdfBytes = s3Details.Body as Buffer;
-      const pdfData = await pdfParse(pdfBytes);
-      objectContent = pdfData.text; // Extract text content from the PDF
-
-    }
-    else if (Buffer.isBuffer(s3Details.Body)) {
+  
+     if (Buffer.isBuffer(s3Details.Body)) {
       objectContent = s3Details.Body.toString("base64");
     } else if (typeof s3Details.Body === "string") {
       objectContent = Buffer.from(s3Details.Body); // Convert string to Buffer
