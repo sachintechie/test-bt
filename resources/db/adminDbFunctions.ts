@@ -1800,18 +1800,16 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       where: {
         productid: productId,
         inventoryid: {
-          in: inventoryDataArray.map((data) => data.inventoryid),
-        },
+          in: inventoryDataArray.map((data) => data.inventoryid)
+        }
       },
       select: { inventoryid: true }
     });
 
-    const existingIds = new Set(existingInventories.map(item => item.inventoryid));
+    const existingIds = new Set(existingInventories.map((item) => item.inventoryid));
 
     // Step 2: Filter out the inventories that already exist
-    const newInventories = inventoryDataArray.filter(
-      (data) => !existingIds.has(data.inventoryid)
-    );
+    const newInventories = inventoryDataArray.filter((data) => !existingIds.has(data.inventoryid));
 
     // Step 3: Insert only new inventories
     const createdInventories = await prisma.productinventory.createMany({
@@ -1826,22 +1824,20 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         tokenid: inventoryData.tokenid,
         isdeleted: false,
         createdat: new Date(),
-        updatedat: new Date(),
+        updatedat: new Date()
       })),
-      skipDuplicates: true,
+      skipDuplicates: true
     });
 
     // Step 4: Return created and skipped inventories
-    const skippedIds = inventoryDataArray
-      .map((data) => data.inventoryid)
-      .filter((id) => existingIds.has(id));
+    const skippedIds = inventoryDataArray.map((data) => data.inventoryid).filter((id) => existingIds.has(id));
 
     return {
       created: newInventories,
       skipped: skippedIds,
       message: skippedIds.length
-        ? `Some items were not created due to duplication: ${skippedIds.join(', ')}`
-        : "All items created successfully.",
+        ? `Some items were not created due to duplication: ${skippedIds.join(", ")}`
+        : "All items created successfully."
     };
   } catch (error) {
     console.error("Error in createBulkInventory:", error);
@@ -1852,7 +1848,6 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
     }
   }
 }
-
 
 export async function createBulkProduct(productDataArray: product[]) {
   try {

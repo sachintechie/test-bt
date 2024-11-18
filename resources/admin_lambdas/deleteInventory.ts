@@ -30,7 +30,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error: errorMessage,
+      error: errorMessage
     };
   }
 };

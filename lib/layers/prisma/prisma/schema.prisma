@@ -521,7 +521,7 @@ model contracttransaction {
   fromaddress     String
   contractaddress String
   toaddress       String
-  tokenid         Int
+  tokenid         String 
   amount          Int
   tokentype       String
 }

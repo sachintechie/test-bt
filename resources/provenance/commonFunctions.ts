@@ -76,7 +76,9 @@ export async function provenanceTransfer(
     const keys = await oidcClient.sessionKeys();
 
     // find the key that matches the wallet address
-    const key = keys.find((key: cs.Key) => deriveDisplayAddressForCustomChains(CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE, key) === senderWalletAddress);
+    const key = keys.find(
+      (key: cs.Key) => deriveDisplayAddressForCustomChains(CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE, key) === senderWalletAddress
+    );
 
     if (!key) {
       return {

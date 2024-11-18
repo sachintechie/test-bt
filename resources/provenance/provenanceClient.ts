@@ -64,7 +64,7 @@ export class ProvenanceClient {
         ],
         {
           amount: [{ denom: "nhash", amount: "1905000000" }],
-          gas: "100000",
+          gas: "100000"
         },
         "Provenance Transfer"
       );

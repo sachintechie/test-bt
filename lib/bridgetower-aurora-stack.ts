@@ -22,17 +22,17 @@ export class AuroraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
     const secret = new secretsmanager.Secret(this, env`${AURORA_CREDENTIALS_SECRET_NAME}`, {
-        secretName: SECRET_NAME,
-        generateSecretString: {
-          secretStringTemplate: JSON.stringify({
-            username: USERNAME
-          }),
-          excludePunctuation: true,
-          includeSpace: false,
-          generateStringKey: "password",
-          excludeCharacters: "!@#$%^&*()-_+=[]{}|;:,.<>?/`~"
-        }
-      });
+      secretName: SECRET_NAME,
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({
+          username: USERNAME
+        }),
+        excludePunctuation: true,
+        includeSpace: false,
+        generateStringKey: "password",
+        excludeCharacters: "!@#$%^&*()-_+=[]{}|;:,.<>?/`~"
+      }
+    });
 
     let cluster = new rds.DatabaseCluster(this, env`AuroraCluster`, {
       clusterIdentifier: env`AuroraCluster`,

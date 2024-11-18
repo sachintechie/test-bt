@@ -4,7 +4,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const productId  = event.arguments?.input?.productId;
+    const productId = event.arguments?.input?.productId;
 
     if (!productId) {
       return {
@@ -29,7 +29,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error:errorMessage,
+      error: errorMessage
     };
   }
 };

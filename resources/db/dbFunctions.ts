@@ -827,10 +827,7 @@ export async function getWalletAndTokenByWalletAddress(walletAddress: string, te
     const prisma = await getPrismaClient();
     const wallet = await prisma.wallet.findFirst({
       where: {
-        OR: [
-          { publickey: walletAddress },
-          { walletaddress: walletAddress }
-        ]
+        OR: [{ publickey: walletAddress }, { walletaddress: walletAddress }]
       }
     });
     let tokens;
@@ -2344,9 +2341,9 @@ export async function addToCart(cart: productcart) {
         select: {
           price: true,
           quantity: true
-        },
-      },
-    },
+        }
+      }
+    }
   });
 
   console.log("existingCartItem", existingCartItem);
@@ -2367,13 +2364,13 @@ export async function addToCart(cart: productcart) {
     // Update existing cart item
     const updatedItem = await prisma.productcart.update({
       where: {
-        id: existingCartItem.id,
+        id: existingCartItem.id
       },
       data: {
         quantity: updatedQuantity,
         totalprice: totalPrice,
-        updatedat: new Date(),
-      },
+        updatedat: new Date()
+      }
     });
 
     return updatedItem;
@@ -2382,22 +2379,20 @@ export async function addToCart(cart: productcart) {
   // created for the first time
   const inventory = await prisma.productinventory.findUnique({
     where: {
-      id: inventoryid,
+      id: inventoryid
     },
     select: {
       price: true,
-      quantity: true,
-    },
+      quantity: true
+    }
   });
 
- 
   if (!inventory || inventory.quantity < quantity) {
     throw new Error(`Insufficient inventory. Only ${inventory?.quantity || 0} items available.`);
   }
 
   const totalPrice = quantity * inventory.price;
 
- 
   const newItem = await prisma.productcart.create({
     data: {
       buyerid,
@@ -2405,13 +2400,12 @@ export async function addToCart(cart: productcart) {
       quantity,
       totalprice: totalPrice,
       createdat: new Date(),
-      updatedat: new Date(),
-    },
+      updatedat: new Date()
+    }
   });
 
   return newItem;
 }
-
 
 export async function removeFromCart(customerId: string, inventoryId: string) {
   try {
@@ -2460,4 +2454,3 @@ export async function getUserCart(customerId: string) {
     throw new Error("Failed to retrieve cart items");
   }
 }
-

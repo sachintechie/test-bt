@@ -28,7 +28,6 @@ export function logWithTrace(...args: any[]): void {
   console.log(`[Function: ${functionName}] [Location: ${location}] -`, ...args);
 }
 
-
 export const CHAIN_TO_CHAIN_NAME_MAPPING = {
   ETHEREUM: "Ethereum",
   BITCOIN: "Bitcoin",
@@ -36,9 +35,8 @@ export const CHAIN_TO_CHAIN_NAME_MAPPING = {
   CARDANO: "Cardano",
   SOLANA: "Solana",
   STELLAR: "Stellar",
-  PROVENANCE: "Provenance",
+  PROVENANCE: "Provenance"
 };
-
 
 export function getKeyTypeBasedOnChainId(chainType: string): any {
   let keyType: any;
@@ -70,15 +68,14 @@ export function getKeyTypeBasedOnChainId(chainType: string): any {
   return keyType;
 }
 
-
 export function deriveDisplayAddressForCustomChains(chainType: string, key: cs.Key): any {
   let displayAddress: any;
   switch (chainType) {
     case CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE:
-      displayAddress = toBech32("tp", rawSecp256k1PubkeyToRawAddress(Secp256k1.compressPubkey(Buffer.from(key.publicKey.slice(2), "hex"))))
+      displayAddress = toBech32("tp", rawSecp256k1PubkeyToRawAddress(Secp256k1.compressPubkey(Buffer.from(key.publicKey.slice(2), "hex"))));
       break;
     default:
-      displayAddress = key.materialId
+      displayAddress = key.materialId;
   }
   return displayAddress;
 }

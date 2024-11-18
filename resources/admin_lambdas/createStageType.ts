@@ -1,5 +1,5 @@
 import { tenant } from "../db/models";
-import {  createStageType, isStageTypeExist } from "../db/adminDbFunctions";
+import { createStageType, isStageTypeExist } from "../db/adminDbFunctions";
 
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
@@ -38,7 +38,7 @@ async function addStageType(tenant: tenant, name: string, description: string) {
   try {
     console.log("stageType", tenant.id);
 
-    const isExist = await isStageTypeExist( name);
+    const isExist = await isStageTypeExist(name);
     if (isExist.isExist) {
       return {
         project: null,

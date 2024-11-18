@@ -6,9 +6,9 @@ import { tenant } from "../db/models";
 
 interface CreateProductInput {
   name: string;
-  description:string;
-  type:string;
-  sku:string;
+  description: string;
+  type: string;
+  sku: string;
   categoryId: string;
   rarity: productRarity;
   price: number;
@@ -25,17 +25,10 @@ interface CreateProductInput {
 
 export const handler = async (event: any, context: any) => {
   try {
-	  
-	  const input: CreateProductInput = event.arguments?.input;
-	  const tenant = event.identity?.resolverContext as tenant;
-	  console.log(event, context);
-    if (
-      !input ||
-      !input.name ||
-      !input.categoryId ||
-      !input.rarity ||
-      input.price === undefined 
-    ) {
+    const input: CreateProductInput = event.arguments?.input;
+    const tenant = event.identity?.resolverContext as tenant;
+    console.log(event, context);
+    if (!input || !input.name || !input.categoryId || !input.rarity || input.price === undefined) {
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -46,14 +39,14 @@ export const handler = async (event: any, context: any) => {
 
     const product = await createProductInDb({
       name: input.name,
-      description:input.description,
-      type:input.type,
-      sku:input.sku,
+      description: input.description,
+      type: input.type,
+      sku: input.sku,
       categoryid: input.categoryId,
       rarity: input.rarity,
       price: input.price,
-      tenantid:tenant.id,
-  	  tags:input.tags,
+      tenantid: tenant.id,
+      tags: input.tags
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -92,8 +85,8 @@ async function createProductInDb(input: {
   categoryid: string;
   rarity: productRarity;
   price: number;
-  tenantid:string;
-  tags?: string[],
+  tenantid: string;
+  tags?: string[];
 }) {
   const newProduct = await createProduct(input);
   return newProduct;
