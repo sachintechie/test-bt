@@ -81,21 +81,20 @@ export const mintERC1155 = async (
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
         toaddress: toAddress,
-        tokenid:ids[i],
-        amount:amounts[i],
-        tokentype: "ERC1155",
+        tokenid: ids[i],
+        amount: amounts[i],
+        tokentype: "ERC1155"
       }
     });
     await prisma.paymenttransaction.create({
       data: {
         txhash: receipt.transactionHash.toString(),
         toaddress: toAddress,
-        provider:"admin",
-        providerid:"admin",
+        provider: "admin",
+        providerid: "admin"
       }
     });
   }
-
 
   return receipt;
 };
