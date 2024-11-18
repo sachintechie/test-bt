@@ -1,10 +1,10 @@
-import {web3Avax} from "./transferERC1155";
+import { web3Avax } from "./transferERC1155";
 
 export const handler = async (event: any, context: any) => {
   //id is the transaction ID
-  const {id} = event;
+  const { id } = event;
   console.log("id/transaction ID:", id);
-  const transactionHash = id
+  const transactionHash = id;
   try {
     const transaction = await web3Avax.eth.getTransaction(transactionHash);
 
@@ -17,7 +17,7 @@ export const handler = async (event: any, context: any) => {
 
     let status;
     let statusChangedAt = "";
-    const tokenIds = [] as any[]
+    const tokenIds = [] as any[];
     if (receipt === null) {
       // If receipt is null, the transaction is still pending
       status = "pending";
@@ -30,13 +30,13 @@ export const handler = async (event: any, context: any) => {
       // Convert the block timestamp to ISO format
       statusChangedAt = new Date(Number(blockTimestamp) * 1000).toISOString();
 
-      const logs = receipt.logs as any[]
+      const logs = receipt.logs as any[];
       // Iterate over logs to find the tokenId(s)
-      logs.forEach(log => {
+      logs.forEach((log) => {
         if (log.topics.length > 0) {
-          const transferEventSignature = web3Avax.utils.sha3('Transfer(address,address,uint256)');  // ERC721 transfer event
-          const transferSingleSignature = web3Avax.utils.sha3('TransferSingle(address,address,address,uint256,uint256)');  // ERC1155 transfer event
-          const transferBatchSignature = web3Avax.utils.sha3('TransferBatch(address,address,address,uint256[],uint256[])');  // ERC1155 batch transfer event
+          const transferEventSignature = web3Avax.utils.sha3("Transfer(address,address,uint256)"); // ERC721 transfer event
+          const transferSingleSignature = web3Avax.utils.sha3("TransferSingle(address,address,address,uint256,uint256)"); // ERC1155 transfer event
+          const transferBatchSignature = web3Avax.utils.sha3("TransferBatch(address,address,address,uint256[],uint256[])"); // ERC1155 batch transfer event
 
           // Check for ERC721 Transfer event
           if (log.topics[0] === transferEventSignature && log.topics.length === 4) {
@@ -54,7 +54,7 @@ export const handler = async (event: any, context: any) => {
           // Check for ERC1155 TransferBatch event
           if (log.topics[0] === transferBatchSignature) {
             // TokenIds are in the data array, we need to parse the data for an array of token IDs
-            const dataArray = log.data.slice(2).match(/.{1,64}/g);  // Slice out the '0x' and split every 64 hex characters
+            const dataArray = log.data.slice(2).match(/.{1,64}/g); // Slice out the '0x' and split every 64 hex characters
             dataArray.forEach((hexTokenId: string) => {
               const tokenId = web3Avax.utils.hexToNumberString(`0x${hexTokenId}`);
               tokenIds.push(tokenId);
@@ -70,9 +70,9 @@ export const handler = async (event: any, context: any) => {
       id: transactionHash,
       status,
       transactionHash: [transactionHash],
-      statusChangedAt,  // Example current time, adjust as needed
+      statusChangedAt, // Example current time, adjust as needed
       // @ts-ignore
-      tokenId: tokenIds  // Parsing tokenId from logs if available
+      tokenId: tokenIds // Parsing tokenId from logs if available
     };
 
     return [
@@ -83,6 +83,6 @@ export const handler = async (event: any, context: any) => {
       ]
     ];
   } catch (e) {
-    return e
+    return e;
   }
-}
+};

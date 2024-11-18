@@ -6,6 +6,7 @@ import { tenant } from "../db/models";
 import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import { getPrismaClient } from "../db/dbFunctions";
 import { NFTUtilities, Party, Scope } from "../provenance/nftUtilities";
+import { CHAIN_TO_CHAIN_NAME_MAPPING } from "../utils/utils";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -17,23 +18,49 @@ const dynamoDB = new AWS.DynamoDB.DocumentClient();
 
 export const handler = async (event: any, context: any) => {
   const { toAddress, numberOfTokens, chain, contractAddress, metadata } = event.arguments?.input;
-  try {
-    const tenant = event.identity.resolverContext as tenant;
-    const tenantId = tenant.id;
-    const receipt = await mintNFT(toAddress, numberOfTokens, chain, contractAddress, metadata, tenantId);
 
-    return {
-      status: 200,
-      transactionHash: receipt.transactionHash,
-      error: null
-    };
-  } catch (error: any) {
-    return {
-      status: 500,
-      transactionHash: null,
-      error: error.message
-    };
+  if (chain === CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
+    try {
+      const tenant = event.identity.resolverContext as tenant;
+      const tenantId = tenant.id;
+      const receipt = await mintNFT(toAddress, numberOfTokens, chain, contractAddress, metadata, tenantId);
+
+      return {
+        status: 200,
+        transactionHash: receipt.transactionHash,
+        error: null
+      };
+    } catch (error: any) {
+      return {
+        status: 500,
+        transactionHash: null,
+        error: error.message
+      };
+    }
+  } else if (chain === CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE) {
+    try {
+      const { scope_specification_uuid, party, scope, uuid } = event.arguments?.input;
+
+      const data = await mintNftProvenance(scope_specification_uuid, party, scope, uuid, event.identity.resolverContext.id);
+
+      return {
+        status: 200,
+        data: data,
+        error: null
+      };
+    } catch (error: any) {
+      return {
+        status: 500,
+        data: null,
+        error: error.message
+      };
+    }
   }
+  return {
+    status: 400,
+    transactionHash: null,
+    error: "Invalid chain"
+  };
 };
 
 export const mintNFT = async (
@@ -66,10 +93,8 @@ export const mintNFT = async (
   console.log(tx);
   const nextTokenId = (await contract.methods.getNextTokenId().call()) as BigInt;
 
-
   const signedTx = await payerKey.key?.signEvm({ tx, chain_id: 43113 });
   const receipt = await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || "");
-
 
   const prisma = await getPrismaClient();
   for (let i = 0; i < numberOfTokens; i++) {
@@ -81,8 +106,8 @@ export const mintNFT = async (
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
         toaddress: toAddress,
-        tokenid:Number(nextTokenId) + i,
-        amount:1,
+        tokenid: Number(nextTokenId) + i,
+        amount: 1,
         tokentype: "ERC721"
       }
     });
@@ -90,34 +115,26 @@ export const mintNFT = async (
       data: {
         txhash: receipt.transactionHash.toString(),
         toaddress: toAddress,
-        provider:"admin",
-        providerid:"admin"
+        provider: "admin",
+        providerid: "admin"
       }
     });
   }
 
-
   return receipt;
 };
 
-export const mintNftProvenance = async (
-  scope_specification_uuid: string,
-  party: Party,
-  scope: Scope,
-  uuid: string,
-  tenantId: string,
-) => {
-
+export const mintNftProvenance = async (scope_specification_uuid: string, party: Party, scope: Scope, uuid: string, tenantId: string) => {
   const nftUtilities = new NFTUtilities(process.env.PROVENANCE_API_ENDPOINT!, process.env.PROVENANCE_API_KEY!);
 
-  const payerKey = await getPayerCsSignerKey("Provenance", tenantId);
+  const data = await nftUtilities.mintScope(scope_specification_uuid, {
+    party: party,
+    scope: scope,
+    uuid: uuid,
+    records: {}
+  });
 
-  const data = await nftUtilities.mintScope(
-    scope_specification_uuid,
-    {
-      party: party,
-      scope: scope,
-      uuid: uuid,
-      records: {},
-    }
-  )};
+  console.log(data);
+
+  return data;
+};

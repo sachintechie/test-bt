@@ -9,7 +9,6 @@ const app = new cdk.App();
 let auroraStack: AuroraStack | undefined;
 
 if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
-
   auroraStack = new AuroraStack(app, env`BTAuroraStack`, {
     env: envConfig
   });
@@ -25,18 +24,17 @@ new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
   hasApiGateway: true,
   apiName: "Api",
   needMigrate: false,
-  auroraStack: auroraStack,
+  auroraStack: auroraStack
 });
-
 
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   env: envConfig,
- lambdaFolder: "../../resources/admin_lambdas",
- schemaFile: "admin_schema.graphql",
- name: "AdminGraphQLAPI",
- authorizerLambda: "adminAppsyncAuthorizer",
- hasApiGateway: false,
- apiName: "AdminApi",
- needMigrate: false,
- auroraStack: auroraStack,
+  lambdaFolder: "../../resources/admin_lambdas",
+  schemaFile: "admin_schema.graphql",
+  name: "AdminGraphQLAPI",
+  authorizerLambda: "adminAppsyncAuthorizer",
+  hasApiGateway: false,
+  apiName: "AdminApi",
+  needMigrate: false,
+  auroraStack: auroraStack
 });

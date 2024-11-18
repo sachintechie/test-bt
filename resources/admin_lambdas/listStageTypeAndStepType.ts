@@ -1,4 +1,4 @@
-import {  getListOfStageTypeAndStepType } from "../db/adminDbFunctions";
+import { getListOfStageTypeAndStepType } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
@@ -10,7 +10,6 @@ export const handler = async (event: any) => {
       event.arguments?.input?.limit,
       event.arguments?.input?.pageNo,
       event.arguments?.input?.type
-
     );
     return {
       status: 200,
@@ -27,9 +26,9 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getData(tenant: tenant, limit: number, pageNo: number,type: string) {
+async function getData(tenant: tenant, limit: number, pageNo: number, type: string) {
   try {
-    const refs = await getListOfStageTypeAndStepType(limit, pageNo,tenant.id, type);
+    const refs = await getListOfStageTypeAndStepType(limit, pageNo, tenant.id, type);
     console.log(refs, "refs");
     return refs;
   } catch (err) {

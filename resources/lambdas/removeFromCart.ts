@@ -12,7 +12,7 @@ export const handler = async (event: any, context: any) => {
       return {
         status: 400,
         data: null,
-        error: "Customer ID and Inventory ID must be provided.",
+        error: "Customer ID and Inventory ID must be provided."
       };
     }
 
@@ -22,7 +22,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 200,
       data: result,
-      error: null,
+      error: null
     };
   } catch (error) {
     console.error("Error removing item from cart:", error);
@@ -33,7 +33,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error: errorMessage,
+      error: errorMessage
     };
   }
 };

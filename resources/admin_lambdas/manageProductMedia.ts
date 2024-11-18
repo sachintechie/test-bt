@@ -1,7 +1,7 @@
-import { S3 } from 'aws-sdk';
-import { getProductById, insertMediaEntries, deleteMediaEntries } from '../db/adminDbFunctions';
+import { S3 } from "aws-sdk";
+import { getProductById, insertMediaEntries, deleteMediaEntries } from "../db/adminDbFunctions";
 const s3 = new S3();
-const bucketName = process.env.PRODUCT_BUCKET_NAME || '';
+const bucketName = process.env.PRODUCT_BUCKET_NAME || "";
 if (!bucketName) {
   throw new Error("Bucket name is not set in environment variables");
 }
@@ -20,12 +20,11 @@ export const handler = async (event: any, context: any) => {
       throw new Error(`Product with ID ${productId} not found.`);
     }
 
-
     if (filesToBeDeleted && filesToBeDeleted.length > 0) {
       await deleteFilesFromS3AndDB(filesToBeDeleted, productId);
     }
 
-    let newMediaEntries: { entityid: string; entitytype: string; url: string; type: any; }[] = [];
+    let newMediaEntries: { entityid: string; entitytype: string; url: string; type: any }[] = [];
     if (filesToBeAdded && filesToBeAdded.length > 0) {
       newMediaEntries = await handleMultipleFiles(filesToBeAdded, productId);
     }
@@ -53,13 +52,13 @@ async function handleMultipleFiles(files: any[], productId: string) {
       const fileUploadData = await addToS3Bucket(file.fileName, file.fileContent);
       return {
         entityid: productId,
-        entitytype: 'product',
-        url: fileUploadData.data?.url || 'N/A',
+        entitytype: "product",
+        url: fileUploadData.data?.url || "N/A",
         type: file.contentType
       };
     } catch (err: any) {
       console.log(`Error uploading file ${file.fileName}:`, err.message);
-      return null
+      return null;
     }
   });
 
@@ -77,10 +76,10 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
     if (!fileName || !fileContent) {
       return {
         data: null,
-        error: JSON.stringify({ message: 'File name or content is missing' }),
+        error: JSON.stringify({ message: "File name or content is missing" })
       };
     }
-    const sanitizedFileName = fileName.replace(/ /g, '_');
+    const sanitizedFileName = fileName.replace(/ /g, "_");
     const unique = new Date().getTime();
     const uniqueFileName = `${unique}-${sanitizedFileName}`;
     const url = `https://${bucketName}.s3.amazonaws.com/${uniqueFileName}`;
@@ -88,7 +87,7 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
     const params = {
       Bucket: bucketName,
       Key: uniqueFileName,
-      Body: Buffer.from(fileContent, 'base64'),
+      Body: Buffer.from(fileContent, "base64")
     };
     await s3.putObject(params).promise();
     return { data: { url } };
@@ -104,13 +103,12 @@ async function addToS3Bucket(fileName: string, fileContent: string) {
 async function deleteFilesFromS3AndDB(filesToBeDeleted: string[], productId: string): Promise<void> {
   try {
     const deletePromises = filesToBeDeleted.map(async (fileUrl) => {
-      const fileName = fileUrl.split('/').pop();
+      const fileName = fileUrl.split("/").pop();
       const params = { Bucket: bucketName, Key: fileName };
       await s3.deleteObject(params).promise();
     });
     await Promise.all(deletePromises);
     await deleteMediaEntries(filesToBeDeleted, productId);
-
   } catch (err: any) {
     console.log(`Error deleting files from S3: ${err.message}`);
     throw new Error(`Error deleting files from S3 or DB: ${err.message}`);

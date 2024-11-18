@@ -1,7 +1,7 @@
 import Web3 from "web3";
 import contractAbi from "../abi/BridgeTowerNftUpgradeableERC1155.json";
-import {getPayerCsSignerKey} from "../cubist/CubeSignerClient";
-import {getPrismaClient} from "../db/dbFunctions";
+import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
+import { getPrismaClient } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
@@ -16,7 +16,7 @@ export const handler = async (event: any, context: any) => {
   const tenant = event.identity.resolverContext as tenant;
 
   try {
-    const receipt = await transferERC1155(toAddress, tokenId, amount, chain, contractAddress, tenant.id,"admin","admin");
+    const receipt = await transferERC1155(toAddress, tokenId, amount, chain, contractAddress, tenant.id, "admin", "admin");
     return {
       status: 200,
       transactionHash: receipt.transactionHash,
@@ -29,39 +29,46 @@ export const handler = async (event: any, context: any) => {
       error: error.message
     };
   }
-
 };
 
-export const transferERC1155 = async (toAddress: string, tokenId: number, amount: number, chain: string, contractAddress: string, tenantId: string,provider?:string,providerId?:string) => {
+export const transferERC1155 = async (
+  toAddress: string,
+  tokenId: number,
+  amount: number,
+  chain: string,
+  contractAddress: string,
+  tenantId: string,
+  provider?: string,
+  providerId?: string
+) => {
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
   const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
-  console.log('toAddress',toAddress)
-  console.log('chain',chain)
-  console.log('contractAddress',contractAddress)
-  console.log('tokenId',tokenId)
-  console.log('amount',amount)
-  console.log('payerKey',payerKey.key?.materialId)
-
+  console.log("toAddress", toAddress);
+  console.log("chain", chain);
+  console.log("contractAddress", contractAddress);
+  console.log("tokenId", tokenId);
+  console.log("amount", amount);
+  console.log("payerKey", payerKey.key?.materialId);
 
   const contract = new web3.eth.Contract(CONTRACT_ABI, contractAddress);
   const currentNonce = await web3.eth.getTransactionCount(payerKey.key?.materialId!, "pending");
-  console.log('currentNonce',currentNonce)
+  console.log("currentNonce", currentNonce);
   const tx: any = {
     from: payerKey.key?.materialId,
     to: contractAddress,
     type: "0x02",
     maxPriorityFeePerGas: web3.utils.toWei("1", "gwei"), // Priority fee for miners
     maxFeePerGas: web3.utils.toWei("30", "gwei"), // Maximum fee you're willing to pay
-    data: contract.methods.safeTransferFrom(payerKey.key?.materialId, toAddress, tokenId, amount,'0x').encodeABI(),
+    data: contract.methods.safeTransferFrom(payerKey.key?.materialId, toAddress, tokenId, amount, "0x").encodeABI(),
     nonce: `0x${currentNonce.toString(16)}`
   };
 
-  try{
+  try {
     const gasEstimate = await web3.eth.estimateGas(tx);
     tx.gas = `0x${gasEstimate.toString(16)}`;
-  }catch (e) {
-    tx.gas = '0x7a1200';
+  } catch (e) {
+    tx.gas = "0x7a1200";
   }
 
   console.log(tx);
@@ -77,23 +84,23 @@ export const transferERC1155 = async (toAddress: string, tokenId: number, amount
       chain: chain,
       fromaddress: payerKey.key?.materialId!,
       toaddress: toAddress,
-      tokenid:tokenId,
-      amount:amount,
-      tokentype: "ERC1155",
+      tokenid: tokenId,
+      amount: amount,
+      tokentype: "ERC1155"
     }
   });
-  if(!providerId && provider==='moonpay'){
-    providerId=receipt.transactionHash.toString()
+  if (!providerId && provider === "moonpay") {
+    providerId = receipt.transactionHash.toString();
   }
 
   await prisma.paymenttransaction.create({
     data: {
       txhash: receipt.transactionHash.toString(),
       toaddress: toAddress,
-      provider:provider ?? "",
-      providerid:providerId ??"",
+      provider: provider ?? "",
+      providerid: providerId ?? ""
     }
   });
 
   return receipt;
-}
+};

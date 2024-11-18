@@ -19,7 +19,7 @@ export const handler = async (event: any) => {
       BUYER: OrderFindBy.BUYER,
       SELLER: OrderFindBy.SELLER,
       ORDER: OrderFindBy.ORDER,
-      TENANT: OrderFindBy.TENANT,
+      TENANT: OrderFindBy.TENANT
     };
 
     searchByEnum = searchByEnumMapping[searchBy];

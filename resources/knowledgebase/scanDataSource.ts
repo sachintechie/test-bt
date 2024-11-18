@@ -31,49 +31,53 @@ export async function syncKb(kbId: string, dataSourceId: string) {
 
       status = jobStatus.ingestionJob.status;
     }
- // Validate parameters
- if (!kbId || !dataSourceId) {
-  throw new Error("Knowledge Base ID and Data Source ID are required.");
-}
+    // Validate parameters
+    if (!kbId || !dataSourceId) {
+      throw new Error("Knowledge Base ID and Data Source ID are required.");
+    }
 
-    return {status,ingestionJobId : jobId};
+    return { status, ingestionJobId: jobId };
   } catch (e) {
     console.log(`Error while syncing knowledge base: ${e}`);
-    return {status :"FAILED" };
+    return { status: "FAILED" };
   }
 }
 
 export async function getKbStatus(kbId: string, dataSourceId: string) {
-
   const dataSource = await bedrockAgentClient
-  .getDataSource({
-    knowledgeBaseId: kbId,
-    dataSourceId
-    //ingestionJobId: jobId
-  })
-  .promise();
+    .getDataSource({
+      knowledgeBaseId: kbId,
+      dataSourceId
+      //ingestionJobId: jobId
+    })
+    .promise();
 
-const status = dataSource.dataSource.status;
-console.log("Data Source Status",status);
-return status;
-
+  const status = dataSource.dataSource.status;
+  console.log("Data Source Status", status);
+  return status;
 }
 
-
-
-
-export async function addWebsiteDataSource(operation : string,kbId: string,url: string,websiteName? : string, action? : string, dataSourceId? : string) {
-  console.log("Adding website data source to Bedrock",operation,kbId,url,action,dataSourceId);
+export async function addWebsiteDataSource(
+  operation: string,
+  kbId: string,
+  url: string,
+  websiteName?: string,
+  action?: string,
+  dataSourceId?: string
+) {
+  console.log("Adding website data source to Bedrock", operation, kbId, url, action, dataSourceId);
   const params = {
     FunctionName: "addDataSourceToBedrock", // Name of the target Lambda function
-    Payload: Buffer.from(JSON.stringify({
-      kb_id: kbId, // Pass any data you need to the target Lambda
-      operation: operation,
-      url:url,
-      ds_name:"website" + websiteName,
-      action: action,
-      datasource_id: dataSourceId
-    })),
+    Payload: Buffer.from(
+      JSON.stringify({
+        kb_id: kbId, // Pass any data you need to the target Lambda
+        operation: operation,
+        url: url,
+        ds_name: "website" + websiteName,
+        action: action,
+        datasource_id: dataSourceId
+      })
+    )
   };
 
   // Create the command to invoke the Lambda
@@ -84,7 +88,7 @@ export async function addWebsiteDataSource(operation : string,kbId: string,url: 
 
   // Process the response from the invoked Lambda (if needed)
   const payload = JSON.parse(new TextDecoder("utf-8").decode(response.Payload));
-  
+
   console.log("Response from invoked Lambda:", payload);
   return payload;
 }

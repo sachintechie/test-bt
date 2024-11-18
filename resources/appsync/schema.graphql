@@ -476,13 +476,13 @@ type ProductData {
 }
 
 type MediaData {
-  id:         String!   
-  entityid:   String
+  id: String!
+  entityid: String
   entitytype: String
-  url:        String
-  type:       String   
-  createdat:  AWSDateTime
-  updatedat:  AWSDateTime
+  url: String
+  type: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 type InventoryData {
@@ -1033,8 +1033,8 @@ type InventoryDetails {
 }
 
 input CartInput {
-inventoryId: String
-quantity: Int
+  inventoryId: String
+  quantity: Int
 }
 
 type CartResponse {

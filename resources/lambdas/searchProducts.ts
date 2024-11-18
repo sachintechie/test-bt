@@ -21,7 +21,7 @@ export const handler = async (event: any) => {
     return {
       status: 400,
       data: null,
-      error: err || 'An error occurred'
+      error: err || "An error occurred"
     };
   }
 };

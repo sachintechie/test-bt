@@ -1,6 +1,5 @@
 import { tenant } from "../db/models";
-import {   createStep, isStepExist } from "../db/adminDbFunctions";
-
+import { createStep, isStepExist } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -34,13 +33,13 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function addStep(tenant: tenant, name: string, description: string,stepTypeId:string,stageId:string,stepSequence: number) {
+async function addStep(tenant: tenant, name: string, description: string, stepTypeId: string, stageId: string, stepSequence: number) {
   console.log("Creating admin step");
 
   try {
     console.log("step", tenant.id);
 
-    const isExist = await isStepExist( name);
+    const isExist = await isStepExist(name);
     if (isExist.isExist) {
       return {
         project: null,
@@ -48,7 +47,7 @@ async function addStep(tenant: tenant, name: string, description: string,stepTyp
       };
     }
 
-    const step = await createStep(tenant.adminuserid ?? "", name, description,stepTypeId,stageId,stepSequence);
+    const step = await createStep(tenant.adminuserid ?? "", name, description, stepTypeId, stageId, stepSequence);
 
     return {
       step: step,

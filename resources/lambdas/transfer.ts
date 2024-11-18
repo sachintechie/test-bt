@@ -52,9 +52,7 @@ export const handler = async (event: any) => {
           error: data?.error
         };
         return response;
-      } 
-      
-      else {
+      } else {
         return {
           status: 400,
           data: null,

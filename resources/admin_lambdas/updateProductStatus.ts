@@ -4,7 +4,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const {productId, status}  = event.arguments?.input;
+    const { productId, status } = event.arguments?.input;
 
     if (!productId || !status) {
       return {
@@ -13,7 +13,7 @@ export const handler = async (event: any, context: any) => {
         error: "Product ID and status is required"
       };
     }
-    const updatedStatus = await updateProductStatus(productId,status);
+    const updatedStatus = await updateProductStatus(productId, status);
 
     return {
       status: 200,
@@ -29,7 +29,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error:errorMessage,
+      error: errorMessage
     };
   }
 };
