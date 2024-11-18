@@ -26,11 +26,10 @@ import {
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
-import { logWithTrace } from "../utils/utils";
 import { toBech32 } from "@cosmjs/encoding";
 import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
 import { Secp256k1 } from "@cosmjs/crypto";
-
+import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 let prismaClient: PrismaClient;
 
 export async function getPrismaClient() {
@@ -153,22 +152,24 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
-
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     if (key == null) {
-      
-      key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
+      key = await org.createKey(keyType, cubistUserId, {
+        policy: ["AllowRawBlobSigning"] as any
+      });
     }
 
     logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: key.materialId,
+        walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
         walletid: key.id,
         chaintype: chainType,
-        wallettype: cs.Ed25519.Solana.toString(),
+        wallettype: keyType.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        publickey: key.materialId
       }
     });
 
@@ -182,45 +183,16 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
 export async function createWallet(org: cs.Org, cubistUserId: string, chainType: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
-    var keyType: any;
-    switch (chainType) {
-      case "Ethereum":
-        keyType = cs.Secp256k1.Evm;
-        break;
-      case "Bitcoin":
-        keyType = cs.Secp256k1.Btc;
-        break;
-      case "Avalanche":
-        keyType = cs.Secp256k1.AvaTest;
-        break;
-      case "Cardano":
-        keyType = cs.Ed25519.Cardano;
-        break;
-      case "Solana":
-        keyType = cs.Ed25519.Solana;
-        break;
-      case "Stellar":
-        keyType = cs.Ed25519.Stellar;
-        break;
-      case "Provenance":
-        keyType = cs.Secp256k1.Cosmos;
-        break;
-
-      default:
-        keyType = null;
-    }
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     console.log("Creating wallet", keyType);
 
     if (keyType == null) {
       return { data: null, error: "Chain type not supported for key generation" };
     }
 
-    const key = await org.createKey(keyType, cubistUserId);
-    const displayAddress =
-      keyType == cs.Secp256k1.Cosmos
-        ? toBech32("tp", rawSecp256k1PubkeyToRawAddress(Secp256k1.compressPubkey(Buffer.from(key.publicKey.slice(2), "hex"))))
-        : key.materialId;
-
+    const key = await org.createKey(keyType, cubistUserId, {
+      policy: ["AllowRawBlobSigning"] as any
+    });
     // if (keyType == cs.Ed25519.Solana) {
     //   const role = await org.getRole(OPERATION_ROLE_ID);
     //   role.addKey(key);
@@ -229,7 +201,7 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: displayAddress,
+        walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
         walletid: key.id,
         publickey: key.materialId,
         chaintype: chainType,
