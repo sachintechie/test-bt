@@ -3,7 +3,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import contractAbi from "../abi/BridgeTowerNftUpgradeable.json";
 import { getPayerCsSignerKey, oidcLogin } from "../cubist/CubeSignerClient";
 import { tenant } from "../db/models";
-import { getCubistConfig, getPrismaClient, getWallet, getWalletByChainType } from "../db/dbFunctions";
+import { getCubistConfig, getPrismaClient } from "../db/dbFunctions";
 import { CHAIN_TO_CHAIN_NAME_MAPPING, deriveDisplayAddressForCustomChains } from "../utils/utils";
 import { ProvenanceClient } from "../provenance/provenanceClient";
 
@@ -12,7 +12,6 @@ const ETH_RPC_URL = process.env.ETH_RPC_URL!;
 const CONTRACT_ABI = contractAbi.abi;
 
 const web3Avax = new Web3(AVAX_RPC_URL);
-getWalletByChainType("Provenance");
 const web3Eth = new Web3(ETH_RPC_URL);
 
 const env: any = {
