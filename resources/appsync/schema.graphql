@@ -750,6 +750,7 @@ input TransferNFTInput {
   fromAddress: String!
   toAddress: String!
   tokenIds: [Int!]
+  tokenId: String!
   chain: String!
   contractAddress: String!
 }

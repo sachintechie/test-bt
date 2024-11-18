@@ -19,7 +19,7 @@ const env: any = {
 };
 
 export const handler = async (event: any, context: any) => {
-  const { fromAddress, toAddress, tokenIds, chain, contractAddress } = event.arguments?.input;
+  const { fromAddress, toAddress, tokenIds, tokenId, chain, contractAddress } = event.arguments?.input;
   if (chain === CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
     try {
       const tenant = event.identity.resolverContext as tenant;
@@ -47,7 +47,7 @@ export const handler = async (event: any, context: any) => {
       const result = await transferNFTProvenance(
         fromAddress,
         toAddress,
-        tokenIds,
+        tokenId,
         chain,
         contractAddress,
         tenantId,
@@ -140,7 +140,7 @@ export const transferNFT = async (
 export const transferNFTProvenance = async (
   fromAddress: string,
   toAddress: string,
-  tokenIds: any,
+  tokenId: any,
   chain: string,
   contractAddress: string,
   tenantId: string,
@@ -188,7 +188,7 @@ export const transferNFTProvenance = async (
       toAddress,
       [
         {
-          denom: tokenIds,
+          denom: tokenId,
           amount: "1"
         }
       ],
@@ -208,7 +208,7 @@ export const transferNFTProvenance = async (
         chain: chain,
         fromaddress: fromAddress,
         toaddress: toAddress,
-        tokenid: tokenIds,
+        tokenid: tokenId,
         amount: 1,
         tokentype: "ERC721"
       }
