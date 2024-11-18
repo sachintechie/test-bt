@@ -1638,6 +1638,12 @@ export async function addToWishlist(customerId: string, productId: string) {
       }
     });
 
+	await addActivityLog({
+		title: "Product added to wishlist",
+		description: `Product ${productId} was added to wishlist for customer ${customerId} successfully.`,
+		loggedBy: customerId
+	})
+
     return newWishlistItem;
   } catch (error) {
     if (error instanceof Error) {
@@ -1667,6 +1673,12 @@ export async function removeFromWishlist(customerId: string, productId: string) 
         id: existingWishlistItem.id
       }
     });
+
+	await addActivityLog({
+		title: "Product removed from wishlist",
+		description: `Product ${productId} was removed from wishlist for customer ${customerId} successfully.`,
+		loggedBy: customerId
+	})
 
     return existingWishlistItem;
   } catch (error) {
@@ -1987,6 +1999,12 @@ export async function addReview(productReview: productreview) {
         updatedat: new Date().toISOString()
       }
     });
+
+	await addActivityLog({
+	  title: "Product Reviewed",
+	  description: `Product with id ${productid} has been reviewed by ${customerid}`,
+	  loggedBy: customerid
+	})
 
     return newReview;
   } catch (error) {
@@ -2411,7 +2429,6 @@ export async function addToCart(cart: productcart) {
     },
   });
 
-  console.log("existingCartItem", existingCartItem);
 
   // If the cart item exists
   if (existingCartItem) {
@@ -2471,6 +2488,13 @@ export async function addToCart(cart: productcart) {
     },
   });
 
+
+  await addActivityLog({
+	title: 'Item Added To Cart',
+	description: `Item ${inventoryid} was added to cart successfully by ${buyerid}.`,
+	loggedBy: buyerid!,
+  });
+
   return newItem;
 }
 
@@ -2496,6 +2520,13 @@ export async function removeFromCart(customerId: string, inventoryId: string) {
         id: existingCartItem.id
       }
     });
+
+
+	await addActivityLog({
+		title: 'Item Removed From Cart',
+		description: `Item ${inventoryId} was removed from cart successfully by ${customerId}.`,
+		loggedBy: customerId!,
+	  });
 
     return {
       success: true,
