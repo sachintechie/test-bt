@@ -1051,6 +1051,7 @@ type Query {
 	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
 	GetActivityLogs: GetActivityLogsResponse
+  TransferNftAdmin (input: TransferNftAdminInput): TransferNftAdmin
 }
 
 schema {
