@@ -1020,6 +1020,15 @@ type Mutation {
 	CreateScopeSpecification(input: CreateScopeSpecificationInput): CreateScopeSpecificationResponse
 }
 
+input TransferNftAdminInput{
+fromAddress: String!
+toAddress: String!
+tokenId: String!
+contractAddress: String!
+chain: String!
+tokenIds: [String!]
+}
+
 type Query {
 
   AdminSignin(input: SigninInput): SignIn
