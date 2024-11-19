@@ -212,12 +212,15 @@ async function hashCombinedChunks(
       file_name: entry["file_name"],
       file_content_hash: fileContentHash.data?.dataHash || ""
     };
+    const hashedFileData = {
+      hash: fileContentHash.data?.dataHash
+    };
 
     // Push the hashed entry to the result array
     hashedData.push(hashedEntry);
     console.log("hashedEntry", hashedEntry);
 
-    await createStepDetails(createdBy, JSON.stringify(hashedEntry), step6Id);
+    await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id);
 
     const combinedResponse = await storeHash(hashedEntry.file_content_hash, false);
     console.log("combinedResponse", combinedResponse);
