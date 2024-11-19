@@ -221,7 +221,7 @@ async function hashCombinedChunks(
     // Create the JSON response content
     const content = {
       fileName: entry["file_name"],
-      fileContent: base64Content
+      fileContent: fileContent
     };
 
     // Hash the content

@@ -126,6 +126,7 @@ export async function createProject(
   name: string,
   description: string,
   projectType: ProjectType,
+  chainType: string,
   organizationId: string,
   knowledgeBaseId: string
 ) {
@@ -140,6 +141,7 @@ export async function createProject(
         projecttype: projectType,
         organizationid: organizationId,
         tenantid: tenant.id,
+        chaintype: chainType,
         isactive: true,
         projectstage: ProjectStage.DATA_SOURCE,
         projectstatus: ProjectStatusEnum.STARTED,
