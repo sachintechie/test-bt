@@ -133,10 +133,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
             ]);
 
-            const lambdaResponseForIndexing : string[]  = await lambdaCallForIndexing(file_embeddings?.embeddings);
+            const lambdaResponseForIndexing   = await lambdaCallForIndexing(file_embeddings?.embeddings);
             console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
 
-            for (const indexedFile of lambdaResponseForIndexing) {
+            const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
+
+            for (const indexedFile of indexedFiles) {
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
             }
@@ -197,6 +199,8 @@ async function hashCombinedChunks(
     // Base64 encode the file content
     const encodedBytes = Buffer.from(fileContent, "utf-8");
     const base64Content = encodedBytes.toString("base64");
+
+    console.log("base64Content", base64Content);
 
     // Create the JSON response content
     const content = {
