@@ -1,4 +1,5 @@
-import { createProduct } from "../db/adminDbFunctions";
+import { createProduct,getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
 import { productRarity } from "../db/models";
 import { mintNFT } from "../lambdas/mintNFT";
 import { mintERC1155 } from "../lambdas/mintERC1155";
@@ -6,9 +7,9 @@ import { tenant } from "../db/models";
 
 interface CreateProductInput {
   name: string;
-  description:string;
-  type:string;
-  sku:string;
+  description: string;
+  type: string;
+  sku: string;
   categoryId: string;
   rarity: productRarity;
   price: number;
@@ -25,10 +26,11 @@ interface CreateProductInput {
 
 export const handler = async (event: any, context: any) => {
   try {
+
 	  
 	  const input: CreateProductInput = event.arguments?.input;
 	  const tenant = event.identity?.resolverContext as tenant;
-	  console.log(event, context);
+	  console.log(event, context,tenant);
     if (
       !input ||
       !input.name ||
@@ -36,6 +38,7 @@ export const handler = async (event: any, context: any) => {
       !input.rarity ||
       input.price === undefined 
     ) {
+
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -44,16 +47,22 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
+	const adminUser = await getAdminUserById(tenant.adminuserid!);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
+
     const product = await createProductInDb({
       name: input.name,
-      description:input.description,
-      type:input.type,
-      sku:input.sku,
+      description: input.description,
+      type: input.type,
+      sku: input.sku,
       categoryid: input.categoryId,
       rarity: input.rarity,
       price: input.price,
+
       tenantid:tenant.id,
   	  tags:input.tags,
+	  customerid:customer.id
+
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -92,8 +101,11 @@ async function createProductInDb(input: {
   categoryid: string;
   rarity: productRarity;
   price: number;
+
   tenantid:string;
   tags?: string[],
+  customerid:string
+
 }) {
   const newProduct = await createProduct(input);
   return newProduct;

@@ -48,16 +48,18 @@ type CartResponse {
 }
 
 type CategoryData {
-	id: String!
-	name: String!
-	tenantid: String!
-	createdat: AWSDateTime
-	updatedat: AWSDateTime
+ id: String!
+  name: String!
+  isdeleted: Boolean
+  tenantid: String!
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 enum CategoryFindBy {
 	CATEGORY
 	TENANT
+
 }
 
 type CollectionData {
@@ -449,8 +451,11 @@ type GetWalletBalanceData {
 }
 
 input GetWalletBalanceInput {
-	walletAddress: String!
-	symbol: String
+
+  walletAddress: String!
+  symbol: String
+  chain: String
+
 }
 
 type GetWalletData {
@@ -650,11 +655,15 @@ input MintERC1155Input {
 }
 
 input MintNFTInput {
-	toAddress: String!
-	numberOfTokens: Int!
-	chain: String!
-	contractAddress: String!
-	metadata: AWSJSON
+  toAddress: String!
+  numberOfTokens: Int!
+  chain: String!
+  contractAddress: String!
+  metadata: AWSJSON
+  scopeSpecificationUUID: String
+  uuid: String
+  party: AWSJSON
+  scope: AWSJSON
 }
 
 type OrderData {
@@ -720,6 +729,32 @@ type ProductData {
 	productmedia: [MediaData]
 	totalquantity: Int
 	inventorystatus: String
+}
+
+type MediaData {
+  id: String!
+  entityid: String
+  entitytype: String
+  url: String
+  type: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+type InventoryData {
+  id: String
+  inventoryid: String
+  productid: String
+  product: ProductData
+  inventorycategory: String
+  price: Float
+  quantity: Int
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  isdeleted: Boolean
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
 }
 
 input ProductFilter {
@@ -980,6 +1015,10 @@ type StoreHashData {
 	nonce: String
 	blockHash: String
 	blockNumber: String
+	confirmations: String
+	message: String
+	from: String
+	to: String
 	type: String
 	timestamp: String
 }
@@ -1055,10 +1094,10 @@ input TransferInput {
 }
 
 input TransferNFTInput {
-	toAddress: String!
-	tokenIds: [Int!]
-	chain: String!
-	contractAddress: String!
+  toAddress: String!
+  tokenIds: [Int!]
+  chain: String!
+  contractAddress: String!
 }
 
 input UnStakingInput {
@@ -1135,6 +1174,240 @@ input WithdrawStakeInput {
 	accountPublicKey: String!
 }
 
+input ProductSearchInput {
+  searchKeyword: String!
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProductFindBy {
+  PRODUCT
+  CATEGORY
+  TENANT
+}
+
+input GetProductsInput {
+  value: String
+  searchBy: ProductFindBy
+  status: ProductStatus
+  page: Int
+  perPage: Int
+}
+
+input GetStripeProductsInput {
+  limit: Int!
+}
+
+input GetStripeCheckoutLinkInput {
+  successLink: String!
+  failedLink: String!
+  items: AWSJSON
+  walletAddress: String!
+}
+
+input GetStripePaymentIntentClientSecretInput {
+  cart: AWSJSON
+  address: String!
+}
+
+input GetPaymentTransactionDetailsInput {
+  toAddress: String!
+}
+
+input CryptoPurchaseInput {
+  inventoryId: String!
+  chain: String!
+  tenantUserId: String!
+  quantity: Int!
+  senderWalletAddress: String!
+}
+
+enum ReviewsFindBy {
+  PRODUCT
+  CUSTOMER
+}
+
+input GetReviewsInput {
+  value: String
+  searchBy: ReviewsFindBy
+  page: Int
+  perPage: Int
+}
+
+input GetCategoriesInput {
+  value: String
+  searchBy: CategoryFindBy
+  page: Int
+  perPage: Int
+}
+
+enum CategoryFindBy {
+  CATEGORY
+  TENANT
+}
+
+enum CollectionFindBy {
+  COLLECTION
+  CUSTOMER
+}
+
+enum OrderFindBy {
+  ORDER
+  TENANT
+  BUYER
+  SELLER
+  PRODUCT
+}
+
+input GetCollectionByIdInput {
+  value: String
+  searchBy: CollectionFindBy
+  page: Int
+  perPage: Int
+}
+
+input GetWishlistByCustomerIdInput {
+  page: Int
+  perPage: Int
+}
+
+input GetOrdersInput {
+  value: String
+  searchBy: OrderFindBy
+  status: OrderStatus
+  page: Int
+  perPage: Int
+}
+
+type GetOrdersResponse {
+  status: Int
+  data: [GetOrdersData]
+  page: Int
+  perPage: Int
+  totalRecordsCount: Int
+  totalPageCount: Int
+  error: AWSJSON
+}
+
+type GetOrdersData {
+  id: String
+  seller: CustomerData
+  buyer: CustomerData
+  product: ProductData
+  price: Float
+  quantity: Int
+  status: OrderStatus
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+input GetOwnershipByInventoryIdInput {
+  inventoryId: String!
+}
+
+type GetOwnershipByInventoryIdResponse {
+  status: Int
+  data: GetOwnershipByInventoryIdData
+  error: AWSJSON
+}
+
+type GetOwnershipByInventoryIdData {
+  id: String
+  customerid: String
+  inventoryid: String
+}
+
+input GetOwnershipDetailByCustomerIdInput {
+  customerId: String!
+}
+
+type GetOwnershipDetailByCustomerIdResponse {
+  status: Int
+  data: [InventoryOrderDetails]
+  error: AWSJSON
+}
+
+type InventoryOrderDetails {
+  totalprice: Float
+  status: OrderStatus
+  orderItems: [OrderItemDetails]
+}
+
+type OrderItemDetails {
+  quantity: Int
+  price: Float
+  inventory: InventoryDetails
+}
+
+type InventoryDetails {
+  id: String
+  productid: String
+  inventorycategory: String
+  price: Float
+  ownershipnft: Boolean
+  smartcontractaddress: String
+  tokenid: String
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+input CartInput {
+inventoryId: String
+quantity: Int
+}
+
+type CartResponse {
+  status: Int
+  data: CartData
+  error: AWSJSON
+}
+
+type GetUserCartResponse {
+  status: Int
+  data: [CartData]
+  error: AWSJSON
+}
+
+type CartData {
+  id: String
+  inventoryid: String
+  inventory:InventoryData
+  buyerid: String
+  totalprice: Float
+  quantity: Int
+  createdat: AWSDateTime
+  updatedat: AWSDateTime
+}
+
+input RemoveFromCartInput {
+  inventoryId: String!
+}
+
+type RemoveFromCartResponse {
+  status: Int
+  data: String
+  error: AWSJSON
+}
+
+input GetInventoriesByProductInput {
+	productId: String!
+	page: Int
+	perPage: Int
+}
+
+type GetInventoriesByProductResponse {
+	status: Int
+	data: [InventoryData]
+	error: AWSJSON
+	page: Int
+	perPage: Int
+	totalRecordsCount: Int
+	totalPageCount: Int
+}
+
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
@@ -1156,51 +1429,53 @@ type Mutation {
 }
 
 type Query {
-	GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
-	GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
-	GetWallet(input: GetWalletInput): GetWallet
-	GetWalletByAuthType(input: GetWalletAuthTypeInput): GetWallet
-	GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
-	CustomerKyc(input: CustomerKycInput): CustomerKyc
-	KycWebhook(input: AWSJSON): AWSJSON
-	ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
-	ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
-	ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
-	ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
-	ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
-	CustomerAndWalletCounts: CustomerAndWalletCounts
-	GetCubistOrgData: GetCubistOrgData
-	MasterTransfer(input: MasterTransferInput): Transfer
-	Signin: SignIn
-	Staking(input: StakingInput): Staking
-	Transfer(input: TransferInput): Transfer
-	SendEmailOtpSignin(input: EmailSigninInput): SignIn
-	EmailOtpSignin(input: GetWalletInput): GetWallet
-	MintNFT(input: MintNFTInput): Web3TransactionResponse
-	MintERC1155(input: MintERC1155Input): Web3TransactionResponse
-	TransferNFT(input: TransferNFTInput): Web3TransactionResponse
-	TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
-	UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
-	GetMetadata(input: GetMetadataInput): GetMetadataResponse
-	GetCategories(input: GetCategoriesInput): GetCategoriesResponse
-	GetProducts(input: GetProductsInput): GetProductsPaginationResponse
-	GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-	FilterProducts(input: FilterProductInput): FilterProductResponse
-	GetWishlistByCustomerId(input: GetWishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
-	GetOrders(input: GetOrdersInput): GetOrdersResponse
-	GetReviews(input: GetReviewsInput): ReviewResponse
-	GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
-	GetHashTransaction(input: GetTransactionInput): StoreHash
-	SearchProducts(input: ProductSearchInput): GetProductsResponse
-	GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
-	GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
-	GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
-	GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
-	CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
-	GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
-	GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
-	GetProjectAndStepById(input: ListProjectByIdInput): ProjectAndStepsResponse
-	GetUserCart: GetUserCartResponse
+
+  GetKycAccessToken(input: KycAccessTokenInput): GetKycAccessToken
+  GetKycApplicant(input: GetKycApplicantInput): GetKycApplicant
+  GetWallet(input: GetWalletInput): GetWallet
+  GetWalletByAuthType(input: GetWalletAuthTypeInput): GetWallet
+  GetWalletBalance(input: GetWalletBalanceInput): GetWalletBalance
+  CustomerKyc(input: CustomerKycInput): CustomerKyc
+  KycWebhook(input: AWSJSON): AWSJSON
+  ListCustomerWallets(input: ListCustomerWalletsInput): ListCustomerWallets
+  ListStakeAccounts(input: ListStakeAccountInput): ListStakeAccounts
+  ListStakeTransactions(input: ListStakeTransactionInput): ListStakeTransactions
+  ListWalletTokens(input: ListWalletTokenInput): ListWalletTokens
+  ListWalletTransactions(input: ListWalletTokenInput): ListWalletTransactions
+  CustomerAndWalletCounts: CustomerAndWalletCounts
+  GetCubistOrgData: GetCubistOrgData
+  MasterTransfer(input: MasterTransferInput): Transfer
+  Signin: SignIn
+  Staking(input: StakingInput): Staking
+  Transfer(input: TransferInput): Transfer
+  SendEmailOtpSignin(input: EmailSigninInput): SignIn
+  EmailOtpSignin(input: GetWalletInput): GetWallet
+  MintNFT(input: MintNFTInput): Web3TransactionResponse
+  MintERC1155(input: MintERC1155Input): Web3TransactionResponse
+  TransferNFT(input: TransferNFTInput): Web3TransactionResponse
+  TransferERC1155(input: TransferERC1155Input): Web3TransactionResponse
+  UpdateMetadata(input: UpdateMetadataInput): UpdateMetadataResponse
+  GetMetadata(input: GetMetadataInput): GetMetadataResponse
+  GetCategories(input: GetCategoriesInput): GetCategoriesResponse
+  GetProducts(input: GetProductsInput): GetProductsPaginationResponse
+  GetProductAttributesByProductId(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+  FilterProducts(input: FilterProductInput): FilterProductResponse
+  GetWishlistByCustomerId(input: GetWishlistByCustomerIdInput): GetWishlistByCusotmerIdResponse
+  GetOrders(input: GetOrdersInput): GetOrdersResponse
+  GetReviews(input: GetReviewsInput): ReviewResponse
+  GetCollectionById(input: GetCollectionByIdInput): ProductToCollectionResponse
+  GetHashTransaction(input: GetTransactionInput): StoreHash
+  SearchProducts(input: ProductSearchInput): GetProductsResponse
+  GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
+  GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
+  GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
+  GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
+  CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
+  GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
+  GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
+  GetUserCart: GetUserCartResponse
+  GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
+
 }
 
 schema {

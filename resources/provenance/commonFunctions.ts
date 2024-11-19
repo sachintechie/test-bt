@@ -2,7 +2,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { tenant, TransactionStatus } from "../db/models";
 import { getCubistConfig, getWalletAndTokenByWalletAddressBySymbol, insertTransaction } from "../db/dbFunctions";
 import { oidcLogin } from "../cubist/CubeSignerClient";
-import { logWithTrace } from "../utils/utils";
+import { CHAIN_TO_CHAIN_NAME_MAPPING, deriveDisplayAddressForCustomChains, logWithTrace } from "../utils/utils";
 import { ProvenanceClient } from "./provenanceClient";
 
 const env: any = {
@@ -18,7 +18,8 @@ export async function provenanceTransfer(
   oidcToken: string,
   tenantUserId: string,
   chainType: string,
-  tenantTransactionId: string
+  tenantTransactionId: string,
+  checkToken: boolean = true
 ) {
   logWithTrace("Wallet Address", senderWalletAddress, symbol, "symbol");
 
@@ -53,7 +54,7 @@ export async function provenanceTransfer(
     // check if the token is available in the wallet
     const isTokenAvailable = wallet.some((token) => token.symbol == symbol && token.customerid != null);
 
-    if (!isTokenAvailable) {
+    if (!isTokenAvailable && checkToken) {
       return {
         transaction: null,
         error: "Token not found in the wallet"
@@ -63,7 +64,7 @@ export async function provenanceTransfer(
     // Transfer Tokens on Provenance Chain
 
     // get the oidc client
-    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*"]);
+    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*", "manage:key:*"]);
 
     if (!oidcClient) {
       return {
@@ -76,7 +77,9 @@ export async function provenanceTransfer(
     const keys = await oidcClient.sessionKeys();
 
     // find the key that matches the wallet address
-    const key = keys.find((key: cs.Key) => key.materialId === senderWalletAddress);
+    const key = keys.find(
+      (key: cs.Key) => deriveDisplayAddressForCustomChains(CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE, key) === senderWalletAddress
+    );
 
     if (!key) {
       return {

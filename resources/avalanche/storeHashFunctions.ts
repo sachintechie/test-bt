@@ -90,7 +90,10 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
         blockNumber: transaction.blockNumber,
         type: transaction.type,
         timestamp: transactionTimestamp,
-        confirmations: transaction.confirmations
+        confirmations: transaction.confirmations,
+        message: "Transaction successful!",
+	      from: transaction.from,
+	      to: transaction.to
       },
       error: null
     };
@@ -124,7 +127,10 @@ export async function hashingAndStoreToBlockchain(data: any, isSecondTx?: boolea
         type: dataTxHash?.data?.type,
         timestamp: dataTxHash?.data?.timestamp,
         blockNumber: dataTxHash?.data?.blockNumber,
-        confirmations: dataTxHash?.data?.confirmations
+        confirmations: dataTxHash?.data?.confirmations,
+        message: dataTxHash?.data?.message,
+	      from: dataTxHash?.data?.from,
+	      to: dataTxHash?.data?.to
       },
       error: null
     };

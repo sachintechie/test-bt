@@ -31,7 +31,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createCustomerWallet(tenant: tenant, chainType: string, oidcToken: string) {
+export async function createCustomerWallet(tenant: tenant, chainType: string, oidcToken: string) {
   console.log("Creating user");
 
   try {

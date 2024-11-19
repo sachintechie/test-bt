@@ -6,7 +6,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log("event", event, "context", context);
 
-    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId , sensoryData} =
+    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId, sensoryData } =
       event.arguments?.input;
     const tenant = event.identity.resolverContext as tenant;
 
@@ -18,6 +18,11 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
+    const adminUser = await getAdminUserById(tenant.adminuserid!);
+    console.log("adminUser", adminUser);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
+    console.log("customer", customer);
+    const customerId  = customer.id
     const inventory = await createInventoryInDb({
       inventoryId,
       productId,
@@ -27,14 +32,11 @@ export const handler = async (event: any, context: any) => {
       ownershipNft,
       smartContractAddress,
       tokenId,
-      sensoryData
+      sensoryData,
+      customerId
     });
 
     if (inventory) {
-      const adminUser = await getAdminUserById(tenant.adminuserid!);
-      console.log("adminUser", adminUser);
-      const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
-      console.log("customer", customer);
       if (customer) {
         await addOwnership(inventory.id, customer.id!);
       }
@@ -71,7 +73,8 @@ async function createInventoryInDb(inventoryData: any) {
     ownershipnft: inventoryData.ownershipNft,
     smartcontractaddress: inventoryData.smartContractAddress,
     tokenid: inventoryData.tokenId,
-    sensorydata: sensoryData
+    sensorydata: sensoryData,
+    customerid:inventoryData.customerId
   });
   return newInventory;
 }

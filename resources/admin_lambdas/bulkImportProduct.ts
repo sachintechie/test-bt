@@ -1,6 +1,7 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from "xlsx";
 import { tenant } from "../db/models";
-import { createBulkProduct } from "../db/adminDbFunctions";
+import { createBulkProduct,getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -15,14 +16,19 @@ export const handler = async (event: any, context: any) => {
         error: "File content is missing"
       };
     }
+    const adminUser = await getAdminUserById(tenantContext.adminuserid!);
+    console.log("adminUser", adminUser);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
+    console.log("customer", customer);
+    const customerId  = customer.id
 
-    const buffer = Buffer.from(fileContent, 'base64');
+    const buffer = Buffer.from(fileContent, "base64");
     let workbook;
 
-    if (contentType === 'text/csv' || fileName.endsWith('.csv')) {
-      workbook = XLSX.read(buffer, { type: 'buffer', raw: true });
-    } else if (contentType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || fileName.endsWith('.xlsx')) {
-      workbook = XLSX.read(buffer, { type: 'buffer' });
+    if (contentType === "text/csv" || fileName.endsWith(".csv")) {
+      workbook = XLSX.read(buffer, { type: "buffer", raw: true });
+    } else if (contentType === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || fileName.endsWith(".xlsx")) {
+      workbook = XLSX.read(buffer, { type: "buffer" });
     } else {
       return {
         status: 400,
@@ -38,15 +44,7 @@ export const handler = async (event: any, context: any) => {
       const sheetData = XLSX.utils.sheet_to_json(sheet);
 
       const transformedData = sheetData.map((row: any) => {
-        const {
-          name,
-          description,
-          type,
-          sku,
-          categoryId,
-          rarity,
-          price
-        } = row;
+        const { name, description, type, sku, categoryId, rarity, price } = row;
 
         if (!name || !description || !type || !price || !sku || !categoryId || !rarity) {
           throw new Error(`Missing required fields in sheet '${sheetName}' for row: ${JSON.stringify(row)}`);
@@ -55,9 +53,9 @@ export const handler = async (event: any, context: any) => {
           name: name,
           description: description,
           type: type,
-          sku:sku,
-          categoryid:categoryId,
-          rarity:rarity,
+          sku: sku,
+          categoryid: categoryId,
+          rarity: rarity,
           price: parseFloat(price),
           tenantid: tenantContext.id
         };
@@ -66,7 +64,7 @@ export const handler = async (event: any, context: any) => {
       productDataArray = [...productDataArray, ...transformedData];
     });
 
-    const createdProducts = await createBulkProduct(productDataArray);
+    const createdProducts = await createBulkProduct(productDataArray, customerId);
 
     console.log(`Successfully created ${createdProducts.length} products across all sheets`);
 

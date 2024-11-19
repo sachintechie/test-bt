@@ -30,7 +30,8 @@ export const handler = async (event: any, context: any) => {
 
     const offset = (currentPage - 1) * itemsPerPage;
 
-    const { inventory, totalCount } = await getInventoriesByProductId(offset, itemsPerPage, tenant.id, productId);
+    
+    const { inventory, totalCount } = await getInventoriesByProductId(offset, itemsPerPage,tenant.id, productId);
 
     if (!inventory || inventory.length === 0) {
       return {
@@ -44,11 +45,11 @@ export const handler = async (event: any, context: any) => {
 
     return {
       status: 200,
-      data: inventory,
+      data: inventory, 
       page: currentPage,
       perPage: itemsPerPage,
-      totalRecordsCount: totalCount,
-      totalPageCount: totalPages,
+      totalRecordsCount: totalCount, 
+      totalPageCount: totalPages, 
       error: null
     };
   } catch (error) {

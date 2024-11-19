@@ -49,8 +49,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
   };
   const thirdPartyInfo = {
     STRIPE_SECRET: "sk_test_51Q5WSYRoB3vP63ZcG0446nZxieFZHLftc9TywVGeXSzDBwkO1YnyMxg4cuBBkGN8kPTjYYYUHtyF7eytbduUVrJ5005U9k0Jxi",
-    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET: 'whsec_mpDmxZjkszP88yuGFkmzv8kFvZoUhEPo'
-  }
+    STRIPE_PAYMENT_INTENT_WEBHOOK_SECRET: "whsec_mpDmxZjkszP88yuGFkmzv8kFvZoUhEPo"
+  };
   const commonEnvs = {
     ...databaseInfoEnv,
     ...web3InfoEnv,
@@ -63,6 +63,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         ...commonEnvs,
         SOLANA_NETWORK: "devnet",
         SOLANA_NETWORK_URL: "https://api.devnet.solana.com",
+        PROVENANCE_API_ENDPOINT: "https://api.test.provlabs.io",
+        PROVENANCE_API_KEY: "JVYvLJcMzno##TaNF^AblY&i4W!5mh",
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
         AVAX_RPC_SUBNET_URL: "http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
@@ -71,7 +73,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
         KB_BUCKET_NAME: "knowledgebasedocument",
         KB_ID: "WIKF9ALZ52",
-        BEDROCK_DATASOURCE_S3: "ZZWKIZUS20"
+        BEDROCK_DATASOURCE_S3: "ZZWKIZUS20",
+        GUARDDUTY_DETECTOR_ID:"1ec994d56fb63de9f5be128666b53702"
       };
     case "ai-sovereignty-dev":
       return {
@@ -129,7 +132,8 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         CS_API_ROOT: "https://gamma.signer.cubist.dev",
         AVAX_URL: "https://api.avax-test.network",
         AVAX_NETWORK_ID: "43113",
-        PRODUCT_BUCKET_NAME: "meadowlandproductbucket"
+        PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
+        GUARDDUTY_DETECTOR_ID:"1ec994d56fb63de9f5be128666b53702"
       };
   }
 };

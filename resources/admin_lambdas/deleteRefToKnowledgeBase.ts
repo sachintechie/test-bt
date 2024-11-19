@@ -37,7 +37,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     console.log("createUser", tenant.id);
     let data;
     const reference = await getReferenceById(tenant.id, refId);
-    if(reference == null){
+    if (reference == null) {
       return {
         document: null,
         error: "Reference not found"
@@ -47,9 +47,8 @@ async function deleteReference(tenant: tenant, refId: string) {
       data = await deleteFromS3(reference?.name ?? "");
       console.log("data", data);
     } else if (reference != null && reference.reftype == RefType.WEBSITE) {
-      const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "","", reference?.datasourceid ?? "");
-      if(dataSourceDetails.error || dataSourceDetails.errorMessage 
-      ){
+      const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "", "", reference?.datasourceid ?? "");
+      if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
         return {
           document: null,
           error: dataSourceDetails.error || dataSourceDetails.errorMessage
@@ -57,7 +56,7 @@ async function deleteReference(tenant: tenant, refId: string) {
       }
       console.log("deleted dataSourceDetails", dataSourceDetails);
     }
-    
+
     const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
     console.log("syncKbResponse", syncKbResponse);
     const ref = await deleteRef(tenant.id, refId);

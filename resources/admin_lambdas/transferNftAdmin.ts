@@ -1,11 +1,10 @@
 import Web3 from "web3";
-import * as cs from "@cubist-labs/cubesigner-sdk";
 import contractAbi from "../abi/BridgeTowerNftUpgradeable.json";
-import { getPayerCsSignerKey, oidcLogin } from "../cubist/CubeSignerClient";
+import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import { tenant } from "../db/models";
-import { getCubistConfig, getPrismaClient } from "../db/dbFunctions";
-import { CHAIN_TO_CHAIN_NAME_MAPPING, deriveDisplayAddressForCustomChains } from "../utils/utils";
-import { ProvenanceClient } from "../provenance/provenanceClient";
+import { getPrismaClient } from "../db/dbFunctions";
+import { CHAIN_TO_CHAIN_NAME_MAPPING } from "../utils/utils";
+import { NFTUtilities } from "../provenance/nftUtilities";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -39,10 +38,6 @@ export const handler = async (event: any, context: any) => {
     }
   } else if (chain == CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE) {
     try {
-      // get the user wallet
-      const tenant = event.identity.resolverContext as tenant;
-      const tenantId = tenant.id;
-      const oidcToken = event.headers?.identity;
 
       const result = await transferNFTProvenance(
         fromAddress,
@@ -50,10 +45,6 @@ export const handler = async (event: any, context: any) => {
         tokenId,
         chain,
         contractAddress,
-        tenantId,
-        "admin",
-        oidcToken,
-        "admin"
       );
 
       return {
@@ -119,7 +110,7 @@ export const transferNFT = async (
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
         toaddress: toAddress,
-        tokenid: tokenId,
+        tokenid: tokenId.toString(),
         amount: 1,
         tokentype: "ERC721"
       }
@@ -139,81 +130,33 @@ export const transferNFT = async (
 
 export const transferNFTProvenance = async (
   fromAddress: string,
-  toAddress: string,
-  tokenId: any,
+  value_owner_address: string,
+  scope_uuids: any,
   chain: string,
-  contractAddress: string,
-  tenantId: string,
-  provider: string,
-  oidcToken: string,
-  providerId: string
+  contractAddress: string
 ) => {
   try {
-    if (!oidcToken) {
-      return {
-        wallet: null,
-        error: "Please provide an identity token for verification"
-      };
-    }
-    const cubistConfig = await getCubistConfig(tenantId);
-    if (cubistConfig == null) {
-      return {
-        transaction: null,
-        error: "Cubist Configuration not found for the given tenant"
-      };
-    }
-    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*", "manage:key:*"]);
-    if (!oidcClient) {
-      return {
-        transaction: null,
-        error: "Failed to login with the provided token"
-      };
-    }
-    const keys = await oidcClient.sessionKeys();
+    const nftUtilities = new NFTUtilities(process.env.PROVENANCE_API_ENDPOINT!, process.env.PROVENANCE_API_KEY!);
 
-    const key = keys.find(
-      (key: cs.Key) => deriveDisplayAddressForCustomChains(CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE, key) === fromAddress
-    );
-
-    if (!key) {
-      return {
-        transaction: null,
-        error: "Key not found for the given address"
-      };
-    }
-    const provenanceClient = new ProvenanceClient(process.env.PROVENANCE_RPC_URL!, key);
-    const client = await provenanceClient.getSigningStargateClient();
-    const result = await client.sendTokens(
-      deriveDisplayAddressForCustomChains(CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE, key),
-      toAddress,
-      [
-        {
-          denom: tokenId,
-          amount: "1"
-        }
-      ],
-      {
-        amount: [{ denom: "nhash", amount: "1905000000" }],
-        gas: "100000"
-      },
-      "Provenance Nft Transfer"
-    );
+    const data = await nftUtilities.setValueOwnerForScope(scope_uuids, value_owner_address);
 
     const prisma = await getPrismaClient();
 
-    await prisma.contracttransaction.create({
-      data: {
-        txhash: result.transactionHash,
-        contractaddress: contractAddress,
-        chain: chain,
-        fromaddress: fromAddress,
-        toaddress: toAddress,
-        tokenid: tokenId,
-        amount: 1,
-        tokentype: "ERC721"
-      }
-    });
-    return result;
+    for (const scope_uuid of scope_uuids as string[]) {
+      await prisma.contracttransaction.create({
+        data: {
+          txhash: data.tx_hash,
+          contractaddress: contractAddress,
+          chain: chain,
+          fromaddress: fromAddress,
+          toaddress: value_owner_address,
+          tokenid: scope_uuid,
+          amount: 1,
+          tokentype: "ERC721"
+        }
+      });
+    }
+    return data;
   } catch (error: any) {
     return {
       transaction: null,

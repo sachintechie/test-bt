@@ -3,6 +3,7 @@ import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
 import { createCustomer, getCustomer } from "../db/dbFunctions";
 import { verifyToken } from "../cognito/commonFunctions";
+import {createCustomerWallet} from "./createWallet";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -43,6 +44,9 @@ async function createUser(tenant: tenant, oidcToken: string) {
         error: "Please provide a valid access token for verification"
       };
     }
+    // Create a wallet for Ethereum
+    await createCustomerWallet(tenant,'Ethereum', oidcToken);
+
     console.log("createUser", tenant.id, userData.email);
     const customer = await getCustomer(userData?.email.toString(), tenant.id);
     if (customer != null && customer?.cubistuserid) {

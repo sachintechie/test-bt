@@ -1,4 +1,4 @@
-import {getMetadataFromDynamoDB} from "../utils/dynamodb";
+import { getMetadataFromDynamoDB } from "../utils/dynamodb";
 import AWS from "aws-sdk";
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
@@ -10,7 +10,6 @@ export const handler = async (event: any, context: any) => {
 
   // Retrieve the current metadata
   const metadata = await getMetadataFromDynamoDB(dynamoDB, contractAddress, tokenId);
-
 
   return {
     status: 200,

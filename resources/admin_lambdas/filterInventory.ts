@@ -11,7 +11,7 @@ export const handler = async (event: any, context: any) => {
       inventoryid: input?.inventoryId || undefined,
       productname: input?.productName || undefined,
       price: input?.price ? { operator: input.price.operator, value: Number(input.price.value) } : undefined,
-      quantity: input?.quantity ? { operator: input.quantity.operator, value: Number(input.quantity.value) } : undefined,
+      quantity: input?.quantity ? { operator: input.quantity.operator, value: Number(input.quantity.value) } : undefined
     };
 
     if (filters.price && isNaN(filters.price.value)) {
@@ -46,7 +46,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error: errorMessage,
+      error: errorMessage
     };
   }
 };

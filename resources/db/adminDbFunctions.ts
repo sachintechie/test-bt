@@ -10,10 +10,11 @@ import {
   RefType,
   productinventory,
   inventoryfilter,
-  productsensorydata
+  productsensorydata,
+  activitylogs
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { logWithTrace } from "../utils/utils";
+import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
@@ -152,7 +153,7 @@ export async function createProject(
   }
 }
 
-export async function createStage(
+export async function   createStage(
   tenantUserId: string,
   name: string,
   description: string,
@@ -212,6 +213,30 @@ export async function getStageDetails(projectId: string, stageTypeId: string) {
   } catch (err) {
     throw err;
   }
+}
+
+export async function getStageDetailsByProjectId(projectId: string) {
+
+  const prisma = await getPrismaClient();
+
+const stepDetails = await prisma.stepdetail.findMany({
+  where: {
+    step: {
+      name: 'Read file from s3',
+      stage: {
+        projectid: projectId,
+        name: 'Data Storage',
+      },
+    },
+  },
+  select: {
+    id: true,
+    metadata: true,
+  },
+});
+
+return stepDetails;
+
 }
 
 export async function getStepDetails(stepId: string) {
@@ -275,7 +300,7 @@ export async function createStep(
 }
 
 export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string) {
-  console.log("Creating admin stage");
+  console.log("Creating step details",metaData, stepId);
   try {
     const prisma = await getPrismaClient();
     const newProject = await prisma.stepdetail.create({
@@ -341,20 +366,22 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     if (key == null) {
-      key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
+      key = await org.createKey(keyType, cubistUserId);
     }
 
     logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: key.materialId,
+        walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
         walletid: key.id,
         chaintype: chainType,
-        wallettype: cs.Ed25519.Solana.toString(),
+        wallettype: keyType.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        publickey: key.materialId
       }
     });
 
@@ -369,29 +396,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
 export async function createAdminWallet(org: cs.Org, cubistUserId: string, chainType: string, tenantId: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
-    var keyType: any;
-    switch (chainType) {
-      case "Ethereum":
-        keyType = cs.Secp256k1.Evm;
-        break;
-      case "Bitcoin":
-        keyType = cs.Secp256k1.Btc;
-        break;
-      case "Avalanche":
-        keyType = cs.Secp256k1.AvaTest;
-        break;
-      case "Cardano":
-        keyType = cs.Ed25519.Cardano;
-        break;
-      case "Solana":
-        keyType = cs.Ed25519.Solana;
-        break;
-      case "Stellar":
-        keyType = cs.Ed25519.Stellar;
-        break;
-      default:
-        keyType = null;
-    }
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     console.log("Creating wallet", keyType);
     if (keyType != null) {
       const key = await org.createKey(keyType, cubistUserId);
@@ -404,13 +409,14 @@ export async function createAdminWallet(org: cs.Org, cubistUserId: string, chain
       const newWallet = await prisma.adminwallet.create({
         data: {
           adminuserid: customerId as string,
-          walletaddress: key.materialId,
+          walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
           walletid: key.id,
           chaintype: chainType,
           wallettype: keyType.toString(),
           isactive: true,
           createdat: new Date().toISOString(),
-          tenantid: tenantId
+          tenantid: tenantId,
+          publickey: key.materialId
         }
       });
       return { data: newWallet, error: null };
@@ -756,7 +762,14 @@ export async function createCategory(category: productcategory) {
       }
     });
 
+    await addActivityLog({
+      title: 'Category Created',
+      description: `Category ${newCategory.name} was created successfully.`,
+      loggedBy: category.customerid!,
+    });
+
     return newCategory;
+
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the category");
@@ -791,6 +804,13 @@ export async function createProduct(product: product) {
         price: product.price
       }
     });
+
+	 await addActivityLog({
+      title: 'Product Created',
+      description: `Product ${newProduct.name} was created successfully.`,
+      loggedBy: product.customerid!,
+    });
+
     return newProduct;
   } catch (error) {
     if (error instanceof Error) {
@@ -808,14 +828,18 @@ export async function createProductAttributes(attributes: productattribute[]) {
       data: attributes,
       skipDuplicates: true
     });
-
+    await addActivityLog({
+      title: 'Product Attributes Added',
+      description: `Product Attributes were created successfully.`,
+      loggedBy: attributes[0].customerid!
+    });
     return newAttribute;
   } catch (err) {
     throw err;
   }
 }
 
-export async function deleteProductAttributes(productId: string, attributeIds: string[]) {
+export async function deleteProductAttributes(productId: string, attributeIds: string[], customerId:string) {
   try {
     const prisma = await getPrismaClient();
     const deletedAttributes = await prisma.productattribute.deleteMany({
@@ -826,14 +850,18 @@ export async function deleteProductAttributes(productId: string, attributeIds: s
         }
       }
     });
-
+    await addActivityLog({
+      title: 'Product Attributes Deleted',
+      description: `Product Attributes for product ${productId} were deleted successfully.`,
+      loggedBy: customerId
+    });
     return deletedAttributes;
   } catch (err) {
     throw err;
   }
 }
 
-export async function updateCategory(categoryId: string, category: string) {
+export async function updateCategory(categoryId: string, category: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
     const updated = await prisma.productcategory.update({
@@ -846,13 +874,19 @@ export async function updateCategory(categoryId: string, category: string) {
       }
     });
 
+	await addActivityLog({
+	  title: 'Category Updated',
+	  description: `Category ${updated.name} was updated successfully.`,
+	  loggedBy: customerId
+	});
+
     return updated;
   } catch (err) {
     throw err;
   }
 }
 
-export async function updateProduct(id: string, product: Partial<product>) {
+export async function updateProduct(id: string, product: Partial<product>, customerid: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -863,13 +897,19 @@ export async function updateProduct(id: string, product: Partial<product>) {
       data: product
     });
 
+	await addActivityLog({
+	  title: 'Product Updated',
+	  description: `Product ${updatedProduct.name} was updated successfully.`,
+	  loggedBy: customerid,
+	});
+
     return updatedProduct;
   } catch (err) {
     throw err;
   }
 }
 
-export async function updateProductAttributes(productId: string, attributes: productattribute[]) {
+export async function updateProductAttributes(productId: string, attributes: productattribute[], customerid: string) {
   try {
     const prisma = await getPrismaClient();
     const results = [];
@@ -895,6 +935,12 @@ export async function updateProductAttributes(productId: string, attributes: pro
         }
       });
 
+	await addActivityLog({
+	  title: 'Product Attributes Updated',
+	  description: `Product Attributes for product ${productId} were updated successfully.`,
+	  loggedBy: customerid,
+	});
+
       if (updatedAttribute) {
         results.push(updatedAttribute);
       }
@@ -907,7 +953,7 @@ export async function updateProductAttributes(productId: string, attributes: pro
   }
 }
 
-export async function updateProductStatus(productId: string, status: ProductStatus) {
+export async function updateProductStatus(productId: string, status: ProductStatus, customerid: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -919,13 +965,19 @@ export async function updateProductStatus(productId: string, status: ProductStat
       }
     });
 
+	await addActivityLog({
+	  title: 'Product Status Updated',
+	  description: `Product ${updatedProduct.name} status was updated successfully.`,
+	  loggedBy: customerid,
+	});
+
     return updatedProduct;
   } catch (err) {
     throw err;
   }
 }
 
-export async function deleteProduct(productId: string) {
+export async function deleteProduct(productId: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -934,7 +986,34 @@ export async function deleteProduct(productId: string) {
       data: { isdeleted: true }
     });
 
+    await addActivityLog({
+      title: 'Product Deleted',
+      description: `Product ${productId} was deleted successfully.`,
+      loggedBy: customerId,
+    });
+
     return deletedProduct;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function deleteCategory(categoryId: string, customerId:string) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const deletedCategory = await prisma.productcategory.update({
+      where: { id: categoryId },
+      data: { isdeleted: true }
+    });
+
+    await addActivityLog({
+      title: 'Category Deleted',
+      description: `Category ${categoryId} was deleted successfully.`,
+      loggedBy: customerId,
+    });
+
+    return deletedCategory;
   } catch (err) {
     throw err;
   }
@@ -1717,6 +1796,12 @@ export async function createInventory(inventoryData: productinventory) {
       include: { sensorydata: true }
     });
 
+    await addActivityLog({
+      title: 'Inventory Created',
+      description: `Inventory ${newInventory.id} was created successfully.`,
+      loggedBy: inventoryData.customerid!,
+    });
+
     return inventoryWithSensoryData;
   } catch (error) {
     console.error("Error in createInventory:", error);
@@ -1775,7 +1860,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
   }
 }
 
-export async function updateInventory(inventoryId: string, updateData: productinventory) {
+export async function updateInventory(inventoryId: string, updateData: productinventory,  customerid: string) {
   const prisma = await getPrismaClient();
 
   try {
@@ -1817,6 +1902,13 @@ export async function updateInventory(inventoryId: string, updateData: productin
         });
       }
     }
+
+	await addActivityLog({
+	  title: 'Inventory Updated',
+	  description: `Inventory ${inventoryId} was updated successfully.`,
+	  loggedBy: customerid,
+	});
+	
     return updatedInventory;
   } catch (error) {
     console.error("Error in updateInventory:", error);
@@ -1828,30 +1920,30 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string) {
+export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
 
-    // Step 1: Fetch existing inventory items for the given IDs
     const existingInventories = await prisma.productinventory.findMany({
       where: {
         productid: productId,
         inventoryid: {
-          in: inventoryDataArray.map((data) => data.inventoryid),
-        },
+          in: inventoryDataArray.map((data) => data.inventoryid)
+        }
       },
       select: { inventoryid: true }
     });
 
-    const existingIds = new Set(existingInventories.map(item => item.inventoryid));
 
-    // Step 2: Filter out the inventories that already exist
+    const existingIds = new Set(existingInventories.map((item: { inventoryid: any; }) => item.inventoryid));
+
+
     const newInventories = inventoryDataArray.filter(
       (data) => !existingIds.has(data.inventoryid)
     );
 
-    // Step 3: Insert only new inventories
-    const createdInventories = await prisma.productinventory.createMany({
+
+    await prisma.productinventory.createMany({
       data: newInventories.map((inventoryData) => ({
         inventoryid: inventoryData.inventoryid,
         productid: productId,
@@ -1863,22 +1955,42 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         tokenid: inventoryData.tokenid,
         isdeleted: false,
         createdat: new Date(),
-        updatedat: new Date(),
+        updatedat: new Date()
       })),
-      skipDuplicates: true,
+      skipDuplicates: true
     });
 
-    // Step 4: Return created and skipped inventories
+
+    const createdInventoryRecords = await prisma.productinventory.findMany({
+      where: {
+        inventoryid: {
+          in: newInventories.map(data => data.inventoryid),
+        },
+        productid: productId,
+      },
+    //   select: { id: true, inventoryid: true }
+    });
+
+	console.log(createdInventoryRecords);
+
+
     const skippedIds = inventoryDataArray
       .map((data) => data.inventoryid)
       .filter((id) => existingIds.has(id));
 
+
+      await addActivityLog({
+        title: 'Bulk Inventory created',
+        description: `Bulk Inventory against product id ${productId} created successfully.`,
+        loggedBy: customerId!,
+      });
+
     return {
-      created: newInventories,
+      created: createdInventoryRecords,
       skipped: skippedIds,
       message: skippedIds.length
-        ? `Some items were not created due to duplication: ${skippedIds.join(', ')}`
-        : "All items created successfully.",
+        ? `Some items were not created due to duplication: ${skippedIds.join(", ")}`
+        : "All items created successfully."
     };
   } catch (error) {
     console.error("Error in createBulkInventory:", error);
@@ -1891,7 +2003,8 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
 }
 
 
-export async function createBulkProduct(productDataArray: product[]) {
+
+export async function createBulkProduct(productDataArray: product[], customerId:string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1921,6 +2034,12 @@ export async function createBulkProduct(productDataArray: product[]) {
       });
     });
 
+    await addActivityLog({
+      title: 'Bulk Products created',
+      description: `Bulk Products created successfully.`,
+      loggedBy: customerId!,
+    });
+
     return createdProducts;
   } catch (error) {
     if (error instanceof Error) {
@@ -1931,7 +2050,7 @@ export async function createBulkProduct(productDataArray: product[]) {
   }
 }
 
-export async function deleteInventory(inventoryId: string) {
+export async function deleteInventory(inventoryId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1940,6 +2059,11 @@ export async function deleteInventory(inventoryId: string) {
       data: { isdeleted: true }
     });
 
+    await addActivityLog({
+      title: 'Inventory Deleted',
+      description: `Inventory ${inventoryId} was deleted successfully.`,
+      loggedBy: customerId!,
+    });
     return deletedInventory;
   } catch (err) {
     throw err;
@@ -2062,11 +2186,16 @@ export async function getProductById(productId: string) {
   }
 }
 
-export async function insertMediaEntries(mediaData: any[]) {
+export async function insertMediaEntries(mediaData: any[], customerId:string) {
   try {
     const prisma = await getPrismaClient();
     const newMediaEntries = await prisma.media.createMany({
       data: mediaData
+    });
+    await addActivityLog({
+      title: 'Media Inserted',
+      description: `Media Inserted successfully.`,
+      loggedBy: customerId
     });
     return newMediaEntries;
   } catch (error: any) {
@@ -2074,7 +2203,7 @@ export async function insertMediaEntries(mediaData: any[]) {
   }
 }
 
-export async function deleteMediaEntries(mediaUrls: string[], productId: string) {
+export async function deleteMediaEntries(mediaUrls: string[], productId: string, customerId:string) {
   try {
     const prisma = await getPrismaClient();
     await prisma.media.deleteMany({
@@ -2082,6 +2211,11 @@ export async function deleteMediaEntries(mediaUrls: string[], productId: string)
         entityid: productId,
         url: { in: mediaUrls }
       }
+    });
+    await addActivityLog({
+      title: 'Media Entries Deleted',
+      description: `Media Entries for product ${productId} were deleted successfully.`,
+      loggedBy: customerId
     });
   } catch (error: any) {
     throw new Error(`Error deleting media entries: ${error.message}`);
@@ -2097,6 +2231,14 @@ export async function addOwnership(inventoryId: string, customerId: string) {
         customerid: customerId
       }
     });
+
+    await addActivityLog({
+      title: 'Ownership Added',
+      description: `Ownership against inventory ${inventoryId} was created successfully.`,
+      loggedBy: customerId!,
+    });
+
+
   } catch (error: any) {
     throw new Error(`Error adding ownership: ${error.message}`);
   }
@@ -2111,5 +2253,40 @@ export async function getAdminUserById(userId: string) {
     return adminUser;
   } catch (error: any) {
     throw new Error(`Error retrieving admin user with ID ${userId}: ${error.message}`);
+  }
+}
+
+export async function addActivityLog(logData: activitylogs) {
+  try {
+    const prisma = await getPrismaClient();
+
+    await prisma.activitylogs.create({
+      data: {
+        title: logData.title,
+        description: logData.description,
+        loggedby: logData.loggedBy,
+      }
+    });
+  } catch (error: any) {
+    throw new Error(`Error adding activity log: ${error.message}`);
+  }
+}
+
+export async function getActivityLogs() {
+  try {
+	const prisma = await getPrismaClient();
+	const activityLogs = prisma.activitylogs.findMany({
+      include: {
+        loggedby: true 
+      },
+      orderBy: {
+        createdat: 'desc'
+      },
+      take: 10
+    });
+
+	return activityLogs;
+  } catch (error: any) {
+	throw new Error(`Error fetching activity logs: ${error.message}`);
   }
 }

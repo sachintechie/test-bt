@@ -3,7 +3,7 @@ import AWS from "aws-sdk";
 export async function storeMetadataInDynamoDB(
   dynamoDB: AWS.DynamoDB.DocumentClient,
   contractAddress: string,
-  tokenId: number,
+  tokenId: number | string,
   metadata: any
 ) {
   const params = {
