@@ -199,10 +199,10 @@ async function hashCombinedChunks(
     const base64Content = encodedBytes.toString("base64");
 
     // Create the JSON response content
-    const content = JSON.stringify({
+    const content = {
       fileName: entry["file_name"],
       fileContent: base64Content
-    });
+    };
 
     // Hash the content
     const fileContentHash = await hashing(content);
