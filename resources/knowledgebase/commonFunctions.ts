@@ -90,7 +90,7 @@ export async function lambdaCallForIndexing( all_embeddings_with_metadata: any) 
 
     console.log('Decoded response:', combinedResponse);
     
-    return combinedResponse; // Or process further as needed
+    return combinedResponse.body; // Or process further as needed
 }
 
 
