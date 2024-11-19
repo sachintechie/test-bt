@@ -14,6 +14,7 @@ import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
 import { getS3Data, lambdaCallForCombineChunks, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
 import axios from "axios";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
+import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -217,50 +218,105 @@ async function hashCombinedChunks(
 }
 
 // Function to hash the chunk contents
-async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[], step1Id: string, createdBy: string) {
-  const hashedData: HashedEntry[] = [];
+// async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[], step1Id: string, createdBy: string) {
+//   const hashedData: HashedEntry[] = [];
 
-  console.log("allEmbeddingsWithMetadata", allEmbeddingsWithMetadata);
+//   console.log("allEmbeddingsWithMetadata", allEmbeddingsWithMetadata);
 
-  // Hash each chunk's content
-  allEmbeddingsWithMetadata.forEach(async (entry) => {
+//   // Hash each chunk's content
+//   // allEmbeddingsWithMetadata.forEach(async (entry) => {
+//     for (const entry of allEmbeddingsWithMetadata) {
+//     const chunkContent = entry.chunk_content || "";
+//     const chunkHash = await hashing(chunkContent);
+
+//     const hashedEntry: HashedEntry = {
+//       file_name: entry.file_name,
+//       chunk_index: entry.chunk_index,
+//       chunk_hash: chunkHash.data?.dataHash ?? "",
+//       project_id: entry.project_id
+//     };
+
+//     hashedData.push(hashedEntry);
+//   }
+//   // });
+
+//   console.log("hashedData", hashedData);
+
+//   // Group the hashed data by file_name
+//   const groupedChunks: Record<string, HashedEntry[]> = {};
+//   // hashedData.forEach((chunk) => {
+//     for(const chunk of hashedData){
+//     if (!groupedChunks[chunk.file_name]) {
+//       groupedChunks[chunk.file_name] = [];
+//     }
+//     groupedChunks[chunk.file_name].push(chunk);
+//   }
+//   // });
+// console.log("groupedChunks", groupedChunks);
+//   // Create the grouped chunk list and hash the chunk groups
+//   const groupedChunkList = Object.values(groupedChunks);
+//   const hashedChunkContent: GroupedChunk[] = [];
+
+//   //  groupedChunkList.forEach(async (group) => {
+//     for (const group of groupedChunkList) {
+//     const hashContent = await hashing(group);
+//     const fileName = group[0].file_name;
+
+//      hashedChunkContent.push({ file_name: fileName, hash: hashContent.data?.dataHash ?? "" });
+//     const metaData = { fileName, hash: hashContent };
+//     // Create a step detail for the chunk hashing process
+//     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+//     }
+//   // });
+//   console.log("hashedChunkContent", hashedChunkContent);
+
+//   return hashedChunkContent;
+// }
+async function hashChunkContents(
+  allEmbeddingsWithMetadata: EmbeddingMetadata[],
+  step1Id: string,
+  createdBy: string
+): Promise<GroupedChunk[]> {
+  const hashedDataPromises = allEmbeddingsWithMetadata.map(async (entry) => {
     const chunkContent = entry.chunk_content || "";
     const chunkHash = await hashing(chunkContent);
 
-    const hashedEntry: HashedEntry = {
+    return {
       file_name: entry.file_name,
       chunk_index: entry.chunk_index,
       chunk_hash: chunkHash.data?.dataHash ?? "",
       project_id: entry.project_id
-    };
-
-    hashedData.push(hashedEntry);
+    } as HashedEntry;
   });
 
-  console.log("hashedData", hashedData);
+  const hashedData = await Promise.all(hashedDataPromises);
 
-  // Group the hashed data by file_name
-  const groupedChunks: Record<string, HashedEntry[]> = {};
-  hashedData.forEach((chunk) => {
-    if (!groupedChunks[chunk.file_name]) {
-      groupedChunks[chunk.file_name] = [];
+  // Group hashed data by file_name using a Map
+  const groupedChunks = new Map<string, HashedEntry[]>();
+  for (const chunk of hashedData) {
+    if (!groupedChunks.has(chunk.file_name)) {
+      groupedChunks.set(chunk.file_name, []);
     }
-    groupedChunks[chunk.file_name].push(chunk);
-  });
-console.log("groupedChunks", groupedChunks);
-  // Create the grouped chunk list and hash the chunk groups
-  const groupedChunkList = Object.values(groupedChunks);
-  const hashedChunkContent: GroupedChunk[] = [];
+    groupedChunks.get(chunk.file_name)!.push(chunk);
+  }
 
-   groupedChunkList.forEach(async (group) => {
+  // Create the grouped chunk list and hash the chunk groups
+  const hashedChunkContentPromises = Array.from(groupedChunks.values()).map(async (group) => {
     const hashContent = await hashing(group);
     const fileName = group[0].file_name;
 
-     hashedChunkContent.push({ file_name: fileName, hash: hashContent.data?.dataHash ?? "" });
+    // Metadata for step details
     const metaData = { fileName, hash: hashContent };
-    // Create a step detail for the chunk hashing process
     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+
+    return {
+      file_name: fileName,
+      hash: hashContent.data?.dataHash ?? ""
+    } as GroupedChunk;
   });
+
+  const hashedChunkContent = await Promise.all(hashedChunkContentPromises);
+
   console.log("hashedChunkContent", hashedChunkContent);
 
   return hashedChunkContent;
@@ -314,36 +370,67 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 }
 
-async function generateEmbedding(text: string): Promise<any> {
-  try {
-    console.log("text", text);
-    // Prepare the request body
-    const body = JSON.stringify({
+// async function generateEmbedding(text: string): Promise<any> {
+//   try {
+//     console.log("text", text);
+//     // Prepare the request body
+
+
+//     const body = JSON.stringify({
+//       inputText: text
+//     });
+//     const endpoint = "https://bedrock.us-east-1.amazonaws.com"; // Adjust the region as necessary
+
+//     try {
+//       const response = await axios.post(endpoint, body, {
+//         headers: {
+//           "Content-Type": "application/json",
+//           Accept: "application/json",
+//           Authorization: "Bearer YOUR_AWS_BEDROCK_API_KEY" // Add your API key or authorization
+//         }
+//       });
+//       console.log("response", response);
+
+//       // Assuming the response structure includes the embedding under a field like 'embedding'
+//       return response.data.embedding; // Extract the embedding from the response
+//     } catch (error) {
+//       console.error("Error generating embedding:", error);
+//       throw new Error("Failed to generate embedding");
+//     }
+//   } catch (error) {
+//     console.error("Error generating embedding:", error);
+//     throw new Error("Failed to generate embedding");
+//   }
+// }
+
+
+async function generateEmbedding(text: string): Promise<number[]> {
+  const client = new BedrockRuntimeClient({
+    region: "us-east-1" // Replace with your AWS region
+  });
+
+  const command = new InvokeModelCommand({
+    modelId: "amazon.titan-embed-text-v2:0",  // Replace with the correct model ID
+    contentType: "application/json",
+    accept: "application/json",
+    body: JSON.stringify({
       inputText: text
-    });
-    const endpoint = "https://bedrock.us-east-1.amazonaws.com"; // Adjust the region as necessary
+    })
+  });
 
-    try {
-      const response = await axios.post(endpoint, body, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: "Bearer YOUR_AWS_BEDROCK_API_KEY" // Add your API key or authorization
-        }
-      });
-      console.log("response", response);
+  try {
+    const response = await client.send(command);
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+    console.log("responseBody", responseBody);
 
-      // Assuming the response structure includes the embedding under a field like 'embedding'
-      return response.data.embedding; // Extract the embedding from the response
-    } catch (error) {
-      console.error("Error generating embedding:", error);
-      throw new Error("Failed to generate embedding");
-    }
+    // Assuming the response contains an `embedding` array within `responseBody`
+    return responseBody.embedding;
   } catch (error) {
     console.error("Error generating embedding:", error);
-    throw new Error("Failed to generate embedding");
+    throw error;
   }
 }
+
 
 class RecursiveCharacterTextSplitter {
   chunkSize: number;
