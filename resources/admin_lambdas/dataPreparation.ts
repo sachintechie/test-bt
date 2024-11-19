@@ -11,7 +11,7 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, storeHash } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { getS3Data, lambdaCallForCombineChunks, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
+import { combineChunks, getS3Data, lambdaCallForCombineChunks, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
 import axios from "axios";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
@@ -100,10 +100,13 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
             // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
-            const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
-
-            const hashCombinedData = hashCombinedChunks(combined_response["body"], step4.id, step6.id, step7.id, tenantUserId);
+           // const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+           if(file_embeddings.embeddings != null){
+           const combined_response = await combineChunks(file_embeddings?.embeddings);
+            console.log("combined_response", combined_response);
+            const hashCombinedData = hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId);
             console.log("hashCombinedData", hashCombinedData);
+           }
           }
 
           // Update project to reflect data preparation status
@@ -163,7 +166,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 }
 
 async function hashCombinedChunks(
-  combinedResponseBody: string,
+  combinedResponse: Array<any>,
   step4Id: string,
   step6Id: string,
   step7Id: string,
@@ -171,11 +174,11 @@ async function hashCombinedChunks(
   createdBy: string
 ) {
 
-  console.log("combinedResponseBody", combinedResponseBody);
-  const hashedData: Array<{ file_name: string; file_content_hash: string }> = [];
+  // console.log("combinedResponseBody", combinedResponseBody);
+   const hashedData: Array<{ file_name: string; file_content_hash: string }> = [];
 
-  // Parse the combined response body (assuming it's a JSON array)
-  const combinedResponse: Array<any> = JSON.parse(combinedResponseBody);
+  // // Parse the combined response body (assuming it's a JSON array)
+  // const combinedResponse: Array<any> = JSON.parse(combinedResponseBody);
 
   for (const entry of combinedResponse) {
     // Step detail for reconstruction of data
@@ -360,7 +363,9 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
         chunk_content: chunk,
         project_id: projectId,
         embedding
-      });
+      } as EmbeddingMetadata
+    
+    );
     } catch (error) {
       console.error(`Error generating embeddings for chunk ${chunks.indexOf(chunk)} in file ${fileKey}: ${error}`);
       return { filename: fileKey, error: `Error generating embeddings for chunk ${chunks.indexOf(chunk)}`, embeddings: null };

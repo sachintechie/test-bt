@@ -3,6 +3,8 @@ const lambda = new AWS.Lambda();
 import { S3 } from "aws-sdk";
 import { Readable } from "stream";
 import { syncKb } from "./scanDataSource";
+import { EmbeddingMetadata } from "../db/models";
+
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 export async function addReferencesLambda(tenantUserId: string, projectId: string) {
@@ -90,6 +92,51 @@ export async function lambdaCallForIndexing( all_embeddings_with_metadata: any) 
     
     return combinedResponse; // Or process further as needed
 }
+
+
+
+
+
+
+export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: number = 20){
+  // Group chunks by file_name
+  const fileDict: Record<string, EmbeddingMetadata[]> = {};
+  for (const chunk of chunkList) {
+    if (!fileDict[chunk.file_name]) {
+      fileDict[chunk.file_name] = [];
+    }
+    fileDict[chunk.file_name].push(chunk);
+  }
+
+  // Combine chunks by file_name
+  const combinedFiles = [];
+  for (const [fileName, chunks] of Object.entries(fileDict)) {
+    // Sort chunks by chunk_index
+    const sortedChunks = chunks.sort((a, b) => a.chunk_index - b.chunk_index);
+
+    // Start combining chunks, removing overlap
+    let combinedContent = sortedChunks[0].chunk_content;
+    for (let i = 1; i < sortedChunks.length; i++) {
+      const chunkContent = sortedChunks[i].chunk_content.slice(overlap);
+      combinedContent += chunkContent;
+    }
+
+    // Assume project_id is the same for all chunks of a file
+    const projectId = sortedChunks[0].project_id;
+
+    // Add combined content to the result
+    combinedFiles.push({
+      file_name: fileName,
+      file_content: combinedContent,
+      project_id: projectId
+    });
+  }
+
+  return combinedFiles;
+}
+
+
+
 
 
 
