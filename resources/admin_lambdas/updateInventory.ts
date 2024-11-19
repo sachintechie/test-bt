@@ -1,11 +1,13 @@
-import { updateInventory } from "../db/adminDbFunctions";
+import { updateInventory,getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
 import { productsensorydata } from "../db/models";
-
+import { tenant } from "../db/models";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
     const { inventoryId, inventoryData, sensoryData } = event.arguments?.input;
+	const tenant = event.identity.resolverContext as tenant;
 
     // Validate the input
     if (!inventoryId || !inventoryData) {
@@ -50,6 +52,9 @@ export const handler = async (event: any, context: any) => {
       delete updatedInventoryData.ownershipNft;
     }
     let sensoryDataToUpdate: productsensorydata | undefined = undefined;
+	
+	const adminUser = await getAdminUserById(tenant.adminuserid!);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
 
     if (sensoryData) {
       sensoryDataToUpdate = {
@@ -66,8 +71,8 @@ export const handler = async (event: any, context: any) => {
     // Update the inventory in the database
     const updatedInventory = await updateInventory(inventoryId, {
       ...updatedInventoryData,
-      sensorydata: sensoryDataToUpdate
-    });
+      sensorydata: sensoryDataToUpdate,
+    }, customer.id);
 
     return {
       status: 200,

@@ -258,6 +258,7 @@ model customer {
   collections       productcollection[] 
   productownerships productownership[]
   cart              productcart[]
+  activityLogs      activitylogs[]     @relation("CustomerActivity")
 }
 
 model adminuser {
@@ -436,6 +437,7 @@ enum productrarity {
 model productcategory {
   id        String    @id @default(uuid())
   name      String
+  isdeleted           Boolean?
   tenantid  String
   tenant    tenant    @relation(fields: [tenantid], references: [id])
   createdat DateTime? @default(now())
@@ -763,7 +765,7 @@ updatedat      DateTime @updatedAt
 
 model productsensorydata {
   id                   String          @id @default(uuid())
- inventoryid          String                 @unique
+  inventoryid          String                 @unique
   inventory            productinventory       @relation("InventorySensorData", fields: [inventoryid], references: [id], onDelete: Cascade)
   temprature           Float?
   oxygen               Float?
@@ -773,4 +775,15 @@ model productsensorydata {
   location             String?
   createdat            DateTime         @default(now())
   updatedat            DateTime         @updatedAt
+}
+
+model activitylogs {
+  id                 String           @id @default(uuid())
+  title              String
+  description        String
+  createdat          DateTime         @default(now())
+  loggedby           String
+  customer           customer?         @relation("CustomerActivity", fields: [loggedby], references: [id])
+
+  @@index([loggedby])
 }

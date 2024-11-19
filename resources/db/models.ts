@@ -95,12 +95,15 @@ export interface product {
   description: string;
   type: string;
   sku: string;
-  tags?: string[];
+  tags?: string[]; 
+  customerid?: string
 }
 
 export interface productcategory {
   name: string;
   tenantid: string;
+  customerid?: string
+
 }
 
 export interface updateproductattribute {
@@ -113,6 +116,7 @@ export interface productattribute {
   value: string;
   type: string;
   productid: string;
+  customerid?: string
 }
 
 export interface productfilter {
@@ -183,6 +187,8 @@ export interface productinventory {
   createdat?: string;
   updatedat?: string;
   sensorydata?: productsensorydata;
+  customerid?: string
+
 }
 
 export interface productsensorydata {
@@ -207,6 +213,15 @@ export interface productcart {
   createdat?: string;
   updatedat?: string;
 }
+
+export interface activitylogs {
+  id?: string;
+  title: string;
+  description: string;
+  createdAt?: string;
+  loggedBy: string;
+}
+
 
 export interface inventoryfilter {
   inventoryid?: string;
