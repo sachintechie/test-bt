@@ -82,6 +82,16 @@ export interface ScopeMintResponse {
   scope_uuid: string;
 }
 
+export interface UpdateValueOwnerOfScopeRequest {
+  value_owner_address: string;
+  scope_uuids: string[];
+}
+
+export interface UpdateValueOwnerOfScopeResponse {
+  tx_hash: string;
+  height: number;
+}
+
 export class NFTUtilities {
   /**
    * Provenance labs API endpoint
@@ -142,6 +152,32 @@ export class NFTUtilities {
       throw new Error(`Failed to mint scope: ${response.statusText}`);
     }
     console.log(response.data);
+    const data = await response.data;
+    return data;
+  }
+
+  /*
+   * Update the value owner of the scope
+   * This function is mainly used when we mint tokens to admin and then we want to transfer the ownership to the user
+   * When it buys the NFT
+   */
+  async setValueOwnerForScope(scope_uuids: string[], value_owner_address: string): Promise<UpdateValueOwnerOfScopeResponse> {
+    const request: UpdateValueOwnerOfScopeRequest = {
+      value_owner_address: value_owner_address,
+      scope_uuids: scope_uuids
+    };
+
+    const response = await axios.post(`${this.apiEndpoint}/vault/metadata/scope/update-value-owner`, request, {
+      headers: {
+        "Content-Type": "application/json",
+        apiKey: this.apiKey
+      }
+    });
+
+    if (response.status === 200) {
+      throw new Error(`Failed to update value owner: ${response.statusText}`);
+    }
+
     const data = await response.data;
     return data;
   }
