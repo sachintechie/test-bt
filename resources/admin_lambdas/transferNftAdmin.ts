@@ -1,11 +1,9 @@
 import Web3 from "web3";
-import * as cs from "@cubist-labs/cubesigner-sdk";
 import contractAbi from "../abi/BridgeTowerNftUpgradeable.json";
-import { getPayerCsSignerKey, oidcLogin } from "../cubist/CubeSignerClient";
+import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import { tenant } from "../db/models";
-import { getCubistConfig, getPrismaClient } from "../db/dbFunctions";
-import { CHAIN_TO_CHAIN_NAME_MAPPING, deriveDisplayAddressForCustomChains } from "../utils/utils";
-import { ProvenanceClient } from "../provenance/provenanceClient";
+import { getPrismaClient } from "../db/dbFunctions";
+import { CHAIN_TO_CHAIN_NAME_MAPPING } from "../utils/utils";
 import { NFTUtilities } from "../provenance/nftUtilities";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
@@ -40,10 +38,6 @@ export const handler = async (event: any, context: any) => {
     }
   } else if (chain == CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE) {
     try {
-      // get the user wallet
-      const tenant = event.identity.resolverContext as tenant;
-      const tenantId = tenant.id;
-      const oidcToken = event.headers?.identity;
 
       const result = await transferNFTProvenance(
         fromAddress,
@@ -51,10 +45,6 @@ export const handler = async (event: any, context: any) => {
         tokenId,
         chain,
         contractAddress,
-        tenantId,
-        "admin",
-        oidcToken,
-        "admin"
       );
 
       return {
@@ -120,7 +110,7 @@ export const transferNFT = async (
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
         toaddress: toAddress,
-        tokenid: tokenId,
+        tokenid: tokenId.toString(),
         amount: 1,
         tokentype: "ERC721"
       }

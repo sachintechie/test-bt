@@ -60,6 +60,20 @@ export interface EmbeddingMetadata {
   embedding: number[];
 }
 
+export interface FileChunk {
+  file_name: string;
+  chunk_index: number;
+  chunk_content: string;
+  project_id: string;
+  embedding?: number[]; // Optional embedding, if needed
+}
+
+export interface FileContent {
+  file_name: string;
+  file_content: string;
+  project_id: string;
+}
+
 export interface wallet {
   id?: string;
   customerid?: string;

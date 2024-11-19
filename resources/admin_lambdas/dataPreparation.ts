@@ -3,7 +3,6 @@ import {
   createStep,
   createStepDetails,
   getStageDetails,
-  getStageDetailsByProjectId,
   getStageType,
   getStepDetails,
   getStepType,
@@ -11,11 +10,15 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, storeHash } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { getS3Data, lambdaCallForCombineChunks, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
-import axios from "axios";
+import { combineChunks, getS3Data, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
-
+import { Client, ClientOptions, Connection } from '@opensearch-project/opensearch';
+import * as https from 'https';
+import { fromIni } from '@aws-sdk/credential-provider-ini';
+import * as crypto from 'crypto';
+import * as aws4 from 'aws4';
+import { AwsCredentialIdentity } from '@aws-sdk/types';
 export const handler = async (event: any, context: any) => {
   try {
     const { projectId, tenantUserId } = event;
@@ -49,68 +52,71 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
         const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
         const stepDetails = await getStepDetails(fileUploadStepId);
 
-      // Retrieve details from the previous ingestion stage
-    //  const stepDetails = await getStageDetailsByProjectId(projectId);
-      if (stepDetails != null && stepDetails.length > 0) {
-        const [stepType1, stepType2, stepType3, stepType4, stepType5, stepType6, stepType7] = await Promise.all([
-          getStepType("Chunking"),
-          getStepType("Chunking hash"),
-          getStepType("Embedding of chunks"),
-          getStepType("Reconstruction of data"),
-          getStepType("Store chunk hash to Blockchain"),
-          getStepType("Hashing of reconstructive data"),
-          getStepType("Store recombined file to Blockchain")
-        ]);
-
-        if (stepType1 && stepType2 && stepType3 && stepType4 && stepType5 && stepType6 && stepType7) {
-          const [step1, step2, step3, step4, step5, step6, step7] = await Promise.all([
-            createStep(tenantUserId, "Chunking", "Chunking", stepType1.id, stage4.id, 1),
-            createStep(tenantUserId, "Chunking hash", "Chunking hash", stepType2.id, stage4.id, 2),
-            createStep(tenantUserId, "Embedding of chunks", "Embedding of chunks", stepType3.id, stage4.id, 3),
-            createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id, 1),
-            createStep(tenantUserId, "Store chunk hash to Blockchain", "Store chunk hash to Blockchain", stepType5.id, stage4.id, 2),
-            createStep(tenantUserId, "Hashing of reconstructive data", "Hashing of reconstructive data", stepType6.id, stage4.id, 3),
-            createStep(
-              tenantUserId,
-              "Store recombined file to Blockchain",
-              "Store recombined file to Blockchain",
-              stepType7.id,
-              stage4.id,
-              1
-            )
+        // Retrieve details from the previous ingestion stage
+        //  const stepDetails = await getStageDetailsByProjectId(projectId);
+        if (stepDetails != null && stepDetails.length > 0) {
+          const [stepType1, stepType2, stepType3, stepType4, stepType5, stepType6, stepType7] = await Promise.all([
+            getStepType("Chunking"),
+            getStepType("Chunking hash"),
+            getStepType("Embedding of chunks"),
+            getStepType("Reconstruction of data"),
+            getStepType("Store chunk hash to Blockchain"),
+            getStepType("Hashing of reconstructive data"),
+            getStepType("Store recombined file to Blockchain")
           ]);
 
-          for (const stepDetail of stepDetails) {
-            const data = JSON.parse(stepDetail.metadata);
+          if (stepType1 && stepType2 && stepType3 && stepType4 && stepType5 && stepType6 && stepType7) {
+            const [step1, step2, step3, step4, step5, step6, step7] = await Promise.all([
+              createStep(tenantUserId, "Chunking", "Chunking", stepType1.id, stage4.id, 1),
+              createStep(tenantUserId, "Chunking hash", "Chunking hash", stepType2.id, stage4.id, 2),
+              createStep(tenantUserId, "Embedding of chunks", "Embedding of chunks", stepType3.id, stage4.id, 3),
+              createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id, 1),
+              createStep(tenantUserId, "Store chunk hash to Blockchain", "Store chunk hash to Blockchain", stepType5.id, stage4.id, 2),
+              createStep(tenantUserId, "Hashing of reconstructive data", "Hashing of reconstructive data", stepType6.id, stage4.id, 3),
+              createStep(
+                tenantUserId,
+                "Store recombined file to Blockchain",
+                "Store recombined file to Blockchain",
+                stepType7.id,
+                stage4.id,
+                1
+              )
+            ]);
 
-            // Step 1 and step 3: Chunking and Embedding of chunks
-            file_embeddings = await processFile(data.fileName, step1.id, step3.id, tenantUserId, projectId);
-            let hashed_chunkcontent;
-            if (file_embeddings.embeddings != null) {
-              // Step 2: Chunking hash
-              hashed_chunkcontent = await hashChunkContents(file_embeddings?.embeddings, step2.id, tenantUserId);
+            for (const stepDetail of stepDetails) {
+              const data = JSON.parse(stepDetail.metadata);
+
+              // Step 1 and step 3: Chunking and Embedding of chunks
+              file_embeddings = await processFile(data.fileName, step1.id, step3.id, tenantUserId, projectId);
+              let hashed_chunkcontent;
+              if (file_embeddings.embeddings != null) {
+                // Step 2: Chunking hash
+                hashed_chunkcontent = await hashChunkContents(file_embeddings?.embeddings, step2.id, tenantUserId);
+              }
+
+              // Step 5: Store chunk hash to Blockchain
+
+              if (hashed_chunkcontent != null) {
+                const blockchainHashedData = await storeHash(hashed_chunkcontent[0].hash, false);
+                await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
+              }
+
+              // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
+
+              // const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+              if (file_embeddings.embeddings != null) {
+                const combined_response = await combineChunks(file_embeddings?.embeddings);
+                console.log("combined_response", combined_response);
+                const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId);
+                console.log("hashCombinedData", hashCombinedData);
+              }
             }
 
-            // Step 5: Store chunk hash to Blockchain
-
-            if (hashed_chunkcontent != null) {
-              const blockchainHashedData = await storeHash(hashed_chunkcontent[0].hash, false);
-              await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
-            }
-
-            // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
-
-            const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
-
-            const hashCombinedData = hashCombinedChunks(combined_response["body"], step4.id, step6.id, step7.id, tenantUserId);
-            console.log("hashCombinedData", hashCombinedData);
+            // Update project to reflect data preparation status
+            await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
           }
-
-          // Update project to reflect data preparation status
-          await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
         }
       }
-    }
     }
 
     // Stage 5: Rag Ingestion
@@ -119,26 +125,35 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       const stage5 = await createStage(tenantUserId, "RAG Ingestion", "RAG Ingestion", stageType5.id, projectId, 5);
 
       // Retrieve details from the previous ingestion stage
-      const stepDetails = await getStageDetailsByProjectId(projectId);
-      if (stepDetails != null && stepDetails.length > 0) {
-        const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
+      const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
+        const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+        const stepDetails = await getStepDetails(fileUploadStepId);
+        if (stepDetails != null && stepDetails.length > 0) {
+       
 
-        if (stepType1) {
-          const [step1] = await Promise.all([
-            createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
-          ]);
+          const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
 
-          const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings);
-          console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
+          if (stepType1) {
+            const [step1] = await Promise.all([
+              createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
+            ]);
 
-          for (const indexedFile of lambdaResponseForIndexing) {
-            const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
-            await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
+            const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
+            console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
+
+            for (const indexedFile of lambdaResponseForIndexing) {
+              const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
+              await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
+            }
+
+            // Update project to reflect data preparation status
           }
+        
 
-          // Update project to reflect data preparation status
-          await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
-        }
+        await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
+
+      }
       }
     }
 
@@ -159,19 +174,18 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 }
 
 async function hashCombinedChunks(
-  combinedResponseBody: string,
+  combinedResponse: Array<any>,
   step4Id: string,
   step6Id: string,
   step7Id: string,
 
   createdBy: string
 ) {
-
-  console.log("combinedResponseBody", combinedResponseBody);
+  // console.log("combinedResponseBody", combinedResponseBody);
   const hashedData: Array<{ file_name: string; file_content_hash: string }> = [];
 
-  // Parse the combined response body (assuming it's a JSON array)
-  const combinedResponse: Array<any> = JSON.parse(combinedResponseBody);
+  // // Parse the combined response body (assuming it's a JSON array)
+  // const combinedResponse: Array<any> = JSON.parse(combinedResponseBody);
 
   for (const entry of combinedResponse) {
     // Step detail for reconstruction of data
@@ -219,61 +233,6 @@ async function hashCombinedChunks(
   return hashedData;
 }
 
-// Function to hash the chunk contents
-// async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[], step1Id: string, createdBy: string) {
-//   const hashedData: HashedEntry[] = [];
-
-//   console.log("allEmbeddingsWithMetadata", allEmbeddingsWithMetadata);
-
-//   // Hash each chunk's content
-//   // allEmbeddingsWithMetadata.forEach(async (entry) => {
-//     for (const entry of allEmbeddingsWithMetadata) {
-//     const chunkContent = entry.chunk_content || "";
-//     const chunkHash = await hashing(chunkContent);
-
-//     const hashedEntry: HashedEntry = {
-//       file_name: entry.file_name,
-//       chunk_index: entry.chunk_index,
-//       chunk_hash: chunkHash.data?.dataHash ?? "",
-//       project_id: entry.project_id
-//     };
-
-//     hashedData.push(hashedEntry);
-//   }
-//   // });
-
-//   console.log("hashedData", hashedData);
-
-//   // Group the hashed data by file_name
-//   const groupedChunks: Record<string, HashedEntry[]> = {};
-//   // hashedData.forEach((chunk) => {
-//     for(const chunk of hashedData){
-//     if (!groupedChunks[chunk.file_name]) {
-//       groupedChunks[chunk.file_name] = [];
-//     }
-//     groupedChunks[chunk.file_name].push(chunk);
-//   }
-//   // });
-// console.log("groupedChunks", groupedChunks);
-//   // Create the grouped chunk list and hash the chunk groups
-//   const groupedChunkList = Object.values(groupedChunks);
-//   const hashedChunkContent: GroupedChunk[] = [];
-
-//   //  groupedChunkList.forEach(async (group) => {
-//     for (const group of groupedChunkList) {
-//     const hashContent = await hashing(group);
-//     const fileName = group[0].file_name;
-
-//      hashedChunkContent.push({ file_name: fileName, hash: hashContent.data?.dataHash ?? "" });
-//     const metaData = { fileName, hash: hashContent };
-//     // Create a step detail for the chunk hashing process
-//     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
-//     }
-//   // });
-//   console.log("hashedChunkContent", hashedChunkContent);
-
-//   return hashedChunkContent;
-// }
 async function hashChunkContents(
   allEmbeddingsWithMetadata: EmbeddingMetadata[],
   step1Id: string,
@@ -356,7 +315,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
         chunk_content: chunk,
         project_id: projectId,
         embedding
-      });
+      } as EmbeddingMetadata);
     } catch (error) {
       console.error(`Error generating embeddings for chunk ${chunks.indexOf(chunk)} in file ${fileKey}: ${error}`);
       return { filename: fileKey, error: `Error generating embeddings for chunk ${chunks.indexOf(chunk)}`, embeddings: null };
@@ -372,47 +331,13 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 }
 
-// async function generateEmbedding(text: string): Promise<any> {
-//   try {
-//     console.log("text", text);
-//     // Prepare the request body
-
-
-//     const body = JSON.stringify({
-//       inputText: text
-//     });
-//     const endpoint = "https://bedrock.us-east-1.amazonaws.com"; // Adjust the region as necessary
-
-//     try {
-//       const response = await axios.post(endpoint, body, {
-//         headers: {
-//           "Content-Type": "application/json",
-//           Accept: "application/json",
-//           Authorization: "Bearer YOUR_AWS_BEDROCK_API_KEY" // Add your API key or authorization
-//         }
-//       });
-//       console.log("response", response);
-
-//       // Assuming the response structure includes the embedding under a field like 'embedding'
-//       return response.data.embedding; // Extract the embedding from the response
-//     } catch (error) {
-//       console.error("Error generating embedding:", error);
-//       throw new Error("Failed to generate embedding");
-//     }
-//   } catch (error) {
-//     console.error("Error generating embedding:", error);
-//     throw new Error("Failed to generate embedding");
-//   }
-// }
-
-
 async function generateEmbedding(text: string): Promise<number[]> {
   const client = new BedrockRuntimeClient({
     region: "us-east-1" // Replace with your AWS region
   });
 
   const command = new InvokeModelCommand({
-    modelId: "amazon.titan-embed-text-v2:0",  // Replace with the correct model ID
+    modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
     contentType: "application/json",
     accept: "application/json",
     body: JSON.stringify({
@@ -432,7 +357,6 @@ async function generateEmbedding(text: string): Promise<number[]> {
     throw error;
   }
 }
-
 
 class RecursiveCharacterTextSplitter {
   chunkSize: number;
@@ -466,3 +390,6 @@ class RecursiveCharacterTextSplitter {
     return chunks;
   }
 }
+
+
+

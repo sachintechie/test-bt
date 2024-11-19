@@ -10,7 +10,7 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { getS3Data, getS3DataWithoutContent } from "../knowledgebase/commonFunctions";
+import {  getS3Data, getS3DataWithoutContent,dataPreperationLambda } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -124,12 +124,17 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       }
     }
 
+    await dataPreperationLambda(tenantUserId, projectId);
+
+
     return true;
   } catch (e) {
     console.error("Error in addStageAndSteps:", e);
     throw e;
   }
 }
+
+
 
 // Function to add stages and steps for processing files in multiple stages
 // export async function addStageAndSteps(tenantUserId: string, projectId: string) {
