@@ -5,20 +5,21 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getProjectWithSteps,
   getStageType,
   getStepType,
   isProjectExist,
   updateProjectStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
-import { addReferencesLambda, formatBytes } from "../knowledgebase/commonFunctions";
-import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
+import {  formatBytes, generatePresignedUrl, generateSignedUrl } from "../knowledgebase/commonFunctions";
+import {  storeHash } from "../avalanche/storeHashFunctions";
+import { logWithTrace } from "../utils/utils";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
-const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
   try {
-    console.log(event, context);
+    logWithTrace(event, context);
 
     const data = await addProjectAndReference(
       event.identity.resolverContext as tenant,
@@ -39,7 +40,7 @@ export const handler = async (event: any, context: any) => {
 
     return response;
   } catch (err) {
-    console.log("In catch Block Error", err);
+    logWithTrace("In catch Block Error", err);
     return {
       status: 400,
       data: null,
@@ -56,10 +57,10 @@ async function addProjectAndReference(
   organizationId: string,
   files: any
 ) {
-  console.log("Creating admin project");
+  logWithTrace("Creating admin project");
 
   try {
-    console.log("project", tenant.id, projectType);
+    logWithTrace("project", tenant.id, projectType);
 
     const isExist = await isProjectExist(projectType, name, organizationId);
     if (isExist.isExist) {
@@ -70,16 +71,31 @@ async function addProjectAndReference(
     }
 
     const project = await createProject(tenant, name, description, projectType, organizationId, kb_id);
-    let datasource_id = BedRockDataSourceS3;
 
     if (project != null) {
       const stage1 = await addStage_1(tenant.adminuserid ?? "", project.id, files);
-      await addReferencesLambda(tenant.adminuserid ?? "", project.id);
+      const urls = await generatePresignedUrl(files);
+      console.log("urls", urls);
+      var projectData = await getProjectWithSteps(project.id, 1, 1);
+      if (projectData.error) {
+        return {
+          project: null,
+          error: projectData.error
+        };
+      } else {
 
-      return {
-        project: project,
-        error: null
-      };
+        const data = {
+          project: projectData.data?.project,
+          urls: urls
+        }
+
+        return {
+
+          project: data,
+          error: null
+        };
+      }
+      // await addReferencesLambda(tenant.adminuserid??"", project.id);
     } else {
       return {
         project: null,
@@ -117,23 +133,21 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
         ]);
 
         for (const file of files) {
-          const fileSize = await getFileSizeFromBase64(file.fileContent);
+          // const fileSize = await getFileSizeFromBase64(file.fileContent)
+          const downloadUrl = await generateSignedUrl(file)
 
-          const fileDataForHash = { fileName: file.fileName, fileContent: file.fileContent };
-          const fileData = { fileName: file.fileName, fileContent: file.fileContent, contentType: file.contentType, fileSize: fileSize };
-
+          const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details
           await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
 
           // Step 2: Hash the file data
-          const hash = await hashing(fileDataForHash);
           const hashedData = {
-            hash: hash.data?.dataHash
+            hash: file.hash
           };
           await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
           // Step 3: Store the hashed data on the blockchain
-          const blockchainHashedData = await hashingAndStoreToBlockchain(fileDataForHash, false);
+          const blockchainHashedData = await storeHash(file.hash, false);
           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
         }
 

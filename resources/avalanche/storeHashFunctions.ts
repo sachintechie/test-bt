@@ -79,24 +79,21 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
 
     return {
       data: {
-        message: "Transaction successful!",
-        transactionId: transactionReceipt.transactionHash,
-        status: status,
         hash: parsedTransaction.args._dataHash.split("0x")[1],
-        metaData: parsedTransaction.args._metaData,
+        txHash: transactionReceipt.transactionHash,
+        chainId: transaction.chainId,
+        chainType: "Avalanche",
+        status: status,
+        gasFee: gas.toString(),
+        nonce: transaction.nonce,
         blockHash: transaction.blockHash,
+        blockNumber: transaction.blockNumber,
         type: transaction.type,
         timestamp: transactionTimestamp,
-        blockNumber: transaction.blockNumber,
         confirmations: transaction.confirmations,
-        from: transaction.from,
-        to: transaction.to,
-        gasLimit: transaction.gasLimit.toString(),
-        gasPrice: transaction.gasPrice?.toString(),
-        gas: gas.toString(),
-        nonce: transaction.nonce,
-        chainId: transaction.chainId,
-        chainType: "Avalanche"
+        message: "Transaction successful!",
+	      from: transaction.from,
+	      to: transaction.to
       },
       error: null
     };
@@ -120,17 +117,20 @@ export async function hashingAndStoreToBlockchain(data: any, isSecondTx?: boolea
     return {
       data: {
         hash: dataHash,
-        txHash: dataTxHash?.data?.transactionId,
+        txHash: dataTxHash?.data?.txHash,
         chainId: dataTxHash?.data?.chainId,
         chainType: dataTxHash?.data?.chainType,
         status: dataTxHash?.data?.status,
-        gasFee: dataTxHash?.data?.gas,
+        gasFee: dataTxHash?.data?.gasFee,
         nonce: dataTxHash?.data?.nonce,
         blockHash: dataTxHash?.data?.blockHash,
         type: dataTxHash?.data?.type,
         timestamp: dataTxHash?.data?.timestamp,
         blockNumber: dataTxHash?.data?.blockNumber,
-        confirmations: dataTxHash?.data?.confirmations
+        confirmations: dataTxHash?.data?.confirmations,
+        message: dataTxHash?.data?.message,
+	      from: dataTxHash?.data?.from,
+	      to: dataTxHash?.data?.to
       },
       error: null
     };

@@ -41,6 +41,25 @@ export interface tenant {
   cognitoclientid: string;
 }
 
+export interface HashedEntry {
+  file_name: string;
+  chunk_index: number;
+  chunk_hash: string;
+  project_id: string;
+}
+
+export interface GroupedChunk {
+  file_name: string;
+  hash: string;
+}
+export interface EmbeddingMetadata {
+  file_name: string;
+  chunk_index: number;
+  chunk_content: string;
+  project_id: string;
+  embedding: number[];
+}
+
 export interface wallet {
   id?: string;
   customerid?: string;
@@ -76,12 +95,15 @@ export interface product {
   description: string;
   type: string;
   sku: string;
-  tags?: string[];
+  tags?: string[]; 
+  customerid?: string
 }
 
 export interface productcategory {
   name: string;
   tenantid: string;
+  customerid?: string
+
 }
 
 export interface updateproductattribute {
@@ -94,6 +116,7 @@ export interface productattribute {
   value: string;
   type: string;
   productid: string;
+  customerid?: string
 }
 
 export interface productfilter {
@@ -164,6 +187,8 @@ export interface productinventory {
   createdat?: string;
   updatedat?: string;
   sensorydata?: productsensorydata;
+  customerid?: string
+
 }
 
 export interface productsensorydata {
@@ -188,6 +213,15 @@ export interface productcart {
   createdat?: string;
   updatedat?: string;
 }
+
+export interface activitylogs {
+  id?: string;
+  title: string;
+  description: string;
+  createdAt?: string;
+  loggedBy: string;
+}
+
 
 export interface inventoryfilter {
   inventoryid?: string;

@@ -20,7 +20,7 @@ export const handler = async (event: any) => {
 
         const tenant = res.rows[0];
         console.log(tenant);
-        if (tenant.name === "AI") {
+        if (tenant.name === "AI" || tenant.name === "AI-Dev") {
           return {
             isAuthorized: true,
             resolverContext: {

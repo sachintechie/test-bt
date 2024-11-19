@@ -1,8 +1,10 @@
 import { tenant } from "../db/models";
-import { createCategory } from "../db/adminDbFunctions";
+import { createCategory,getAdminUserById } from "../db/adminDbFunctions";
+import { getCustomer } from "../db/dbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log("event", event, "context", context);
+	  const tenant = event.identity?.resolverContext as tenant;
 
     const { categoryName } = event.arguments?.input;
     const tenantContext = event.identity.resolverContext as tenant;
@@ -17,7 +19,9 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-    const category = await createCategoryInDb(tenantContext, categoryName);
+    const adminUser = await getAdminUserById(tenant.adminuserid!);
+    const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
+    const category = await createCategoryInDb(tenantContext, categoryName, customer.id);
 
     return {
       status: 200,
@@ -38,7 +42,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function createCategoryInDb(tenant: tenant, categoryName: string) {
-  const newCategory = await createCategory({ tenantid: tenant.id, name: categoryName });
+async function createCategoryInDb(tenant: tenant, categoryName: string, customerId:string) {
+  const newCategory = await createCategory({ tenantid: tenant.id, name: categoryName , customerid:customerId });
   return newCategory;
 }

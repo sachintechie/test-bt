@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@avalabs/avalanchejs": "^4.0.5",
-    "@aws-sdk/client-bedrock": "^3.670.0",
+    "@aws-sdk/client-bedrock": "^3.693.0",
     "@aws-sdk/client-iam": "^3.614.0",
     "@aws-sdk/client-lambda": "^3.675.0",
     "@aws-sdk/client-organizations": "^3.614.0",
@@ -61,7 +61,6 @@
     "@types/chai": "^4.3.3",
     "@types/jsonwebtoken": "^9.0.6",
     "@types/mocha": "^9.1.1",
-    "@types/node-fetch": "^2.6.12",
     "@types/pg": "^8.11.6",
     "aws-cdk": "2.141.0",
     "chai": "^4.3.6",

@@ -11,13 +11,13 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const { chainType, hash, uuid, mnemonic } = event.arguments?.input || {};
+    const { chainType, hash, uuid, isSecondTx } = event.arguments?.input || {};
 
     let hashResult;
 
     switch (chainType) {
       case ChainType.Avalanche:
-        hashResult = await avalancheStoreHash(hash);
+        hashResult = await avalancheStoreHash(hash,isSecondTx);
         break;
 
       case ChainType.Provenance:

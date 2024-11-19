@@ -1,10 +1,18 @@
 input AddProjectAndReferenceInput {
-  name: String!
-  description: String
-  projectType: String!
-  organizationId: String!
-  files: [FileInput]
+	name: String!
+	description: String
+	projectType: String!
+	organizationId: String!
+	files: [ProjectFileInput]
 }
+
+type AddProjectAndReferenceResponse {
+	status: Int
+	data: ProjectAndUrlData
+	error: AWSJSON
+}
+
+
 
 type AddRefToKnowledgeBase {
   status: Int
@@ -140,11 +148,14 @@ type BulkImportProductResponse {
 }
 
 type CategoryData {
-  id: String!
-  name: String!
-  tenantid: String!
-  createdat: AWSDateTime
-  updatedat: AWSDateTime
+
+	id: String!
+	name: String!
+	isdeleted: Boolean
+	tenantid: String!
+	createdat: AWSDateTime
+	updatedat: AWSDateTime
+
 }
 
 enum CategoryFindBy {
@@ -299,6 +310,10 @@ input DeleteProductInput {
   productId: String
 }
 
+input DeleteCategoryInput {
+	categoryId: String
+}
+
 type DeleteRefToKnowledgeBase {
   status: Int
   data: AddRefToKnowledgeBaseData
@@ -313,6 +328,11 @@ input FileInput {
   fileName: String!
   fileContent: String!
   contentType: String!
+}
+
+input FileStatusInput {
+	fileName: String!
+	status: String!
 }
 
 input FilterInput {
@@ -727,15 +747,26 @@ enum ProductStatus {
   ACTIVE
   INACTIVE
 }
+
 type ProjectAndStepData {
-  project: ProjectData
-  stagedata: StagePaginationData
+	project: ProjectData
+	stagedata: StagePaginationData
 }
 
 type ProjectAndStepsResponse {
   status: Int
   data: ProjectAndStepData
   error: AWSJSON
+}
+
+type ProjectAndUrlData {
+	project: ProjectAndStepData
+	urls: [S3PreSignedUrlData]
+}
+
+type S3PreSignedUrlData {
+	key: String
+	url: String
 }
 
 type ProjectData {
@@ -749,6 +780,13 @@ type ProjectData {
   description: String
   isactive: Boolean
   createdby: String
+}
+
+input ProjectFileInput {
+	fileName: String!
+	fileSize: String!
+	contentType: String!
+	hash: String!
 }
 
 input SearchInventoryInput {
@@ -773,12 +811,6 @@ input SigninInput {
   tenantUserId: String!
 }
 
-type StagePaginationData {
-  total: Int
-  totalPages: Int
-  stages: [StageData]
-}
-
 type StageData {
   id: String
   name: String
@@ -790,6 +822,12 @@ type StageData {
   status: String
   stagesequence: Int
   steps: [StepData]
+}
+
+type StagePaginationData {
+	total: Int
+	totalPages: Int
+	stages: [StageData]
 }
 
 type StepData {
@@ -923,36 +961,67 @@ type CreateScopeSpecificationResponse {
   error: AWSJSON
 }
 
+input UpdateProjectStatusInput {
+	projectId: String!
+	fileStatus: [FileStatusInput]
+}
+
+type GetActivityLogsResponse {
+	status: Int
+	data: [ActivityLogData]
+	error: AWSJSON
+}
+
+type CustomerData {
+    emailid: String
+    name: String
+    isactive: Boolean
+    usertype: String
+    iss: String
+}
+
+
+type ActivityLogData {
+    id: String
+    title: String
+    description: String
+    createdat: String
+    loggedby: CustomerData
+}
+
 type Mutation {
-  AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
-  AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
-  AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
-  AdminTransfer(input: AdminTransferInput): AdminTransfer
-  CreateTokenAccount(input: AdminTransferInput): AdminTransfer
-  CreateCategory(input: CreateCategoryInput): CategoryResponse
-  CreateProduct(input: CreateProductInput): ProductResponse
-  CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
-  UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
-  UpdateProduct(input: UpdateProductInput): UpdateProductResponse
-  UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
-  UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
-  DeleteProduct(input: DeleteProductInput): ProductResponse
-  CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
-  UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
-  BulkImportInventory(input: BulkImportInput): BulkImportInventoryResponse
-  BulkImportProduct(input: BulkImportInput): BulkImportProductResponse
-  ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
-  DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
-  DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
-  CreateProject(input: CreateProjectInput): CreateProjectResponse
-  AddProjectAndReference(input: AddProjectAndReferenceInput): CreateProjectResponse
-  DeleteProductAttributes(input: DeleteProductAttributesInput): DeleteProductAttributesResponse
-  CreateStepType(input: CreateStepTypeInput): CreateStepTypeResponse
-  CreateStageType(input: CreateStageTypeInput): CreateStageTypeResponse
-  CreateScopeSpecification(input: CreateScopeSpecificationInput): CreateScopeSpecificationResponse
+	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
+	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
+	AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
+	AdminTransfer(input: AdminTransferInput): AdminTransfer
+	CreateTokenAccount(input: AdminTransferInput): AdminTransfer
+	CreateCategory(input: CreateCategoryInput): CategoryResponse
+	CreateProduct(input: CreateProductInput): ProductResponse
+	CreateProductAttribute(input: ProductAttributeInput!): CreateProductAttributeResponse
+	UpdateCategory(input: UpdateCategoryInput): UpdateCategoryResponse
+	DeleteCategory(input: DeleteCategoryInput): CategoryResponse
+	UpdateProduct(input: UpdateProductInput): UpdateProductResponse
+	UpdateProductAttribute(input: UpdateProductAttributeInput): GetProductAttributesResponse
+	UpdateProductStatus(input: UpdateProductStatusInput): ProductResponse
+	DeleteProduct(input: DeleteProductInput): ProductResponse
+	CreateInventory(input: CreateInventoryInput): CreateInventoryResponse
+	UpdateInventory(input: UpdateInventoryInput): CreateInventoryResponse
+	BulkImportInventory(input: BulkImportInput): BulkImportInventoryResponse
+	BulkImportProduct(input: BulkImportInput): BulkImportProductResponse
+	ManageProductMedia(input: ManageProductMediaInput): ManageProductMediaResponse
+	DeleteInventory(input: DeleteInventoryInput): CreateInventoryResponse
+	DeleteRefToKnowledgeBase(input: DeleteRefToKnowledgeBaseInput): DeleteRefToKnowledgeBase
+	CreateProject(input: CreateProjectInput): CreateProjectResponse
+	AddProjectAndReference(input: AddProjectAndReferenceInput): AddProjectAndReferenceResponse
+	DeleteProductAttributes(input: DeleteProductAttributesInput): DeleteProductAttributesResponse
+	CreateStepType(input: CreateStepTypeInput): CreateStepTypeResponse
+	CreateStageType(input: CreateStageTypeInput): CreateStageTypeResponse
+	UpdateProjectStatus(input: UpdateProjectStatusInput): CreateProjectResponse
+	CreateScopeSpecification(input: CreateScopeSpecificationInput): CreateScopeSpecificationResponse
 }
 
 type Query {
+
   AdminSignin(input: SigninInput): SignIn
   CreateAdminWallet(input: CreateWalletInput): GetWallet
   ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
@@ -972,6 +1041,29 @@ type Query {
   GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
   GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
   ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
+
+
+	AdminSignin(input: SigninInput): SignIn
+	CreateAdminWallet(input: CreateWalletInput): GetWallet
+	ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
+	ListAdminUsers(input: PaginationInput): ListAdminUsers
+	ListReference(input: ListRefInput): ListReference
+	GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
+	GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
+	GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
+	GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
+	SearchInventory(input: SearchInventoryInput): GetInventoryResponse
+	FilterInventory(input: FilterInventoryInput): GetInventoryResponse
+	ListProject(input: ListProjectInput): ListProject
+	GetProjectById(input: ListProjectByIdInput): ProjectAndStepsResponse
+	GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
+	GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
+	GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
+	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
+	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
+	GetActivityLogs: GetActivityLogsResponse
+
+
 }
 
 schema {
