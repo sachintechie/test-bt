@@ -218,50 +218,105 @@ async function hashCombinedChunks(
 }
 
 // Function to hash the chunk contents
-async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[], step1Id: string, createdBy: string) {
-  const hashedData: HashedEntry[] = [];
+// async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[], step1Id: string, createdBy: string) {
+//   const hashedData: HashedEntry[] = [];
 
-  console.log("allEmbeddingsWithMetadata", allEmbeddingsWithMetadata);
+//   console.log("allEmbeddingsWithMetadata", allEmbeddingsWithMetadata);
 
-  // Hash each chunk's content
-  allEmbeddingsWithMetadata.forEach(async (entry) => {
+//   // Hash each chunk's content
+//   // allEmbeddingsWithMetadata.forEach(async (entry) => {
+//     for (const entry of allEmbeddingsWithMetadata) {
+//     const chunkContent = entry.chunk_content || "";
+//     const chunkHash = await hashing(chunkContent);
+
+//     const hashedEntry: HashedEntry = {
+//       file_name: entry.file_name,
+//       chunk_index: entry.chunk_index,
+//       chunk_hash: chunkHash.data?.dataHash ?? "",
+//       project_id: entry.project_id
+//     };
+
+//     hashedData.push(hashedEntry);
+//   }
+//   // });
+
+//   console.log("hashedData", hashedData);
+
+//   // Group the hashed data by file_name
+//   const groupedChunks: Record<string, HashedEntry[]> = {};
+//   // hashedData.forEach((chunk) => {
+//     for(const chunk of hashedData){
+//     if (!groupedChunks[chunk.file_name]) {
+//       groupedChunks[chunk.file_name] = [];
+//     }
+//     groupedChunks[chunk.file_name].push(chunk);
+//   }
+//   // });
+// console.log("groupedChunks", groupedChunks);
+//   // Create the grouped chunk list and hash the chunk groups
+//   const groupedChunkList = Object.values(groupedChunks);
+//   const hashedChunkContent: GroupedChunk[] = [];
+
+//   //  groupedChunkList.forEach(async (group) => {
+//     for (const group of groupedChunkList) {
+//     const hashContent = await hashing(group);
+//     const fileName = group[0].file_name;
+
+//      hashedChunkContent.push({ file_name: fileName, hash: hashContent.data?.dataHash ?? "" });
+//     const metaData = { fileName, hash: hashContent };
+//     // Create a step detail for the chunk hashing process
+//     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+//     }
+//   // });
+//   console.log("hashedChunkContent", hashedChunkContent);
+
+//   return hashedChunkContent;
+// }
+async function hashChunkContents(
+  allEmbeddingsWithMetadata: EmbeddingMetadata[],
+  step1Id: string,
+  createdBy: string
+): Promise<GroupedChunk[]> {
+  const hashedDataPromises = allEmbeddingsWithMetadata.map(async (entry) => {
     const chunkContent = entry.chunk_content || "";
     const chunkHash = await hashing(chunkContent);
 
-    const hashedEntry: HashedEntry = {
+    return {
       file_name: entry.file_name,
       chunk_index: entry.chunk_index,
       chunk_hash: chunkHash.data?.dataHash ?? "",
       project_id: entry.project_id
-    };
-
-    hashedData.push(hashedEntry);
+    } as HashedEntry;
   });
 
-  console.log("hashedData", hashedData);
+  const hashedData = await Promise.all(hashedDataPromises);
 
-  // Group the hashed data by file_name
-  const groupedChunks: Record<string, HashedEntry[]> = {};
-  hashedData.forEach((chunk) => {
-    if (!groupedChunks[chunk.file_name]) {
-      groupedChunks[chunk.file_name] = [];
+  // Group hashed data by file_name using a Map
+  const groupedChunks = new Map<string, HashedEntry[]>();
+  for (const chunk of hashedData) {
+    if (!groupedChunks.has(chunk.file_name)) {
+      groupedChunks.set(chunk.file_name, []);
     }
-    groupedChunks[chunk.file_name].push(chunk);
-  });
-console.log("groupedChunks", groupedChunks);
-  // Create the grouped chunk list and hash the chunk groups
-  const groupedChunkList = Object.values(groupedChunks);
-  const hashedChunkContent: GroupedChunk[] = [];
+    groupedChunks.get(chunk.file_name)!.push(chunk);
+  }
 
-   groupedChunkList.forEach(async (group) => {
+  // Create the grouped chunk list and hash the chunk groups
+  const hashedChunkContentPromises = Array.from(groupedChunks.values()).map(async (group) => {
     const hashContent = await hashing(group);
     const fileName = group[0].file_name;
 
-     hashedChunkContent.push({ file_name: fileName, hash: hashContent.data?.dataHash ?? "" });
+    // Metadata for step details
     const metaData = { fileName, hash: hashContent };
-    // Create a step detail for the chunk hashing process
     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+
+    return {
+      file_name: fileName,
+      hash: hashContent.data?.dataHash ?? ""
+    } as GroupedChunk;
   });
+
+  const hashedChunkContent = await Promise.all(hashedChunkContentPromises);
+
   console.log("hashedChunkContent", hashedChunkContent);
 
   return hashedChunkContent;
@@ -366,6 +421,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const response = await client.send(command);
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+    console.log("responseBody", responseBody);
 
     // Assuming the response contains an `embedding` array within `responseBody`
     return responseBody.embedding;
