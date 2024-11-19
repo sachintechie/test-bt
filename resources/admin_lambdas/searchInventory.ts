@@ -4,9 +4,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-
     const { searchKeyword } = event.arguments?.input || {};
-
 
     if (!searchKeyword || searchKeyword.trim() === "") {
       return {
@@ -15,7 +13,6 @@ export const handler = async (event: any, context: any) => {
         error: "Search keyword (either Inventory ID or Product Name) is required"
       };
     }
-
 
     const searchResult = await searchInventory(searchKeyword);
 
@@ -35,7 +32,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error: errorMessage,
+      error: errorMessage
     };
   }
 };

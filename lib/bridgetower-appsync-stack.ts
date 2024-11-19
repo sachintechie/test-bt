@@ -3,9 +3,15 @@ import { Construct } from "constructs";
 import { env, envConfig, isDevOrProd, isOnDemandProd, isPlaygroundDev } from "./utils/env";
 import { configResolver, newAppSyncApi } from "./utils/appsync";
 import { capitalize, readFilesFromFolder } from "./utils/utils";
-import {newApiGateway, newMoonpayApiGateway, newStripeWebhookApiGateway} from "./utils/apigateway";
+import { newApiGateway, newMoonpayApiGateway, newStripeWebhookApiGateway } from "./utils/apigateway";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import { DatabaseInfo, getDatabaseInfo, getDevOrProdDatabaseInfo, getOnDemandProdDatabaseInfo, getPlaygrounDevDatabaseInfo } from "./utils/aurora";
+import {
+  DatabaseInfo,
+  getDatabaseInfo,
+  getDevOrProdDatabaseInfo,
+  getOnDemandProdDatabaseInfo,
+  getPlaygrounDevDatabaseInfo
+} from "./utils/aurora";
 import { AuroraStack } from "./bridgetower-aurora-stack";
 import { newMigrateNodeJsFunction, newNodeJsFunction } from "./utils/lambda";
 import * as cr from "aws-cdk-lib/custom-resources";
@@ -27,7 +33,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "checkAndUpdateProjects",
   "addReferences",
   "createStep",
-  "createStage"
+  "createStage",
+  "dataPreparation"
 ];
 
 const GET_METADATA = "getMetadata";
@@ -38,6 +45,7 @@ const MUTATIONS = [
   "createCategory",
   "createProduct",
   "createProductAttribute",
+  "createScopeSpecification",
   "createWallet",
   "unstaking",
   "mergeStake",
@@ -81,7 +89,6 @@ const MUTATIONS = [
   "deleteCategory"
 ];
 
-
 interface AppSyncStackProps extends cdk.StackProps {
   lambdaFolder: string;
   schemaFile: string;
@@ -102,17 +109,13 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
     let databaseInfo: DatabaseInfo;
     if (isOnDemandProd()) {
       databaseInfo = getOnDemandProdDatabaseInfo(this);
-    }
-    else if (isPlaygroundDev()) {
+    } else if (isPlaygroundDev()) {
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getPlaygrounDevDatabaseInfo(this);
-    }
-
-    else if (!isDevOrProd()) {
+    } else if (!isDevOrProd()) {
       // Fetch the database credentials from Secrets Manager
       databaseInfo = getDatabaseInfo(this, props.auroraStack!);
-    }
-    else {
+    } else {
       databaseInfo = getDevOrProdDatabaseInfo(this);
     }
     console.log(databaseInfo);
@@ -143,13 +146,17 @@ export class BridgeTowerAppSyncStack extends cdk.Stack {
 
     if (props.hasApiGateway) {
       const gateway = newApiGateway(this, lambdaMap.get(GET_METADATA)!);
-      const stripeWebhookGateway=newStripeWebhookApiGateway(this, lambdaMap.get(POST_STRIPE_PAYMENT_INTENT_WEBHOOK)!);
-      const moonpayGateway=newMoonpayApiGateway(this, lambdaMap.get("moonpayNftLiteAsset")!,lambdaMap.get("moonpayNftLiteDelivery")!,lambdaMap.get("moonpayNftLiteStatus")!);
+      const stripeWebhookGateway = newStripeWebhookApiGateway(this, lambdaMap.get(POST_STRIPE_PAYMENT_INTENT_WEBHOOK)!);
+      const moonpayGateway = newMoonpayApiGateway(
+        this,
+        lambdaMap.get("moonpayNftLiteAsset")!,
+        lambdaMap.get("moonpayNftLiteDelivery")!,
+        lambdaMap.get("moonpayNftLiteStatus")!
+      );
     }
 
     // Create a new AppSync GraphQL API
     const api = newAppSyncApi(this, env`${props.apiName}`, props.name, lambdaMap, props.schemaFile, props.authorizerLambda);
-
 
     // Create resolvers for each lambda function
     for (const [key, value] of lambdaMap) {

@@ -6,7 +6,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log("event", event, "context", context);
 
-    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId , sensoryData} =
+    const { productId, inventoryId, inventoryCategory, price, quantity, ownershipNft, smartContractAddress, tokenId, sensoryData } =
       event.arguments?.input;
     const tenant = event.identity.resolverContext as tenant;
 

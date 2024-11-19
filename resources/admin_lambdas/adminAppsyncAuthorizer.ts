@@ -78,10 +78,9 @@ export const handler = async (event: any) => {
                           userType: "ADMIN"
                         }
                       };
-                    }
-                    else{
-                    console.log("Admin user not found");
-                    return { isAuthorized: false };
+                    } else {
+                      console.log("Admin user not found");
+                      return { isAuthorized: false };
                     }
                   } else {
                     // Return authorized response with tenant and user info

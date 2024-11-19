@@ -21,14 +21,14 @@ export const handler = async (event: any, context: any) => {
     const updatedInventoryData: any = { ...inventoryData };
 
     // Remove any attempt to update productId or inventoryId
-    if ('productId' in updatedInventoryData) {
+    if ("productId" in updatedInventoryData) {
       return {
         status: 400,
         data: null,
         error: "Updating productId is not allowed."
       };
     }
-    if ('inventoryId' in updatedInventoryData) {
+    if ("inventoryId" in updatedInventoryData) {
       return {
         status: 400,
         data: null,

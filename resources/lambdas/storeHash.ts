@@ -4,46 +4,49 @@ import { storeHash as provenanceStoreHash } from "../provenance/storeHashFunctio
 // Create an enum for the chain types
 enum ChainType {
   Avalanche = "Avalanche",
-  Provenance = "Provenance",
+  Provenance = "Provenance"
 }
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const { chainType, hash, uuid, mnemonic } = event.arguments?.input || {};
+    const { chainType, hash, uuid, isSecondTx } = event.arguments?.input || {};
 
     let hashResult;
 
     switch (chainType) {
       case ChainType.Avalanche:
-        hashResult = await avalancheStoreHash(hash);
+        hashResult = await avalancheStoreHash(hash,isSecondTx);
         break;
 
       case ChainType.Provenance:
-        hashResult = await provenanceStoreHash("0xa0f70a94393b30f8b06382aabe21f16e9bc11b0e6929586dcefb7e83fa6d4d2e", hash, process.env.PROVANENCE_MNEMONIC || "");
+        hashResult = await provenanceStoreHash(
+          "0xa0f70a94393b30f8b06382aabe21f16e9bc11b0e6929586dcefb7e83fa6d4d2e",
+          hash,
+          process.env.PROVANENCE_MNEMONIC || ""
+        );
         break;
 
       default:
         return {
           status: 400,
           data: null,
-          error: "ChainType not supported",
+          error: "ChainType not supported"
         };
     }
 
     return {
       status: hashResult?.data ? 200 : 400,
       data: hashResult?.data,
-      error: hashResult?.error,
+      error: hashResult?.error
     };
-
   } catch (err) {
     console.error("Error in handler:", err);
     return {
       status: 400,
       data: null,
-      error: err || "An error occurred",
+      error: err || "An error occurred"
     };
   }
 };

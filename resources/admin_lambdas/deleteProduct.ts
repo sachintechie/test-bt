@@ -5,8 +5,10 @@ import { getCustomer } from "../db/dbFunctions";
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
+
     const tenant = event.identity.resolverContext as tenant;
     const productId  = event.arguments?.input?.productId;
+
 
     if (!productId) {
       return {
@@ -38,7 +40,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error:errorMessage,
+      error: errorMessage
     };
   }
 };

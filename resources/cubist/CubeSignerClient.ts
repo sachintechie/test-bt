@@ -215,12 +215,13 @@ export async function oidcLogin(env: cs.EnvInterface, orgId: string, oidcToken: 
   }
 }
 
-export async function getKey(oidcClient: any, chainType: string, cubistUserid: string) {
+export async function getKey(oidcClient: any, keyType: string, cubistUserid: string) {
   try {
     console.log("Getting key", cubistUserid);
     const keys = await oidcClient.sessionKeys();
-    const key = keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == cs.Ed25519.Solana);
+    const key = keys.filter((key: cs.Key) => key.cached.owner == cubistUserid && key.cached.key_type == keyType);
     console.log("Key", keys.length, key.length, key[0]);
+    key.appendPolicy(["AllowRawBlobSigning"]);
     return key[0];
   } catch (err) {
     console.error(err);
@@ -247,6 +248,7 @@ export async function getCubistKey(env: any, cubistOrgId: string, oidcToken: str
     throw new Error("Given identity token is not the owner of given wallet address");
   }
   const senderKey = keys.filter((key: cs.Key) => key.materialId === walletAddress);
+  senderKey[0].appendPolicy(["AllowRawBlobSigning"]);
   if (senderKey.length === 0) {
     throw new Error("Given identity token is not the owner of given wallet address");
   }

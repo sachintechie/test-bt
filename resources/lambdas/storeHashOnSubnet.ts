@@ -1,4 +1,4 @@
-import {  storeHashOnSubnet } from "../avalanche/storeHashFunctions";
+import { storeHashOnSubnet } from "../avalanche/storeHashFunctions";
 
 export const handler = async (event: any) => {
   try {

@@ -41,6 +41,25 @@ export interface tenant {
   cognitoclientid: string;
 }
 
+export interface HashedEntry {
+  file_name: string;
+  chunk_index: number;
+  chunk_hash: string;
+  project_id: string;
+}
+
+export interface GroupedChunk {
+  file_name: string;
+  hash: string;
+}
+export interface EmbeddingMetadata {
+  file_name: string;
+  chunk_index: number;
+  chunk_content: string;
+  project_id: string;
+  embedding: number[];
+}
+
 export interface wallet {
   id?: string;
   customerid?: string;

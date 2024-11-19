@@ -1,3 +1,4 @@
+
 import {getCubistConfig, getPrismaClient, getWalletByCustomer} from "../db/dbFunctions";
 import { tenant } from "../db/models";
 import {getCubistKey, getPayerCsSignerKey} from "../cubist/CubeSignerClient";
@@ -5,6 +6,7 @@ import contractAbi from "../abi/BridgeUsdc.json";
 import Web3 from "web3";
 import {BigNumber, ethers} from "ethers";
 import {transferERC1155} from "./transferERC1155";
+
 import { Key } from "@cubist-labs/cubesigner-sdk";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
@@ -22,15 +24,16 @@ const env: any = {
 export const handler = async (event: any) => {
   try {
     console.log(event);
+
     const {inventoryId,chain,tenantUserId,quantity,senderWalletAddress}=event.arguments?.input;
     const tenant=event.identity.resolverContext as tenant
     const prisma = await getPrismaClient();
-    const inventory=await prisma.productinventory.findFirst({
+    const inventory = await prisma.productinventory.findFirst({
       where: {
         inventoryid: inventoryId
       }
     });
-    if(!inventory) {
+    if (!inventory) {
       return {
         status: 400,
         data: null,
@@ -38,37 +41,38 @@ export const handler = async (event: any) => {
       };
     }
     const payerKey = await getPayerCsSignerKey("Ethereum", tenant.id);
-    const bigIntValue = ethers.utils.parseUnits((quantity*inventory.price).toString(), 18);
+    const bigIntValue = ethers.utils.parseUnits((quantity * inventory.price).toString(), 18);
 
-    const wallet=await getWalletByCustomer(tenantUserId,'Ethereum',tenant);
-    if(!wallet?.walletaddress) {
+    const wallet = await getWalletByCustomer(tenantUserId, "Ethereum", tenant);
+    if (!wallet?.walletaddress) {
       return {
         status: 400,
         data: null,
         error: "Wallet not found"
       };
     }
-    if(!inventory?.tokenid) {
+    if (!inventory?.tokenid) {
       return {
         status: 400,
         data: null,
         error: "TokenId not found"
       };
     }
-    if(!inventory?.smartcontractaddress) {
+    if (!inventory?.smartcontractaddress) {
       return {
         status: 400,
         data: null,
         error: "SmartContractAddress not found"
       };
     }
-    if(!inventory?.quantity) {
+    if (!inventory?.quantity) {
       return {
         status: 400,
         data: null,
         error: "Quantity not found"
       };
     }
+
 
     const oidcToken = event.headers?.identity;
     const cubistConfig = await getCubistConfig(tenant.id);
@@ -83,6 +87,7 @@ export const handler = async (event: any) => {
 
     const receipt=await transferUsdcIn(chain,payerKey.key?.materialId!,bigIntValue,key);
     const transferReceipt=await transferERC1155(wallet?.walletaddress!,parseInt(inventory.tokenid!),inventory.quantity,chain,inventory.smartcontractaddress!,tenant.id,"crypto",receipt.transactionHash.toString());
+
 
     return {
       status: 200,
@@ -99,7 +104,9 @@ export const handler = async (event: any) => {
   }
 };
 
+
 const transferUsdcIn=async(chain:string,masterAddress:string,amount:BigNumber,key:Key)=>{
+
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
 
   const contract = new web3.eth.Contract(USDC_CONTRACT_ABI, USDC_CONTRACT_ADDRESS);
@@ -122,5 +129,5 @@ const transferUsdcIn=async(chain:string,masterAddress:string,amount:BigNumber,ke
 
   const signedTx = await key?.signEvm({ tx, chain_id: 43113 });
   const receipt = await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || "");
-  return receipt
-}
+  return receipt;
+};

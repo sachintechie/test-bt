@@ -14,7 +14,7 @@ import {
   activitylogs
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { logWithTrace } from "../utils/utils";
+import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 
@@ -153,7 +153,7 @@ export async function createProject(
   }
 }
 
-export async function createStage(
+export async function   createStage(
   tenantUserId: string,
   name: string,
   description: string,
@@ -213,6 +213,30 @@ export async function getStageDetails(projectId: string, stageTypeId: string) {
   } catch (err) {
     throw err;
   }
+}
+
+export async function getStageDetailsByProjectId(projectId: string) {
+
+  const prisma = await getPrismaClient();
+
+const stepDetails = await prisma.stepdetail.findMany({
+  where: {
+    step: {
+      name: 'Read file from s3',
+      stage: {
+        projectid: projectId,
+        name: 'Data Storage',
+      },
+    },
+  },
+  select: {
+    id: true,
+    metadata: true,
+  },
+});
+
+return stepDetails;
+
 }
 
 export async function getStepDetails(stepId: string) {
@@ -276,7 +300,7 @@ export async function createStep(
 }
 
 export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string) {
-  console.log("Creating admin stage");
+  console.log("Creating step details",metaData, stepId);
   try {
     const prisma = await getPrismaClient();
     const newProject = await prisma.stepdetail.create({
@@ -342,20 +366,22 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
   try {
     const prisma = await getPrismaClient();
     console.log("Creating wallet", cubistUserId, customerId, key);
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     if (key == null) {
-      key = await org.createKey(cs.Ed25519.Solana, cubistUserId);
+      key = await org.createKey(keyType, cubistUserId);
     }
 
     logWithTrace("Created key", key.materialId);
     const newWallet = await prisma.wallet.create({
       data: {
         customerid: customerId as string,
-        walletaddress: key.materialId,
+        walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
         walletid: key.id,
         chaintype: chainType,
-        wallettype: cs.Ed25519.Solana.toString(),
+        wallettype: keyType.toString(),
         isactive: true,
-        createdat: new Date().toISOString()
+        createdat: new Date().toISOString(),
+        publickey: key.materialId
       }
     });
 
@@ -370,29 +396,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
 export async function createAdminWallet(org: cs.Org, cubistUserId: string, chainType: string, tenantId: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
-    var keyType: any;
-    switch (chainType) {
-      case "Ethereum":
-        keyType = cs.Secp256k1.Evm;
-        break;
-      case "Bitcoin":
-        keyType = cs.Secp256k1.Btc;
-        break;
-      case "Avalanche":
-        keyType = cs.Secp256k1.AvaTest;
-        break;
-      case "Cardano":
-        keyType = cs.Ed25519.Cardano;
-        break;
-      case "Solana":
-        keyType = cs.Ed25519.Solana;
-        break;
-      case "Stellar":
-        keyType = cs.Ed25519.Stellar;
-        break;
-      default:
-        keyType = null;
-    }
+    var keyType = getKeyTypeBasedOnChainId(chainType);
     console.log("Creating wallet", keyType);
     if (keyType != null) {
       const key = await org.createKey(keyType, cubistUserId);
@@ -405,13 +409,14 @@ export async function createAdminWallet(org: cs.Org, cubistUserId: string, chain
       const newWallet = await prisma.adminwallet.create({
         data: {
           adminuserid: customerId as string,
-          walletaddress: key.materialId,
+          walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
           walletid: key.id,
           chaintype: chainType,
           wallettype: keyType.toString(),
           isactive: true,
           createdat: new Date().toISOString(),
-          tenantid: tenantId
+          tenantid: tenantId,
+          publickey: key.materialId
         }
       });
       return { data: newWallet, error: null };
@@ -1923,11 +1928,12 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       where: {
         productid: productId,
         inventoryid: {
-          in: inventoryDataArray.map((data) => data.inventoryid),
-        },
+          in: inventoryDataArray.map((data) => data.inventoryid)
+        }
       },
       select: { inventoryid: true }
     });
+
 
     const existingIds = new Set(existingInventories.map((item: { inventoryid: any; }) => item.inventoryid));
 
@@ -1935,6 +1941,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
     const newInventories = inventoryDataArray.filter(
       (data) => !existingIds.has(data.inventoryid)
     );
+
 
     await prisma.productinventory.createMany({
       data: newInventories.map((inventoryData) => ({
@@ -1948,10 +1955,11 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
         tokenid: inventoryData.tokenid,
         isdeleted: false,
         createdat: new Date(),
-        updatedat: new Date(),
+        updatedat: new Date()
       })),
-      skipDuplicates: true,
+      skipDuplicates: true
     });
+
 
     const createdInventoryRecords = await prisma.productinventory.findMany({
       where: {
@@ -1970,6 +1978,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       .map((data) => data.inventoryid)
       .filter((id) => existingIds.has(id));
 
+
       await addActivityLog({
         title: 'Bulk Inventory created',
         description: `Bulk Inventory against product id ${productId} created successfully.`,
@@ -1980,8 +1989,8 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       created: createdInventoryRecords,
       skipped: skippedIds,
       message: skippedIds.length
-        ? `Some items were not created due to duplication: ${skippedIds.join(', ')}`
-        : "All items created successfully.",
+        ? `Some items were not created due to duplication: ${skippedIds.join(", ")}`
+        : "All items created successfully."
     };
   } catch (error) {
     console.error("Error in createBulkInventory:", error);
@@ -1992,6 +2001,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
     }
   }
 }
+
 
 
 export async function createBulkProduct(productDataArray: product[], customerId:string) {

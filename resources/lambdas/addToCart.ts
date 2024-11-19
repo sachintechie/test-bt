@@ -6,7 +6,7 @@ export const handler = async (event: any, context: any) => {
     const { inventoryId, quantity } = event.arguments?.input;
     const tenant = event.identity.resolverContext as tenant;
     const customerId = tenant?.customerid;
- 
+
     if (!customerId || !inventoryId || !quantity) {
       return {
         status: 400,

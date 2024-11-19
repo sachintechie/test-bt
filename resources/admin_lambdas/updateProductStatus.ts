@@ -7,8 +7,10 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
+
     const {productId, status}  = event.arguments?.input;
 	  const tenant = event.identity?.resolverContext as tenant;
+
     if (!productId || !status) {
       return {
         status: 400,
@@ -16,9 +18,11 @@ export const handler = async (event: any, context: any) => {
         error: "Product ID and status is required"
       };
     }
+
 	const adminUser = await getAdminUserById(tenant.adminuserid!);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     const updatedStatus = await updateProductStatus(productId,status, customer.id);
+
 
     return {
       status: 200,
@@ -34,7 +38,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error:errorMessage,
+      error: errorMessage
     };
   }
 };

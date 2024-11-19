@@ -1,15 +1,12 @@
-import { getAdminTransactionsById, getProjectByIdWithRef, getProjectWithSteps } from "../db/adminDbFunctions";
+import { getProjectWithSteps } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const data = await getProject(
-      event.identity.resolverContext as tenant,
-      event.arguments?.input?.projectId,
-      event.arguments.input.limit,
-      event.arguments.input.pageNo
+    const data = await getProject(event.identity.resolverContext as tenant, event.arguments?.input?.projectId,
+      event.arguments.input.limit, event.arguments.input.pageNo
     );
     const projectData = {
       status: data.project != null ? 200 : 400,
@@ -17,9 +14,9 @@ export const handler = async (event: any) => {
       error: data.project == null ? data.error : null
     };
 
-    console.log("project", projectData);
-
-    return projectData;
+  console.log("project", projectData);
+  
+      return projectData;
   } catch (err) {
     console.log("In catch Block Error", err);
     return {
@@ -34,24 +31,26 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
   console.log("projectId", projectId);
 
   try {
-    const project = await getProjectWithSteps(projectId, limit, pageNo);
-    if (project.error) {
+    const project = await getProjectWithSteps(projectId, limit,pageNo);
+    if(project.error){
       return {
         project: null,
         error: project.error
       };
-    } else {
+    }
+    else{
       return {
         project: project.data?.project,
         error: null
       };
     }
+ 
   } catch (err) {
     console.log(err);
-    return {
+    return{
       project: null,
       error: err
-    };
+    }
   }
 }
 
@@ -72,7 +71,7 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
 //         error: null
 //       };
 //     }
-
+ 
 //   } catch (err) {
 //     console.log(err);
 //     return{

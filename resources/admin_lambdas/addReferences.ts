@@ -33,44 +33,43 @@ export const handler = async (event: any, context: any) => {
 // Function to add stages and steps for processing files in multiple stages
 export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
-    const stageType1 = await getStageType("Data Source");   
+    const stageType1 = await getStageType("Data Source");
 
     // Stage 2: Data Ingestion
     const stageType2 = await getStageType("Data Ingestion");
     if (stageType2) {
-      const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId,2);
-        // Retrieve details from the previous ingestion stage
-        const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
-        if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
-          const fileUploadStepId = sourceStageDetails.steps.filter(step => step.name === "File upload from frontend")[0].id;
-          const stepDetails = await getStepDetails(fileUploadStepId);
+      const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId, 2);
+      // Retrieve details from the previous ingestion stage
+      const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
+        const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+        const stepDetails = await getStepDetails(fileUploadStepId);
 
-      if (stage2) {
-        const stepType = await getStepType("Upload to S3");
+        if (stage2) {
+          const stepType = await getStepType("Upload to S3");
 
-        if (stepType) {
-          const step1 = await createStep(tenantUserId, "Upload to S3", "Upload to S3", stepType.id, stage2.id,1);
-          for (const stepDetail of stepDetails) {
-            const data = JSON.parse(stepDetail.metadata);
+          if (stepType) {
+            const step1 = await createStep(tenantUserId, "Upload to S3", "Upload to S3", stepType.id, stage2.id, 1);
+            for (const stepDetail of stepDetails) {
+              const data = JSON.parse(stepDetail.metadata);
 
             // Upload file content to S3
             const s3Data = await getS3DataWithoutContent(data.fileName);
 
-            await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id);
-            
-          }
+              await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id);
+            }
 
-          // Update project to reflect data storage status
-          await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
+            // Update project to reflect data storage status
+            await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
+          }
         }
       }
-    }
     }
 
     // Stage 3: Data Storage
     const stageType3 = await getStageType("Data Storage");
     if (stageType3) {
-      const stage3 = await createStage(tenantUserId, "Data Storage", "Data Storage", stageType3.id, projectId,3);
+      const stage3 = await createStage(tenantUserId, "Data Storage", "Data Storage", stageType3.id, projectId, 3);
 
       // Retrieve details from the previous ingestion stage
       const ingestionStageDetails = await getStageDetails(projectId, stageType2?.id || "");
@@ -84,9 +83,9 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
         if (stepType1 && stepType2 && stepType3) {
           const [step1, step2, step3] = await Promise.all([
-            createStep(tenantUserId, "Read file from s3", "Read file from s3", stepType1.id, stage3.id,1),
-            createStep(tenantUserId, "Hashing of s3 file", "Hashing of s3 file", stepType2.id, stage3.id,2),
-            createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage3.id,3)
+            createStep(tenantUserId, "Read file from s3", "Read file from s3", stepType1.id, stage3.id, 1),
+            createStep(tenantUserId, "Hashing of s3 file", "Hashing of s3 file", stepType2.id, stage3.id, 2),
+            createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage3.id, 3)
           ]);
 
           for (const stepDetail of stepDetails) {
@@ -106,13 +105,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
             // Step 1: Read file from S3
             await createStepDetails(tenantUserId, JSON.stringify(s3data), step1.id);
 
-
             // Step 2: Hash the S3 file data
             const s3File = { fileName: getDataFromS3?.data?.fileName, fileContent: getDataFromS3?.data?.content };
             const hash = await hashing(s3File);
             const hashedData = {
-              "hash": hash.data?.dataHash,
-            }
+              hash: hash.data?.dataHash
+            };
             await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
             // Step 3: Store the hashed data on the blockchain
