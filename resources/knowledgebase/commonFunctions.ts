@@ -21,6 +21,22 @@ export async function addReferencesLambda(tenantUserId: string, projectId: strin
   await lambda.invoke(params).promise();
 }
 
+export async function dataPreperationLambda(tenantUserId: string, projectId: string) {
+  const event = {
+    tenantUserId: tenantUserId,
+    projectId: projectId
+  };
+
+  const params = {
+    FunctionName: "dataPreparation-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
+    InvocationType: "Event", // This makes the invocation asynchronous
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  await lambda.invoke(params).promise();
+}
+
 export async function lambdaCallForCombineChunks( file_embeddings: any) {
   const event = {
     chunks: file_embeddings

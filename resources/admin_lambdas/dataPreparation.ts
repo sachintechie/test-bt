@@ -119,7 +119,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       const stage5 = await createStage(tenantUserId, "RAG Ingestion", "RAG Ingestion", stageType5.id, projectId, 5);
 
       // Retrieve details from the previous ingestion stage
-      const stepDetails = await getStageDetailsByProjectId(projectId);
+      const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
+        const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+        const stepDetails = await getStepDetails(fileUploadStepId);
       if (stepDetails != null && stepDetails.length > 0) {
         const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
 
@@ -140,6 +143,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
           await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
         }
       }
+    }
     }
 
     // Stage 5: Published
