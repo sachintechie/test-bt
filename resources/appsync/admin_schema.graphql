@@ -3,6 +3,7 @@ input AddProjectAndReferenceInput {
 	description: String
 	projectType: String!
 	organizationId: String!
+  chainType: String
 	files: [ProjectFileInput]
 }
 
@@ -780,6 +781,8 @@ type ProjectData {
   description: String
   isactive: Boolean
   createdby: String
+  chaintype: String
+  
 }
 
 input ProjectFileInput {
