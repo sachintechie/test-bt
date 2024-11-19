@@ -18,6 +18,7 @@
   "dependencies": {
     "@avalabs/avalanchejs": "^4.0.5",
     "@aws-sdk/client-bedrock": "^3.693.0",
+    "@aws-sdk/client-bedrock-runtime": "^3.693.0",
     "@aws-sdk/client-iam": "^3.614.0",
     "@aws-sdk/client-lambda": "^3.675.0",
     "@aws-sdk/client-organizations": "^3.614.0",

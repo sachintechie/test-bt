@@ -14,6 +14,7 @@ import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
 import { getS3Data, lambdaCallForCombineChunks, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
 import axios from "axios";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
+import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -314,36 +315,66 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 }
 
-async function generateEmbedding(text: string): Promise<any> {
-  try {
-    console.log("text", text);
-    // Prepare the request body
-    const body = JSON.stringify({
+// async function generateEmbedding(text: string): Promise<any> {
+//   try {
+//     console.log("text", text);
+//     // Prepare the request body
+
+
+//     const body = JSON.stringify({
+//       inputText: text
+//     });
+//     const endpoint = "https://bedrock.us-east-1.amazonaws.com"; // Adjust the region as necessary
+
+//     try {
+//       const response = await axios.post(endpoint, body, {
+//         headers: {
+//           "Content-Type": "application/json",
+//           Accept: "application/json",
+//           Authorization: "Bearer YOUR_AWS_BEDROCK_API_KEY" // Add your API key or authorization
+//         }
+//       });
+//       console.log("response", response);
+
+//       // Assuming the response structure includes the embedding under a field like 'embedding'
+//       return response.data.embedding; // Extract the embedding from the response
+//     } catch (error) {
+//       console.error("Error generating embedding:", error);
+//       throw new Error("Failed to generate embedding");
+//     }
+//   } catch (error) {
+//     console.error("Error generating embedding:", error);
+//     throw new Error("Failed to generate embedding");
+//   }
+// }
+
+
+async function generateEmbedding(text: string): Promise<number[]> {
+  const client = new BedrockRuntimeClient({
+    region: "us-west-2" // Replace with your AWS region
+  });
+
+  const command = new InvokeModelCommand({
+    modelId: "amazon.titan-embed-text-v2:0",  // Replace with the correct model ID
+    contentType: "application/json",
+    accept: "application/json",
+    body: JSON.stringify({
       inputText: text
-    });
-    const endpoint = "https://bedrock.us-east-1.amazonaws.com"; // Adjust the region as necessary
+    })
+  });
 
-    try {
-      const response = await axios.post(endpoint, body, {
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: "Bearer YOUR_AWS_BEDROCK_API_KEY" // Add your API key or authorization
-        }
-      });
-      console.log("response", response);
+  try {
+    const response = await client.send(command);
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
-      // Assuming the response structure includes the embedding under a field like 'embedding'
-      return response.data.embedding; // Extract the embedding from the response
-    } catch (error) {
-      console.error("Error generating embedding:", error);
-      throw new Error("Failed to generate embedding");
-    }
+    // Assuming the response contains an `embedding` array within `responseBody`
+    return responseBody.embedding;
   } catch (error) {
     console.error("Error generating embedding:", error);
-    throw new Error("Failed to generate embedding");
+    throw error;
   }
 }
+
 
 class RecursiveCharacterTextSplitter {
   chunkSize: number;
