@@ -1,10 +1,13 @@
-import { getPrismaClient, getWalletByCustomer } from "../db/dbFunctions";
+
+import {getCubistConfig, getPrismaClient, getWalletByCustomer} from "../db/dbFunctions";
 import { tenant } from "../db/models";
-import { getPayerCsSignerKey } from "../cubist/CubeSignerClient";
+import {getCubistKey, getPayerCsSignerKey} from "../cubist/CubeSignerClient";
 import contractAbi from "../abi/BridgeUsdc.json";
 import Web3 from "web3";
-import { BigNumber, ethers } from "ethers";
-import { transferERC1155 } from "./transferERC1155";
+import {BigNumber, ethers} from "ethers";
+import {transferERC1155} from "./transferERC1155";
+
+import { Key } from "@cubist-labs/cubesigner-sdk";
 
 const AVAX_RPC_URL = process.env.AVAX_RPC_URL!;
 const ETH_RPC_URL = process.env.ETH_RPC_URL!;
@@ -14,11 +17,16 @@ const USDC_CONTRACT_ADDRESS = contractAbi.address;
 const web3Avax = new Web3(AVAX_RPC_URL);
 const web3Eth = new Web3(ETH_RPC_URL);
 
+const env: any = {
+  SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
+};
+
 export const handler = async (event: any) => {
   try {
     console.log(event);
-    const { inventoryId, chain, tenantUserId, quantity } = event.arguments?.input;
-    const tenant = event.identity.resolverContext as tenant;
+
+    const {inventoryId,chain,tenantUserId,quantity,senderWalletAddress}=event.arguments?.input;
+    const tenant=event.identity.resolverContext as tenant
     const prisma = await getPrismaClient();
     const inventory = await prisma.productinventory.findFirst({
       where: {
@@ -65,17 +73,21 @@ export const handler = async (event: any) => {
       };
     }
 
-    const receipt = await transferUsdcIn(chain, tenant.id, payerKey.key?.materialId!, bigIntValue);
-    const transferReceipt = await transferERC1155(
-      wallet?.walletaddress!,
-      parseInt(inventory.tokenid!),
-      inventory.quantity,
-      chain,
-      inventory.smartcontractaddress!,
-      tenant.id,
-      "crypto",
-      receipt.transactionHash.toString()
-    );
+
+    const oidcToken = event.headers?.identity;
+    const cubistConfig = await getCubistConfig(tenant.id);
+    if (cubistConfig == null) {
+      return {
+        transaction: null,
+        error: "Cubist Configuration not found for the given tenant"
+      };
+    }
+    const cubistOrgId = cubistConfig.orgid;
+    const key = await getCubistKey(env, cubistOrgId, oidcToken, ["sign:*"], senderWalletAddress);
+
+    const receipt=await transferUsdcIn(chain,payerKey.key?.materialId!,bigIntValue,key);
+    const transferReceipt=await transferERC1155(wallet?.walletaddress!,parseInt(inventory.tokenid!),inventory.quantity,chain,inventory.smartcontractaddress!,tenant.id,"crypto",receipt.transactionHash.toString());
+
 
     return {
       status: 200,
@@ -92,14 +104,15 @@ export const handler = async (event: any) => {
   }
 };
 
-const transferUsdcIn = async (chain: string, tenantId: string, masterAddress: string, amount: BigNumber) => {
+
+const transferUsdcIn=async(chain:string,masterAddress:string,amount:BigNumber,key:Key)=>{
+
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
-  const payerKey = await getPayerCsSignerKey("Ethereum", tenantId);
 
   const contract = new web3.eth.Contract(USDC_CONTRACT_ABI, USDC_CONTRACT_ADDRESS);
-  const currentNonce = await web3.eth.getTransactionCount(payerKey.key?.materialId!, "pending");
+  const currentNonce = await web3.eth.getTransactionCount(key?.materialId!, "pending");
   const tx: any = {
-    from: payerKey.key?.materialId,
+    from: key?.materialId,
     to: masterAddress,
     type: "0x02",
     maxPriorityFeePerGas: web3.utils.toWei("1", "gwei"), // Priority fee for miners
@@ -114,7 +127,7 @@ const transferUsdcIn = async (chain: string, tenantId: string, masterAddress: st
   // Adjust the gas limit accordingly if required
   console.log(tx);
 
-  const signedTx = await payerKey.key?.signEvm({ tx, chain_id: 43113 });
+  const signedTx = await key?.signEvm({ tx, chain_id: 43113 });
   const receipt = await web3.eth.sendSignedTransaction(signedTx?.data()?.rlp_signed_tx || "");
   return receipt;
 };

@@ -163,6 +163,8 @@ async function hashCombinedChunks(
 
   createdBy: string
 ) {
+
+  console.log("combinedResponseBody", combinedResponseBody);
   const hashedData: Array<{ file_name: string; file_content_hash: string }> = [];
 
   // Parse the combined response body (assuming it's a JSON array)
@@ -201,6 +203,7 @@ async function hashCombinedChunks(
 
     // Push the hashed entry to the result array
     hashedData.push(hashedEntry);
+    console.log("hashedEntry", hashedEntry);
 
     await createStepDetails(createdBy, JSON.stringify(hashedEntry), step6Id);
 
@@ -208,6 +211,7 @@ async function hashCombinedChunks(
 
     await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
   }
+  console.log("hashedData", hashedData);
 
   return hashedData;
 }
@@ -215,6 +219,8 @@ async function hashCombinedChunks(
 // Function to hash the chunk contents
 async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[], step1Id: string, createdBy: string) {
   const hashedData: HashedEntry[] = [];
+
+  console.log("allEmbeddingsWithMetadata", allEmbeddingsWithMetadata);
 
   // Hash each chunk's content
   allEmbeddingsWithMetadata.forEach(async (entry) => {
@@ -231,6 +237,8 @@ async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[],
     hashedData.push(hashedEntry);
   });
 
+  console.log("hashedData", hashedData);
+
   // Group the hashed data by file_name
   const groupedChunks: Record<string, HashedEntry[]> = {};
   hashedData.forEach((chunk) => {
@@ -239,20 +247,21 @@ async function hashChunkContents(allEmbeddingsWithMetadata: EmbeddingMetadata[],
     }
     groupedChunks[chunk.file_name].push(chunk);
   });
-
+console.log("groupedChunks", groupedChunks);
   // Create the grouped chunk list and hash the chunk groups
   const groupedChunkList = Object.values(groupedChunks);
   const hashedChunkContent: GroupedChunk[] = [];
 
-  groupedChunkList.forEach(async (group) => {
+   groupedChunkList.forEach(async (group) => {
     const hashContent = await hashing(group);
     const fileName = group[0].file_name;
 
-    hashedChunkContent.push({ file_name: fileName, hash: hashContent.data?.dataHash ?? "" });
+     hashedChunkContent.push({ file_name: fileName, hash: hashContent.data?.dataHash ?? "" });
     const metaData = { fileName, hash: hashContent };
     // Create a step detail for the chunk hashing process
     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
   });
+  console.log("hashedChunkContent", hashedChunkContent);
 
   return hashedChunkContent;
 }
@@ -273,30 +282,32 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 
   const chunks = textSplitter.splitText(fileContent);
   const metaData = { fileName: fileKey, numberOf_chunks: chunks.length.toString() };
+  console.log("metaData", metaData);
   await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
 
   // Prepare list to store embeddings with metadata
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
-  for (let index = 0; index < chunks.length; index++) {
-    const chunk = chunks[index];
+  for (const chunk of chunks) {
     try {
       const embedding = await generateEmbedding(chunk);
 
       // Add metadata with the embedding
       embeddingsWithMetadata.push({
         file_name: fileKey,
-        chunk_index: index,
+        chunk_index: chunks.indexOf(chunk),
         chunk_content: chunk,
         project_id: projectId,
         embedding
       });
     } catch (error) {
-      console.error(`Error generating embeddings for chunk ${index} in file ${fileKey}: ${error}`);
-      return { filename: fileKey, error: `Error generating embeddings for chunk ${index}`, embeddings: null };
+      console.error(`Error generating embeddings for chunk ${chunks.indexOf(chunk)} in file ${fileKey}: ${error}`);
+      return { filename: fileKey, error: `Error generating embeddings for chunk ${chunks.indexOf(chunk)}`, embeddings: null };
     }
   }
+  console.log("embeddingsWithMetadata", embeddingsWithMetadata);
 
   const metaData2 = { fileName: fileKey, number_of_chunks: chunks.length.toString(), vector_dimensions: "1024" };
+  console.log("metaData2", metaData2);
 
   await createStepDetails(createdBy, JSON.stringify(metaData2), step2Id);
 
@@ -305,6 +316,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 
 async function generateEmbedding(text: string): Promise<any> {
   try {
+    console.log("text", text);
     // Prepare the request body
     const body = JSON.stringify({
       inputText: text
@@ -319,6 +331,7 @@ async function generateEmbedding(text: string): Promise<any> {
           Authorization: "Bearer YOUR_AWS_BEDROCK_API_KEY" // Add your API key or authorization
         }
       });
+      console.log("response", response);
 
       // Assuming the response structure includes the embedding under a field like 'embedding'
       return response.data.embedding; // Extract the embedding from the response
