@@ -199,10 +199,10 @@ async function hashCombinedChunks(
     const base64Content = encodedBytes.toString("base64");
 
     // Create the JSON response content
-    const content = JSON.stringify({
+    const content = {
       fileName: entry["file_name"],
       fileContent: base64Content
-    });
+    };
 
     // Hash the content
     const fileContentHash = await hashing(content);
@@ -212,12 +212,15 @@ async function hashCombinedChunks(
       file_name: entry["file_name"],
       file_content_hash: fileContentHash.data?.dataHash || ""
     };
+    const hashedFileData = {
+      hash: fileContentHash.data?.dataHash
+    };
 
     // Push the hashed entry to the result array
     hashedData.push(hashedEntry);
     console.log("hashedEntry", hashedEntry);
 
-    await createStepDetails(createdBy, JSON.stringify(hashedEntry), step6Id);
+    await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id);
 
     const combinedResponse = await storeHash(hashedEntry.file_content_hash, false);
     console.log("combinedResponse", combinedResponse);
