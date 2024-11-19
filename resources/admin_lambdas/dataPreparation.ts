@@ -10,8 +10,9 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, storeHash } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { combineChunks, getS3Data, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
+import { combineChunks, getS3Data, lambdaCallForIndexing ,streamToBuffer} from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
+import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 export const handler = async (event: any, context: any) => {
   try {
@@ -197,8 +198,22 @@ async function hashCombinedChunks(
     console.log(fileContent); // Equivalent to your print statement
 
     // Base64 encode the file content
-    const encodedBytes = Buffer.from(fileContent, "utf-8");
-    const base64Content = encodedBytes.toString("base64");
+   // const encodedBytes = Buffer.from(fileContent, "utf-8");
+   // const base64Content = encodedBytes.toString("base64");
+    let base64Content;
+
+
+    if (Buffer.isBuffer(fileContent)) {
+      base64Content = fileContent.toString("base64");
+    } else if (typeof fileContent === "string") {
+      base64Content = Buffer.from(fileContent); // Convert string to Buffer
+      base64Content = base64Content.toString("base64");
+    } else if (fileContent instanceof Readable) {
+      base64Content = await streamToBuffer(fileContent);
+      base64Content = base64Content.toString("base64");
+    } else {
+      throw new Error("Unexpected type for s3Details.Body");
+    }
 
     console.log("base64Content", base64Content);
 
