@@ -1475,7 +1475,7 @@ type Query {
   GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
   GetUserCart: GetUserCartResponse
   GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
-
+/*
 }
 
 schema {
