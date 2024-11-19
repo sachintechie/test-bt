@@ -13,12 +13,6 @@ import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
 import { combineChunks, getS3Data, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
-import { Client, ClientOptions, Connection } from '@opensearch-project/opensearch';
-import * as https from 'https';
-import { fromIni } from '@aws-sdk/credential-provider-ini';
-import * as crypto from 'crypto';
-import * as aws4 from 'aws4';
-import { AwsCredentialIdentity } from '@aws-sdk/types';
 export const handler = async (event: any, context: any) => {
   try {
     const { projectId, tenantUserId } = event;
@@ -70,16 +64,16 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               createStep(tenantUserId, "Chunking", "Chunking", stepType1.id, stage4.id, 1),
               createStep(tenantUserId, "Chunking hash", "Chunking hash", stepType2.id, stage4.id, 2),
               createStep(tenantUserId, "Embedding of chunks", "Embedding of chunks", stepType3.id, stage4.id, 3),
-              createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id, 1),
-              createStep(tenantUserId, "Store chunk hash to Blockchain", "Store chunk hash to Blockchain", stepType5.id, stage4.id, 2),
-              createStep(tenantUserId, "Hashing of reconstructive data", "Hashing of reconstructive data", stepType6.id, stage4.id, 3),
+              createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id,4 ),
+              createStep(tenantUserId, "Store chunk hash to Blockchain", "Store chunk hash to Blockchain", stepType5.id, stage4.id, 5),
+              createStep(tenantUserId, "Hashing of reconstructive data", "Hashing of reconstructive data", stepType6.id, stage4.id, 6),
               createStep(
                 tenantUserId,
                 "Store recombined file to Blockchain",
                 "Store recombined file to Blockchain",
                 stepType7.id,
                 stage4.id,
-                1
+                7                
               )
             ]);
 
@@ -191,6 +185,7 @@ async function hashCombinedChunks(
     // Step detail for reconstruction of data
 
     const metadata4 = { file_name: entry["file_name"] };
+    console.log("metadata4", metadata4);
 
     await createStepDetails(createdBy, JSON.stringify(metadata4), step4Id);
 
@@ -224,7 +219,8 @@ async function hashCombinedChunks(
 
     await createStepDetails(createdBy, JSON.stringify(hashedEntry), step6Id);
 
-    const combinedResponse = await storeHash(hashedEntry["file_content_hash"], false);
+    const combinedResponse = await storeHash(hashedEntry.file_content_hash, false);
+    console.log("combinedResponse", combinedResponse);
 
     await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
   }
