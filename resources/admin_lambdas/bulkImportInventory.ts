@@ -86,7 +86,7 @@ export const handler = async (event: any, context: any) => {
     const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
 
 
-      const { created, skipped, message } = await createBulkInventory(inventoryDataArray, productId, customer.id);
+      const { created, skipped, message } = await createBulkInventory(inventoryDataArray, productId, customer?.id);
     
     console.log(`Successfully created ${created.length} inventories, skipped ${skipped.length} due to duplication`);
 
@@ -97,8 +97,6 @@ export const handler = async (event: any, context: any) => {
     await createMultipleStripeProducts(inventoryDataArray, tenantContext.id!);
     console.log(`Complete creating Stripe products for ${created.length} inventories`);
 
-    const adminUser = await getAdminUserById(tenantContext.adminuserid!);
-    const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
 
 
     if (customer) {
