@@ -216,17 +216,6 @@ model reference  {
   isactive          Boolean
   createdat         String?
   datasourceid      String?
-  ingestionjobid    String?
-  s3prestorehash    String?
-  s3prestoretxhash  String?
-  s3poststorehash   String?
-  s3poststoretxhash String?
-  chaintype         String?
-  chainid           String?
-  completechunkhash String?
-  completechunktxhash String?
-  chunkshash        String?
-  chunkstxhash      String?
     
 
 }

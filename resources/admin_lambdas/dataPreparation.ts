@@ -351,7 +351,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 
 async function generateEmbedding(text: string): Promise<number[]> {
   const client = new BedrockRuntimeClient({
-    region: "us-west-2" // Replace with your AWS region
+    region: "us-east-1" // Replace with your AWS region
   });
 
   const command = new InvokeModelCommand({
