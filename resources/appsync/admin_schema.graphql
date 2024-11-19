@@ -1030,29 +1030,7 @@ tokenIds: [String!]
 }
 
 type Query {
-
   AdminSignin(input: SigninInput): SignIn
-  CreateAdminWallet(input: CreateWalletInput): GetWallet
-  ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
-  ListAdminUsers(input: PaginationInput): ListAdminUsers
-  ListReference(input: ListRefInput): ListReference
-  TransferNftAdmin(input: TransferNftAdminInput): TransferNftAdmin
-  GetAdminTransactionById(input: GetAdminTransactionInput): ListWalletTransactions
-  GetAdminWalletBalance(input: GetAdminWalletBalanceInput): GetAdminWalletBalance
-  GetAdminProducts(input: GetAdminProductsInput): GetProductsResponse
-  GetInventoriesByProductId(input: GetInventoriesByProductIdInput): GetInventoriesByProductIdIdResponse
-  SearchInventory(input: SearchInventoryInput): GetInventoryResponse
-  FilterInventory(input: FilterInventoryInput): GetInventoryResponse
-  ListProject(input: ListProjectInput): ListProject
-  GetProjectById(input: ListProjectByIdInput): ProjectAndStepsResponse
-  GetCategoriesAdmin(input: GetCategoriesInput): GetCategoriesResponse
-  GetProductsAdmin(input: GetProductsInput): GetProductsPaginationResponse
-  GetProductAttributesByProductIdAdmin(input: GetProductAttributesByProductIdInput!): GetProductAttributesResponse
-  GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
-  ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
-
-
-	AdminSignin(input: SigninInput): SignIn
 	CreateAdminWallet(input: CreateWalletInput): GetWallet
 	ListWalletAdminTransactions(input: ListWalletTokenInput): ListWalletTransactions
 	ListAdminUsers(input: PaginationInput): ListAdminUsers
@@ -1071,8 +1049,6 @@ type Query {
 	GetOwnershipByInventoryIdAdmin(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
 	GetActivityLogs: GetActivityLogsResponse
-
-
 }
 
 schema {
