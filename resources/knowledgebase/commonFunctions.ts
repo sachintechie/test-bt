@@ -63,7 +63,7 @@ export async function lambdaCallForCombineChunks( file_embeddings: any) {
 
     console.log('Decoded response:', combinedResponse);
     
-    return combinedResponse; // Or process further as needed
+    return combinedResponse.body; // Or process further as needed
 }
 
 export async function lambdaCallForIndexing( all_embeddings_with_metadata: any) {
