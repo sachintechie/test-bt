@@ -2,8 +2,10 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getStageDetails,
   getStageDetailsByProjectId,
   getStageType,
+  getStepDetails,
   getStepType,
   updateProjectStage
 } from "../db/adminDbFunctions";
@@ -36,12 +38,18 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
   try {
     let file_embeddings;
     // Stage 4: Data Preparation
+    const stageType1 = await getStageType("Data Source");
+
     const stageType4 = await getStageType("Data Preparation");
     if (stageType4) {
       const stage4 = await createStage(tenantUserId, "Data Preparation", "Data Preparation", stageType4.id, projectId, 4);
+      const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
+        const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+        const stepDetails = await getStepDetails(fileUploadStepId);
 
       // Retrieve details from the previous ingestion stage
-      const stepDetails = await getStageDetailsByProjectId(projectId);
+    //  const stepDetails = await getStageDetailsByProjectId(projectId);
       if (stepDetails != null && stepDetails.length > 0) {
         const [stepType1, stepType2, stepType3, stepType4, stepType5, stepType6, stepType7] = await Promise.all([
           getStepType("Chunking"),
@@ -100,6 +108,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
           await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
         }
       }
+    }
     }
 
     // Stage 5: Rag Ingestion
