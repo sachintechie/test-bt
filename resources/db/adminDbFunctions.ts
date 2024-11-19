@@ -153,7 +153,7 @@ export async function createProject(
   }
 }
 
-export async function createStage(
+export async function   createStage(
   tenantUserId: string,
   name: string,
   description: string,
@@ -300,7 +300,7 @@ export async function createStep(
 }
 
 export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string) {
-  console.log("Creating admin stage");
+  console.log("Creating step details",metaData, stepId);
   try {
     const prisma = await getPrismaClient();
     const newProject = await prisma.stepdetail.create({
