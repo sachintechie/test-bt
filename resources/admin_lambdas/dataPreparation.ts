@@ -133,7 +133,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
             ]);
 
-            const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
+            const lambdaResponseForIndexing : string[]  = await lambdaCallForIndexing(file_embeddings?.embeddings);
             console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
 
             for (const indexedFile of lambdaResponseForIndexing) {
