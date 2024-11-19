@@ -100,9 +100,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
             // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
-            const combined_response = await lambdaCallForCombineChunks(file_embeddings);
+            const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
 
             const hashCombinedData = hashCombinedChunks(combined_response["body"], step4.id, step6.id, step7.id, tenantUserId);
+            console.log("hashCombinedData", hashCombinedData);
           }
 
           // Update project to reflect data preparation status
@@ -128,6 +129,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
           ]);
 
           const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings);
+          console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
 
           for (const indexedFile of lambdaResponseForIndexing) {
             const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
