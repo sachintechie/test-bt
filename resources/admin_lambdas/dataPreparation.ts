@@ -263,7 +263,7 @@ async function hashChunkContents(
     const fileName = group[0].file_name;
 
     // Metadata for step details
-    const metaData = { fileName, hash: hashContent };
+    const metaData = { fileName, hash: hashContent.data?.dataHash ?? "" };
     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
 
     return {
