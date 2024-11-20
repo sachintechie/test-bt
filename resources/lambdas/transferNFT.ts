@@ -119,7 +119,7 @@ export const transferNFT = async (
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
         toaddress: toAddress,
-        tokenid: tokenId,
+        tokenid: tokenId.toString(),
         amount: 1,
         tokentype: "ERC721"
       }

@@ -4,6 +4,8 @@ import { S3 } from "aws-sdk";
 import { Readable } from "stream";
 import { syncKb } from "./scanDataSource";
 import { EmbeddingMetadata } from "../db/models";
+import { storeHash as avalancheStoreHash } from "../avalanche/storeHashFunctions";
+import { storeHash as provenanceStoreHash } from "../provenance/storeHashFunctions";
 
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
@@ -39,66 +41,61 @@ export async function dataPreperationLambda(tenantUserId: string, projectId: str
   await lambda.invoke(params).promise();
 }
 
-export async function lambdaCallForCombineChunks( file_embeddings: any) {
+export async function lambdaCallForCombineChunks(file_embeddings: any) {
   const event = {
     chunks: file_embeddings
   };
 
   const params = {
-    FunctionName : 'arn:aws:lambda:us-east-1:084828599845:function:combine_chunks',
-    InvocationType : 'RequestResponse',
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:combine_chunks",
+    InvocationType: "RequestResponse",
     Payload: JSON.stringify(event)
   };
 
   // Invoke the other Lambda function asynchronously
   const response = await lambda.invoke(params).promise();
 
-    const responsePayload = response.Payload as Buffer;
+  const responsePayload = response.Payload as Buffer;
 
-    // Convert the buffer to string (UTF-8 encoded)
-    const responseStr = responsePayload.toString('utf-8');
+  // Convert the buffer to string (UTF-8 encoded)
+  const responseStr = responsePayload.toString("utf-8");
 
-    // Parse the string into a JSON object
-    const combinedResponse = JSON.parse(responseStr);
+  // Parse the string into a JSON object
+  const combinedResponse = JSON.parse(responseStr);
 
-    console.log('Decoded response:', combinedResponse);
-    
-    return combinedResponse.body; // Or process further as needed
+  console.log("Decoded response:", combinedResponse);
+
+  return combinedResponse.body; // Or process further as needed
 }
 
-export async function lambdaCallForIndexing( all_embeddings_with_metadata: any) {
+export async function lambdaCallForIndexing(all_embeddings_with_metadata: any) {
   const event = {
     all_embeddings_with_metadata: all_embeddings_with_metadata
   };
 
   const params = {
-    FunctionName : 'arn:aws:lambda:us-east-1:084828599845:function:ai_sov_indexing',
-    InvocationType : 'RequestResponse',
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:ai_sov_indexing",
+    InvocationType: "RequestResponse",
     Payload: JSON.stringify(event)
   };
 
   // Invoke the other Lambda function asynchronously
   const response = await lambda.invoke(params).promise();
 
-    const responsePayload = response.Payload as Buffer;
+  const responsePayload = response.Payload as Buffer;
 
-    // Convert the buffer to string (UTF-8 encoded)
-    const responseStr = responsePayload.toString('utf-8');
+  // Convert the buffer to string (UTF-8 encoded)
+  const responseStr = responsePayload.toString("utf-8");
 
-    // Parse the string into a JSON object
-    const combinedResponse = JSON.parse(responseStr);
+  // Parse the string into a JSON object
+  const combinedResponse = JSON.parse(responseStr);
 
-    console.log('Decoded response:', combinedResponse);
-    
-    return combinedResponse.body; // Or process further as needed
+  console.log("Decoded response:", combinedResponse);
+
+  return combinedResponse.body; // Or process further as needed
 }
 
-
-
-
-
-
-export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: number = 20){
+export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: number = 20) {
   // Group chunks by file_name
   const fileDict: Record<string, EmbeddingMetadata[]> = {};
   for (const chunk of chunkList) {
@@ -134,14 +131,6 @@ export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: num
 
   return combinedFiles;
 }
-
-
-
-
-
-
-
-
 
 export async function addToS3Bucket(fileName: string, fileContent: string) {
   try {
@@ -188,13 +177,12 @@ export async function addToS3Bucket(fileName: string, fileContent: string) {
     const data = {
       fileName: fileName,
       size: size,
-      etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
+      etag: s3Details?.ETag?.replace(/^"|"$/g, ""),
       fileContent: objectContent,
       contentType: s3Details.ContentType,
       lastModified: s3Details.LastModified
     };
 
-    
     return {
       data: data,
       error: null
@@ -217,48 +205,38 @@ export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
 };
 
 export async function generatePresignedUrl(files: any) {
+  const urls = await Promise.all(
+    files.map(async (file: { contentType: any; fileName: any }) => {
+      const key = file.fileName;
 
-  const urls = await Promise.all(files.map(async (file: {
-    contentType: any; fileName: any; 
-}) => {
-    const key = file.fileName;
+      const params = {
+        Bucket: bucketName,
+        Key: key,
+        Expires: 180, // URL expiration time in seconds
+        ContentType: file.contentType // Adjust the content type if needed
+      };
 
-    const params = {
-      Bucket: bucketName,
-      Key: key,
-      Expires: 180, // URL expiration time in seconds
-      ContentType: file.contentType, // Adjust the content type if needed
-    };
+      const url = await s3.getSignedUrlPromise("putObject", params);
 
-    const url = await s3.getSignedUrlPromise('putObject', params);
-
-    return { url, key };
-  }));
+      return { url, key };
+    })
+  );
 
   return urls;
-
 }
 
 export async function generateSignedUrl(file: any) {
-
   const downloadParams = {
-    Bucket: bucketName,  // Replace with your S3 bucket name
-    Key: file.fileName,  // The key (file name) of the uploaded file
-    Expires: 7 * 24 * 60 * 60,  // Expiry time for the download URL (in seconds)
+    Bucket: bucketName, // Replace with your S3 bucket name
+    Key: file.fileName, // The key (file name) of the uploaded file
+    Expires: 7 * 24 * 60 * 60 // Expiry time for the download URL (in seconds)
   };
 
- 
-    // Generate the pre-signed URL for downloading
-    const signedUrl = s3.getSignedUrl('getObject', downloadParams);
- 
+  // Generate the pre-signed URL for downloading
+  const signedUrl = s3.getSignedUrl("getObject", downloadParams);
 
-    return signedUrl;
-
-
-
-
+  return signedUrl;
 }
-
 
 // Helper function to format bytes
 export async function formatBytes(bytes: number, decimals = 2) {
@@ -297,8 +275,8 @@ export async function getS3Data(fileName: string) {
     console.log("s3Details", s3Details);
     // Check the type of Body
     let objectContent;
-  
-     if (Buffer.isBuffer(s3Details.Body)) {
+
+    if (Buffer.isBuffer(s3Details.Body)) {
       objectContent = s3Details.Body.toString("base64");
     } else if (typeof s3Details.Body === "string") {
       objectContent = Buffer.from(s3Details.Body); // Convert string to Buffer
@@ -310,26 +288,24 @@ export async function getS3Data(fileName: string) {
       throw new Error("Unexpected type for s3Details.Body");
     }
     const downloadParams = {
-      Bucket: bucketName,  // Replace with your S3 bucket name
-      Key: fileName,  // The key (file name) of the uploaded file
-      Expires: 60 * 15,  // Expiry time for the download URL (in seconds)
+      Bucket: bucketName, // Replace with your S3 bucket name
+      Key: fileName, // The key (file name) of the uploaded file
+      Expires: 60 * 15 // Expiry time for the download URL (in seconds)
     };
-  
-   
-      // Generate the pre-signed URL for downloading
-      const signedUrl = s3.getSignedUrl('getObject', downloadParams);
+
+    // Generate the pre-signed URL for downloading
+    const signedUrl = s3.getSignedUrl("getObject", downloadParams);
     //const objectContent = await streamToBuffer(s3Details.Body as Readable);
     const size = await formatBytes(s3Details.ContentLength || 0);
     console.log("File uploaded to s3Details", s3Details, size);
     const data = {
       fileName: fileName,
       size: size,
-      etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
+      etag: s3Details?.ETag?.replace(/^"|"$/g, ""),
       content: objectContent,
       contentType: s3Details.ContentType,
       lastModified: s3Details.LastModified,
       downloadUrl: signedUrl
-
     };
     return {
       data: data,
@@ -364,21 +340,20 @@ export async function getS3DataWithoutContent(fileName: string) {
     //const objectContent = await streamToBuffer(s3Details.Body as Readable);
 
     const downloadParams = {
-      Bucket: bucketName,  // Replace with your S3 bucket name
-      Key: fileName,  // The key (file name) of the uploaded file
-      Expires: 60 * 15,  // Expiry time for the download URL (in seconds)
+      Bucket: bucketName, // Replace with your S3 bucket name
+      Key: fileName, // The key (file name) of the uploaded file
+      Expires: 60 * 15 // Expiry time for the download URL (in seconds)
     };
-  
-   
-      // Generate the pre-signed URL for downloading
-      const signedUrl = s3.getSignedUrl('getObject', downloadParams);
+
+    // Generate the pre-signed URL for downloading
+    const signedUrl = s3.getSignedUrl("getObject", downloadParams);
     const size = await formatBytes(s3Details.ContentLength || 0);
     console.log("File uploaded to s3Details", s3Details, size);
     const data = {
       fileName: fileName,
       size: size,
-      etag: s3Details?.ETag?.replace(/^"|"$/g, ''),
-     // content: objectContent,
+      etag: s3Details?.ETag?.replace(/^"|"$/g, ""),
+      // content: objectContent,
       contentType: s3Details.ContentType,
       lastModified: s3Details.LastModified,
       downloadUrl: signedUrl
@@ -396,6 +371,30 @@ export async function getS3DataWithoutContent(fileName: string) {
   }
 }
 
+export async function storeHashByChainType(hash: string, chainType: string) {
+  try {
+    let hashResult;
+    switch (chainType) {
+      case "Avalanche":
+        hashResult = await avalancheStoreHash(hash);
+        break;
 
+      case "Provenance":
+        hashResult = await provenanceStoreHash(
+          "0xa0f70a94393b30f8b06382aabe21f16e9bc11b0e6929586dcefb7e83fa6d4d2e",
+          hash,
+          process.env.PROVANENCE_MNEMONIC || ""
+        );
 
+        break;
 
+      default:
+        return null;
+    }
+
+    return hashResult;
+  } catch (err) {
+    console.error("Error in handler:", err);
+    return null;
+  }
+}

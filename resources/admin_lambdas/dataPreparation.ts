@@ -8,12 +8,15 @@ import {
   getStepType,
   updateProjectStage
 } from "../db/adminDbFunctions";
-import { hashing, storeHash } from "../avalanche/storeHashFunctions";
+import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer} from "../knowledgebase/commonFunctions";
+import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer, storeHashByChainType} from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+const client = new BedrockRuntimeClient({
+  region: "us-east-1" // Replace with your AWS region
+});
 export const handler = async (event: any, context: any) => {
   try {
     const { projectId, tenantUserId } = event;
@@ -92,16 +95,18 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               // Step 5: Store chunk hash to Blockchain
 
               if (hashed_chunkcontent != null) {
-                const blockchainHashedData = await storeHash(hashed_chunkcontent[0].hash, false);
+
+                const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, "Avalanche");
                 await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
               }
 
               // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
               if (file_embeddings.embeddings != null) {
-                const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+               // const combined_response1 = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+               // console.log("combined_response1_lambda", combined_response1);
 
-                //const combined_response = await combineChunks(file_embeddings?.embeddings);
+                const combined_response = await combineChunks(file_embeddings?.embeddings);
                 console.log("combined_response", combined_response);
                 const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId);
                 console.log("hashCombinedData", hashCombinedData);
@@ -242,9 +247,9 @@ async function hashCombinedChunks(
 
     await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id);
 
-    const combinedResponse = await storeHash(hashedEntry.file_content_hash, false);
+    const combinedResponse = await storeHashByChainType(hashedEntry.file_content_hash, "Avalanche");
     console.log("combinedResponse", combinedResponse);
-
+    if(combinedResponse != null)
     await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
   }
   console.log("hashedData", hashedData);
@@ -351,9 +356,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 }
 
 async function generateEmbedding(text: string): Promise<number[]> {
-  const client = new BedrockRuntimeClient({
-    region: "us-east-1" // Replace with your AWS region
-  });
+ 
 
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
