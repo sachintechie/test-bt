@@ -27,6 +27,7 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.description,
       event.arguments?.input?.projectType,
       event.arguments?.input?.organizationId,
+      event.arguments?.input?.chainType,
       event.arguments?.input?.files
     );
     console.log("data", data);
@@ -55,6 +56,7 @@ async function addProjectAndReference(
   description: string,
   projectType: ProjectType,
   organizationId: string,
+  chainType: string,
   files: any
 ) {
   logWithTrace("Creating admin project");
@@ -70,7 +72,7 @@ async function addProjectAndReference(
       };
     }
 
-    const project = await createProject(tenant, name, description, projectType, organizationId, kb_id);
+    const project = await createProject(tenant, name, description, projectType,chainType, organizationId, kb_id);
 
     if (project != null) {
       const stage1 = await addStage_1(tenant.adminuserid ?? "", project.id, files);

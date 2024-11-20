@@ -10,8 +10,9 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, storeHash } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { combineChunks, getS3Data, lambdaCallForIndexing } from "../knowledgebase/commonFunctions";
+import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer} from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
+import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 export const handler = async (event: any, context: any) => {
   try {
@@ -97,9 +98,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
               // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
-              // const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
               if (file_embeddings.embeddings != null) {
-                const combined_response = await combineChunks(file_embeddings?.embeddings);
+                const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+
+                //const combined_response = await combineChunks(file_embeddings?.embeddings);
                 console.log("combined_response", combined_response);
                 const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId);
                 console.log("hashCombinedData", hashCombinedData);
@@ -133,10 +135,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
             ]);
 
-            const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
+            const lambdaResponseForIndexing   = await lambdaCallForIndexing(file_embeddings?.embeddings);
             console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
 
-            for (const indexedFile of lambdaResponseForIndexing) {
+            const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
+
+            for (const indexedFile of indexedFiles) {
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
             }
@@ -195,14 +199,30 @@ async function hashCombinedChunks(
     console.log(fileContent); // Equivalent to your print statement
 
     // Base64 encode the file content
-    const encodedBytes = Buffer.from(fileContent, "utf-8");
-    const base64Content = encodedBytes.toString("base64");
+   // const encodedBytes = Buffer.from(fileContent, "utf-8");
+   // const base64Content = encodedBytes.toString("base64");
+    let base64Content;
+
+
+    if (Buffer.isBuffer(fileContent)) {
+      base64Content = fileContent.toString("base64");
+    } else if (typeof fileContent === "string") {
+      base64Content = Buffer.from(fileContent); // Convert string to Buffer
+      base64Content = base64Content.toString("base64");
+    } else if (fileContent instanceof Readable) {
+      base64Content = await streamToBuffer(fileContent);
+      base64Content = base64Content.toString("base64");
+    } else {
+      throw new Error("Unexpected type for s3Details.Body");
+    }
+
+    console.log("base64Content", base64Content);
 
     // Create the JSON response content
-    const content = JSON.stringify({
+    const content = {
       fileName: entry["file_name"],
-      fileContent: base64Content
-    });
+      fileContent: fileContent
+    };
 
     // Hash the content
     const fileContentHash = await hashing(content);
@@ -212,12 +232,15 @@ async function hashCombinedChunks(
       file_name: entry["file_name"],
       file_content_hash: fileContentHash.data?.dataHash || ""
     };
+    const hashedFileData = {
+      hash: fileContentHash.data?.dataHash
+    };
 
     // Push the hashed entry to the result array
     hashedData.push(hashedEntry);
     console.log("hashedEntry", hashedEntry);
 
-    await createStepDetails(createdBy, JSON.stringify(hashedEntry), step6Id);
+    await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id);
 
     const combinedResponse = await storeHash(hashedEntry.file_content_hash, false);
     console.log("combinedResponse", combinedResponse);
@@ -263,7 +286,7 @@ async function hashChunkContents(
     const fileName = group[0].file_name;
 
     // Metadata for step details
-    const metaData = { fileName, hash: hashContent };
+    const metaData = { fileName, hash: hashContent.data?.dataHash ?? "" };
     await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
 
     return {
