@@ -100,9 +100,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
               if (file_embeddings.embeddings != null) {
-                const combined_response = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+                const combined_response1 = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+                console.log("combined_response1_lambda", combined_response1);
 
-                //const combined_response = await combineChunks(file_embeddings?.embeddings);
+                const combined_response = await combineChunks(file_embeddings?.embeddings);
                 console.log("combined_response", combined_response);
                 const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId);
                 console.log("hashCombinedData", hashCombinedData);
