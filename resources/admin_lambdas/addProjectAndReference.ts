@@ -12,7 +12,7 @@ import {
   updateProjectStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
-import {  formatBytes, generatePresignedUrl, generateSignedUrl } from "../knowledgebase/commonFunctions";
+import {  formatBytes, generatePresignedUrl, generateSignedUrl, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import {  storeHash } from "../avalanche/storeHashFunctions";
 import { logWithTrace } from "../utils/utils";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
@@ -149,7 +149,8 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
           await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
           // Step 3: Store the hashed data on the blockchain
-          const blockchainHashedData = await storeHash(file.hash, false);
+          const blockchainHashedData = await storeHashByChainType(file.hash, "Avalanche");
+          if(blockchainHashedData != null)
           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
         }
 

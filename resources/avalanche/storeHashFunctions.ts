@@ -3,6 +3,7 @@ import { AvalancheTransactionStatus } from "../db/models";
 import * as crypto from "crypto";
 import contractAbi from "../abi/StoreHash.json";
 import subnetContractAbi from "../abi/StoreHashSubnet.json";
+import { storeHashByChainType } from "../knowledgebase/commonFunctions";
 
 // Environment variables (set in AWS Lambda or using dotenv)
 const AVAX_RPC_SUBNET_URL = process.env.AVAX_RPC_SUBNET_URL; // Infura or any RPC provider URL
@@ -107,11 +108,11 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
   }
 }
 
-export async function hashingAndStoreToBlockchain(data: any, isSecondTx?: boolean) {
+export async function hashingAndStoreToBlockchain(data: any,chainType:string, isSecondTx?: boolean) {
   try {
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
     console.log("dataHash", dataHash);
-    const dataTxHash = await storeHash(dataHash, isSecondTx);
+    const dataTxHash = await storeHashByChainType(dataHash, chainType);
     console.log("dataTxHash", dataTxHash);
 
     return {
