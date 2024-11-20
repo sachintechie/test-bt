@@ -69,24 +69,23 @@ export const storeHash = async (uuid: string, hash: string, mnemonic: string) =>
     }
     return {
       data: {
-        message: "Transaction successful!",
-        transactionId: result.transactionHash,
-        status: result.code,
         hash: hash,
-        metaData: undefined,
-        blockHash: undefined,
-        type: undefined,
-        timestamp: Math.floor(Date.now() / 1000),
-        blockNumber: result.height,
-        confirmations: undefined,
-        from: account.address,
-        to: undefined,
+        txHash: result.transactionHash,
+        chainId: undefined,
+        chainType: "Provenance",
+        status:  result.code,
+        gasFee:result.gasUsed.toString(),
         gasLimit: result.gasWanted.toString(),
         gasPrice: result.gasUsed.toString(),
-        gas: result.gasUsed.toString(),
         nonce: undefined,
-        chainId: undefined,
-        chainType: "Provenance"
+        blockHash: undefined,
+        blockNumber: result.height,
+        type: undefined,
+        timestamp: Math.floor(Date.now() / 1000),
+        confirmations: undefined,
+        message: "Transaction successful!",
+        from: account.address,
+        to: undefined,
       },
       error: null
     };

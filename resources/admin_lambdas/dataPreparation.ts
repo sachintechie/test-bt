@@ -8,9 +8,9 @@ import {
   getStepType,
   updateProjectStage
 } from "../db/adminDbFunctions";
-import { hashing, storeHash } from "../avalanche/storeHashFunctions";
+import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer} from "../knowledgebase/commonFunctions";
+import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer, storeHashByChainType} from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
@@ -92,7 +92,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               // Step 5: Store chunk hash to Blockchain
 
               if (hashed_chunkcontent != null) {
-                const blockchainHashedData = await storeHash(hashed_chunkcontent[0].hash, false);
+
+                const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, "Avalanche");
                 await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
               }
 
@@ -242,9 +243,9 @@ async function hashCombinedChunks(
 
     await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id);
 
-    const combinedResponse = await storeHash(hashedEntry.file_content_hash, false);
+    const combinedResponse = await storeHashByChainType(hashedEntry.file_content_hash, "Avalanche");
     console.log("combinedResponse", combinedResponse);
-
+    if(combinedResponse != null)
     await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
   }
   console.log("hashedData", hashedData);

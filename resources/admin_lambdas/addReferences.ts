@@ -115,7 +115,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
             await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
             // Step 3: Store the hashed data on the blockchain
-            const blockchainHashedData = await hashingAndStoreToBlockchain(s3File, false);
+            const blockchainHashedData = await hashingAndStoreToBlockchain(s3File,"Avalanche", false);
             await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
           }
 
