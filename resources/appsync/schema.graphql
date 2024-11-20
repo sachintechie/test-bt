@@ -824,7 +824,7 @@ type ProjectData {
 	description: String
 	isactive: Boolean
 	createdby: String
-	chaintype: String
+	chainype: String
 }
 
 input RemoveFromCartInput {
