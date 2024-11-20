@@ -184,9 +184,7 @@
 import { verifyToken } from "../cognito/commonFunctions";
 import { getAdminUserByTenant } from "../db/adminDbFunctions";
 import { getCustomerIdByTenant } from "../db/dbFunctions";
-
 import { executeQuery } from "../db/PgClient";
-import jwt_decode from "jsonwebtoken";
 
 // Constants for environment variables
 const ADMIN_GROUP = process.env["ADMIN_GROUP"];
