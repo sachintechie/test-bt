@@ -14,6 +14,9 @@ import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineCh
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+const client = new BedrockRuntimeClient({
+  region: "us-east-1" // Replace with your AWS region
+});
 export const handler = async (event: any, context: any) => {
   try {
     const { projectId, tenantUserId } = event;
@@ -100,8 +103,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
               if (file_embeddings.embeddings != null) {
-                const combined_response1 = await lambdaCallForCombineChunks(file_embeddings.embeddings);
-                console.log("combined_response1_lambda", combined_response1);
+               // const combined_response1 = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+               // console.log("combined_response1_lambda", combined_response1);
 
                 const combined_response = await combineChunks(file_embeddings?.embeddings);
                 console.log("combined_response", combined_response);
@@ -353,9 +356,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 }
 
 async function generateEmbedding(text: string): Promise<number[]> {
-  const client = new BedrockRuntimeClient({
-    region: "us-east-1" // Replace with your AWS region
-  });
+ 
 
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID

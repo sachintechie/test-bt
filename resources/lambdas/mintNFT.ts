@@ -107,7 +107,7 @@ export const mintNFT = async (
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
         toaddress: toAddress,
-        tokenid: Number(nextTokenId) + i,
+        tokenid: (Number(nextTokenId) + i).toString(),
         amount: 1,
         tokentype: "ERC721"
       }
