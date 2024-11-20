@@ -14,6 +14,9 @@ import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineCh
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+const client = new BedrockRuntimeClient({
+  region: "us-east-1" // Replace with your AWS region
+});
 export const handler = async (event: any, context: any) => {
   try {
     const { projectId, tenantUserId } = event;
@@ -353,9 +356,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 }
 
 async function generateEmbedding(text: string): Promise<number[]> {
-  const client = new BedrockRuntimeClient({
-    region: "us-east-1" // Replace with your AWS region
-  });
+ 
 
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
