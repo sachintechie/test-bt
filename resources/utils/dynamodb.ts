@@ -27,7 +27,7 @@ export async function storeMetadataInDynamoDB(
 export async function getMetadataFromDynamoDB(
   dynamoDB: AWS.DynamoDB.DocumentClient,
   contractAddress: string,
-  tokenId: number
+  tokenId: number | string
 ): Promise<any | null> {
   const params = {
     TableName: process.env.METADATA_TABLE!,

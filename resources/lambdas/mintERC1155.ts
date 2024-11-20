@@ -81,7 +81,7 @@ export const mintERC1155 = async (
         chain: chain,
         fromaddress: payerKey.key?.materialId!,
         toaddress: toAddress,
-        tokenid: ids[i],
+        tokenid: ids[i].toString(),
         amount: amounts[i],
         tokentype: "ERC1155"
       }

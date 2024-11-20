@@ -54,7 +54,7 @@ model project {
   description       String
   s3bucketname      String?
   s3bucketregion    String?
-  chaintype         String
+  chaintype         String?
   projecttype       ProjectType
   projectstatus     ProjectStatusEnum
   projectstage      ProjectStage
@@ -555,7 +555,7 @@ model contracttransaction {
   fromaddress     String
   contractaddress String
   toaddress       String
-  tokenid         String
+  tokenid         Int
   amount          Int
   tokentype       String
 }
