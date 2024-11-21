@@ -14,6 +14,7 @@ import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineCh
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import { TextDecoder, TextEncoder } from "util"; // Ensure TextDecoder is available for decoding
 const client = new BedrockRuntimeClient({
   region: "us-east-1" // Replace with your AWS region
 });
