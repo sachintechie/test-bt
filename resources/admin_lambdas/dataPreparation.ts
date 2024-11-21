@@ -441,13 +441,21 @@ async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 async function generateEmbeddings(texts: string[]): Promise<number[][]> {
+    // Concatenate the array of texts into a single string, with a separator (e.g., newline or space)
+    const concatenatedText = texts.join("\n"); // Use "\n" or any other delimiter to separate chunks
+
+    // Prepare the body for the InvokeModelCommand, ensuring it's in Uint8Array format
+    const requestBody = JSON.stringify({
+      inputText: concatenatedText // Pass the concatenated string as input
+    });
+  
+    // Encode the body to Uint8Array (binary format)
+    const encodedBody = new TextEncoder().encode(requestBody);
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
     contentType: "application/json",
     accept: "application/json",
-    body: JSON.stringify({
-      inputText: texts // Array of texts to embed
-    })
+    body: encodedBody 
   });
 
   try {
