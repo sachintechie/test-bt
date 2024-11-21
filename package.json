@@ -54,7 +54,6 @@
     "jsonwebtoken": "^9.0.2",
     "mammoth": "^1.8.0",
     "node-fetch": "^2.7.0",
-    "pdfjs-dist": "^4.8.69",
     "pg": "^8.11.5",
     "prettier": "^3.3.2",
     "stripe": "^17.2.0",

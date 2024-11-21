@@ -6,7 +6,6 @@ import { syncKb } from "./scanDataSource";
 import { EmbeddingMetadata } from "../db/models";
 import { storeHash as avalancheStoreHash } from "../avalanche/storeHashFunctions";
 import { storeHash as provenanceStoreHash } from "../provenance/storeHashFunctions";
-import * as pdfjsLib from 'pdfjs-dist';
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 import mammoth from 'mammoth';
@@ -432,22 +431,22 @@ async function getFileContentFromS3(fileData: Buffer,  extension: string) {
 
 
 
-async function extractTextFromPDF(fileBuffer: Buffer): Promise<string> {
-  const loadingTask = pdfjsLib.getDocument(fileBuffer);
-  const pdfDocument = await loadingTask.promise;
-  const numPages = pdfDocument.numPages;
-  let text = '';
+// async function extractTextFromPDF(fileBuffer: Buffer): Promise<string> {
+//   const loadingTask = pdfjsLib.getDocument(fileBuffer);
+//   const pdfDocument = await loadingTask.promise;
+//   const numPages = pdfDocument.numPages;
+//   let text = '';
 
-  // Extract text from each page
-  for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-    const page = await pdfDocument.getPage(pageNum);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items.map((item: any) => item.str).join(' ');
-    text += pageText + '\n';  // Append text of the page
-  }
+//   // Extract text from each page
+//   for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+//     const page = await pdfDocument.getPage(pageNum);
+//     const textContent = await page.getTextContent();
+//     const pageText = textContent.items.map((item: any) => item.str).join(' ');
+//     text += pageText + '\n';  // Append text of the page
+//   }
 
-  return text;
-}
+//   return text;
+// }
 
 
 
