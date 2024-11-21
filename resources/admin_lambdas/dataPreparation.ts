@@ -230,7 +230,7 @@ async function hashCombinedChunks(
     };
 
     // Hash the content
-    const fileContentHash = await hashing(content);
+    const fileContentHash = await hashing(base64Content);
 
     // Prepare the hashed entry
     const hashedEntry = {
