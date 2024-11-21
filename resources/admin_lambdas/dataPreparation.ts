@@ -226,11 +226,11 @@ async function hashCombinedChunks(
     // Create the JSON response content
     const content = {
       fileName: entry["file_name"],
-      fileContent: fileContent
+      fileContent: base64Content
     };
 
     // Hash the content
-    const fileContentHash = await hashing(base64Content);
+    const fileContentHash = await hashing(content);
 
     // Prepare the hashed entry
     const hashedEntry = {
@@ -307,44 +307,101 @@ async function hashChunkContents(
   return hashedChunkContent;
 }
 
+// export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
+//   let fileContent = "";
+//   try {
+//     // Fetch the file content from S3
+//     const s3Object = await getS3ActualData(fileKey);
+
+//     fileContent = s3Object?.data?.content ?? "";
+//   } catch (error) {
+//     return { filename: fileKey, error: `Error reading file ${fileKey}: ${error}`, embeddings: null };
+//   }
+// console.log("fileContent", fileContent);
+//   // Split text into chunks
+//   const textSplitter = new RecursiveCharacterTextSplitter(300, 20);
+
+//   const chunks = textSplitter.splitText(fileContent);
+//   const metaData = { fileName: fileKey, numberOf_chunks: chunks.length.toString() };
+//   console.log("metaData", metaData);
+//   await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+
+//   // Prepare list to store embeddings with metadata
+//   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
+//   for (const chunk of chunks) {
+//     try {
+//       const embedding = await generateEmbedding(chunk);
+
+//       // Add metadata with the embedding
+//       embeddingsWithMetadata.push({
+//         file_name: fileKey,
+//         chunk_index: chunks.indexOf(chunk),
+//         chunk_content: chunk,
+//         project_id: projectId,
+//         embedding
+//       } as EmbeddingMetadata);
+//     } catch (error) {
+//       console.error(`Error generating embeddings for chunk ${chunks.indexOf(chunk)} in file ${fileKey}: ${error}`);
+//       return { filename: fileKey, error: `Error generating embeddings for chunk ${chunks.indexOf(chunk)}`, embeddings: null };
+//     }
+//   }
+//   console.log("embeddingsWithMetadata", embeddingsWithMetadata);
+
+//   const metaData2 = { fileName: fileKey, number_of_chunks: chunks.length.toString(), vector_dimensions: "1024" };
+//   console.log("metaData2", metaData2);
+
+//   await createStepDetails(createdBy, JSON.stringify(metaData2), step2Id);
+
+//   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
+// }
+
 export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
   let fileContent = "";
   try {
     // Fetch the file content from S3
     const s3Object = await getS3ActualData(fileKey);
-
     fileContent = s3Object?.data?.content ?? "";
   } catch (error) {
     return { filename: fileKey, error: `Error reading file ${fileKey}: ${error}`, embeddings: null };
   }
-console.log("fileContent", fileContent);
+
+  console.log("fileContent", fileContent);
+
   // Split text into chunks
   const textSplitter = new RecursiveCharacterTextSplitter(300, 20);
-
   const chunks = textSplitter.splitText(fileContent);
   const metaData = { fileName: fileKey, numberOf_chunks: chunks.length.toString() };
   console.log("metaData", metaData);
   await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
 
-  // Prepare list to store embeddings with metadata
+  // Prepare to store embeddings with metadata
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
-  for (const chunk of chunks) {
-    try {
-      const embedding = await generateEmbedding(chunk);
+  const batchSize = 50; // Set batch size to process multiple chunks together
 
-      // Add metadata with the embedding
-      embeddingsWithMetadata.push({
-        file_name: fileKey,
-        chunk_index: chunks.indexOf(chunk),
-        chunk_content: chunk,
-        project_id: projectId,
-        embedding
-      } as EmbeddingMetadata);
+  // Function to process a single batch of chunks
+  async function processBatch(batchChunks: string[], startIndex: number) {
+    try {
+      const batchEmbeddings = await generateEmbeddings(batchChunks); // Call generateEmbeddings with the batch
+      batchEmbeddings.forEach((embedding, index) => {
+        embeddingsWithMetadata.push({
+          file_name: fileKey,
+          chunk_index: startIndex + index,
+          chunk_content: batchChunks[index],
+          project_id: projectId,
+          embedding
+        } as EmbeddingMetadata);
+      });
     } catch (error) {
-      console.error(`Error generating embeddings for chunk ${chunks.indexOf(chunk)} in file ${fileKey}: ${error}`);
-      return { filename: fileKey, error: `Error generating embeddings for chunk ${chunks.indexOf(chunk)}`, embeddings: null };
+      console.error(`Error generating embeddings for batch starting at chunk ${startIndex} in file ${fileKey}: ${error}`);
     }
   }
+
+  // Process all chunks in batches
+  for (let i = 0; i < chunks.length; i += batchSize) {
+    const batchChunks = chunks.slice(i, i + batchSize);
+    await processBatch(batchChunks, i); // Process each batch sequentially to control memory and execution time
+  }
+
   console.log("embeddingsWithMetadata", embeddingsWithMetadata);
 
   const metaData2 = { fileName: fileKey, number_of_chunks: chunks.length.toString(), vector_dimensions: "1024" };
@@ -354,6 +411,9 @@ console.log("fileContent", fileContent);
 
   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 }
+
+
+
 
 async function generateEmbedding(text: string): Promise<number[]> {
  
@@ -379,6 +439,30 @@ async function generateEmbedding(text: string): Promise<number[]> {
     throw error;
   }
 }
+
+async function generateEmbeddings(texts: string[]): Promise<number[][]> {
+  const command = new InvokeModelCommand({
+    modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
+    contentType: "application/json",
+    accept: "application/json",
+    body: JSON.stringify({
+      inputText: texts // Array of texts to embed
+    })
+  });
+
+  try {
+    const response = await client.send(command);
+    const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+    console.log("responseBody", responseBody);
+
+    // Assuming the response contains an `embedding` array for each input text
+    return responseBody.embeddings; // This should be an array of embeddings corresponding to each input text
+  } catch (error) {
+    console.error("Error generating embeddings:", error);
+    throw error;
+  }
+}
+
 
 class RecursiveCharacterTextSplitter {
   chunkSize: number;
