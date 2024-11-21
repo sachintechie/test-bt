@@ -11,7 +11,6 @@ const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 import mammoth from 'mammoth';
 // import pdfParse from 'pdf-parse';
-import parsePDF from 'pdf-parse';
 import { parse as parseCSV } from '@fast-csv/parse';
 import * as XLSX from 'xlsx';
 export async function addReferencesLambda(tenantUserId: string, projectId: string) {
@@ -397,9 +396,9 @@ async function getFileContentFromS3(fileData: Buffer,  extension: string) {
         case '.json':
             return JSON.stringify(JSON.parse(fileData.toString('utf-8')));
 
-        case '.pdf':
-            const pdfData = await parsePDF(fileData);
-            return pdfData.text;
+        // case '.pdf':
+        //     const pdfData = await parsePDF(fileData);
+        //     return pdfData.text;
 
         case '.docx':
         case '.doc':
