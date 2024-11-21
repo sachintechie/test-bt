@@ -37,7 +37,7 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
     bundling: {
       minify: true, // Ensure code is minified
       nodeModules: [],
-      externalModules: [],
+      externalModules: ["pdf-parse"],
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
           return []; // No additional commands before bundling
