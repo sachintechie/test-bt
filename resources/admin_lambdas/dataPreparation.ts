@@ -10,7 +10,7 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer, storeHashByChainType} from "../knowledgebase/commonFunctions";
+import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer, storeHashByChainType, getS3ActualData} from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
@@ -311,7 +311,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   let fileContent = "";
   try {
     // Fetch the file content from S3
-    const s3Object = await getS3Data(fileKey);
+    const s3Object = await getS3ActualData(fileKey);
 
     fileContent = s3Object?.data?.content ?? "";
   } catch (error) {

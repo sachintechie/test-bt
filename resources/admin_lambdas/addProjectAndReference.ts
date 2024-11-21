@@ -1,5 +1,4 @@
 import { tenant } from "../db/models";
-
 import {
   createProject,
   createStage,
@@ -13,12 +12,12 @@ import {
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
 import {  formatBytes, generatePresignedUrl, generateSignedUrl, storeHashByChainType } from "../knowledgebase/commonFunctions";
-import {  storeHash } from "../avalanche/storeHashFunctions";
 import { logWithTrace } from "../utils/utils";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {
   try {
+
     logWithTrace(event, context);
 
     const data = await addProjectAndReference(
