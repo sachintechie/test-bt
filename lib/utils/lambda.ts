@@ -40,7 +40,11 @@ export const newNodeJsFunction = (scope: Construct, id: string, resourcePath: st
       externalModules: [],
       commandHooks: {
         beforeBundling(inputDir: string, outputDir: string): string[] {
-          return []; // No additional commands before bundling
+          return [
+                        `rm -rf ${outputDir}/node_modules/pdf-parse/test`, // Remove unnecessary pdf-parse/test folder
+
+]; 
+// No additional commands before bundling
         },
         beforeInstall(inputDir: string, outputDir: string): string[] {
           return [`cp -R ${inputDir}/prisma ${outputDir}/`]; // Copy Prisma schema before installation
