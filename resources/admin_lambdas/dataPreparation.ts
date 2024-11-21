@@ -317,7 +317,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   } catch (error) {
     return { filename: fileKey, error: `Error reading file ${fileKey}: ${error}`, embeddings: null };
   }
-
+console.log("fileContent", fileContent);
   // Split text into chunks
   const textSplitter = new RecursiveCharacterTextSplitter(300, 20);
 
