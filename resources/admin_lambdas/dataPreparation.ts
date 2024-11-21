@@ -14,6 +14,7 @@ import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineCh
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
+import { TextDecoder, TextEncoder } from "util"; // Ensure TextDecoder is available for decoding
 const client = new BedrockRuntimeClient({
   region: "us-east-1" // Replace with your AWS region
 });
@@ -355,6 +356,66 @@ async function hashChunkContents(
 //   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 // }
 
+
+
+// export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
+//   let fileContent = "";
+//   try {
+//     // Fetch the file content from S3
+//     const s3Object = await getS3ActualData(fileKey);
+//     fileContent = s3Object?.data?.content ?? "";
+//   } catch (error) {
+//     return { filename: fileKey, error: `Error reading file ${fileKey}: ${error}`, embeddings: null };
+//   }
+
+//   console.log("fileContent", fileContent);
+
+//   // Split text into chunks
+//   const textSplitter = new RecursiveCharacterTextSplitter(300, 20);
+//   const chunks = textSplitter.splitText(fileContent);
+//   const metaData = { fileName: fileKey, numberOf_chunks: chunks.length.toString() };
+//   console.log("metaData", metaData);
+//   await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+
+//   // Prepare to store embeddings with metadata
+//   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
+//   const batchSize = 50; // Set batch size to process multiple chunks together
+
+//   // Function to process a single batch of chunks
+//   async function processBatch(batchChunks: string[], startIndex: number) {
+//     try {
+//       const batchEmbeddings = await generateEmbeddings(batchChunks); // Call generateEmbeddings with the batch
+//       batchEmbeddings.forEach((embedding, index) => {
+//         embeddingsWithMetadata.push({
+//           file_name: fileKey,
+//           chunk_index: startIndex + index,
+//           chunk_content: batchChunks[index],
+//           project_id: projectId,
+//           embedding
+//         } as EmbeddingMetadata);
+//       });
+//     } catch (error) {
+//       console.error(`Error generating embeddings for batch starting at chunk ${startIndex} in file ${fileKey}: ${error}`);
+//     }
+//   }
+
+//   // Process all chunks in batches
+//   for (let i = 0; i < chunks.length; i += batchSize) {
+//     const batchChunks = chunks.slice(i, i + batchSize);
+//     await processBatch(batchChunks, i); // Process each batch sequentially to control memory and execution time
+//   }
+
+//   console.log("embeddingsWithMetadata", embeddingsWithMetadata);
+
+//   const metaData2 = { fileName: fileKey, number_of_chunks: chunks.length.toString(), vector_dimensions: "1024" };
+//   console.log("metaData2", metaData2);
+
+//   await createStepDetails(createdBy, JSON.stringify(metaData2), step2Id);
+
+//   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
+// }
+
+
 export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
   let fileContent = "";
   try {
@@ -364,7 +425,6 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   } catch (error) {
     return { filename: fileKey, error: `Error reading file ${fileKey}: ${error}`, embeddings: null };
   }
-
   console.log("fileContent", fileContent);
 
   // Split text into chunks
@@ -374,35 +434,35 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   console.log("metaData", metaData);
   await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
 
-  // Prepare to store embeddings with metadata
+  // Prepare list to store embeddings with metadata
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
-  const batchSize = 50; // Set batch size to process multiple chunks together
 
-  // Function to process a single batch of chunks
-  async function processBatch(batchChunks: string[], startIndex: number) {
-    try {
-      const batchEmbeddings = await generateEmbeddings(batchChunks); // Call generateEmbeddings with the batch
-      batchEmbeddings.forEach((embedding, index) => {
-        embeddingsWithMetadata.push({
-          file_name: fileKey,
-          chunk_index: startIndex + index,
-          chunk_content: batchChunks[index],
-          project_id: projectId,
-          embedding
-        } as EmbeddingMetadata);
-      });
-    } catch (error) {
-      console.error(`Error generating embeddings for batch starting at chunk ${startIndex} in file ${fileKey}: ${error}`);
-    }
-  }
-
-  // Process all chunks in batches
+  // Split chunks into smaller batches for parallel processing
+  const batchSize = 50; // Adjust batch size to avoid timeout
+  const batches = [];
   for (let i = 0; i < chunks.length; i += batchSize) {
-    const batchChunks = chunks.slice(i, i + batchSize);
-    await processBatch(batchChunks, i); // Process each batch sequentially to control memory and execution time
+    batches.push(chunks.slice(i, i + batchSize));
   }
 
-  console.log("embeddingsWithMetadata", embeddingsWithMetadata);
+  try {
+    // Process batches in parallel using Promise.all
+    const results = await Promise.all(
+      batches.map(async (batch, batchIndex) => {
+        const embeddingsBatch = await processEmbeddingBatch(batch, fileKey, projectId, batchIndex);
+        return embeddingsBatch;
+      })
+    );
+
+    // Flatten the results and add metadata to the embeddings
+    results.forEach((batchResults) => {
+      embeddingsWithMetadata.push(...batchResults);
+    });
+
+    console.log("embeddingsWithMetadata", embeddingsWithMetadata);
+  } catch (error) {
+    console.error(`Error processing embeddings for file ${fileKey}: ${error}`);
+    return { filename: fileKey, error: `Error processing embeddings`, embeddings: null };
+  }
 
   const metaData2 = { fileName: fileKey, number_of_chunks: chunks.length.toString(), vector_dimensions: "1024" };
   console.log("metaData2", metaData2);
@@ -411,6 +471,27 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 
   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 }
+
+// Helper function to process a batch of chunks
+async function processEmbeddingBatch(batch: string[], fileKey: string, projectId: string, batchIndex: number): Promise<EmbeddingMetadata[]> {
+  const embeddingsWithMetadata: EmbeddingMetadata[] = [];
+  for (const chunk of batch) {
+    try {
+      const embedding = await generateEmbedding(chunk);
+      embeddingsWithMetadata.push({
+        file_name: fileKey,
+        chunk_index: batchIndex * batch.length + batch.indexOf(chunk), // Calculate global chunk index
+        chunk_content: chunk,
+        project_id: projectId,
+        embedding
+      });
+    } catch (error) {
+      console.error(`Error generating embeddings for chunk in batch ${batchIndex} for file ${fileKey}: ${error}`);
+    }
+  }
+  return embeddingsWithMetadata;
+}
+
 
 
 
@@ -441,13 +522,21 @@ async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 async function generateEmbeddings(texts: string[]): Promise<number[][]> {
+    // Concatenate the array of texts into a single string, with a separator (e.g., newline or space)
+    const concatenatedText = texts.join("\n"); // Use "\n" or any other delimiter to separate chunks
+
+    // Prepare the body for the InvokeModelCommand, ensuring it's in Uint8Array format
+    const requestBody = JSON.stringify({
+      inputText: concatenatedText // Pass the concatenated string as input
+    });
+  
+    // Encode the body to Uint8Array (binary format)
+    const encodedBody = new TextEncoder().encode(requestBody);
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
     contentType: "application/json",
     accept: "application/json",
-    body: JSON.stringify({
-      inputText: texts // Array of texts to embed
-    })
+    body: encodedBody 
   });
 
   try {
