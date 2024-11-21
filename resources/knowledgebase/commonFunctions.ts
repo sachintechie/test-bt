@@ -340,10 +340,12 @@ export async function getS3ActualData(fileName: string) {
     const s3Details = await s3.getObject(s3Params).promise();
     console.log("s3Details", s3Details);
     const fileType = fileName.split('.').pop()?.toLowerCase();
+    console.log("fileType", fileType);
 
 
     // Check the type of Body
     let objectContent = await getFileContentFromS3(s3Details.Body as Buffer, fileType??"");
+    console.log("objectContent", objectContent);
 
   
     const downloadParams = {
@@ -384,6 +386,7 @@ export async function getS3ActualData(fileName: string) {
 
 
 async function getFileContentFromS3(fileData: Buffer,  extension: string) {
+  console.log("extension", extension);
   
     // const fileData = s3Object.Body as Buffer;
 
