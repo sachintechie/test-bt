@@ -391,24 +391,24 @@ async function getFileContentFromS3(fileData: Buffer,  extension: string) {
     // const fileData = s3Object.Body as Buffer;
 
     switch (extension.toLowerCase()) {
-        case '.txt':
-        case '.md':
-        case '.html':
+        case 'txt':
+        case 'md':
+        case 'html':
             return fileData.toString('utf-8');
 
-        case '.json':
+        case 'json':
             return JSON.stringify(JSON.parse(fileData.toString('utf-8')));
 
         // case '.pdf':
         //     const pdfData = await parsePDF(fileData);
         //     return pdfData.text;
 
-        case '.docx':
-        case '.doc':
+        case 'docx':
+        case 'doc':
             const docData = await mammoth.extractRawText({ buffer: fileData });
             return docData.value;
 
-        case '.csv':
+        case 'csv':
             return await new Promise<string>((resolve, reject) => {
                 const rows: string[] = [];
               //  parseCSV(fileData.toString('utf-8'), { headers: false })
@@ -418,8 +418,8 @@ async function getFileContentFromS3(fileData: Buffer,  extension: string) {
                     .on('error', reject);
             });
 
-        case '.xls':
-        case '.xlsx':
+        case 'xls':
+        case 'xlsx':
             const workbook = XLSX.read(fileData, { type: 'buffer' });
             return XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
 
