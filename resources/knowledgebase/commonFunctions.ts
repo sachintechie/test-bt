@@ -399,9 +399,9 @@ async function getFileContentFromS3(fileData: Buffer,  extension: string) {
         case 'json':
             return JSON.stringify(JSON.parse(fileData.toString('utf-8')));
 
-        case '.pdf':
-            const pdfData = await extractTextFromPDF(fileData);
-            return pdfData;
+        // case '.pdf':
+        //     const pdfData = await extractTextFromPDF(fileData);
+        //     return pdfData;
 
         case 'docx':
         case 'doc':
