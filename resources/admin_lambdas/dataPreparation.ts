@@ -10,11 +10,20 @@ import {
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
-import { combineChunks, getS3Data, lambdaCallForIndexing ,lambdaCallForCombineChunks,streamToBuffer, storeHashByChainType, getS3ActualData} from "../knowledgebase/commonFunctions";
+import {
+  combineChunks,
+  getS3Data,
+  lambdaCallForIndexing,
+  lambdaCallForCombineChunks,
+  streamToBuffer,
+  storeHashByChainType,
+  getS3ActualData
+} from "../knowledgebase/commonFunctions";
 import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { TextDecoder, TextEncoder } from "util"; // Ensure TextDecoder is available for decoding
+import { indexing } from "../knowledgebase/opensearch";
 const client = new BedrockRuntimeClient({
   region: "us-east-1" // Replace with your AWS region
 });
@@ -69,7 +78,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               createStep(tenantUserId, "Chunking", "Chunking", stepType1.id, stage4.id, 1),
               createStep(tenantUserId, "Chunking hash", "Chunking hash", stepType2.id, stage4.id, 2),
               createStep(tenantUserId, "Embedding of chunks", "Embedding of chunks", stepType3.id, stage4.id, 3),
-              createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id,4 ),
+              createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id, 4),
               createStep(tenantUserId, "Store chunk hash to Blockchain", "Store chunk hash to Blockchain", stepType5.id, stage4.id, 5),
               createStep(tenantUserId, "Hashing of reconstructive data", "Hashing of reconstructive data", stepType6.id, stage4.id, 6),
               createStep(
@@ -78,7 +87,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
                 "Store recombined file to Blockchain",
                 stepType7.id,
                 stage4.id,
-                7                
+                7
               )
             ]);
 
@@ -96,7 +105,6 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               // Step 5: Store chunk hash to Blockchain
 
               if (hashed_chunkcontent != null) {
-
                 const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, "Avalanche");
                 await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
               }
@@ -104,8 +112,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
               if (file_embeddings.embeddings != null) {
-               // const combined_response1 = await lambdaCallForCombineChunks(file_embeddings.embeddings);
-               // console.log("combined_response1_lambda", combined_response1);
+                // const combined_response1 = await lambdaCallForCombineChunks(file_embeddings.embeddings);
+                // console.log("combined_response1_lambda", combined_response1);
 
                 const combined_response = await combineChunks(file_embeddings?.embeddings);
                 console.log("combined_response", combined_response);
@@ -132,8 +140,6 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
         const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
         const stepDetails = await getStepDetails(fileUploadStepId);
         if (stepDetails != null && stepDetails.length > 0) {
-       
-
           const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
 
           if (stepType1) {
@@ -141,9 +147,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
             ]);
 
-            const lambdaResponseForIndexing   = await lambdaCallForIndexing(file_embeddings?.embeddings);
+            const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
             console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
-
             const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
 
             for (const indexedFile of indexedFiles) {
@@ -151,13 +156,22 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
             }
 
-            // Update project to reflect data preparation status
+            // const responseForIndexing   = await indexing(file_embeddings?.embeddings);
+
+            // console.log("responseForIndexing", responseForIndexing);
+
+            // if(responseForIndexing != null){
+
+            // for (const indexedFile of responseForIndexing) {
+            //   const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
+            //   await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
+            // }
+            //}
+
           }
-        
-
-        await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
-
-      }
+            // Update project to reflect data RAG_INGESTION status
+           await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
+        }
       }
     }
 
@@ -205,10 +219,9 @@ async function hashCombinedChunks(
     console.log(fileContent); // Equivalent to your print statement
 
     // Base64 encode the file content
-   // const encodedBytes = Buffer.from(fileContent, "utf-8");
-   // const base64Content = encodedBytes.toString("base64");
+    // const encodedBytes = Buffer.from(fileContent, "utf-8");
+    // const base64Content = encodedBytes.toString("base64");
     let base64Content;
-
 
     if (Buffer.isBuffer(fileContent)) {
       base64Content = fileContent.toString("base64");
@@ -250,8 +263,7 @@ async function hashCombinedChunks(
 
     const combinedResponse = await storeHashByChainType(hashedEntry.file_content_hash, "Avalanche");
     console.log("combinedResponse", combinedResponse);
-    if(combinedResponse != null)
-    await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
+    if (combinedResponse != null) await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
   }
   console.log("hashedData", hashedData);
 
@@ -356,8 +368,6 @@ async function hashChunkContents(
 //   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 // }
 
-
-
 // export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
 //   let fileContent = "";
 //   try {
@@ -415,7 +425,6 @@ async function hashChunkContents(
 //   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 // }
 
-
 export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
   let fileContent = "";
   try {
@@ -438,8 +447,8 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
 
   // Adjust the batch size and concurrency limit
-  const batchSize = 50; // Number of chunks per batch
-  const concurrencyLimit = 5; // Limit of concurrent batches
+  const batchSize = 25; // Number of chunks per batch
+  const concurrencyLimit = 3; // Limit of concurrent batches
 
   try {
     // Process chunks in parallel batches
@@ -481,7 +490,7 @@ async function processBatchesInParallel(
     // Wait for previous batches to complete if concurrency limit is reached
     if (batchPromises.length >= concurrencyLimit) {
       const completedBatches = await Promise.all(batchPromises);
-      completedBatches.forEach(batchResult => results.push(...batchResult)); // Flatten the completed batches
+      completedBatches.forEach((batchResult) => results.push(...batchResult)); // Flatten the completed batches
       batchPromises.length = 0; // Clear completed batch promises
     }
 
@@ -492,17 +501,21 @@ async function processBatchesInParallel(
   // Process any remaining batches
   if (batchPromises.length > 0) {
     const remainingBatches = await Promise.all(batchPromises);
-    remainingBatches.forEach(batchResult => results.push(...batchResult)); // Flatten remaining batches
+    remainingBatches.forEach((batchResult) => results.push(...batchResult)); // Flatten remaining batches
   }
 
   return results;
 }
 
-
 // Helper function to process a batch of chunks and generate embeddings
-async function processEmbeddingBatch(batch: string[], fileKey: string, projectId: string, batchIndex: number): Promise<EmbeddingMetadata[]> {
+async function processEmbeddingBatch(
+  batch: string[],
+  fileKey: string,
+  projectId: string,
+  batchIndex: number
+): Promise<EmbeddingMetadata[]> {
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
-  
+
   await Promise.all(
     batch.map(async (chunk, chunkIndex) => {
       try {
@@ -544,23 +557,22 @@ async function generateEmbedding(text: string): Promise<number[]> {
   }
 }
 
-
 async function generateEmbeddings(texts: string[]): Promise<number[][]> {
-    // Concatenate the array of texts into a single string, with a separator (e.g., newline or space)
-    const concatenatedText = texts.join("\n"); // Use "\n" or any other delimiter to separate chunks
+  // Concatenate the array of texts into a single string, with a separator (e.g., newline or space)
+  const concatenatedText = texts.join("\n"); // Use "\n" or any other delimiter to separate chunks
 
-    // Prepare the body for the InvokeModelCommand, ensuring it's in Uint8Array format
-    const requestBody = JSON.stringify({
-      inputText: concatenatedText // Pass the concatenated string as input
-    });
-  
-    // Encode the body to Uint8Array (binary format)
-    const encodedBody = new TextEncoder().encode(requestBody);
+  // Prepare the body for the InvokeModelCommand, ensuring it's in Uint8Array format
+  const requestBody = JSON.stringify({
+    inputText: concatenatedText // Pass the concatenated string as input
+  });
+
+  // Encode the body to Uint8Array (binary format)
+  const encodedBody = new TextEncoder().encode(requestBody);
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
     contentType: "application/json",
     accept: "application/json",
-    body: encodedBody 
+    body: encodedBody
   });
 
   try {
@@ -575,7 +587,6 @@ async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     throw error;
   }
 }
-
 
 class RecursiveCharacterTextSplitter {
   chunkSize: number;
@@ -609,6 +620,3 @@ class RecursiveCharacterTextSplitter {
     return chunks;
   }
 }
-
-
-
