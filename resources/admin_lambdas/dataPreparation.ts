@@ -437,26 +437,16 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   // Prepare list to store embeddings with metadata
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
 
-  // Split chunks into smaller batches for parallel processing
-  const batchSize = 50; // Adjust batch size to avoid timeout
-  const batches = [];
-  for (let i = 0; i < chunks.length; i += batchSize) {
-    batches.push(chunks.slice(i, i + batchSize));
-  }
+  // Adjust the batch size and concurrency limit
+  const batchSize = 50; // Number of chunks per batch
+  const concurrencyLimit = 5; // Limit of concurrent batches
 
   try {
-    // Process batches in parallel using Promise.all
-    const results = await Promise.all(
-      batches.map(async (batch, batchIndex) => {
-        const embeddingsBatch = await processEmbeddingBatch(batch, fileKey, projectId, batchIndex);
-        return embeddingsBatch;
-      })
-    );
+    // Process chunks in parallel batches
+    const results = await processBatchesInParallel(chunks, batchSize, concurrencyLimit, fileKey, projectId);
 
     // Flatten the results and add metadata to the embeddings
-    results.forEach((batchResults) => {
-      embeddingsWithMetadata.push(...batchResults);
-    });
+    embeddingsWithMetadata.push(...results);
 
     console.log("embeddingsWithMetadata", embeddingsWithMetadata);
   } catch (error) {
@@ -472,40 +462,73 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 }
 
-// Helper function to process a batch of chunks
-async function processEmbeddingBatch(batch: string[], fileKey: string, projectId: string, batchIndex: number): Promise<EmbeddingMetadata[]> {
-  const embeddingsWithMetadata: EmbeddingMetadata[] = [];
-  for (const chunk of batch) {
-    try {
-      const embedding = await generateEmbedding(chunk);
-      embeddingsWithMetadata.push({
-        file_name: fileKey,
-        chunk_index: batchIndex * batch.length + batch.indexOf(chunk), // Calculate global chunk index
-        chunk_content: chunk,
-        project_id: projectId,
-        embedding
-      });
-    } catch (error) {
-      console.error(`Error generating embeddings for chunk in batch ${batchIndex} for file ${fileKey}: ${error}`);
+// Helper function to process batches with concurrency control
+// Helper function to process batches with concurrency control
+async function processBatchesInParallel(
+  chunks: string[],
+  batchSize: number,
+  concurrencyLimit: number,
+  fileKey: string,
+  projectId: string
+): Promise<EmbeddingMetadata[]> {
+  const results: EmbeddingMetadata[] = [];
+  const batchPromises: Promise<EmbeddingMetadata[]>[] = [];
+
+  for (let i = 0; i < chunks.length; i += batchSize) {
+    const batch = chunks.slice(i, i + batchSize);
+    const batchIndex = i / batchSize;
+
+    // Wait for previous batches to complete if concurrency limit is reached
+    if (batchPromises.length >= concurrencyLimit) {
+      const completedBatches = await Promise.all(batchPromises);
+      completedBatches.forEach(batchResult => results.push(...batchResult)); // Flatten the completed batches
+      batchPromises.length = 0; // Clear completed batch promises
     }
+
+    // Process batch in the background
+    batchPromises.push(processEmbeddingBatch(batch, fileKey, projectId, batchIndex));
   }
-  return embeddingsWithMetadata;
+
+  // Process any remaining batches
+  if (batchPromises.length > 0) {
+    const remainingBatches = await Promise.all(batchPromises);
+    remainingBatches.forEach(batchResult => results.push(...batchResult)); // Flatten remaining batches
+  }
+
+  return results;
 }
 
 
+// Helper function to process a batch of chunks and generate embeddings
+async function processEmbeddingBatch(batch: string[], fileKey: string, projectId: string, batchIndex: number): Promise<EmbeddingMetadata[]> {
+  const embeddingsWithMetadata: EmbeddingMetadata[] = [];
+  
+  await Promise.all(
+    batch.map(async (chunk, chunkIndex) => {
+      try {
+        const embedding = await generateEmbedding(chunk);
+        embeddingsWithMetadata.push({
+          file_name: fileKey,
+          chunk_index: batchIndex * batch.length + chunkIndex,
+          chunk_content: chunk,
+          project_id: projectId,
+          embedding
+        });
+      } catch (error) {
+        console.error(`Error generating embeddings for chunk in batch ${batchIndex} for file ${fileKey}: ${error}`);
+      }
+    })
+  );
 
-
+  return embeddingsWithMetadata;
+}
 
 async function generateEmbedding(text: string): Promise<number[]> {
- 
-
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
     contentType: "application/json",
     accept: "application/json",
-    body: JSON.stringify({
-      inputText: text
-    })
+    body: JSON.stringify({ inputText: text })
   });
 
   try {
@@ -520,6 +543,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
     throw error;
   }
 }
+
 
 async function generateEmbeddings(texts: string[]): Promise<number[][]> {
     // Concatenate the array of texts into a single string, with a separator (e.g., newline or space)
