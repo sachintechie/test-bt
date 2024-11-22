@@ -8,10 +8,13 @@ import { storeHash as avalancheStoreHash } from "../avalanche/storeHashFunctions
 import { storeHash as provenanceStoreHash } from "../provenance/storeHashFunctions";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
-import mammoth from 'mammoth';
+import mammoth from "mammoth";
 // import pdfParse from 'pdf-parse';
-import { parse as parseCSV } from '@fast-csv/parse';
-import * as XLSX from 'xlsx';
+import { parse as parseCSV } from "@fast-csv/parse";
+import * as XLSX from "xlsx";
+import PDFParser from 'pdf2json';
+
+// import pdf  from "pdf-parse-debugging-disabled";
 export async function addReferencesLambda(tenantUserId: string, projectId: string) {
   const event = {
     tenantUserId: tenantUserId,
@@ -338,15 +341,13 @@ export async function getS3ActualData(fileName: string) {
     };
     const s3Details = await s3.getObject(s3Params).promise();
     console.log("s3Details", s3Details);
-    const fileType = fileName.split('.').pop()?.toLowerCase();
+    const fileType = fileName.split(".").pop()?.toLowerCase();
     console.log("fileType", fileType);
 
-
     // Check the type of Body
-    let objectContent = await getFileContentFromS3(s3Details.Body as Buffer, fileType??"");
+    let objectContent = await getFileContentFromS3(s3Details.Body as Buffer, fileType ?? "");
     console.log("objectContent", objectContent);
 
-  
     const downloadParams = {
       Bucket: bucketName, // Replace with your S3 bucket name
       Key: fileName, // The key (file name) of the uploaded file
@@ -380,74 +381,67 @@ export async function getS3ActualData(fileName: string) {
   }
 }
 
-
-
-
-
-async function getFileContentFromS3(fileData: Buffer,  extension: string) {
+async function getFileContentFromS3(fileData: Buffer, extension: string) {
   console.log("extension", extension);
-  
-    // const fileData = s3Object.Body as Buffer;
 
-    switch (extension.toLowerCase()) {
-        case 'txt':
-        case 'md':
-        case 'html':
-            return fileData.toString('utf-8');
+  // const fileData = s3Object.Body as Buffer;
 
-        case 'json':
-            return JSON.stringify(JSON.parse(fileData.toString('utf-8')));
+  switch (extension.toLowerCase()) {
+    case "txt":
+    case "md":
+    case "html":
+      return fileData.toString("utf-8");
 
-        // case '.pdf':
-        //     const pdfData = await extractTextFromPDF(fileData);
-        //     return pdfData;
+    case "json":
+      return JSON.stringify(JSON.parse(fileData.toString("utf-8")));
 
-        case 'docx':
-        case 'doc':
-            const docData = await mammoth.extractRawText({ buffer: fileData });
-            return docData.value;
+    case ".pdf":
+      const pdfData = await parsePDFBuffer(fileData);
+      return pdfData;
 
-        case 'csv':
-            return await new Promise<string>((resolve, reject) => {
-                const rows: string[] = [];
-              //  parseCSV(fileData.toString('utf-8'), { headers: false })
-                (parseCSV as any)(fileData.toString('utf-8'), { headers: false })
-                    .on('data', (row: any[]) => rows.push(row.join(',')))
-                    .on('end', () => resolve(rows.join('\n')))
-                    .on('error', reject);
-            });
+    case "docx":
+    case "doc":
+      const docData = await mammoth.extractRawText({ buffer: fileData });
+      return docData.value;
 
-        case 'xls':
-        case 'xlsx':
-            const workbook = XLSX.read(fileData, { type: 'buffer' });
-            return XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
+    case "csv":
+      return await new Promise<string>((resolve, reject) => {
+        const rows: string[] = [];
+        //  parseCSV(fileData.toString('utf-8'), { headers: false })
+        (parseCSV as any)(fileData.toString("utf-8"), { headers: false })
+          .on("data", (row: any[]) => rows.push(row.join(",")))
+          .on("end", () => resolve(rows.join("\n")))
+          .on("error", reject);
+      });
 
-        default:
-            throw new Error(`Unsupported file format: ${extension}`);
-    }
+    case "xls":
+    case "xlsx":
+      const workbook = XLSX.read(fileData, { type: "buffer" });
+      return XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
+
+    default:
+      throw new Error(`Unsupported file format: ${extension}`);
+  }
 }
 
+async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const pdfParser = new PDFParser();
 
+    pdfParser.on('pdfParser_dataError', (errData: { parserError: any; }) => {
+      console.error('Error parsing PDF:', errData.parserError);
+      reject(errData.parserError);
+    });
 
+    pdfParser.on('pdfParser_dataReady', () => {
+      const textContent = pdfParser.getRawTextContent();
+      resolve(textContent);
+    });
 
-
-// async function extractTextFromPDF(fileBuffer: Buffer): Promise<string> {
-//   const loadingTask = pdfjsLib.getDocument(fileBuffer);
-//   const pdfDocument = await loadingTask.promise;
-//   const numPages = pdfDocument.numPages;
-//   let text = '';
-
-//   // Extract text from each page
-//   for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-//     const page = await pdfDocument.getPage(pageNum);
-//     const textContent = await page.getTextContent();
-//     const pageText = textContent.items.map((item: any) => item.str).join(' ');
-//     text += pageText + '\n';  // Append text of the page
-//   }
-
-//   return text;
-// }
-
+    // Parse the PDF from the Buffer directly
+    pdfParser.parseBuffer(pdfBuffer);
+  });
+}
 
 
 export async function getS3DataWithoutContent(fileName: string) {
