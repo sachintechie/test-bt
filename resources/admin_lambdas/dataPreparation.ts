@@ -101,6 +101,9 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
                 // Step 2: Chunking hash
                 hashed_chunkcontent = await hashChunkContents(file_embeddings?.embeddings, step2.id, tenantUserId);
               }
+              else{
+                return false;
+              }
 
               // Step 5: Store chunk hash to Blockchain
 
@@ -430,6 +433,9 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   try {
     // Fetch the file content from S3
     const s3Object = await getS3ActualData(fileKey);
+    if (s3Object.data?.content == null) {
+      return { filename: fileKey, error: `Error reading file ${fileKey}: File not found`, embeddings: null };
+    }
     fileContent = s3Object?.data?.content ?? "";
   } catch (error) {
     return { filename: fileKey, error: `Error reading file ${fileKey}: ${error}`, embeddings: null };
