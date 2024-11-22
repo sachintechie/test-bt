@@ -10,7 +10,7 @@ const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 import mammoth from "mammoth";
 // import pdfParse from 'pdf-parse';
-import { parse as parseCSV } from "@fast-csv/parse";
+import { parse as parseCSV } from '@fast-csv/parse';
 import * as XLSX from "xlsx";
 import PDFParser from 'pdf2json';
 
@@ -326,12 +326,15 @@ export async function getS3Data(fileName: string) {
   }
 }
 
+
+
+
 export async function getS3ActualData(fileName: string) {
   try {
     if (!fileName) {
       return {
         data: null,
-        error: JSON.stringify({ message: "File name  is missing" })
+        error: JSON.stringify({ message: "File name is missing" })
       };
     }
 
@@ -339,52 +342,47 @@ export async function getS3ActualData(fileName: string) {
       Bucket: bucketName,
       Key: fileName
     };
+    
     const s3Details = await s3.getObject(s3Params).promise();
-    console.log("s3Details", s3Details);
+    console.log("Fetched S3 Details:", s3Details);
+    
     const fileType = fileName.split(".").pop()?.toLowerCase();
-    console.log("fileType", fileType);
+    console.log("Detected file type:", fileType);
 
-    // Check the type of Body
-    let objectContent = await getFileContentFromS3(s3Details.Body as Buffer, fileType ?? "");
-    console.log("objectContent", objectContent);
+    // Extract content from the S3 file based on its extension
+    const objectContent = await getFileContentFromS3(s3Details.Body as Buffer, fileType ?? "");
+    console.log("Extracted file content:", objectContent);
 
     const downloadParams = {
-      Bucket: bucketName, // Replace with your S3 bucket name
-      Key: fileName, // The key (file name) of the uploaded file
+      Bucket: bucketName,
+      Key: fileName,
       Expires: 60 * 15 // Expiry time for the download URL (in seconds)
     };
 
-    // Generate the pre-signed URL for downloading
     const signedUrl = s3.getSignedUrl("getObject", downloadParams);
-    //const objectContent = await streamToBuffer(s3Details.Body as Readable);
     const size = await formatBytes(s3Details.ContentLength || 0);
-    console.log("File uploaded to s3Details", s3Details, size);
+    
+    console.log("File processed with size:", size);
+    
     const data = {
       fileName: fileName,
       size: size,
-      etag: s3Details?.ETag?.replace(/^"|"$/g, ""),
+      etag: s3Details.ETag?.replace(/^"|"$/g, ""),
       content: objectContent,
       contentType: s3Details.ContentType,
       lastModified: s3Details.LastModified,
       downloadUrl: signedUrl
     };
-    return {
-      data: data,
-      error: null
-    };
+    
+    return { data, error: null };
   } catch (e) {
-    console.log(`data not uploded to s3: ${e}`);
-    return {
-      data: null,
-      error: e
-    };
+    console.error(`Failed to upload to S3: ${e}`);
+    return { data: null, error: e };
   }
 }
 
-async function getFileContentFromS3(fileData: Buffer, extension: string) {
-  console.log("extension", extension);
-
-  // const fileData = s3Object.Body as Buffer;
+async function getFileContentFromS3(fileData: Buffer, extension: string): Promise<string> {
+  console.log("Processing file with extension:", extension);
 
   switch (extension.toLowerCase()) {
     case "txt":
@@ -396,20 +394,19 @@ async function getFileContentFromS3(fileData: Buffer, extension: string) {
       return JSON.stringify(JSON.parse(fileData.toString("utf-8")));
 
     case "pdf":
-        try {
-          const pdfData = await parsePDFBuffer(fileData);
-          if (!pdfData) {
-            throw new Error("Failed to retrieve text content from PDF.");
-          }
-          return pdfData;
-        } catch (error) {
-          console.error("PDF Parsing Error:", error);
-          throw new Error("Error parsing PDF file");
-        }
+      try {
+        const pdfData = await parsePDFBuffer(fileData);
+        console.log("PDF Data extracted:", pdfData);
+        return pdfData;
+      } catch (error) {
+        console.error("PDF Parsing Error:", error);
+        throw new Error("Error parsing PDF file");
+      }
 
     case "docx":
     case "doc":
       const docData = await mammoth.extractRawText({ buffer: fileData });
+      console.log("DOCX Data extracted:", docData.value);
       return docData.value;
 
     case "csv":
@@ -433,25 +430,25 @@ async function getFileContentFromS3(fileData: Buffer, extension: string) {
   }
 }
 
-async function parsePDFBuffer(pdfBuffer: Buffer) : Promise<string>{
+async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
     const pdfParser = new PDFParser();
 
-    pdfParser.on('pdfParser_dataError', (errData: { parserError: any; }) => {
+    pdfParser.on('pdfParser_dataError', (errData) => {
       console.error('Error parsing PDF:', errData.parserError);
       reject(errData.parserError);
     });
 
     pdfParser.on('pdfParser_dataReady', () => {
       const textContent = pdfParser.getRawTextContent();
-      console.log('Parsed PDF:', textContent);
+      console.log('Successfully parsed PDF:', textContent);
       resolve(textContent);
     });
 
-    // Parse the PDF from the Buffer directly
     pdfParser.parseBuffer(pdfBuffer);
   });
 }
+
 
 
 export async function getS3DataWithoutContent(fileName: string) {
