@@ -396,8 +396,16 @@ async function getFileContentFromS3(fileData: Buffer, extension: string) {
       return JSON.stringify(JSON.parse(fileData.toString("utf-8")));
 
     case "pdf":
-      const pdfData = await parsePDFBuffer(fileData);
-      return pdfData;
+        try {
+          const pdfData = await parsePDFBuffer(fileData);
+          if (!pdfData) {
+            throw new Error("Failed to retrieve text content from PDF.");
+          }
+          return pdfData;
+        } catch (error) {
+          console.error("PDF Parsing Error:", error);
+          throw new Error("Error parsing PDF file");
+        }
 
     case "docx":
     case "doc":
@@ -420,11 +428,12 @@ async function getFileContentFromS3(fileData: Buffer, extension: string) {
       return XLSX.utils.sheet_to_csv(workbook.Sheets[workbook.SheetNames[0]]);
 
     default:
+      console.error(`Unsupported file format: ${extension}`);
       throw new Error(`Unsupported file format: ${extension}`);
   }
 }
 
-async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
+async function parsePDFBuffer(pdfBuffer: Buffer) : Promise<string>{
   return new Promise((resolve, reject) => {
     const pdfParser = new PDFParser();
 
@@ -435,6 +444,7 @@ async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
 
     pdfParser.on('pdfParser_dataReady', () => {
       const textContent = pdfParser.getRawTextContent();
+      console.log('Parsed PDF:', textContent);
       resolve(textContent);
     });
 
