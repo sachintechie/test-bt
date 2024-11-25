@@ -76,12 +76,11 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
         try {
             // Index the document
             const response = await client.index({
-                id: doc.file_name,  // Assuming file_name is a unique identifier
-                index: indexName,
-                body: chunkIndexValue,
-                refresh: true,  // Ensure the index is refreshed after the document is added
-            });
-
+                // id: doc.file_name,  // Assuming file_name is a unique identifier
+                 index: indexName,
+                 body: chunkIndexValue,
+                 refresh: true,  // Ensure the index is refreshed after the document is added
+             });
             filenames.push(doc.file_name);
 
             if (response.body.result === 'created') {
