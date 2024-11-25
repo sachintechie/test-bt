@@ -34,7 +34,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "addReferences",
   "createStep",
   "createStage",
-  "dataPreparation"
+  "dataPreparation",
+  "opensearchIndexing"
 ];
 
 const GET_METADATA = "getMetadata";
