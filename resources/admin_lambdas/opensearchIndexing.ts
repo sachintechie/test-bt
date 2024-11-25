@@ -90,7 +90,7 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
                 console.log(`Failed to index document: ${doc.file_name}. Response: ${JSON.stringify(response.body)}`);
             }
         } catch (error) {
-            console.error(`Error indexing document: ${doc.file_name}. Error: ${error.message}`);
+            console.error(`Error indexing document: ${doc.file_name}. Error: ${error}`);
         }
     }
 
