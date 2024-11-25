@@ -36,7 +36,7 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
         console.log(`Indexing document: ${doc}`);
         console.log(`Indexing document: ${doc.file_name}`);
         const chunkIndexValue = {
-            // id: '',  // You can choose a suitable ID generation method, e.g., UUID
+             id: '',  // You can choose a suitable ID generation method, e.g., UUID
             embedding: doc.embedding,
             "x-amz-bedrock-kb-source-uri": JSON.stringify({
                 file_name: doc.file_name,
@@ -50,7 +50,7 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
         try {
             // Index the document
             const response = await client.index({
-                id: doc.file_name,  // Assuming file_name is a unique identifier
+               // id: doc.file_name,  // Assuming file_name is a unique identifier
                 index: indexName,
                 body: chunkIndexValue,
                 refresh: true,  // Ensure the index is refreshed after the document is added
