@@ -79,7 +79,6 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
                 // id: doc.file_name,  // Assuming file_name is a unique identifier
                  index: indexName,
                  body: chunkIndexValue,
-                 refresh: true,  // Ensure the index is refreshed after the document is added
              });
             filenames.push(doc.file_name);
 
