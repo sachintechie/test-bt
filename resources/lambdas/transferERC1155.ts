@@ -85,7 +85,7 @@ export const transferERC1155 = async (
       fromaddress: payerKey.key?.materialId!,
       toaddress: toAddress,
       tokenid: tokenId.toString(),
-      amount: amount,
+      amount: parseInt(amount.toString()),
       tokentype: "ERC1155"
     }
   });
