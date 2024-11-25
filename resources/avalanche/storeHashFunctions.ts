@@ -111,9 +111,9 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
 export async function hashingAndStoreToBlockchain(data: any,chainType:string, isSecondTx?: boolean) {
   try {
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
-    console.log("dataHash", dataHash);
+  //  console.log("dataHash", dataHash);
     const dataTxHash = await storeHashByChainType(dataHash, chainType);
-    console.log("dataTxHash", dataTxHash);
+   // console.log("dataTxHash", dataTxHash);
 
     return {
       data: {
