@@ -24,6 +24,7 @@ import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { TextDecoder, TextEncoder } from "util"; // Ensure TextDecoder is available for decoding
 import { indexing } from "../knowledgebase/opensearch";
+import { addToOpenSearch } from "../opensearch/commonFunction";
 const client = new BedrockRuntimeClient({
   region: "us-east-1" // Replace with your AWS region
 });
@@ -152,6 +153,11 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
             const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
             console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
+            if(file_embeddings?.embeddings != null){
+
+            const opensearchResponse = await addToOpenSearch(file_embeddings?.embeddings);
+            console.log("opensearchResponse", opensearchResponse);
+            }
             const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
 
             for (const indexedFile of indexedFiles) {
