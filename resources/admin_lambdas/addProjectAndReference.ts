@@ -141,12 +141,8 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           const ref = await addReferenceToDb(
             tenantId,
             file,
-            file.refType,
             false,
-            projectId,
-            file.websiteName,
-            file.websiteUrl,
-            file.depth
+            projectId
           );
           if(ref.data?.id)
           refIds.push(ref.data?.id);
