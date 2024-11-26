@@ -15,7 +15,7 @@ async function connectToOpenSearch() {
                     return credentialProvider();
                 },
             }),
-            node: "https://gkl444a9g3cghs48thd8.us-east-1.aoss.amazonaws.com", // Use your OpenSearch endpoint
+            node: process.env.OPEN_SEARCH_HOST, // Use your OpenSearch endpoint
         });
 
         console.log("Successfully connected to OpenSearch.");
@@ -27,8 +27,9 @@ async function connectToOpenSearch() {
 }
 
 // Function to index documents in OpenSearch
-async function indexDocuments(client: Client, indexName: string, documents: any[]) {
+async function indexDocuments( indexName: string, documents: any[]) {
     const filenames: string[] = [];
+    const client = await connectToOpenSearch();
 
     console.log(`Starting indexing of ${documents.length} documents...`);
 
@@ -56,9 +57,9 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
                 // refresh: true,  // Ensure the index is refreshed after the document is added
             });
 
-            filenames.push(doc.file_name);
 
             if (response.body.result === 'created') {
+                filenames.push(doc.file_name);
                 console.log(`Document indexed successfully: ${doc.file_name}`);
             } else {
                 console.log(`Failed to index document: ${doc.file_name}. Response: ${JSON.stringify(response.body)}`);
@@ -68,16 +69,16 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
         }
     }
 
-    console.log("Indexing completed.");
-    return Array.from(new Set(filenames));  // Return unique file names
+    console.log("Indexing completed.",filenames);
+    return filenames;  // Return unique file names
 }
 
 
 export async function addToOpenSearch( documents: any[]) {
 
-    const indexName = process.env.INDEX_NAME || 'sagemaker-index-1';
+    const indexName = process.env.OPENSEARCH_INDEX_NAME || 'sagemaker-index-1';
 
-    const client = await connectToOpenSearch();
-    const response = await indexDocuments(client, indexName, documents);
+    const response = await indexDocuments( indexName, documents);
+    console.log("response", response);
     return response;
 }
