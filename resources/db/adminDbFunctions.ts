@@ -1144,6 +1144,7 @@ export async function addDocumentReference(
   refType: string,
   isIngested: boolean,
   projectId: string,
+  createdby: string,
   datasource_id?: string,
   data?: any,
   ingestionJobId?: string,
@@ -1163,6 +1164,7 @@ export async function addDocumentReference(
         ingested: isIngested,
         isdeleted: false,
         status : ReferenceStatus.PROCESSING,
+        createdby : createdby,
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: 0,
@@ -1944,7 +1946,7 @@ export async function getInventoriesByProductId(offset: number, limit: number, t
   }
 }
 
-export async function updateInventory(inventoryId: string, updateData: productinventory,  customerid: string) {
+export async function updateInventory(inventoryId: string, updateData: productinventory, customerid: string) {
   const prisma = await getPrismaClient();
 
   try {
@@ -1987,12 +1989,12 @@ export async function updateInventory(inventoryId: string, updateData: productin
       }
     }
 
-	await addActivityLog({
-	  title: 'Inventory Updated',
-	  description: `Inventory ${inventoryId} was updated successfully.`,
-	  loggedBy: customerid,
-	});
-	
+    await addActivityLog({
+      title: "Inventory Updated",
+      description: `Inventory ${inventoryId} was updated successfully.`,
+      loggedBy: customerid
+    });
+
     return updatedInventory;
   } catch (error) {
     console.error("Error in updateInventory:", error);
@@ -2361,7 +2363,7 @@ export async function getActivityLogs() {
 	const prisma = await getPrismaClient();
 	const activityLogs = prisma.activitylogs.findMany({
       include: {
-        loggedby: true 
+         customer: true 
       },
       orderBy: {
         createdat: 'desc'
