@@ -78,5 +78,6 @@ export async function addToOpenSearch( documents: any[]) {
     const indexName = process.env.INDEX_NAME || 'sagemaker-index-1';
 
     const client = await connectToOpenSearch();
-    await indexDocuments(client, indexName, documents);
+    const response = await indexDocuments(client, indexName, documents);
+    return response;
 }
