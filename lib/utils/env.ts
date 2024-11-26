@@ -88,7 +88,9 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_NETWORK_ID: "43113",
         KB_BUCKET_NAME: "bedrockkbdocumentdev",
         KB_ID: "X3RMAORSFE",
-        BEDROCK_DATASOURCE_S3: "YQFKGJGVRR"
+        BEDROCK_DATASOURCE_S3: "YQFKGJGVRR",
+        OPEN_SEARCH_HOST:"https://gkl444a9g3cghs48thd8.us-east-1.aoss.amazonaws.com",
+        OPENSEARCH_INDEX_NAME:"sagemaker-index-1",
       };
     case "staging":
       return {
