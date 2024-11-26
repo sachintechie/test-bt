@@ -84,6 +84,7 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
 
             if (response.body.result === 'created') {
                 console.log(`Document indexed successfully: ${doc.file_name}`);
+                
             } else {
                 console.log(`Failed to index document: ${doc.file_name}. Response: ${JSON.stringify(response.body)}`);
             }
