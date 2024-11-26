@@ -50,7 +50,7 @@ async function updateProjectStatus(tenant: tenant, projectId: string, files: any
         error: "Project not found"
       };
     } else {
-      if(project.data.projectstage === ProjectStage.DATA_INGESTION){
+      if(project.data.projectstage === ProjectStage.DATA_SOURCE){
       await addReferencesLambda(tenant.adminuserid ?? "", project.data.id);
       }
       return {
