@@ -3,7 +3,7 @@ import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { defaultProvider } from "@aws-sdk/credential-provider-node";
 
 // Function to connect to OpenSearch
-async function connectToOpenSearch() {
+export async function connectToOpenSearch() {
     try {
         console.log("Initializing OpenSearch client...");
         const client = new Client({
@@ -15,7 +15,8 @@ async function connectToOpenSearch() {
                     return credentialProvider();
                 },
             }),
-            node: process.env.OPEN_SEARCH_HOST, // Use your OpenSearch endpoint
+            node: process.env.OPEN_SEARCH_HOST,
+             // Use your OpenSearch endpoint
         });
 
         console.log("Successfully connected to OpenSearch.");
@@ -70,7 +71,8 @@ async function indexDocuments( indexName: string, documents: any[]) {
     }
 
     console.log("Indexing completed.",filenames);
-    return filenames;  // Return unique file names
+
+    return Array.from(new Set(filenames));  // Return unique file names
 }
 
 

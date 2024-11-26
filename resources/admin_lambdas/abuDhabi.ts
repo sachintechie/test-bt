@@ -2,9 +2,7 @@ import * as AWS from 'aws-sdk';
 import * as uuid from 'uuid';
 import { SecretsManager } from '@aws-sdk/client-secrets-manager';
 import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType} from "@aws-sdk/client-bedrock-agent-runtime";
-import { Client } from "@opensearch-project/opensearch";
-import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
-import { defaultProvider } from "@aws-sdk/credential-provider-node";
+import { connectToOpenSearch } from '../opensearch/commonFunction';
 
 const TABLE_NAME = 'aws-abu-dhabi-dynamodb';
 const SECRET_NAME = process.env.SECRET_NAME as string;
@@ -13,29 +11,29 @@ const dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
 const secretsManager = new SecretsManager({ region: 'us-east-1' });
 
 
-// Function to connect to OpenSearch
-async function connectToOpenSearch() {
-    try {
-        console.log("Initializing OpenSearch client...");
-        const client = new Client({
-            ...AwsSigv4Signer({
-                region: 'us-east-1',
-                service: 'aoss',
-                getCredentials: () => {
-                    const credentialProvider = defaultProvider();
-                    return credentialProvider();
-                },
-            }),
-            node: "https://bn7vivdz1pxj6w22xo5j.us-east-1.aoss.amazonaws.com", // Use your OpenSearch endpoint
-        });
+// // Function to connect to OpenSearch
+// async function connectToOpenSearch() {
+//     try {
+//         console.log("Initializing OpenSearch client...");
+//         const client = new Client({
+//             ...AwsSigv4Signer({
+//                 region: 'us-east-1',
+//                 service: 'aoss',
+//                 getCredentials: () => {
+//                     const credentialProvider = defaultProvider();
+//                     return credentialProvider();
+//                 },
+//             }),
+//             node: "https://bn7vivdz1pxj6w22xo5j.us-east-1.aoss.amazonaws.com", // Use your OpenSearch endpoint
+//         });
 
-        console.log("Successfully connected to OpenSearch.");
-        return client;
-    } catch (error) {
-        console.error("Error connecting to OpenSearch:", error);
-        throw new Error('Failed to connect to OpenSearch');
-    }
-}
+//         console.log("Successfully connected to OpenSearch.");
+//         return client;
+//     } catch (error) {
+//         console.error("Error connecting to OpenSearch:", error);
+//         throw new Error('Failed to connect to OpenSearch');
+//     }
+// }
 
 async function queryOpensearchCollection() {
     const client = await connectToOpenSearch();
@@ -127,7 +125,7 @@ export const handler = async (event: any, context: any) => {
         sessionId = response.sessionId;
 
         let finalAnswer = '';
-        response.citations.forEach((citation: any) => {
+        response?.citations?.forEach((citation: any) => {
             const responseText = citation.generatedResponsePart.textResponsePart.text;
             finalAnswer += responseText + " ";
         });
