@@ -1637,7 +1637,9 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     const project = await prisma.project.findFirst({
       where: {
         id: projectId
-      }
+      },  
+      include :{references: true}
+
     });
 
     const stageCount = await prisma.stage.count({
@@ -1663,8 +1665,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
           orderBy: {
             stepsequence: "asc" // Sort steps within each stage by 'stepsequence' column
           }
-        }
-      },
+        }      },
       orderBy: {
         stagesequence: "asc"
       },
