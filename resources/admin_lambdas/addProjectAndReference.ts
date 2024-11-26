@@ -1,4 +1,4 @@
-import { tenant } from "../db/models";
+import { RefType, tenant } from "../db/models";
 import {
   addReferenceToDb,
   createProject,
@@ -137,6 +137,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
         ]);
 
         for (const file of files) {
+          file.refType = RefType.DOCUMENT;
           const ref = await addReferenceToDb(
             tenantId,
             file,
