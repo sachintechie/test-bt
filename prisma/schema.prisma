@@ -230,6 +230,7 @@ model reference  {
   datasourceid      String?
   ingestionjobid    String?   
   status            ReferenceStatus 
+  createdby         String
 
 }
 

@@ -38,7 +38,8 @@ export const handler = async (event: any, context: any) => {
 // Function to add stages and steps for processing files in multiple stages
 export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
-    const stageType1 = await getStageType("Data Source");
+    console.log("Creating admin project" , tenantUserId, projectId);
+    //const stageType1 = await getStageType("Data Source");
     const refIds : string[] = []; 
 
     // Stage 2: Data Ingestion
@@ -48,6 +49,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       // Retrieve details from the previous ingestion stage
       // const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
       const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
+      console.log("referenceList", referenceList);
 
       if (referenceList != null && referenceList?.length > 0) {
        // const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
