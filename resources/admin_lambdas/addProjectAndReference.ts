@@ -1,5 +1,6 @@
 import { tenant } from "../db/models";
 import {
+  addReferenceToDb,
   createProject,
   createStage,
   createStep,
@@ -8,9 +9,10 @@ import {
   getStageType,
   getStepType,
   isProjectExist,
-  updateProjectStage
+  updateProjectStage,
+  updateReferenceStage
 } from "../db/adminDbFunctions";
-import { ProjectStage, ProjectStatusEnum, ProjectType } from "@prisma/client";
+import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
 import {  formatBytes, generatePresignedUrl, generateSignedUrl, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
@@ -74,7 +76,7 @@ async function addProjectAndReference(
     const project = await createProject(tenant, name, description, projectType,chainType, organizationId, kb_id);
 
     if (project != null) {
-      const stage1 = await addStage_1(tenant.adminuserid ?? "", project.id, files);
+      const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
       const urls = await generatePresignedUrl(files);
       console.log("urls", urls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
@@ -112,8 +114,9 @@ async function addProjectAndReference(
   }
 }
 
-export async function addStage_1(tenantUserId: string, projectId: string, files: any) {
+export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, files: any) {
   // Stage 1: Data Source
+  const refIds : string[]= [];
   const stageType = await getStageType("Data Source");
   if (stageType) {
     const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId, 1);
@@ -134,8 +137,22 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
         ]);
 
         for (const file of files) {
+          const ref = await addReferenceToDb(
+            tenantId,
+            file,
+            file.refType,
+            false,
+            projectId,
+            file.websiteName,
+            file.websiteUrl,
+            file.depth
+          );
+          if(ref.data?.id)
+          refIds.push(ref.data?.id);
+
+          console.log("ref", ref);
           // const fileSize = await getFileSizeFromBase64(file.fileContent)
-          const downloadUrl = await generateSignedUrl(file)
+          const downloadUrl = await generateSignedUrl(file);
 
           const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details
@@ -154,7 +171,8 @@ export async function addStage_1(tenantUserId: string, projectId: string, files:
         }
 
         // Update project to reflect data ingestion status
-        await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
+        await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
+        await updateReferenceStage(projectId, refIds,ReferenceStage.DATA_SOURCE);
       }
     }
   }

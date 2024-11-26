@@ -162,13 +162,21 @@ enum ActionStatus {
 }
 
 enum ReferenceStage {
-  DATA_SELECTION
+  DATA_SOURCE
   DATA_INGESTION
   DATA_STORAGE
-  DATA_CHUNKED
-  DATA_EMBEDDED
-  DATA_INDEX
-  DATA_PUBLISHED
+  DATA_PREPARATION
+  LLM_FINE_TUNING
+  VERSIONING
+  RAG_INGESTION
+  PUBLISHED
+}
+
+enum ReferenceStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSING
 }
 
 enum ProjectStatusEnum {
@@ -219,18 +227,8 @@ model reference  {
   isactive          Boolean
   createdat         String?
   datasourceid      String?
-  ingestionjobid    String?
-  s3prestorehash    String?
-  s3prestoretxhash  String?
-  s3poststorehash   String?
-  s3poststoretxhash String?
-  chaintype         String?
-  chainid           String?
-  completechunkhash String?
-  completechunktxhash String?
-  chunkshash        String?
-  chunkstxhash      String?
-    
+  ingestionjobid    String?   
+  status            ReferenceStatus 
 
 }
 
