@@ -1038,14 +1038,9 @@ export async function deleteCategory(categoryId: string, customerId:string) {
 export async function addReferenceToDb(
   tenantId: string,
   file: any,
-  refType: string,
   isIngested: boolean,
   projectId: string,
-  websiteName?: string,
-  websiteUrl?: string,
-  depth?: number,
   datasource_id?: string,
-  data?: any,
   ingestionJobId?: string,
 
 ) {
@@ -1058,15 +1053,15 @@ export async function addReferenceToDb(
         projectid: projectId,
         referencestage: ReferenceStage.DATA_SOURCE,
         status : ReferenceStatus.PROCESSING,
-        reftype: refType,
-        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        size: refType == RefType.DOCUMENT ? data.size : null,
+        reftype: file.refType,
+        name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
+        url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
+        size: file.refType == RefType.DOCUMENT ? file.fileSize : null,
         ingested: isIngested,
         isdeleted: false,
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
-        depth: depth,
+        depth: file.depth,
         isactive: true,
         createdat: new Date().toISOString()
       }
