@@ -177,6 +177,7 @@ enum ReferenceStatus {
   APPROVED
   REJECTED
   PROCESSING
+  COMPLETED
 }
 
 enum ProjectStatusEnum {

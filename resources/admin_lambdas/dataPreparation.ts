@@ -11,7 +11,7 @@ import {
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
-import { ProjectStage, ProjectStatusEnum, ReferenceStage } from "@prisma/client";
+import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {
   combineChunks,
   getS3Data,
@@ -52,8 +52,8 @@ export const handler = async (event: any, context: any) => {
 export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
     let file_embeddings;
-    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE);
-const refIds : string[] = [];
+    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE,ReferenceStatus.PROCESSING);
+    const refIds : string[] = [];
 
     // Stage 4: Data Preparation
     //const stageType1 = await getStageType("Data Source");
@@ -135,7 +135,7 @@ const refIds : string[] = [];
 
             // Update project to reflect data preparation status
             await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
-            await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_PREPARATION);
+            await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_PREPARATION,ReferenceStatus.PROCESSING);
           }
         
       }
@@ -189,7 +189,7 @@ const refIds : string[] = [];
           }
             // Update project to reflect data RAG_INGESTION status
            await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
-           await updateReferenceStage(projectId,refIds, ReferenceStage.RAG_INGESTION);
+           await updateReferenceStage(projectId,refIds, ReferenceStage.RAG_INGESTION,ReferenceStatus.PROCESSING);
         }
       
     }
@@ -201,7 +201,7 @@ const refIds : string[] = [];
 
       // Update project to reflect data preparation status
       await updateProjectStage(projectId, ProjectStage.PUBLISHED, ProjectStatusEnum.ACTIVE);
-      await updateReferenceStage(projectId,refIds, ReferenceStage.PUBLISHED);
+      await updateReferenceStage(projectId,refIds, ReferenceStage.PUBLISHED,ReferenceStatus.COMPLETED);
 
     }
 

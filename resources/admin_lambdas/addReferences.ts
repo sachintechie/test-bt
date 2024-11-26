@@ -13,7 +13,7 @@ import {
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
-import { ProjectStage, ProjectStatusEnum, ReferenceStage } from "@prisma/client";
+import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  getS3Data, getS3DataWithoutContent,dataPreperationLambda } from "../knowledgebase/commonFunctions";
 import { RefType } from "../db/models";
 
@@ -47,7 +47,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId, 2);
       // Retrieve details from the previous ingestion stage
       // const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
-      const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_SOURCE);
+      const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
 
       if (referenceList != null && referenceList?.length > 0) {
        // const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
@@ -72,7 +72,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
             // Update project to reflect data storage status
             await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
-            await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_INGESTION);
+            await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_INGESTION,ReferenceStatus.PROCESSING);
           }
         }
       }
@@ -85,7 +85,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
       // Retrieve details from the previous ingestion stage
     //  const ingestionStageDetails = await getStageDetails(projectId, stageType2?.id || "");
-    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_INGESTION);
+    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_INGESTION,ReferenceStatus.PROCESSING);
 
       if (referenceList != null && referenceList?.length > 0) {
        // const stepDetails = await getStepDetails(ingestionStageDetails.steps[0].id);
@@ -136,7 +136,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
           // Update project to reflect data preparation status
           await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
-          await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_STORAGE);
+          await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_STORAGE,ReferenceStatus.PROCESSING);
 
         }
       }

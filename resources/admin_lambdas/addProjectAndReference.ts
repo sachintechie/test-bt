@@ -12,7 +12,7 @@ import {
   updateProjectStage,
   updateReferenceStage
 } from "../db/adminDbFunctions";
-import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
+import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  formatBytes, generatePresignedUrl, generateSignedUrl, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
@@ -172,7 +172,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
 
         // Update project to reflect data ingestion status
         await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
-        await updateReferenceStage(projectId, refIds,ReferenceStage.DATA_SOURCE);
+        await updateReferenceStage(projectId, refIds,ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
       }
     }
   }

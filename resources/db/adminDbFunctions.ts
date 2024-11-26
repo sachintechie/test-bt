@@ -71,13 +71,14 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
   }
 }
 
-export async function updateReferenceStage(projectId: string, refIds: string[], referenceStage: ReferenceStage) {
+export async function updateReferenceStage(projectId: string, refIds: string[], referenceStage: ReferenceStage,status : ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.reference.updateMany({
       where: { id: {in:refIds} },
       data: {
-        referencestage: referenceStage
+        referencestage: referenceStage,
+        status: status
       }
     });
     return updatedProject;
@@ -1363,13 +1364,14 @@ export async function getReferenceById(tenantId: string, refId: string) {
   }
 }
 
-export async function getReferenceByProjectId(projectId: string,referenceStage: ReferenceStage) {
+export async function getReferenceByProjectId(projectId: string,referenceStage: ReferenceStage,status : ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const reference = await prisma.reference.findMany({
       where: {
         projectid: projectId,
         referencestage: referenceStage,
+        status: status,
         isdeleted: false
       }
     });
