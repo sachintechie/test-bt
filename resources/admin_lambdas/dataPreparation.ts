@@ -51,11 +51,10 @@ export const handler = async (event: any, context: any) => {
 // Function to add stages and steps for processing files in multiple stages
 export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
-
-    console.log("projectId", projectId,tenantUserId);
+    console.log("projectId", projectId, tenantUserId);
     let file_embeddings;
-    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE,ReferenceStatus.PROCESSING);
-    const refIds : string[] = [];
+    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE, ReferenceStatus.PROCESSING);
+    const refIds: string[] = [];
 
     // Stage 4: Data Preparation
     //const stageType1 = await getStageType("Data Source");
@@ -64,53 +63,52 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
     if (stageType4) {
       const stage4 = await createStage(tenantUserId, "Data Preparation", "Data Preparation", stageType4.id, projectId, 4);
 
-     // const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      // const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
       if (referenceList != null && referenceList?.length > 0) {
-      //  const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
-       // const stepDetails = await getStepDetails(fileUploadStepId);
+        //  const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+        // const stepDetails = await getStepDetails(fileUploadStepId);
 
         // Retrieve details from the previous ingestion stage
         //  const stepDetails = await getStageDetailsByProjectId(projectId);
-          const [stepType1, stepType2, stepType3, stepType4, stepType5, stepType6, stepType7] = await Promise.all([
-            getStepType("Chunking"),
-            getStepType("Chunking hash"),
-            getStepType("Embedding of chunks"),
-            getStepType("Reconstruction of data"),
-            getStepType("Store chunk hash to Blockchain"),
-            getStepType("Hashing of reconstructive data"),
-            getStepType("Store recombined file to Blockchain")
+        const [stepType1, stepType2, stepType3, stepType4, stepType5, stepType6, stepType7] = await Promise.all([
+          getStepType("Chunking"),
+          getStepType("Chunking hash"),
+          getStepType("Embedding of chunks"),
+          getStepType("Reconstruction of data"),
+          getStepType("Store chunk hash to Blockchain"),
+          getStepType("Hashing of reconstructive data"),
+          getStepType("Store recombined file to Blockchain")
+        ]);
+
+        if (stepType1 && stepType2 && stepType3 && stepType4 && stepType5 && stepType6 && stepType7) {
+          const [step1, step2, step3, step4, step5, step6, step7] = await Promise.all([
+            createStep(tenantUserId, "Chunking", "Chunking", stepType1.id, stage4.id, 1),
+            createStep(tenantUserId, "Chunking hash", "Chunking hash", stepType2.id, stage4.id, 2),
+            createStep(tenantUserId, "Embedding of chunks", "Embedding of chunks", stepType3.id, stage4.id, 3),
+            createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id, 4),
+            createStep(tenantUserId, "Store chunk hash to Blockchain", "Store chunk hash to Blockchain", stepType5.id, stage4.id, 5),
+            createStep(tenantUserId, "Hashing of reconstructive data", "Hashing of reconstructive data", stepType6.id, stage4.id, 6),
+            createStep(
+              tenantUserId,
+              "Store recombined file to Blockchain",
+              "Store recombined file to Blockchain",
+              stepType7.id,
+              stage4.id,
+              7
+            )
           ]);
 
-          if (stepType1 && stepType2 && stepType3 && stepType4 && stepType5 && stepType6 && stepType7) {
-            const [step1, step2, step3, step4, step5, step6, step7] = await Promise.all([
-              createStep(tenantUserId, "Chunking", "Chunking", stepType1.id, stage4.id, 1),
-              createStep(tenantUserId, "Chunking hash", "Chunking hash", stepType2.id, stage4.id, 2),
-              createStep(tenantUserId, "Embedding of chunks", "Embedding of chunks", stepType3.id, stage4.id, 3),
-              createStep(tenantUserId, "Reconstruction of data", "Reconstruction of data", stepType4.id, stage4.id, 4),
-              createStep(tenantUserId, "Store chunk hash to Blockchain", "Store chunk hash to Blockchain", stepType5.id, stage4.id, 5),
-              createStep(tenantUserId, "Hashing of reconstructive data", "Hashing of reconstructive data", stepType6.id, stage4.id, 6),
-              createStep(
-                tenantUserId,
-                "Store recombined file to Blockchain",
-                "Store recombined file to Blockchain",
-                stepType7.id,
-                stage4.id,
-                7
-              )
-            ]);
-
-            for (const reference of referenceList) {
-             // const data = JSON.parse(stepDetail.metadata);
-             refIds.push(reference.id);
-              // Step 1 and step 3: Chunking and Embedding of chunks
-              if(reference.name != null && reference.reftype == RefType.DOCUMENT){
+          for (const reference of referenceList) {
+            // const data = JSON.parse(stepDetail.metadata);
+            refIds.push(reference.id);
+            // Step 1 and step 3: Chunking and Embedding of chunks
+            if (reference.name != null && reference.reftype == RefType.DOCUMENT) {
               file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId);
               let hashed_chunkcontent;
               if (file_embeddings.embeddings != null) {
                 // Step 2: Chunking hash
                 hashed_chunkcontent = await hashChunkContents(file_embeddings?.embeddings, step2.id, tenantUserId);
-              }
-              else{
+              } else {
                 return false;
               }
 
@@ -135,11 +133,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
             }
           }
 
-            // Update project to reflect data preparation status
-            await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
-            await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_PREPARATION,ReferenceStatus.PROCESSING);
-          }
-        
+          // Update project to reflect data preparation status
+          await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
+          await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_PREPARATION, ReferenceStatus.PROCESSING);
+        }
       }
     }
 
@@ -149,53 +146,50 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       const stage5 = await createStage(tenantUserId, "RAG Ingestion", "RAG Ingestion", stageType5.id, projectId, 5);
 
       // Retrieve details from the previous ingestion stage
-     // const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_PREPARATION);
+      // const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_PREPARATION);
 
       //const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
       if (referenceList != null && referenceList?.length > 0) {
-      //  const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+        //  const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
         //const stepDetails = await getStepDetails(fileUploadStepId);
-          const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
+        const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
 
-          if (stepType1) {
-            const [step1] = await Promise.all([
-              createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
-            ]);
+        if (stepType1) {
+          const [step1] = await Promise.all([
+            createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
+          ]);
 
-           // const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
-           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
-            if(file_embeddings?.embeddings != null){
+          const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
+          // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
+          if (file_embeddings?.embeddings != null) {
+            const indexedFiles: string[] = await addToOpenSearch(file_embeddings?.embeddings);
+            //  const indexedFiles: string[] = JSON.parse(openSearchResponse);
 
-            const indexedFiles = await addToOpenSearch(file_embeddings?.embeddings);
             console.log("opensearchResponse", indexedFiles);
             for (const indexedFile of indexedFiles) {
               console.log("indexedFile", indexedFile);
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
             }
-            }
-           // const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
-
-           
-
-            // const responseForIndexing   = await indexing(file_embeddings?.embeddings);
-
-            // console.log("responseForIndexing", responseForIndexing);
-
-            // if(responseForIndexing != null){
-
-            // for (const indexedFile of responseForIndexing) {
-            //   const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
-            //   await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
-            // }
-            //}
-
           }
-            // Update project to reflect data RAG_INGESTION status
-           await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
-           await updateReferenceStage(projectId,refIds, ReferenceStage.RAG_INGESTION,ReferenceStatus.PROCESSING);
+          // const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
+
+          // const responseForIndexing   = await indexing(file_embeddings?.embeddings);
+
+          // console.log("responseForIndexing", responseForIndexing);
+
+          // if(responseForIndexing != null){
+
+          // for (const indexedFile of responseForIndexing) {
+          //   const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
+          //   await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
+          // }
+          //}
         }
-      
+        // Update project to reflect data RAG_INGESTION status
+        await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
+        await updateReferenceStage(projectId, refIds, ReferenceStage.RAG_INGESTION, ReferenceStatus.PROCESSING);
+      }
     }
 
     // Stage 5: Published
@@ -205,8 +199,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
       // Update project to reflect data preparation status
       await updateProjectStage(projectId, ProjectStage.PUBLISHED, ProjectStatusEnum.ACTIVE);
-      await updateReferenceStage(projectId,refIds, ReferenceStage.PUBLISHED,ReferenceStatus.COMPLETED);
-
+      await updateReferenceStage(projectId, refIds, ReferenceStage.PUBLISHED, ReferenceStatus.COMPLETED);
     }
 
     return true;
@@ -344,7 +337,6 @@ async function hashChunkContents(
 
   return hashedChunkContent;
 }
-
 
 export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
   let fileContent = "";

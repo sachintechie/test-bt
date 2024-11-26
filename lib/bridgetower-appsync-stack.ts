@@ -35,7 +35,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "createStep",
   "createStage",
   "dataPreparation",
-  "opensearchIndexing"
+  "opensearchIndexing",
+  "abuDhabi"
 ];
 
 const GET_METADATA = "getMetadata";
