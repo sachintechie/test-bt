@@ -783,7 +783,7 @@ type ProjectData {
 	isactive: Boolean
 	createdby: String
 	chaintype: String
-	references: ReferenceData
+	references: [ReferenceData]
 }
 
 input ProjectFileInput {
@@ -1015,6 +1015,18 @@ input UpdateProjectStatusInput {
 	fileStatus: [FileStatusInput]
 }
 
+input UpdateRefStatusInput{
+refId: String!
+status: String!
+}
+
+type UpdateRefStatus {
+	status: Int
+	data: ReferenceData
+	error: AWSJSON
+
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -1043,6 +1055,7 @@ type Mutation {
 	CreateStageType(input: CreateStageTypeInput): CreateStageTypeResponse
 	UpdateProjectStatus(input: UpdateProjectStatusInput): CreateProjectResponse
 	CreateScopeSpecification(input: CreateScopeSpecificationInput): CreateScopeSpecificationResponse
+	UpdateRefStatus(input: UpdateRefStatusInput): UpdateRefStatus
 }
 
 type Query {

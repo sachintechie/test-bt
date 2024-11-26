@@ -87,6 +87,21 @@ export async function updateReferenceStage(projectId: string, refIds: string[], 
   }
 }
 
+export async function updateRefStatus(refId: string,status : ReferenceStatus) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.reference.update({
+      where: { id: refId },
+      data: {
+        status: status
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
 
 export async function updateRefererncePostS3Data(refId: string, ingested: boolean, hashedData: any) {
   try {
@@ -1040,6 +1055,8 @@ export async function addReferenceToDb(
   file: any,
   isIngested: boolean,
   projectId: string,
+  status: ReferenceStatus,
+  createdBy: string,
   datasource_id?: string,
   ingestionJobId?: string,
 
@@ -1052,7 +1069,7 @@ export async function addReferenceToDb(
         tenantid: tenantId as string,
         projectid: projectId,
         referencestage: ReferenceStage.DATA_SOURCE,
-        status : ReferenceStatus.PROCESSING,
+        status : status,
         reftype: file.refType,
         name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
         url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
@@ -1062,6 +1079,7 @@ export async function addReferenceToDb(
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: file.depth,
+        createdby:createdBy,
         isactive: true,
         createdat: new Date().toISOString()
       }
@@ -1446,6 +1464,48 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
   }
 }
 
+export async function getReferenceListByCustomer(limit: number, pageNo: number, tenantId: string, customerId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const refCount = await prisma.reference.count({
+      where: {
+        tenantid: tenantId,
+        isdeleted: false,
+        createdby: customerId
+      },
+      orderBy: {
+        createdat: "desc"
+      }
+    });
+    if (refCount == 0) {
+      return [];
+    }
+    const refs = await prisma.reference.findMany({
+      where: {
+        tenantid: tenantId,
+        isdeleted: false,
+        createdby: customerId
+      },
+
+      orderBy: {
+        createdat: "desc"
+      },
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+
+    const data = {
+      total: refCount,
+      totalPages: Math.ceil(refCount / limit),
+      refs: refs
+    };
+
+    return data;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function getListOfStageTypeAndStepType(limit: number, pageNo: number, tenantId: string, type: string) {
   try {
     const prisma = await getPrismaClient();
@@ -1627,7 +1687,22 @@ export async function getProjectById(projectId: string) {
     return { data: null, error: err };
   }
 }
-
+export async function getRefById(refId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const project = await prisma.reference.findFirst({
+      where: {
+        id: refId
+      }
+    });
+    if (project == null) {
+      return { data: null, error: "Reference not found" };
+    }
+    return { data: project, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
 export async function getProjectWithSteps(projectId: string, limit: number, pageNo: number) {
   try {
     const prisma = await getPrismaClient();

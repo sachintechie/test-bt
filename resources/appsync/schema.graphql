@@ -1165,6 +1165,60 @@ input WithdrawStakeInput {
 	accountPublicKey: String!
 }
 
+input AddFileToProjectInput{
+projectId: String!
+files:[ProjectFileInput]
+}
+input ProjectFileInput {
+	fileName: String!
+	fileSize: String!
+	contentType: String!
+	hash: String!
+	websiteName: String
+	websiteUrl: String
+	refType: String
+	depth: Int
+}
+
+type AddFileToProjectResponse {
+	status: Int
+	data: [ReferenceData]
+	error: AWSJSON
+
+}
+
+type ReferenceData {
+	id: String
+	createdat: String
+	depth: Int
+	size: String
+	ingested: Boolean
+	reftype: String
+	name: String
+	url: String
+	datasourceid: String
+	ingestionjobid: String
+	status: String
+	referencestage: String
+}
+
+input ListRefByCustomerInput{
+limit: Int!
+pageNo	: Int!
+}
+
+type ListRefByCustomerResponse{
+status: Int
+data: ReferenceListData
+error: AWSJSON
+}
+
+type ReferenceListData {
+	total: Int
+	totalPages: Int
+	refs: [ReferenceData]
+}
+
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
@@ -1183,6 +1237,8 @@ type Mutation {
 	StoreHashOnSubnet(input: StoreHashInput): StoreHash
 	AddToCart(input: CartInput): CartResponse
 	RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
+	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
+
 }
 
 type Query {
@@ -1232,6 +1288,8 @@ type Query {
 	GetUserCart: GetUserCartResponse
 	GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
 	GetProjectAndStepById(input: ListProjectByIdInput): ProjectAndStepsResponse
+	ListReferenceByCustomer(input: ListRefByCustomerInput): ListRefByCustomerResponse
+
 }
 
 schema {

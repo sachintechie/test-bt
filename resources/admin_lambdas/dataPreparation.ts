@@ -51,6 +51,8 @@ export const handler = async (event: any, context: any) => {
 // Function to add stages and steps for processing files in multiple stages
 export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
+
+    console.log("projectId", projectId,tenantUserId);
     let file_embeddings;
     const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE,ReferenceStatus.PROCESSING);
     const refIds : string[] = [];

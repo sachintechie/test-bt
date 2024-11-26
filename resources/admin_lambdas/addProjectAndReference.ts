@@ -142,7 +142,9 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
             tenantId,
             file,
             false,
-            projectId
+            projectId,
+            ReferenceStatus.PROCESSING,
+            tenantUserId
           );
           if(ref.data?.id)
           refIds.push(ref.data?.id);
