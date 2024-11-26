@@ -162,19 +162,21 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
             ]);
 
-            const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
-            console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
+           // const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
+           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
             if(file_embeddings?.embeddings != null){
 
-            const opensearchResponse = await addToOpenSearch(file_embeddings?.embeddings);
-            console.log("opensearchResponse", opensearchResponse);
-            }
-            const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
-
+            const indexedFiles = await addToOpenSearch(file_embeddings?.embeddings);
+            console.log("opensearchResponse", indexedFiles);
             for (const indexedFile of indexedFiles) {
+              console.log("indexedFile", indexedFile);
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
             }
+            }
+           // const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
+
+           
 
             // const responseForIndexing   = await indexing(file_embeddings?.embeddings);
 
