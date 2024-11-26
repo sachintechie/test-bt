@@ -2,14 +2,16 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getReferenceByProjectId,
   getStageDetails,
   getStageType,
   getStepDetails,
   getStepType,
-  updateProjectStage
+  updateProjectStage,
+  updateReferenceStage
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
-import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
+import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {
   combineChunks,
   getS3Data,
@@ -19,11 +21,12 @@ import {
   storeHashByChainType,
   getS3ActualData
 } from "../knowledgebase/commonFunctions";
-import { EmbeddingMetadata, GroupedChunk, HashedEntry } from "../db/models";
+import { EmbeddingMetadata, GroupedChunk, HashedEntry, RefType } from "../db/models";
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { TextDecoder, TextEncoder } from "util"; // Ensure TextDecoder is available for decoding
 import { indexing } from "../knowledgebase/opensearch";
+import { addToOpenSearch } from "../opensearch/commonFunction";
 const client = new BedrockRuntimeClient({
   region: "us-east-1" // Replace with your AWS region
 });
@@ -48,21 +51,26 @@ export const handler = async (event: any, context: any) => {
 // Function to add stages and steps for processing files in multiple stages
 export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
+
+    console.log("projectId", projectId,tenantUserId);
     let file_embeddings;
+    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE,ReferenceStatus.PROCESSING);
+    const refIds : string[] = [];
+
     // Stage 4: Data Preparation
-    const stageType1 = await getStageType("Data Source");
+    //const stageType1 = await getStageType("Data Source");
 
     const stageType4 = await getStageType("Data Preparation");
     if (stageType4) {
       const stage4 = await createStage(tenantUserId, "Data Preparation", "Data Preparation", stageType4.id, projectId, 4);
-      const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
-      if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
-        const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
-        const stepDetails = await getStepDetails(fileUploadStepId);
+
+     // const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      if (referenceList != null && referenceList?.length > 0) {
+      //  const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+       // const stepDetails = await getStepDetails(fileUploadStepId);
 
         // Retrieve details from the previous ingestion stage
         //  const stepDetails = await getStageDetailsByProjectId(projectId);
-        if (stepDetails != null && stepDetails.length > 0) {
           const [stepType1, stepType2, stepType3, stepType4, stepType5, stepType6, stepType7] = await Promise.all([
             getStepType("Chunking"),
             getStepType("Chunking hash"),
@@ -91,11 +99,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
               )
             ]);
 
-            for (const stepDetail of stepDetails) {
-              const data = JSON.parse(stepDetail.metadata);
-
+            for (const reference of referenceList) {
+             // const data = JSON.parse(stepDetail.metadata);
+             refIds.push(reference.id);
               // Step 1 and step 3: Chunking and Embedding of chunks
-              file_embeddings = await processFile(data.fileName, step1.id, step3.id, tenantUserId, projectId);
+              if(reference.name != null && reference.reftype == RefType.DOCUMENT){
+              file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId);
               let hashed_chunkcontent;
               if (file_embeddings.embeddings != null) {
                 // Step 2: Chunking hash
@@ -124,11 +133,13 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
                 console.log("hashCombinedData", hashCombinedData);
               }
             }
+          }
 
             // Update project to reflect data preparation status
             await updateProjectStage(projectId, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
+            await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_PREPARATION,ReferenceStatus.PROCESSING);
           }
-        }
+        
       }
     }
 
@@ -138,11 +149,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       const stage5 = await createStage(tenantUserId, "RAG Ingestion", "RAG Ingestion", stageType5.id, projectId, 5);
 
       // Retrieve details from the previous ingestion stage
-      const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
-      if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
-        const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
-        const stepDetails = await getStepDetails(fileUploadStepId);
-        if (stepDetails != null && stepDetails.length > 0) {
+     // const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_PREPARATION);
+
+      //const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      if (referenceList != null && referenceList?.length > 0) {
+      //  const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+        //const stepDetails = await getStepDetails(fileUploadStepId);
           const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
 
           if (stepType1) {
@@ -152,6 +164,11 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
             const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
             console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
+            if(file_embeddings?.embeddings != null){
+
+            const opensearchResponse = await addToOpenSearch(file_embeddings?.embeddings);
+            console.log("opensearchResponse", opensearchResponse);
+            }
             const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
 
             for (const indexedFile of indexedFiles) {
@@ -174,8 +191,9 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
           }
             // Update project to reflect data RAG_INGESTION status
            await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
+           await updateReferenceStage(projectId,refIds, ReferenceStage.RAG_INGESTION,ReferenceStatus.PROCESSING);
         }
-      }
+      
     }
 
     // Stage 5: Published
@@ -185,6 +203,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
       // Update project to reflect data preparation status
       await updateProjectStage(projectId, ProjectStage.PUBLISHED, ProjectStatusEnum.ACTIVE);
+      await updateReferenceStage(projectId,refIds, ReferenceStage.PUBLISHED,ReferenceStatus.COMPLETED);
+
     }
 
     return true;

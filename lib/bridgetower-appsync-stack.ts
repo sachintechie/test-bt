@@ -34,7 +34,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "addReferences",
   "createStep",
   "createStage",
-  "dataPreparation"
+  "dataPreparation",
+  "opensearchIndexing"
 ];
 
 const GET_METADATA = "getMetadata";
@@ -78,7 +79,6 @@ const MUTATIONS = [
   "manageProductMedia",
   "deleteRefToKnowledgeBase",
   "createProject",
-  "addReference",
   "addProjectAndReference",
   "deleteProductAttributes",
   "createStepType",
@@ -86,7 +86,9 @@ const MUTATIONS = [
   "updateProjectStatus",
   "addToCart",
   "removeFromCart",
-  "deleteCategory"
+  "deleteCategory",
+  "updateRefStatus",
+  "addFileToProject"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {

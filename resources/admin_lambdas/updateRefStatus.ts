@@ -2,20 +2,23 @@ import { tenant } from "../db/models";
 
 import {
   getProjectById,
+  getRefById,
+  getReferenceById,
+  updateRefStatus,
 } from "../db/adminDbFunctions";
 import { addReferencesLambda } from "../knowledgebase/commonFunctions";
 import { Project } from "aws-cdk-lib/aws-codebuild";
-import { ProjectStage } from "@prisma/client";
+import { ProjectStage, ReferenceStatus } from "@prisma/client";
 
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const data = await updateProjectStatus(
+    const data = await updateReferenceStatus(
       event.identity.resolverContext as tenant,
-      event.arguments?.input?.projectId,
-      event.arguments?.input?.files
+      event.arguments?.input?.refId,
+      event.arguments?.input?.status
     );
     console.log("data", data);
 
@@ -37,24 +40,23 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function updateProjectStatus(tenant: tenant, projectId: string, files: any) {
+async function updateReferenceStatus(tenant: tenant, refId: string,status : ReferenceStatus) {
   console.log("Creating admin project");
 
   try {
-    console.log("project", tenant.id, projectId, files);
+    console.log("project", tenant.id, refId);
 
-    const project = await getProjectById(projectId);
+    const project = await getRefById(refId);
     if (project.data == null) {
       return {
         project: null,
-        error: "Project not found"
+        error: "Reference not found"
       };
     } else {
-      if(project.data.projectstage === ProjectStage.DATA_SOURCE){
-      await addReferencesLambda(tenant.adminuserid ?? "", project.data.id);
-      }
+        const ref = await updateRefStatus(refId,status)
+    
       return {
-        project: project.data,
+        project: ref,
         error: null
       };
     }

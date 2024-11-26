@@ -2,15 +2,20 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getReferenceById,
+  getReferenceByProjectId,
+  getReferenceList,
   getStageDetails,
   getStageType,
   getStepDetails,
   getStepType,
-  updateProjectStage
+  updateProjectStage,
+  updateReferenceStage
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
-import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
+import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  getS3Data, getS3DataWithoutContent,dataPreperationLambda } from "../knowledgebase/commonFunctions";
+import { RefType } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -33,34 +38,43 @@ export const handler = async (event: any, context: any) => {
 // Function to add stages and steps for processing files in multiple stages
 export async function addStageAndSteps(tenantUserId: string, projectId: string) {
   try {
-    const stageType1 = await getStageType("Data Source");
+    console.log("Creating admin project" , tenantUserId, projectId);
+    //const stageType1 = await getStageType("Data Source");
+    const refIds : string[] = []; 
 
     // Stage 2: Data Ingestion
     const stageType2 = await getStageType("Data Ingestion");
     if (stageType2) {
       const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId, 2);
       // Retrieve details from the previous ingestion stage
-      const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
-      if (sourceStageDetails != null && sourceStageDetails?.steps.length > 0) {
-        const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
-        const stepDetails = await getStepDetails(fileUploadStepId);
+      // const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
+      const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
+      console.log("referenceList", referenceList);
+
+      if (referenceList != null && referenceList?.length > 0) {
+       // const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
+       // const stepDetails = await getStepDetails(fileUploadStepId);
 
         if (stage2) {
           const stepType = await getStepType("Upload to S3");
 
           if (stepType) {
             const step1 = await createStep(tenantUserId, "Upload to S3", "Upload to S3", stepType.id, stage2.id, 1);
-            for (const stepDetail of stepDetails) {
-              const data = JSON.parse(stepDetail.metadata);
+            for (const reference of referenceList) {
+             // const data = JSON.parse(stepDetail.metadata);
 
             // Upload file content to S3
-            const s3Data = await getS3DataWithoutContent(data.fileName);
+            if(reference?.name){
+            const s3Data = await getS3DataWithoutContent(reference?.name);
+            refIds.push(reference.id);
 
               await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id);
             }
+            }
 
             // Update project to reflect data storage status
-            await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
+            await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
+            await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_INGESTION,ReferenceStatus.PROCESSING);
           }
         }
       }
@@ -72,9 +86,11 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       const stage3 = await createStage(tenantUserId, "Data Storage", "Data Storage", stageType3.id, projectId, 3);
 
       // Retrieve details from the previous ingestion stage
-      const ingestionStageDetails = await getStageDetails(projectId, stageType2?.id || "");
-      if (ingestionStageDetails != null && ingestionStageDetails?.steps.length > 0) {
-        const stepDetails = await getStepDetails(ingestionStageDetails.steps[0].id);
+    //  const ingestionStageDetails = await getStageDetails(projectId, stageType2?.id || "");
+    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_INGESTION,ReferenceStatus.PROCESSING);
+
+      if (referenceList != null && referenceList?.length > 0) {
+       // const stepDetails = await getStepDetails(ingestionStageDetails.steps[0].id);
         const [stepType1, stepType2, stepType3] = await Promise.all([
           getStepType("Read file from s3"),
           getStepType("Hashing of s3 file"),
@@ -88,9 +104,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
             createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage3.id, 3)
           ]);
 
-          for (const stepDetail of stepDetails) {
-            const data = JSON.parse(stepDetail.metadata);
-            const getDataFromS3 = await getS3Data(data.fileName);
+          for (const reference of referenceList) {
+           // const data = JSON.parse(stepDetail.metadata);
+           if(reference?.name && reference.reftype === RefType.DOCUMENT){
+            const getDataFromS3 = await getS3Data(reference.name);
             console.log("getDataFromS3", getDataFromS3);
             const s3data = {
               fileName: getDataFromS3.data?.fileName,
@@ -121,7 +138,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
           // Update project to reflect data preparation status
           await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
+          await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_STORAGE,ReferenceStatus.PROCESSING);
+
         }
+      }
       }
     }
 
