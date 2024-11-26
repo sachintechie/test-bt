@@ -79,7 +79,6 @@ const MUTATIONS = [
   "manageProductMedia",
   "deleteRefToKnowledgeBase",
   "createProject",
-  "addReference",
   "addProjectAndReference",
   "deleteProductAttributes",
   "createStepType",

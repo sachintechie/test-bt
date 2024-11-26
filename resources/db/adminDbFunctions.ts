@@ -16,7 +16,7 @@ import {
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
-import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage } from "@prisma/client";
+import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -70,6 +70,23 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
     throw err;
   }
 }
+
+export async function updateReferenceStage(projectId: string, refIds: string[], referenceStage: ReferenceStage) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.reference.updateMany({
+      where: { id: {in:refIds} },
+      data: {
+        referencestage: referenceStage
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+
 export async function updateRefererncePostS3Data(refId: string, ingested: boolean, hashedData: any) {
   try {
     const prisma = await getPrismaClient();
@@ -77,9 +94,7 @@ export async function updateRefererncePostS3Data(refId: string, ingested: boolea
       where: { id: refId },
       data: {
         ingested: ingested,
-        referencestage: ReferenceStage.DATA_STORAGE,
-        s3poststorehash: hashedData.s3PostStoreHash,
-        s3poststoretxhash: hashedData.s3PostStoreTxHash
+        referencestage: ReferenceStage.DATA_SOURCE
       }
     });
     return updatedReference;
@@ -95,9 +110,7 @@ export async function updateRefererncePostIndexing(refId: string, ingested: bool
       where: { id: refId },
       data: {
         ingested: ingested,
-        referencestage: ReferenceStage.DATA_PUBLISHED,
-        chunkstxhash: hashedData.chunkstxhash,
-        completechunktxhash: hashedData.completeChunkTxHash
+        referencestage: ReferenceStage.PUBLISHED
       }
     });
     return updatedReference;
@@ -1033,40 +1046,23 @@ export async function addReferenceToDb(
   datasource_id?: string,
   data?: any,
   ingestionJobId?: string,
-  hashedData?: any
+
 ) {
   try {
     const prisma = await getPrismaClient();
-    const existingReference = await prisma.reference.findFirst({
-      where: {
-        name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
-        url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
-        isdeleted: false
-      }
-    });
-    if (existingReference) {
-      return {
-        data: null,
-        error: "Reference is already added with this name"
-      };
-    }
+ 
     const newRef = await prisma.reference.create({
       data: {
         tenantid: tenantId as string,
         projectid: projectId,
-        referencestage: ReferenceStage.DATA_STORAGE,
+        referencestage: ReferenceStage.DATA_SOURCE,
+        status : ReferenceStatus.PROCESSING,
         reftype: refType,
         name: refType == RefType.DOCUMENT ? file.fileName : websiteName,
         url: refType == RefType.DOCUMENT ? data.url : websiteUrl,
         size: refType == RefType.DOCUMENT ? data.size : null,
         ingested: isIngested,
         isdeleted: false,
-        s3prestorehash: hashedData.s3PreStoreHash,
-        s3prestoretxhash: hashedData.s3PreStoreTxHash,
-        s3poststorehash: hashedData.s3PostStoreHash,
-        s3poststoretxhash: hashedData.s3PostStoreTxHash,
-        chaintype: hashedData.chainType,
-        chainid: hashedData.chainId.toString(),
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: depth,
@@ -1137,7 +1133,6 @@ export async function addDocumentReference(
   datasource_id?: string,
   data?: any,
   ingestionJobId?: string,
-  hashedData?: any
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -1146,19 +1141,14 @@ export async function addDocumentReference(
       data: {
         tenantid: tenantId as string,
         projectid: projectId,
-        referencestage: ReferenceStage.DATA_SELECTION,
+        referencestage: ReferenceStage.DATA_SOURCE,
         reftype: refType,
         name: file.fileName,
         url: data.url,
         size: data.size,
         ingested: isIngested,
         isdeleted: false,
-        s3prestorehash: hashedData.s3PreStoreHash,
-        s3prestoretxhash: hashedData.s3PreStoreTxHash,
-        s3poststorehash: hashedData.s3PostStoreHash,
-        s3poststoretxhash: hashedData.s3PostStoreTxHash,
-        chaintype: hashedData.chainType,
-        chainid: hashedData.chainId.toString(),
+        status : ReferenceStatus.PROCESSING,
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: 0,
@@ -1361,6 +1351,25 @@ export async function getReferenceById(tenantId: string, refId: string) {
       where: {
         id: refId,
         tenantid: tenantId,
+        isdeleted: false
+      }
+    });
+    if (reference == null) {
+      throw new Error("Reference not found");
+    }
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function getReferenceByProjectId(projectId: string,referenceStage: ReferenceStage) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.reference.findMany({
+      where: {
+        projectid: projectId,
+        referencestage: referenceStage,
         isdeleted: false
       }
     });
@@ -1706,7 +1715,7 @@ export async function getAllReferences() {
     const prisma = await getPrismaClient();
     const transactions = await prisma.reference.findMany({
       where: {
-        referencestage: ReferenceStage.DATA_STORAGE || ReferenceStage.DATA_SELECTION
+        referencestage: ReferenceStage.DATA_STORAGE || ReferenceStage.DATA_SOURCE
       }
     });
     return transactions;

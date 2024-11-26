@@ -790,6 +790,10 @@ input ProjectFileInput {
 	fileSize: String!
 	contentType: String!
 	hash: String!
+  websiteName: String
+  websiteUrl: String
+  refType: String
+  depth: Int
 }
 
 input SearchInventoryInput {
@@ -1004,7 +1008,6 @@ tokenIds: [String!]
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
-	AddReference(input: AddRefToKnowledgeBaseInput): AddRefToKnowledgeBase
 	AdminTransfer(input: AdminTransferInput): AdminTransfer
 	CreateTokenAccount(input: AdminTransferInput): AdminTransfer
 	CreateCategory(input: CreateCategoryInput): CategoryResponse
