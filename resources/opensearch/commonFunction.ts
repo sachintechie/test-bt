@@ -56,9 +56,9 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
                 // refresh: true,  // Ensure the index is refreshed after the document is added
             });
 
-            filenames.push(doc.file_name);
 
             if (response.body.result === 'created') {
+                filenames.push(doc.file_name);
                 console.log(`Document indexed successfully: ${doc.file_name}`);
             } else {
                 console.log(`Failed to index document: ${doc.file_name}. Response: ${JSON.stringify(response.body)}`);
@@ -68,8 +68,8 @@ async function indexDocuments(client: Client, indexName: string, documents: any[
         }
     }
 
-    console.log("Indexing completed.");
-    return Array.from(new Set(filenames));  // Return unique file names
+    console.log("Indexing completed.",filenames);
+    return filenames;  // Return unique file names
 }
 
 
@@ -79,5 +79,6 @@ export async function addToOpenSearch( documents: any[]) {
 
     const client = await connectToOpenSearch();
     const response = await indexDocuments(client, indexName, documents);
+    console.log("response", response);
     return response;
 }
