@@ -26,7 +26,7 @@ async function connectToOpenSearch() {
                     return credentialProvider();
                 },
             }),
-            node: "https://bn7vivdz1pxj6w22xo5j.us-east-1.aoss.amazonaws.com", // Use your OpenSearch endpoint
+            node: "https://gkl444a9g3cghs48thd8.us-east-1.aoss.amazonaws.com", // Use your OpenSearch endpoint
         });
 
         console.log("Successfully connected to OpenSearch.");
