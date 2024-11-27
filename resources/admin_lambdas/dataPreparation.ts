@@ -159,7 +159,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
             createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
           ]);
 
-          const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
+         // const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
           if (file_embeddings?.embeddings != null) {
             const indexedFiles: string[] = await addToOpenSearch(file_embeddings?.embeddings);
@@ -209,7 +209,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
   }
 }
 
-async function hashCombinedChunks(
+export async function hashCombinedChunks(
   combinedResponse: Array<any>,
   step4Id: string,
   step6Id: string,
@@ -288,7 +288,7 @@ async function hashCombinedChunks(
   return hashedData;
 }
 
-async function hashChunkContents(
+export async function hashChunkContents(
   allEmbeddingsWithMetadata: EmbeddingMetadata[],
   step1Id: string,
   createdBy: string
@@ -389,7 +389,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 
 // Helper function to process batches with concurrency control
 // Helper function to process batches with concurrency control
-async function processBatchesInParallel(
+export async function processBatchesInParallel(
   chunks: string[],
   batchSize: number,
   concurrencyLimit: number,
@@ -424,7 +424,7 @@ async function processBatchesInParallel(
 }
 
 // Helper function to process a batch of chunks and generate embeddings
-async function processEmbeddingBatch(
+export async function processEmbeddingBatch(
   batch: string[],
   fileKey: string,
   projectId: string,
@@ -452,7 +452,7 @@ async function processEmbeddingBatch(
   return embeddingsWithMetadata;
 }
 
-async function generateEmbedding(text: string): Promise<number[]> {
+export async function generateEmbedding(text: string): Promise<number[]> {
   const command = new InvokeModelCommand({
     modelId: "amazon.titan-embed-text-v2:0", // Replace with the correct model ID
     contentType: "application/json",

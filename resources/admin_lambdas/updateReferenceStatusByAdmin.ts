@@ -3,6 +3,7 @@ import {
   updateReferenceStatus,
   updateReferenceStatusByAdmin,
 } from "../db/adminDbFunctions";
+import { addStage_1 } from "../knowledgebase/stageFunctions";
 
 
 export const handler = async (event: any, context: any) => {
@@ -41,6 +42,7 @@ async function updateRefStatus(tenant: tenant,  files: any) {
 
 
     const refs = await updateReferenceStatusByAdmin( files);
+    await addStage_1(tenant.id,tenant.adminuserid?? "", refs[0].projectid?? "");
 
 if(refs != null){
   return {
