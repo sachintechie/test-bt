@@ -89,7 +89,8 @@ const MUTATIONS = [
   "removeFromCart",
   "deleteCategory",
   "updateRefStatus",
-  "addFileToProject"
+  "addFileToProject",
+  "updateReferenceStatus"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {
