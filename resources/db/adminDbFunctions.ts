@@ -87,6 +87,26 @@ export async function updateReferenceStage(projectId: string, refIds: string[], 
   }
 }
 
+export async function updateReferenceStatus( files : any) {
+  try {
+    const updatedRefs = [];
+    const prisma = await getPrismaClient();
+    for (const file of files) {
+      const updatedRef = await prisma.reference.update({
+        where: { id: file.id },
+        data: {
+          status: file.status
+        }
+      });
+      updatedRefs.push(updatedRef);
+    }
+  
+    return updatedRefs;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateRefStatus(refId: string,status : ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
@@ -1074,6 +1094,7 @@ export async function addReferenceToDb(
         name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
         url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
         size: file.refType == RefType.DOCUMENT ? file.fileSize : null,
+        hash:  file.refType == RefType.DOCUMENT ?file.hash: "" ,
         ingested: isIngested,
         isdeleted: false,
         datasourceid: datasource_id,
@@ -1157,6 +1178,7 @@ export async function addDocumentReference(
         tenantid: tenantId as string,
         projectid: projectId,
         referencestage: ReferenceStage.DATA_SOURCE,
+        hash: file.hash,
         reftype: refType,
         name: file.fileName,
         url: data.url,
@@ -1422,7 +1444,7 @@ export async function deleteRef(tenantId: string, refId: string) {
   }
 }
 
-export async function getReferenceList(limit: number, pageNo: number, tenantId: string, refType: string, projectId: string) {
+export async function getReferenceList(limit: number, pageNo: number, tenantId: string, refType: string, status: ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.reference.count({
@@ -1430,7 +1452,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
-        projectid: projectId
+        status: status
       },
       orderBy: {
         createdat: "desc"
@@ -1444,7 +1466,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
-        projectid: projectId
+        status: status
       },
 
       orderBy: {

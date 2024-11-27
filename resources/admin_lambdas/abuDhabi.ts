@@ -1,10 +1,8 @@
 import * as AWS from 'aws-sdk';
 import * as uuid from 'uuid';
 import { SecretsManager } from '@aws-sdk/client-secrets-manager';
-import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType } from "@aws-sdk/client-bedrock-agent-runtime";
-import { Client } from "@opensearch-project/opensearch";
-import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
-import { defaultProvider } from "@aws-sdk/credential-provider-node";
+import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType} from "@aws-sdk/client-bedrock-agent-runtime";
+import { connectToOpenSearch } from '../opensearch/commonFunction';
 
 const TABLE_NAME = 'aws-abu-dhabi-dynamodb';
 const SECRET_NAME = process.env.SECRET_NAME as string;
@@ -13,28 +11,58 @@ const dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
 const secretsManager = new SecretsManager({ region: 'us-east-1' });
 
 
+// // Function to connect to OpenSearch
+// async function connectToOpenSearch() {
+//     try {
+//         console.log("Initializing OpenSearch client...");
+//         const client = new Client({
+//             ...AwsSigv4Signer({
+//                 region: 'us-east-1',
+//                 service: 'aoss',
+//                 getCredentials: () => {
+//                     const credentialProvider = defaultProvider();
+//                     return credentialProvider();
+//                 },
+//             }),
+//             node: "https://bn7vivdz1pxj6w22xo5j.us-east-1.aoss.amazonaws.com", // Use your OpenSearch endpoint
+//         });
+
+//         console.log("Successfully connected to OpenSearch.");
+//         return client;
+//     } catch (error) {
+//         console.error("Error connecting to OpenSearch:", error);
+//         throw new Error('Failed to connect to OpenSearch');
+//     }
+// }
+
+async function queryOpensearchCollection() {
+    const client = await connectToOpenSearch();
+    console.log("OpenSearch Connection Successful...");
+
+    const query = { query: { match_all: {} } };
+    const index = 'bedrock-knowledge-base-default-index';
+
+    const response = await client.search({ body: query, index });
+    console.log("Query_opensearch", response);
+    
+    return response;
+}
+
 function generateJobId(length: number = 10): string {
-    const jobId = uuid.v4().replace(/-/g, '').substring(0, length);
-    console.log("Generated job ID:", jobId);
-    return jobId;
+    return uuid.v4().replace(/-/g, '').substring(0, length);
 }
 
 export const handler = async (event: any, context: any) => {
     const jobId = generateJobId();
     const sourceText: string[] = [""];
-    console.log("Lambda handler invoked with job ID:", jobId);
 
     try {
-        // Fetch secrets
-        console.log("Fetching secrets from Secrets Manager...");
         const getSecretValueResponse = await secretsManager.getSecretValue({ SecretId: SECRET_NAME });
         const secrets = JSON.parse(getSecretValueResponse.SecretString!);
-        console.log("Successfully fetched secrets.");
 
         const client = new BedrockAgentRuntimeClient({ region: 'us-east-1' });
 
         // Establish PostgreSQL connection using secrets
-        console.log("Connecting to PostgreSQL database...");
         const { Client } = require('pg');
         const pgClient = new Client({
             host: secrets.host,
@@ -48,17 +76,13 @@ export const handler = async (event: any, context: any) => {
         console.log("Database Connection successful...");
 
         const res = await pgClient.query("SELECT * FROM reference WHERE name = 'test';");
-        console.log("PostgreSQL Query Result:", res.rows);
+        console.log(res.rows);
 
         // Parse the input from the event
-        console.log("Parsing event body...");
         const body = JSON.parse(event.body);
         const userMessage = body.message;
         let sessionId = body.sessionId || `initial${uuid.v4()}`;
-        console.log("User message:", userMessage);
-        console.log("Session ID:", sessionId);
 
-        // Bedrock Configuration
         const numberOfResults = 10;
         const promptTemplate = `
             Here is some relevant information based on your query: $search_results$
@@ -84,16 +108,13 @@ export const handler = async (event: any, context: any) => {
 
         const inputData = { text: userMessage };
 
-        console.log("Sending request to Bedrock...");
         let response;
         if (sessionId.includes('initial')) {
-            console.log("Session ID is initial. Sending request without session ID...");
             response = await client.send(new RetrieveAndGenerateCommand({
                 input: inputData,
                 retrieveAndGenerateConfiguration,
             }));
         } else {
-            console.log("Session ID provided. Sending request with session ID...");
             response = await client.send(new RetrieveAndGenerateCommand({
                 input: inputData,
                 retrieveAndGenerateConfiguration,
@@ -102,19 +123,14 @@ export const handler = async (event: any, context: any) => {
         }
 
         sessionId = response.sessionId;
-        console.log("Response received from Bedrock. Session ID:", sessionId);
 
-        // Process response
         let finalAnswer = '';
-        response.citations.forEach((citation: any) => {
+        response?.citations?.forEach((citation: any) => {
             const responseText = citation.generatedResponsePart.textResponsePart.text;
             finalAnswer += responseText + " ";
         });
-        console.log("Final answer generated:", finalAnswer);
 
-        // Store results in DynamoDB
-        console.log("Storing results in DynamoDB...");
-        await dynamodb.putItem({
+        dynamodb.putItem({
             TableName: TABLE_NAME,
             Item: {
                 job_id: { S: jobId },
@@ -124,11 +140,8 @@ export const handler = async (event: any, context: any) => {
                 session_id: { S: sessionId },
                 source_text: { L: sourceText.map((text) => ({ S: text })) }
             }
-        }).promise();
+        });
 
-        console.log("Results stored successfully in DynamoDB.");
-
-        // Return the response
         return {
             statusCode: 200,
             headers: {
@@ -137,11 +150,8 @@ export const handler = async (event: any, context: any) => {
             body: JSON.stringify({ job_id: jobId, message: finalAnswer, sessionId, source_text: sourceText })
         };
     } catch (error) {
-        console.error("Error during execution:", error);
-        
-        // Store error state in DynamoDB
-        console.log("Storing error status in DynamoDB...");
-        await dynamodb.putItem({
+        console.error("Error:", error);
+        dynamodb.putItem({
             TableName: TABLE_NAME,
             Item: {
                 job_id: { S: jobId },
@@ -151,11 +161,8 @@ export const handler = async (event: any, context: any) => {
                 session_id: { S: 'N/A' },
                 source_text: { L: sourceText.map((text) => ({ S: text })) }
             }
-        }).promise();
+        });
 
-        console.log("Error status stored in DynamoDB.");
-
-        // Return the error response
         return {
             statusCode: 500,
             headers: {
