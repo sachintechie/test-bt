@@ -1182,10 +1182,20 @@ input ProjectFileInput {
 
 type AddFileToProjectResponse {
 	status: Int
-	data: [ReferenceData]
+	data: ReferenceAndUrlData
 	error: AWSJSON
 
 }
+
+type ReferenceAndUrlData {
+	refs:  [ReferenceData]
+	urls: [S3PreSignedUrlData]
+}
+type S3PreSignedUrlData {
+	key: String
+	url: String
+}
+
 
 type ReferenceData {
 	id: String
@@ -1219,6 +1229,23 @@ type ReferenceListData {
 	refs: [ReferenceData]
 }
 
+input UpdateReferenceStatusInput{
+files : [UpdateRefFileInput]
+}
+
+input UpdateRefFileInput {
+	id: String!
+	status: String!
+}
+
+type UpdateReferenceStatusResponse {
+	status: Int
+	data: [ReferenceData]
+	error: AWSJSON
+}
+
+
+
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
@@ -1238,6 +1265,7 @@ type Mutation {
 	AddToCart(input: CartInput): CartResponse
 	RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
 	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
+	UpdateReferenceStatus(input : UpdateReferenceStatusInput): UpdateReferenceStatusResponse
 
 }
 
