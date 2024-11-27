@@ -1,8 +1,7 @@
 import * as AWS from 'aws-sdk';
 import * as uuid from 'uuid';
 import { SecretsManager } from '@aws-sdk/client-secrets-manager';
-import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType} from "@aws-sdk/client-bedrock-agent-runtime";
-import { connectToOpenSearch } from '../opensearch/commonFunction';
+import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType } from "@aws-sdk/client-bedrock-agent-runtime";
 
 const TABLE_NAME = 'aws-abu-dhabi-dynamodb';
 const SECRET_NAME = process.env.SECRET_NAME as string;
@@ -10,56 +9,45 @@ const SECRET_NAME = process.env.SECRET_NAME as string;
 const dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
 const secretsManager = new SecretsManager({ region: 'us-east-1' });
 
+// Function to connect to OpenSearch (for querying)
+/*async function queryOpensearchCollection() {
+    try {
+        const client = await connectToOpenSearch();
+        console.log("OpenSearch Connection Successful...");
 
-// // Function to connect to OpenSearch
-// async function connectToOpenSearch() {
-//     try {
-//         console.log("Initializing OpenSearch client...");
-//         const client = new Client({
-//             ...AwsSigv4Signer({
-//                 region: 'us-east-1',
-//                 service: 'aoss',
-//                 getCredentials: () => {
-//                     const credentialProvider = defaultProvider();
-//                     return credentialProvider();
-//                 },
-//             }),
-//             node: "https://bn7vivdz1pxj6w22xo5j.us-east-1.aoss.amazonaws.com", // Use your OpenSearch endpoint
-//         });
+        const query = { query: { match_all: {} } };
+        const index = 'bedrock-knowledge-base-default-index';
 
-//         console.log("Successfully connected to OpenSearch.");
-//         return client;
-//     } catch (error) {
-//         console.error("Error connecting to OpenSearch:", error);
-//         throw new Error('Failed to connect to OpenSearch');
-//     }
-// }
+        const response = await client.search({ body: query, index });
+        console.log("OpenSearch query response:", response);
 
-async function queryOpensearchCollection() {
-    const client = await connectToOpenSearch();
-    console.log("OpenSearch Connection Successful...");
+        return response;
+    } catch (error) {
+        console.error("Error during OpenSearch query:", error);
+        throw new Error('Error querying OpenSearch');
+    }
+}*/
 
-    const query = { query: { match_all: {} } };
-    const index = 'bedrock-knowledge-base-default-index';
-
-    const response = await client.search({ body: query, index });
-    console.log("Query_opensearch", response);
-    
-    return response;
-}
-
+// Function to generate job ID
 function generateJobId(length: number = 10): string {
     return uuid.v4().replace(/-/g, '').substring(0, length);
 }
 
+// Lambda handler function
 export const handler = async (event: any, context: any) => {
     const jobId = generateJobId();
     const sourceText: string[] = [""];
 
     try {
+        console.log("Starting Lambda execution...");
+
+        // Fetching secrets from AWS Secrets Manager
+        console.log("Fetching secrets...");
         const getSecretValueResponse = await secretsManager.getSecretValue({ SecretId: SECRET_NAME });
         const secrets = JSON.parse(getSecretValueResponse.SecretString!);
+        console.log("Secrets fetched successfully...");
 
+        // Initialize the Bedrock agent client
         const client = new BedrockAgentRuntimeClient({ region: 'us-east-1' });
 
         // Establish PostgreSQL connection using secrets
@@ -72,17 +60,23 @@ export const handler = async (event: any, context: any) => {
             port: secrets.port,
         });
 
+        console.log("Connecting to PostgreSQL database...");
         await pgClient.connect();
         console.log("Database Connection successful...");
 
         const res = await pgClient.query("SELECT * FROM reference WHERE name = 'test';");
-        console.log(res.rows);
+        console.log("Database query result:", res.rows);
 
         // Parse the input from the event
-        const body = JSON.parse(event.body);
+        console.log("Parsing input from event...");
+        const body = event.body;  // Event body is already parsed as JSON
         const userMessage = body.message;
         let sessionId = body.sessionId || `initial${uuid.v4()}`;
 
+        console.log(`User message: ${userMessage}`);
+        console.log(`Session ID: ${sessionId}`);
+
+        // Set up the configuration for retrieval and generation
         const numberOfResults = 10;
         const promptTemplate = `
             Here is some relevant information based on your query: $search_results$
@@ -90,7 +84,7 @@ export const handler = async (event: any, context: any) => {
         `;
         const retrieveAndGenerateConfiguration = {
             knowledgeBaseConfiguration: {
-                knowledgeBaseId: "ET3BO7O02P",
+                knowledgeBaseId: "ET3BO7O02P", // Your knowledge base ID
                 modelArn: "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
                 retrievalConfiguration: {
                     vectorSearchConfiguration: {
@@ -106,8 +100,10 @@ export const handler = async (event: any, context: any) => {
             type: RetrieveAndGenerateType.KNOWLEDGE_BASE
         };
 
+        // Input data for retrieval and generation
         const inputData = { text: userMessage };
 
+        console.log("Sending request to Bedrock Agent...");
         let response;
         if (sessionId.includes('initial')) {
             response = await client.send(new RetrieveAndGenerateCommand({
@@ -122,15 +118,22 @@ export const handler = async (event: any, context: any) => {
             }));
         }
 
+        // Processing response from Bedrock agent
+        console.log("Bedrock agent response:", response);
         sessionId = response.sessionId;
 
         let finalAnswer = '';
-        response?.citations?.forEach((citation: any) => {
-            const responseText = citation.generatedResponsePart.textResponsePart.text;
-            finalAnswer += responseText + " ";
-        });
+        if (response?.citations) {
+            response.citations.forEach((citation: any) => {
+                const responseText = citation.generatedResponsePart.textResponsePart.text;
+                finalAnswer += responseText + " ";
+            });
+        }
+        console.log("Final generated answer:", finalAnswer);
 
-        dynamodb.putItem({
+        // Storing result in DynamoDB
+        console.log("Storing result in DynamoDB...");
+        await dynamodb.putItem({
             TableName: TABLE_NAME,
             Item: {
                 job_id: { S: jobId },
@@ -140,18 +143,27 @@ export const handler = async (event: any, context: any) => {
                 session_id: { S: sessionId },
                 source_text: { L: sourceText.map((text) => ({ S: text })) }
             }
-        });
+        }).promise();
+        console.log("Result stored in DynamoDB.");
 
+        // Returning the response to the client
         return {
             statusCode: 200,
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ job_id: jobId, message: finalAnswer, sessionId, source_text: sourceText })
+            body: JSON.stringify({
+                job_id: jobId,
+                message: finalAnswer,
+                sessionId,
+                source_text: sourceText
+            })
         };
     } catch (error) {
-        console.error("Error:", error);
-        dynamodb.putItem({
+        console.error("Error during Lambda execution:", error);
+
+        // Storing error details in DynamoDB
+        await dynamodb.putItem({
             TableName: TABLE_NAME,
             Item: {
                 job_id: { S: jobId },
@@ -161,14 +173,21 @@ export const handler = async (event: any, context: any) => {
                 session_id: { S: 'N/A' },
                 source_text: { L: sourceText.map((text) => ({ S: text })) }
             }
-        });
+        }).promise();
+        console.log("Error stored in DynamoDB.");
 
+        // Returning error response
         return {
             statusCode: 500,
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ job_id: jobId, message: 'Something went wrong', sessionId: 'N/A', source_text: sourceText })
+            body: JSON.stringify({
+                job_id: jobId,
+                message: 'Something went wrong',
+                sessionId: 'N/A',
+                source_text: sourceText
+            })
         };
     }
 };

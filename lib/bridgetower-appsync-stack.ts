@@ -36,7 +36,7 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "createStage",
   "dataPreparation",
   "opensearchIndexing",
-  "abuDhabi"
+  "dyanmodbTrigger",
 ];
 
 const GET_METADATA = "getMetadata";
@@ -92,7 +92,8 @@ const MUTATIONS = [
   "addFileToProject",
   "updateReferenceStatus",
   "addFileToProjectByAdmin",
-  "updateReferenceStatusByAdmin"
+  "updateReferenceStatusByAdmin",
+  "generateQueryAnswer",
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {
