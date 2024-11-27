@@ -1170,13 +1170,13 @@ projectId: String!
 files:[ProjectFileInput]
 }
 input ProjectFileInput {
-	fileName: String!
-	fileSize: String!
-	contentType: String!
+	fileName: String
+	fileSize: String
+	contentType: String
 	hash: String!
 	websiteName: String
 	websiteUrl: String
-	refType: String
+	refType: String!
 	depth: Int
 }
 
@@ -1244,6 +1244,19 @@ type UpdateReferenceStatusResponse {
 	error: AWSJSON
 }
 
+type GenerateQueryAnswerResponse {
+  job_id: String!  # Unique job ID generated for the request
+  message: String!  # The generated answer
+  sessionId: String!  # The session ID to maintain context
+  source_text: [String!]!  # List of sources or citations used to generate the response
+}
+
+# Define the input structure for submitting a query to the Lambda
+input GenerateQueryAnswerInput {
+  message: String!  # The user query to be answered
+  sessionId: String  # Optional session ID for maintaining context
+}
+
 
 
 type Mutation {
@@ -1266,6 +1279,7 @@ type Mutation {
 	RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
 	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
 	UpdateReferenceStatus(input : UpdateReferenceStatusInput): UpdateReferenceStatusResponse
+	GenerateQueryAnswer(input: GenerateQueryAnswerInput): GenerateQueryAnswerResponse
 
 }
 

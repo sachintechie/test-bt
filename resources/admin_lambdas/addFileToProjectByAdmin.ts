@@ -39,7 +39,7 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
     console.log("createUser", tenant.id);
     for (const file of files) {
       file.refType = RefType.DOCUMENT;
-      const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,false,tenant?.customerid ?? "");
+      const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,true,tenant?.customerid ?? "");
       console.log("ref", ref);
       if (ref.data) refs.push(ref.data);
     }

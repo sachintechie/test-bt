@@ -175,7 +175,7 @@ enum ReferenceStage {
 
 enum ReferenceStatus {
   PENDING
-  UPLODED
+  UPLOADED
   APPROVED
   REJECTED
   PROCESSING
@@ -234,6 +234,8 @@ model reference  {
   status            ReferenceStatus 
   createdby         String
   hash              String?
+  isaddedbyadmin    Boolean
+
 
 }
 
