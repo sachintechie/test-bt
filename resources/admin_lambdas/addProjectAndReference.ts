@@ -80,8 +80,10 @@ async function addProjectAndReference(
 
 
     if (project != null && kbResponse != null) {
-      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data?.id ?? "", kbResponse.data?.index ?? "", kbResponse.data?.bucketName ?? "");
+      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse?.Kb_Id ?? "", kbResponse?.Index_Name ?? "", kbResponse?.s3_bucket ?? "");
+      console.log("updateProject", updateProject);
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
+      console.log("stage1", stage1);
       const urls = await generatePresignedUrl(files);
       console.log("urls", urls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
