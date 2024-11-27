@@ -71,6 +71,24 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
   }
 }
 
+export async function updateProjectKbAndIndex(projectId: string, kbId : string, indexId : string,bucketName : string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        knowledgebaseid: kbId,
+        s3bucketname: bucketName,
+        s3bucketregion: "us-east-1",
+        indexid: indexId
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateReferenceStage(projectId: string, refIds: string[], referenceStage: ReferenceStage,status : ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
@@ -176,8 +194,7 @@ export async function createProject(
   description: string,
   projectType: ProjectType,
   chainType: string,
-  organizationId: string,
-  knowledgeBaseId: string
+  organizationId: string
 ) {
   console.log("Creating admin project", tenant.id, projectType);
   try {
@@ -186,7 +203,6 @@ export async function createProject(
       data: {
         name: name,
         description: description,
-        knowledgebaseid: knowledgeBaseId,
         projecttype: projectType,
         organizationid: organizationId,
         tenantid: tenant.id,
