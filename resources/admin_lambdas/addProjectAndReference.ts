@@ -93,19 +93,15 @@ async function addProjectAndReference(
           error: projectData.error
         };
       } else {
-
         const data = {
           project: projectData.data?.project,
           urls: urls
         }
-
         return {
-
           project: data,
           error: null
         };
       }
-      // await addReferencesLambda(tenant.adminuserid??"", project.id);
     } else {
       return {
         project: null,
