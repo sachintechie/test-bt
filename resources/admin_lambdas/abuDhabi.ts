@@ -90,7 +90,7 @@ export const handler = async (event: any, context: any) => {
         `;
         const retrieveAndGenerateConfiguration = {
             knowledgeBaseConfiguration: {
-                knowledgeBaseId: "X3RMAORSFE",
+                knowledgeBaseId: "ET3BO7O02P",
                 modelArn: "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
                 retrievalConfiguration: {
                     vectorSearchConfiguration: {

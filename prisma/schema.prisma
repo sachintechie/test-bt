@@ -235,6 +235,7 @@ model reference  {
   createdby         String
   hash              String?
   isaddedbyadmin    Boolean
+  contenttype       String?
 
 
 }
