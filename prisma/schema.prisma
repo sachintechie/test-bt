@@ -180,6 +180,7 @@ enum ReferenceStatus {
   REJECTED
   PROCESSING
   COMPLETED
+  ERRORED
 }
 
 enum ProjectStatusEnum {
@@ -235,6 +236,8 @@ model reference  {
   createdby         String
   hash              String?
   isaddedbyadmin    Boolean
+  contenttype       String?
+  errreason         String?
 
 
 }

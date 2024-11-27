@@ -17,6 +17,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
+import { description } from "@provenanceio/wallet-utils/lib/proto/gogoproto/gogo_pb";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -284,6 +285,62 @@ export async function getStageType(name: string) {
   } catch (err) {
     throw err;
   }
+}
+
+
+
+  export async function getStepByProjectId( tenantUserId: string,
+    name: string,
+    description: string,
+    stepTypeId: string,
+    stageId: string,
+    stepSequence: number
+    ) {
+    try {
+      const prisma = await getPrismaClient();
+      const step = await prisma.step.findFirst({
+        where: {
+          name: name,
+          description :description,
+          createdby: tenantUserId,
+          stageid: stageId,
+          steptypeid: stepTypeId,
+          stepsequence: stepSequence
+  
+        }
+      });
+      return step;
+    } catch (err) {
+      throw err;
+    }
+  
+  }
+
+export async function getStageByProjectId( tenantUserId: string,
+  name: string,
+  description: string,
+  stageTypeId: string,
+  projectId: string,
+  stageSequence: number
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const stage = await prisma.stage.findFirst({
+      where: {
+        projectid: projectId,
+        name: name,
+        description :description,
+        createdby: tenantUserId,
+        stagetypeid: stageTypeId,
+        stagesequence: stageSequence
+
+      }
+    });
+    return stage;
+  } catch (err) {
+    throw err;
+  }
+
 }
 
 export async function getStageDetails(projectId: string, stageTypeId: string) {
@@ -1131,6 +1188,7 @@ export async function addReferenceToDb(
         name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
         url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
         size: file.refType == RefType.DOCUMENT ? file.fileSize : null,
+        contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
         hash: file.hash ,
         ingested: isIngested,
         isdeleted: false,
@@ -1219,6 +1277,8 @@ export async function addDocumentReference(
         hash: file.hash,
         reftype: refType,
         name: file.fileName,
+        contenttype: file.contentType,
+        isaddedbyadmin:true,
         url: data.url,
         size: data.size,
         ingested: isIngested,
