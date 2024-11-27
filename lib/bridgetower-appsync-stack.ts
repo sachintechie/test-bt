@@ -90,7 +90,9 @@ const MUTATIONS = [
   "deleteCategory",
   "updateRefStatus",
   "addFileToProject",
-  "updateReferenceStatus"
+  "updateReferenceStatus",
+  "addFileToProjectByAdmin",
+  "updateReferenceStatusByAdmin"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {

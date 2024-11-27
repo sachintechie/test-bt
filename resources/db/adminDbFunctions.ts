@@ -125,6 +125,26 @@ export async function updateReferenceStatus( files : any) {
   }
 }
 
+export async function updateReferenceStatusByAdmin( files : any) {
+  try {
+    const updatedRefs = [];
+    const prisma = await getPrismaClient();
+    for (const file of files) {
+      const updatedRef = await prisma.reference.update({
+        where: { id: file.id },
+        data: {
+          status: file.status == ReferenceStatus.UPLOADED ? ReferenceStatus.APPROVED : file.status
+        }
+      });
+      updatedRefs.push(updatedRef);
+    }
+  
+    return updatedRefs;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateRefStatus(refId: string,status : ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
@@ -1092,6 +1112,7 @@ export async function addReferenceToDb(
   isIngested: boolean,
   projectId: string,
   status: ReferenceStatus,
+  isAddedByAdmin: boolean,
   createdBy: string,
   datasource_id?: string,
   ingestionJobId?: string,
@@ -1110,7 +1131,7 @@ export async function addReferenceToDb(
         name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
         url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
         size: file.refType == RefType.DOCUMENT ? file.fileSize : null,
-        hash:  file.refType == RefType.DOCUMENT ?file.hash: "" ,
+        hash: file.hash ,
         ingested: isIngested,
         isdeleted: false,
         datasourceid: datasource_id,
@@ -1118,6 +1139,7 @@ export async function addReferenceToDb(
         depth: file.depth,
         createdby:createdBy,
         isactive: true,
+        isaddedbyadmin:isAddedByAdmin,
         createdat: new Date().toISOString()
       }
     });
@@ -1468,6 +1490,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
+        isaddedbyadmin:false,
         status: status
       },
       orderBy: {
@@ -1511,7 +1534,8 @@ export async function getReferenceListByCustomer(limit: number, pageNo: number, 
       where: {
         tenantid: tenantId,
         isdeleted: false,
-        createdby: customerId
+        createdby: customerId,
+        isaddedbyadmin:false
       },
       orderBy: {
         createdat: "desc"

@@ -147,6 +147,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
             false,
             projectId,
             ReferenceStatus.PROCESSING,
+            true,
             tenantUserId
           );
           if(ref.data?.id)
