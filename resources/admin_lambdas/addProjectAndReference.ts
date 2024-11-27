@@ -9,13 +9,14 @@ import {
   getStageType,
   getStepType,
   isProjectExist,
+  updateProjectKbAndIndex,
   updateProjectStage,
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  formatBytes, generatePresignedUrl, generateSignedUrl, storeHashByChainType } from "../knowledgebase/commonFunctions";
+import {  formatBytes, generatePresignedUrl, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
-const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
+// const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -73,9 +74,13 @@ async function addProjectAndReference(
       };
     }
 
-    const project = await createProject(tenant, name, description, projectType,chainType, organizationId, kb_id);
+    const project = await createProject(tenant, name, description, projectType,chainType, organizationId);
+    const kbResponse = await lambdaCallForCreateKB( project.id,name);
+    console.log("kbResponse", kbResponse);
 
-    if (project != null) {
+
+    if (project != null && kbResponse != null) {
+      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data?.id ?? "", kbResponse.data?.index ?? "", kbResponse.data?.bucketName ?? "");
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
       const urls = await generatePresignedUrl(files);
       console.log("urls", urls);

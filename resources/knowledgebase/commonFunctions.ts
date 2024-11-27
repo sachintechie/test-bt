@@ -100,7 +100,33 @@ export async function lambdaCallForIndexing(all_embeddings_with_metadata: any) {
 
   return combinedResponse.body; // Or process further as needed
 }
+export async function lambdaCallForCreateKB(projectId: string,name:string) {
+  const event = {
+    project_id: projectId,
+    project_name:name
+  };
 
+  const params = {
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_collection_index_creation",
+    InvocationType: "RequestResponse",
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  const response = await lambda.invoke(params).promise();
+
+  const responsePayload = response.Payload as Buffer;
+
+  // Convert the buffer to string (UTF-8 encoded)
+  const responseStr = responsePayload.toString("utf-8");
+
+  // Parse the string into a JSON object
+  const combinedResponse = JSON.parse(responseStr);
+
+  console.log("Decoded response:", combinedResponse);
+
+  return combinedResponse.body; // Or process further as needed
+}
 export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: number = 20) {
   // Group chunks by file_name
   const fileDict: Record<string, EmbeddingMetadata[]> = {};

@@ -59,7 +59,8 @@ model project {
   projectstatus     ProjectStatusEnum
   projectstage      ProjectStage
   projectmetadata   projectdataitem[]
-  knowledgebaseid   String
+  knowledgebaseid   String?
+  indexid           String?
   organization      organization @relation(fields: [organizationid], references: [id])
   organizationid    String
   tenantid          String
