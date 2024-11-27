@@ -71,6 +71,24 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
   }
 }
 
+export async function updateProjectKbAndIndex(projectId: string, kbId : string, indexId : string,bucketName : string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        knowledgebaseid: kbId,
+        s3bucketname: bucketName,
+        s3bucketregion: "us-east-1",
+        indexid: indexId
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateReferenceStage(projectId: string, refIds: string[], referenceStage: ReferenceStage,status : ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
@@ -96,6 +114,26 @@ export async function updateReferenceStatus( files : any) {
         where: { id: file.id },
         data: {
           status: file.status
+        }
+      });
+      updatedRefs.push(updatedRef);
+    }
+  
+    return updatedRefs;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateReferenceStatusByAdmin( files : any) {
+  try {
+    const updatedRefs = [];
+    const prisma = await getPrismaClient();
+    for (const file of files) {
+      const updatedRef = await prisma.reference.update({
+        where: { id: file.id },
+        data: {
+          status: file.status == ReferenceStatus.UPLOADED ? ReferenceStatus.APPROVED : file.status
         }
       });
       updatedRefs.push(updatedRef);
@@ -176,8 +214,7 @@ export async function createProject(
   description: string,
   projectType: ProjectType,
   chainType: string,
-  organizationId: string,
-  knowledgeBaseId: string
+  organizationId: string
 ) {
   console.log("Creating admin project", tenant.id, projectType);
   try {
@@ -186,7 +223,6 @@ export async function createProject(
       data: {
         name: name,
         description: description,
-        knowledgebaseid: knowledgeBaseId,
         projecttype: projectType,
         organizationid: organizationId,
         tenantid: tenant.id,
@@ -1076,6 +1112,7 @@ export async function addReferenceToDb(
   isIngested: boolean,
   projectId: string,
   status: ReferenceStatus,
+  isAddedByAdmin: boolean,
   createdBy: string,
   datasource_id?: string,
   ingestionJobId?: string,
@@ -1094,7 +1131,7 @@ export async function addReferenceToDb(
         name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
         url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
         size: file.refType == RefType.DOCUMENT ? file.fileSize : null,
-        hash:  file.refType == RefType.DOCUMENT ?file.hash: "" ,
+        hash: file.hash ,
         ingested: isIngested,
         isdeleted: false,
         datasourceid: datasource_id,
@@ -1102,6 +1139,7 @@ export async function addReferenceToDb(
         depth: file.depth,
         createdby:createdBy,
         isactive: true,
+        isaddedbyadmin:isAddedByAdmin,
         createdat: new Date().toISOString()
       }
     });
@@ -1452,6 +1490,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
+        isaddedbyadmin:false,
         status: status
       },
       orderBy: {
@@ -1495,7 +1534,8 @@ export async function getReferenceListByCustomer(limit: number, pageNo: number, 
       where: {
         tenantid: tenantId,
         isdeleted: false,
-        createdby: customerId
+        createdby: customerId,
+        isaddedbyadmin:false
       },
       orderBy: {
         createdat: "desc"

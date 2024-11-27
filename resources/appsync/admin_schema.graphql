@@ -600,7 +600,7 @@ input ListRefInput {
 	limit: Int!
 	pageNo: Int!
 	refType: String
-	projectId: String
+	status: String!
 }
 
 type ListReference {
@@ -787,13 +787,13 @@ type ProjectData {
 }
 
 input ProjectFileInput {
-	fileName: String!
-	fileSize: String!
-	contentType: String!
+	fileName: String
+	fileSize: String
+	contentType: String
 	hash: String!
+	refType: String!
 	websiteName: String
 	websiteUrl: String
-	refType: String
 	depth: Int
 }
 
@@ -1027,6 +1027,39 @@ type UpdateRefStatus {
 
 }
 
+input AddFileToProjectInput{
+projectId: String!
+files:[ProjectFileInput]
+}
+
+
+type AddFileToProjectResponse {
+	status: Int
+	data: ReferenceAndUrlData
+	error: AWSJSON
+
+}
+
+type ReferenceAndUrlData {
+	refs:  [ReferenceData]
+	urls: [S3PreSignedUrlData]
+}
+
+input UpdateReferenceStatusInput{
+files : [UpdateRefFileInput]
+}
+
+input UpdateRefFileInput {
+	id: String!
+	status: String!
+}
+
+type UpdateReferenceStatusResponse {
+	status: Int
+	data: [ReferenceData]
+	error: AWSJSON
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -1056,6 +1089,10 @@ type Mutation {
 	UpdateProjectStatus(input: UpdateProjectStatusInput): CreateProjectResponse
 	CreateScopeSpecification(input: CreateScopeSpecificationInput): CreateScopeSpecificationResponse
 	UpdateRefStatus(input: UpdateRefStatusInput): UpdateRefStatus
+	AddFileToProjectByAdmin(input: AddFileToProjectInput): AddFileToProjectResponse
+	UpdateReferenceStatusByAdmin(input : UpdateReferenceStatusInput): UpdateReferenceStatusResponse
+
+
 }
 
 type Query {

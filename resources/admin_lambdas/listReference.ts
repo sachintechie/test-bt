@@ -11,8 +11,7 @@ export const handler = async (event: any) => {
       event.arguments?.input?.limit,
       event.arguments?.input?.pageNo,
       event.arguments?.input?.refType,
-      event.arguments?.input?.status,
-      event.arguments?.input?.projectId
+      event.arguments?.input?.status
     );
     return {
       status: 200,
@@ -29,7 +28,7 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getRefs(tenant: tenant, limit: number, pageNo: number, refType: string, status: ReferenceStatus,projectId: string) {
+async function getRefs(tenant: tenant, limit: number, pageNo: number, refType: string, status: ReferenceStatus) {
   try {
     const refs = await getReferenceList(limit, pageNo, tenant.id, refType,status);
     console.log(refs, "refs");

@@ -1170,13 +1170,13 @@ projectId: String!
 files:[ProjectFileInput]
 }
 input ProjectFileInput {
-	fileName: String!
-	fileSize: String!
-	contentType: String!
+	fileName: String
+	fileSize: String
+	contentType: String
 	hash: String!
 	websiteName: String
 	websiteUrl: String
-	refType: String
+	refType: String!
 	depth: Int
 }
 
