@@ -1,7 +1,6 @@
 import { tenant } from "../db/models";
 import { createProject, isProjectExist } from "../db/adminDbFunctions";
 import { ProjectType } from "@prisma/client";
-const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -48,7 +47,7 @@ async function addProject(tenant: tenant, name: string, description: string, pro
       };
     }
 
-    const project = await createProject(tenant, name, description, projectType, organizationId, kb_id);
+    const project = await createProject(tenant, name, description, projectType, organizationId, "kb_id");
 
     return {
       project: project,

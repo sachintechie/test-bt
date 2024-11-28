@@ -16,7 +16,6 @@ import {
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
-// const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -86,12 +85,12 @@ async function addProjectAndReference(
     console.log("kbResponse", kbResponse);
 
 
-    if (project != null && kbResponse.data != null) {
+    if (project != null && kbResponse && kbResponse.data != null) {
       const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
       console.log("updateProject", updateProject);
-      const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
+      const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
       console.log("stage1", stage1);
-      const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT));
+      const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
       console.log("urls", urls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
       if (projectData.error) {
@@ -124,7 +123,7 @@ async function addProjectAndReference(
   }
 }
 
-export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, files: any) {
+export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, files: any,bucketName:string) {
   // Stage 1: Data Source
   const refIds : string[]= [];
   const stageType = await getStageType("Data Source");
@@ -162,7 +161,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
 
           console.log("ref", ref);
           // const fileSize = await getFileSizeFromBase64(file.fileContent)
-          const downloadUrl = await generateSignedUrl(file);
+          const downloadUrl = await generateSignedUrl(file,bucketName);
 
           const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details

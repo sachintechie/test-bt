@@ -71,9 +71,6 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_SUBNET_NETWORK_ID: "41024",
         AVAX_NETWORK_ID: "43113",
         PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
-        KB_BUCKET_NAME: "knowledgebasedocument",
-        KB_ID: "WIKF9ALZ52",
-        BEDROCK_DATASOURCE_S3: "ZZWKIZUS20",
         GUARDDUTY_DETECTOR_ID:"1ec994d56fb63de9f5be128666b53702"
       };
     case "ai-sovereignty-dev":
@@ -86,9 +83,6 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_RPC_SUBNET_URL: "http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
         AVAX_SUBNET_NETWORK_ID: "41024",
         AVAX_NETWORK_ID: "43113",
-        KB_BUCKET_NAME: "bedrockkbdocumentdev",
-        KB_ID: "X3RMAORSFE",
-        BEDROCK_DATASOURCE_S3: "YQFKGJGVRR",
         OPEN_SEARCH_HOST:"https://gkl444a9g3cghs48thd8.us-east-1.aoss.amazonaws.com",
         OPENSEARCH_INDEX_NAME:"sagemaker-index-1",
       };

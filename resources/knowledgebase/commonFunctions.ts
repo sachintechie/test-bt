@@ -7,7 +7,7 @@ import { EmbeddingMetadata } from "../db/models";
 import { storeHash as avalancheStoreHash } from "../avalanche/storeHashFunctions";
 import { storeHash as provenanceStoreHash } from "../provenance/storeHashFunctions";
 const s3 = new S3();
-const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
+// const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 import mammoth from "mammoth";
 // import pdfParse from 'pdf-parse';
 import { parse as parseCSV } from '@fast-csv/parse';
@@ -15,10 +15,11 @@ import * as XLSX from "xlsx";
 import PDFParser from 'pdf2json';
 
 // import pdf  from "pdf-parse-debugging-disabled";
-export async function addReferencesLambda(tenantUserId: string, projectId: string) {
+export async function addReferencesLambda(tenantUserId: string, projectId: string,bucketName:string) {
   const event = {
     tenantUserId: tenantUserId,
-    projectId: projectId
+    projectId: projectId,
+    bucketName: bucketName
   };
 
   const params = {
@@ -132,7 +133,7 @@ export async function lambdaCallForCreateKB(projectId: string,name:string) {
   }
   else{
     return {
-      data:combinedResponse.body,
+      data:combinedResponse,
       error:null
     }
   }
@@ -180,7 +181,7 @@ export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: num
   return combinedFiles;
 }
 
-export async function addToS3Bucket(fileName: string, fileContent: string) {
+export async function addToS3Bucket(fileName: string, fileContent: string,bucketName:string) {
   try {
     if (!fileName || !fileContent) {
       return {
@@ -252,7 +253,7 @@ export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   return Buffer.concat(chunks);
 };
 
-export async function generatePresignedUrl(files: any) {
+export async function generatePresignedUrl(files: any,bucketName:string) {
   const urls = await Promise.all(
     files.map(async (file: { contentType: any; fileName: any }) => {
       const key = file.fileName;
@@ -273,7 +274,7 @@ export async function generatePresignedUrl(files: any) {
   return urls;
 }
 
-export async function generateSignedUrl(file: any) {
+export async function generateSignedUrl(file: any,bucketName:string) {
   const downloadParams = {
     Bucket: bucketName, // Replace with your S3 bucket name
     Key: file.fileName, // The key (file name) of the uploaded file
@@ -306,7 +307,7 @@ export async function syncKbAsync(knowledgeBaseId: string, datasourceId: string)
   console.log("Background task completed");
 }
 
-export async function getS3Data(fileName: string) {
+export async function getS3Data(fileName: string,bucketName : string) {
   try {
     if (!fileName) {
       return {
@@ -371,7 +372,7 @@ export async function getS3Data(fileName: string) {
 
 
 
-export async function getS3ActualData(fileName: string) {
+export async function getS3ActualData(fileName: string,bucketName:string) {
   try {
     if (!fileName) {
       return {
@@ -493,7 +494,7 @@ async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
 
 
 
-export async function getS3DataWithoutContent(fileName: string) {
+export async function getS3DataWithoutContent(fileName: string,bucketName:string) {
   try {
     if (!fileName) {
       return {

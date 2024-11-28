@@ -1,7 +1,6 @@
 import { tenant } from "../db/models";
 import { createStageType, isStageTypeExist } from "../db/adminDbFunctions";
 
-const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {
   try {
