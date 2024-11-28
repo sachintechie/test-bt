@@ -1,5 +1,5 @@
 import { RefType, tenant } from "../db/models";
-import { addReferenceToDb } from "../db/adminDbFunctions";
+import { addReferenceToDb, getProjectById } from "../db/adminDbFunctions";
 import { ReferenceStatus } from "@prisma/client";
 import { generatePresignedUrl } from "../knowledgebase/commonFunctions";
 
@@ -37,19 +37,28 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
     const refs = [];
 
     console.log("createUser", tenant.id);
+    const project = await getProjectById(projectId);
+    if(project && project.data){
     for (const file of files) {
       file.refType = RefType.DOCUMENT;
       const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,true,tenant?.customerid ?? "");
       console.log("ref", ref);
       if (ref.data) refs.push(ref.data);
     }
-    const urls = await generatePresignedUrl(files);
+    const urls = await generatePresignedUrl(files,project.data.s3bucketname ?? "");
     console.log("urls", urls);
 
     return {
       data: {refs, urls},
       error: null
     };
+  }
+  else{
+    return {
+      data: null,
+      error: "Project not found"
+    };
+  }
   } catch (e: any) {
     console.log(`Not verified: ${e}`);
     return {
