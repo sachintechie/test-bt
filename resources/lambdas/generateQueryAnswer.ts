@@ -150,7 +150,7 @@ export const handler = async (event: any, context: any) => {
             },
             body: JSON.stringify({
                 job_id: jobId,
-                message: finalAnswer,
+                message: response.output?.text,
                 sessionId,
                 source_text: sourceText,
                 source_filenamelist: sourceFilenamelist
