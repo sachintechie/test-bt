@@ -11,7 +11,8 @@ import {
   isProjectExist,
   updateProjectKbAndIndex,
   updateProjectStage,
-  updateReferenceStage
+  updateReferenceStage,
+  updateReferenceStageById
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
@@ -157,11 +158,13 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
             tenantUserId
           );
           if(ref.data?.id)
-          refIds.push(ref.data?.id);
+      
 
           console.log("ref", ref);
           // const fileSize = await getFileSizeFromBase64(file.fileContent)
-          const downloadUrl = await generateSignedUrl(file,bucketName);
+        if(ref.data?.reftype == RefType.DOCUMENT){
+         const  downloadUrl = await generateSignedUrl(file,bucketName);
+         refIds.push(ref.data?.id);
 
           const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details
@@ -177,11 +180,15 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           const blockchainHashedData = await storeHashByChainType(file.hash, "Avalanche");
           if(blockchainHashedData != null)
           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
+
+          }
+
         }
 
         // Update project to reflect data ingestion status
         await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
         await updateReferenceStage(projectId, refIds,ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
+
       }
     }
   }

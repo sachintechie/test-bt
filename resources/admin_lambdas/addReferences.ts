@@ -60,7 +60,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
              // const data = JSON.parse(stepDetail.metadata);
 
             // Upload file content to S3
-            if(reference?.name){
+            if( reference.reftype == RefType.DOCUMENT && reference?.name){
             const s3Data = await getS3DataWithoutContent(reference?.name,bucketName);
             refIds.push(reference.id);
 
@@ -141,7 +141,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
       }
     }
 
-    await dataPreperationLambda(tenantUserId, projectId);
+    await dataPreperationLambda(tenantUserId, projectId,bucketName);
 
 
     return true;

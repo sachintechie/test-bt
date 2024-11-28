@@ -32,10 +32,11 @@ export async function addReferencesLambda(tenantUserId: string, projectId: strin
   await lambda.invoke(params).promise();
 }
 
-export async function dataPreperationLambda(tenantUserId: string, projectId: string) {
+export async function dataPreperationLambda(tenantUserId: string, projectId: string,bucketName:string) {
   const event = {
     tenantUserId: tenantUserId,
-    projectId: projectId
+    projectId: projectId,
+    bucketName:bucketName
   };
 
   const params = {

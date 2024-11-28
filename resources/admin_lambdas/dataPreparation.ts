@@ -32,10 +32,10 @@ const client = new BedrockRuntimeClient({
 });
 export const handler = async (event: any, context: any) => {
   try {
-    const { projectId, tenantUserId } = event;
+    const { projectId, tenantUserId,bucketName } = event;
 
     // Calls function to handle adding stages and steps for file processing
-    const data = await addStageAndSteps(tenantUserId, projectId);
+    const data = await addStageAndSteps(tenantUserId, projectId,bucketName);
 
     return {
       status: data ? 200 : 400,
@@ -49,7 +49,7 @@ export const handler = async (event: any, context: any) => {
 };
 
 // Function to add stages and steps for processing files in multiple stages
-export async function addStageAndSteps(tenantUserId: string, projectId: string) {
+export async function addStageAndSteps(tenantUserId: string, projectId: string,bucketName:string) {
   try {
     console.log("projectId", projectId, tenantUserId);
     let file_embeddings;
@@ -100,10 +100,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
 
           for (const reference of referenceList) {
             // const data = JSON.parse(stepDetail.metadata);
-            refIds.push(reference.id);
             // Step 1 and step 3: Chunking and Embedding of chunks
             if (reference.name != null && reference.reftype == RefType.DOCUMENT) {
-              file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId);
+              refIds.push(reference.id);
+              file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
               let hashed_chunkcontent;
               if (file_embeddings.embeddings != null) {
                 // Step 2: Chunking hash
@@ -338,11 +338,11 @@ export async function hashChunkContents(
   return hashedChunkContent;
 }
 
-export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string) {
+export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string,bucketName:string) {
   let fileContent = "";
   try {
     // Fetch the file content from S3
-    const s3Object = await getS3ActualData(fileKey);
+    const s3Object = await getS3ActualData(fileKey,bucketName);
     if (s3Object.data?.content == null) {
       return { filename: fileKey, error: `Error reading file ${fileKey}: File not found`, embeddings: null };
     }
