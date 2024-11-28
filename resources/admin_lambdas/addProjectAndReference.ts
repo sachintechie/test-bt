@@ -14,7 +14,7 @@ import {
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  formatBytes, generatePresignedUrl, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
+import {  formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
 // const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
@@ -75,16 +75,23 @@ async function addProjectAndReference(
     }
 
     const project = await createProject(tenant, name, description, projectType,chainType, organizationId);
-    const kbResponse = await lambdaCallForCreateKB( project.id,name);
+    let sanitizedName: string = name
+    .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
+    .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
+  
+  let randomString: string = await generateRandomString(6); // Generate a 6-character random string
+  let finalName: string = `${sanitizedName}-${randomString}`;
+  console.log(finalName); // Output: "bridgetower-testptoject121-abc123"
+    const kbResponse = await lambdaCallForCreateKB( project.id,finalName);
     console.log("kbResponse", kbResponse);
 
 
-    if (project != null && kbResponse != null) {
-      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse?.Kb_Id ?? "", kbResponse?.Index_Name ?? "", kbResponse?.s3_bucket ?? "");
+    if (project != null && kbResponse.data != null) {
+      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
       console.log("updateProject", updateProject);
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
       console.log("stage1", stage1);
-      const urls = await generatePresignedUrl(files);
+      const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT));
       console.log("urls", urls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
       if (projectData.error) {
@@ -105,7 +112,7 @@ async function addProjectAndReference(
     } else {
       return {
         project: null,
-        error: "Project not created"
+        error: kbResponse.error
       };
     }
   } catch (e: any) {
@@ -140,7 +147,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
         ]);
 
         for (const file of files) {
-          file.refType = RefType.DOCUMENT;
+         // file.refType = RefType.DOCUMENT;
           const ref = await addReferenceToDb(
             tenantId,
             file,

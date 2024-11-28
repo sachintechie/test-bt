@@ -124,8 +124,24 @@ export async function lambdaCallForCreateKB(projectId: string,name:string) {
   const combinedResponse = JSON.parse(responseStr);
 
   console.log("Decoded response:", combinedResponse);
+  if(combinedResponse.errorMessage){
+    return {
+      error : combinedResponse.errorMessage,
+      data:null
+    }
+  }
+  else{
+    return {
+      data:combinedResponse.body,
+      error:null
+    }
+  }
 
-  return combinedResponse.body; // Or process further as needed
+}
+
+
+export async function generateRandomString(length: number): Promise<string> {
+  return Math.random().toString(36).substring(2, 2 + length); // Random string of specified length
 }
 export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: number = 20) {
   // Group chunks by file_name
