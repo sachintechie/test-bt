@@ -107,7 +107,7 @@ export async function lambdaCallForCreateKB(projectId: string,name:string) {
   };
 
   const params = {
-    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_collection_index_creation",
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_index_kb_creation_consolidate",
     InvocationType: "RequestResponse",
     Payload: JSON.stringify(event)
   };
