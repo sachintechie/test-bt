@@ -161,7 +161,9 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
 
           console.log("ref", ref);
           // const fileSize = await getFileSizeFromBase64(file.fileContent)
-          const downloadUrl = await generateSignedUrl(file,bucketName);
+        if(ref.data?.reftype == RefType.DOCUMENT){
+         const  downloadUrl = await generateSignedUrl(file,bucketName);
+          
 
           const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details
@@ -177,6 +179,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           const blockchainHashedData = await storeHashByChainType(file.hash, "Avalanche");
           if(blockchainHashedData != null)
           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
+          }
         }
 
         // Update project to reflect data ingestion status
