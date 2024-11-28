@@ -86,7 +86,7 @@ async function addProjectAndReference(
     console.log("kbResponse", kbResponse);
 
 
-    if (project != null && kbResponse.data != null) {
+    if (project != null && kbResponse && kbResponse.data != null) {
       const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
       console.log("updateProject", updateProject);
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
