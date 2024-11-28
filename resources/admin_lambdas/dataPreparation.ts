@@ -3,9 +3,7 @@ import {
   createStep,
   createStepDetails,
   getReferenceByProjectId,
-  getStageDetails,
   getStageType,
-  getStepDetails,
   getStepType,
   updateProjectStage,
   updateReferenceStage
@@ -14,9 +12,6 @@ import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunc
 import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {
   combineChunks,
-  getS3Data,
-  lambdaCallForIndexing,
-  lambdaCallForCombineChunks,
   streamToBuffer,
   storeHashByChainType,
   getS3ActualData
@@ -25,7 +20,6 @@ import { EmbeddingMetadata, GroupedChunk, HashedEntry, RefType } from "../db/mod
 import { Readable } from "stream";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 import { TextDecoder, TextEncoder } from "util"; // Ensure TextDecoder is available for decoding
-import { indexing } from "../knowledgebase/opensearch";
 import { addToOpenSearch } from "../opensearch/commonFunction";
 const client = new BedrockRuntimeClient({
   region: "us-east-1" // Replace with your AWS region

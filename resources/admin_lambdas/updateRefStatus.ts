@@ -1,14 +1,10 @@
 import { tenant } from "../db/models";
 
 import {
-  getProjectById,
   getRefById,
-  getReferenceById,
   updateRefStatus,
 } from "../db/adminDbFunctions";
-import { addReferencesLambda } from "../knowledgebase/commonFunctions";
-import { Project } from "aws-cdk-lib/aws-codebuild";
-import { ProjectStage, ReferenceStatus } from "@prisma/client";
+import { ReferenceStatus } from "@prisma/client";
 
 
 export const handler = async (event: any, context: any) => {

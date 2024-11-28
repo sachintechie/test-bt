@@ -17,7 +17,6 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 import { getPrismaClient } from "./dbFunctions";
 import { ActionStatus, ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import { description } from "@provenanceio/wallet-utils/lib/proto/gogoproto/gogo_pb";
 
 export async function createAdminUser(customer: customer) {
   try {
@@ -1891,7 +1890,6 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     }
     const projectData = {
       project: project,
-      urls:"",
       stagedata: {
         total: stageCount,
         totalPages: Math.ceil(stageCount / limit),
