@@ -100,9 +100,9 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
 
           for (const reference of referenceList) {
             // const data = JSON.parse(stepDetail.metadata);
-            refIds.push(reference.id);
             // Step 1 and step 3: Chunking and Embedding of chunks
             if (reference.name != null && reference.reftype == RefType.DOCUMENT) {
+              refIds.push(reference.id);
               file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
               let hashed_chunkcontent;
               if (file_embeddings.embeddings != null) {

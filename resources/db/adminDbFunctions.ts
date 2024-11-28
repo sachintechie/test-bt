@@ -106,6 +106,22 @@ export async function updateReferenceStage(projectId: string, refIds: string[], 
   }
 }
 
+export async function updateReferenceStageById(projectId: string, refId: string, referenceStage: ReferenceStage,status : ReferenceStatus) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.reference.update({
+      where: { id: refId},
+      data: {
+        referencestage: referenceStage,
+        status: status
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateReferenceStatus( files : any) {
   try {
     const updatedRefs = [];
