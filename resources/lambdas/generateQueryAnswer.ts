@@ -1,185 +1,230 @@
-import * as AWS from 'aws-sdk';
-import * as uuid from 'uuid';
-import { SecretsManager } from '@aws-sdk/client-secrets-manager';
+import * as AWS from "aws-sdk";
+import * as uuid from "uuid";
+import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType } from "@aws-sdk/client-bedrock-agent-runtime";
 
-const TABLE_NAME = 'aws-abu-dhabi-dynamodb';
+const TABLE_NAME = "aws-abu-dhabi-dynamodb";
 const SECRET_NAME = process.env.SECRET_NAME as string;
 
-const dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
-const secretsManager = new SecretsManager({ region: 'us-east-1' });
+const dynamodb = new AWS.DynamoDB({ region: "us-east-1" });
+const secretsManager = new SecretsManager({ region: "us-east-1" });
 
 // Function to generate job ID
 function generateJobId(length: number = 10): string {
-    return uuid.v4().replace(/-/g, '').substring(0, length);
+  return uuid.v4().replace(/-/g, "").substring(0, length);
 }
 
 // Lambda handler function
 export const handler = async (event: any, context: any) => {
-    const jobId = generateJobId();
-    const sourceText: string[] = [""];
-    const sourceFilenamelist: string[] = [""];
-    let finalAnswer = '';
-    let i = 1;
+  const jobId = generateJobId();
+  const sourceText: string[] = [""];
+  const sourceFilenamelist: string[] = [""];
+  let finalAnswer = "";
+  let i = 1;
 
-    try {
-        console.log("Starting Lambda execution...");
+  try {
+    console.log("Starting Lambda execution...");
 
-        // Fetching secrets from AWS Secrets Manager
-        console.log("Fetching secrets...");
-        const getSecretValueResponse = await secretsManager.getSecretValue({ SecretId: SECRET_NAME });
-        const secrets = JSON.parse(getSecretValueResponse.SecretString!);
-        console.log("Secrets fetched successfully...");
+    // Fetching secrets from AWS Secrets Manager
+    console.log("Fetching secrets...");
+    const getSecretValueResponse = await secretsManager.getSecretValue({ SecretId: SECRET_NAME });
+    const secrets = JSON.parse(getSecretValueResponse.SecretString!);
+    console.log("Secrets fetched successfully...");
 
-        // Initialize the Bedrock agent client
-        const client = new BedrockAgentRuntimeClient({ region: 'us-east-1' });
+    // Initialize the Bedrock agent client
+    const client = new BedrockAgentRuntimeClient({ region: "us-east-1" });
 
-        // Parse the input from the event
-        console.log("Parsing input from event...");
-        const body = event.body;  // Event body is already parsed as JSON
-        const userMessage = body.message;
-        let sessionId = body.sessionId || `initial${uuid.v4()}`;
+    // Parse the input from the event
+    console.log("Parsing input from event...");
+    const body = event.body; // Event body is already parsed as JSON
+    const userMessage = body.message;
+    let sessionId = body.sessionId || `initial${uuid.v4()}`;
 
-        console.log(`User message: ${userMessage}`);
-        console.log(`Session ID: ${sessionId}`);
+    console.log(`User message: ${userMessage}`);
+    console.log(`Session ID: ${sessionId}`);
 
-        // Set up the configuration for retrieval and generation
-        const numberOfResults = 10;
-        const promptTemplate = `
+    // Set up the configuration for retrieval and generation
+    const numberOfResults = 10;
+    const promptTemplate = `
             Here is some relevant information based on your query: $search_results$
             Please proceed with generating a response based on this information.
         `;
-        const retrieveAndGenerateConfiguration = {
-            knowledgeBaseConfiguration: {
-                knowledgeBaseId: "ET3BO7O02P", // Your knowledge base ID
-                modelArn: "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
-                retrievalConfiguration: {
-                    vectorSearchConfiguration: {
-                        numberOfResults
-                    }
-                },
-                generationConfiguration: {
-                    promptTemplate: {
-                        textPromptTemplate: promptTemplate
-                    }
-                }
-            },
-            type: RetrieveAndGenerateType.KNOWLEDGE_BASE
-        };
-
-        // Input data for retrieval and generation
-        const inputData = { text: userMessage };
-
-        console.log("Sending request to Bedrock Agent...");
-        let response;
-        if (sessionId.includes('initial')) {
-            response = await client.send(new RetrieveAndGenerateCommand({
-                input: inputData,
-                retrieveAndGenerateConfiguration,
-            }));
-        } else {
-            response = await client.send(new RetrieveAndGenerateCommand({
-                input: inputData,
-                retrieveAndGenerateConfiguration,
-                sessionId,
-            }));
+    const retrieveAndGenerateConfiguration = {
+      knowledgeBaseConfiguration: {
+        knowledgeBaseId: "ET3BO7O02P", // Your knowledge base ID
+        modelArn: "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
+        retrievalConfiguration: {
+          vectorSearchConfiguration: {
+            numberOfResults
+          }
+        },
+        generationConfiguration: {
+          promptTemplate: {
+            textPromptTemplate: promptTemplate
+          }
         }
+      },
+      type: RetrieveAndGenerateType.KNOWLEDGE_BASE
+    };
 
-        // Processing response from Bedrock agent
-        console.log("Bedrock agent response:", response);
-        sessionId = response.sessionId;
+    // Input data for retrieval and generation
+    const inputData = { text: userMessage };
 
-        // Extracting and formatting text and citations
-        if (response?.citations) {
-            console.log("Processing citations...");
-
-            // Loop through the citations
-            for (const citation of response.citations) {
-                if (citation) {
-                    const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
-                    finalAnswer += responseText + " ";
-
-                    if (citation?.retrievedReferences) {
-                        for (const reference of citation?.retrievedReferences) {
-                            // Extract and format the citations
-                            const sourceUrl = reference?.content?.text;
-                            const sourceFilename = reference?.metadata ? reference?.metadata['x-amz-bedrock-kb-source-uri'] : "";
-
-                            // Append the source filename and reference text to the lists
-                            sourceFilenamelist.push(sourceFilename?.toString() ?? "");
-                            sourceText.push(`${sourceUrl}\n`);
-
-                            // Add source reference text to final answer
-                            finalAnswer += `Source[${i}] `;
-                            i++;
-                        }
-                    }
-                    finalAnswer += `\n`;
-                }
-            }
-        }
-
-        console.log("Final generated answer:", finalAnswer);
-
-        // Storing result in DynamoDB
-        console.log("Storing result in DynamoDB...");
-        await dynamodb.putItem({
-            TableName: TABLE_NAME,
-            Item: {
-                job_id: { S: jobId },
-                status: { S: 'PENDING' },
-                response: { S: finalAnswer },
-                user_query: { S: userMessage },
-                session_id: { S: sessionId },
-                source_text: { L: sourceText.map((text) => ({ S: text })) },
-                source_filenamelist: { L: sourceFilenamelist.map((filename) => ({ S: filename })) }
-            }
-        }).promise();
-        console.log("Result stored in DynamoDB.");
-
-        // Returning the response to the client
-        return {
-            statusCode: 200,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                job_id: jobId,
-                message: response.output?.text,
-                sessionId,
-                source_text: sourceText,
-                source_filenamelist: sourceFilenamelist
-            })
-        };
-    } catch (error) {
-        console.error("Error during Lambda execution:", error);
-
-        // Storing error details in DynamoDB
-        await dynamodb.putItem({
-            TableName: TABLE_NAME,
-            Item: {
-                job_id: { S: jobId },
-                status: { S: 'ERROR' },
-                response: { S: 'Something went wrong' },
-                user_query: { S: 'General query' },
-                session_id: { S: 'N/A' },
-                source_text: { L: sourceText.map((text) => ({ S: text })) }
-            }
-        }).promise();
-        console.log("Error stored in DynamoDB.");
-
-        // Returning error response
-        return {
-            statusCode: 500,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                job_id: jobId,
-                message: 'Something went wrong',
-                sessionId: 'N/A',
-                source_text: sourceText
-            })
-        };
+    console.log("Sending request to Bedrock Agent...");
+    let response;
+    if (sessionId.includes("initial")) {
+      response = await client.send(
+        new RetrieveAndGenerateCommand({
+          input: inputData,
+          retrieveAndGenerateConfiguration
+        })
+      );
+    } else {
+      response = await client.send(
+        new RetrieveAndGenerateCommand({
+          input: inputData,
+          retrieveAndGenerateConfiguration,
+          sessionId
+        })
+      );
     }
+
+    // Processing response from Bedrock agent
+    console.log("Bedrock agent response:", response);
+    sessionId = response.sessionId;
+
+    // // Extracting and formatting text and citations
+    // if (response?.citations) {
+    //     console.log("Processing citations...");
+
+    //     // Loop through the citations
+    //     for (const citation of response.citations) {
+    //         if (citation) {
+    //             const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
+    //             finalAnswer += responseText + " ";
+
+    //             if (citation?.retrievedReferences) {
+    //                 for (const reference of citation?.retrievedReferences) {
+    //                     // Extract and format the citations
+    //                     const sourceUrl = reference?.content?.text;
+    //                     const sourceFilename = reference?.metadata ? reference?.metadata['x-amz-bedrock-kb-source-uri'] : "";
+
+    //                     // Append the source filename and reference text to the lists
+    //                     sourceFilenamelist.push(sourceFilename?.toString() ?? "");
+    //                     sourceText.push(`${sourceUrl}\n`);
+
+    //                     // Add source reference text to final answer
+    //                     finalAnswer += `Source[${i}] `;
+    //                     i++;
+    //                 }
+    //             }
+    //             finalAnswer += `\n`;
+    //         }
+    //     }
+    // }
+
+    // Extracting and formatting text and citations
+    if (response?.citations?.length) {
+      console.log("Processing citations...");
+      for (const citation of response.citations) {
+        if (citation) {
+          const responseText = citation?.generatedResponsePart?.textResponsePart?.text || "";
+          finalAnswer += responseText + " ";
+
+          if (citation?.retrievedReferences?.length) {
+            for (const reference of citation?.retrievedReferences) {
+              const sourceUrl = reference?.content?.text || "";
+              const sourceFilename = reference?.metadata?.["x-amz-bedrock-kb-source-uri"] || "";
+
+             // sourceFilenamelist.push(sourceFilename);
+              if (typeof sourceFilename === 'string') {
+                sourceFilenamelist.push(sourceFilename);
+            } else {
+                console.warn("sourceFilename is not a string:", sourceFilename);
+            }
+              sourceText.push(`${sourceUrl}\n`);
+              finalAnswer += `Source[${i}] `;
+              i++;
+            }
+          }
+          finalAnswer += `\n`;
+        }
+      }
+    }
+
+    // If no citations or generated response part, fallback to `output.text`
+    if (!finalAnswer.trim() && response?.output?.text) {
+      console.log("Using fallback output text...");
+      finalAnswer = response.output.text;
+    }
+
+    console.log("Final generated answer:", finalAnswer);
+
+    console.log("Final generated answer:", finalAnswer);
+
+    // Storing result in DynamoDB
+    console.log("Storing result in DynamoDB...");
+    await dynamodb
+      .putItem({
+        TableName: TABLE_NAME,
+        Item: {
+          job_id: { S: jobId },
+          status: { S: "PENDING" },
+          response: { S: finalAnswer },
+          user_query: { S: userMessage },
+          session_id: { S: sessionId },
+          source_text: { L: sourceText.map((text) => ({ S: text })) },
+          source_filenamelist: { L: sourceFilenamelist.map((filename) => ({ S: filename })) }
+        }
+      })
+      .promise();
+    console.log("Result stored in DynamoDB.");
+
+    // Returning the response to the client
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        job_id: jobId,
+        message: response.output?.text,
+        sessionId,
+        source_text: sourceText,
+        source_filenamelist: sourceFilenamelist
+      })
+    };
+  } catch (error) {
+    console.error("Error during Lambda execution:", error);
+
+    // Storing error details in DynamoDB
+    await dynamodb
+      .putItem({
+        TableName: TABLE_NAME,
+        Item: {
+          job_id: { S: jobId },
+          status: { S: "ERROR" },
+          response: { S: "Something went wrong" },
+          user_query: { S: "General query" },
+          session_id: { S: "N/A" },
+          source_text: { L: sourceText.map((text) => ({ S: text })) }
+        }
+      })
+      .promise();
+    console.log("Error stored in DynamoDB.");
+
+    // Returning error response
+    return {
+      statusCode: 500,
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        job_id: jobId,
+        message: "Something went wrong",
+        sessionId: "N/A",
+        source_text: sourceText
+      })
+    };
+  }
 };
