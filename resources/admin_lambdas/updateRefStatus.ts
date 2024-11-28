@@ -41,13 +41,12 @@ export const handler = async (event: any, context: any) => {
 };
 
 async function updateReferenceStatus(tenant: tenant, refId: string,status : ReferenceStatus) {
-  console.log("Creating admin project");
 
   try {
-    console.log("project", tenant.id, refId);
+    console.log("ref", tenant.id, refId);
 
-    const project = await getRefById(refId);
-    if (project.data == null) {
+    const refData = await getRefById(refId);
+    if (refData.data == null) {
       return {
         project: null,
         error: "Reference not found"

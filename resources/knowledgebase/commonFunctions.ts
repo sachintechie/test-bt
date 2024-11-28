@@ -127,6 +127,11 @@ export async function lambdaCallForCreateKB(projectId: string,name:string) {
 
   return combinedResponse.body; // Or process further as needed
 }
+
+
+export async function generateRandomString(length: number): Promise<string> {
+  return Math.random().toString(36).substring(2, 2 + length); // Random string of specified length
+}
 export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: number = 20) {
   // Group chunks by file_name
   const fileDict: Record<string, EmbeddingMetadata[]> = {};
