@@ -51,7 +51,7 @@ async function updateProjectStatus(tenant: tenant, projectId: string, files: any
       };
     } else {
       if(project.data.projectstage === ProjectStage.DATA_SOURCE){
-      await addReferencesLambda(tenant.adminuserid ?? "", project.data.id);
+      await addReferencesLambda(tenant.adminuserid ?? "", project.data.id,project.data.s3bucketname?? "");
       }
       return {
         project: project.data,

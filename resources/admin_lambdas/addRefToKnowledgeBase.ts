@@ -3,7 +3,6 @@ import { updateProjectStage } from "../db/adminDbFunctions";
 
 import { ProjectStage, ProjectStatusEnum } from "@prisma/client";
 import { addReferencesLambda } from "../knowledgebase/commonFunctions";
-const BedRockDataSourceS3 = process.env.BEDROCK_DATASOURCE_S3 || "";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -48,9 +47,8 @@ async function addReference(
 ) {
   console.log("Creating admin user");
   try {
-    let datasource_id = BedRockDataSourceS3;
     console.log("createUser", tenant.id, refType);
-    await addReferencesLambda(tenant.adminuserid ?? "", projectId);
+    await addReferencesLambda(tenant.adminuserid ?? "", projectId,"");
     const updatedProject = await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
     console.log("updatedProject", updatedProject);
 
