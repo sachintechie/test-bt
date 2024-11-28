@@ -141,7 +141,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
       }
     }
 
-    await dataPreperationLambda(tenantUserId, projectId);
+    await dataPreperationLambda(tenantUserId, projectId,bucketName);
 
 
     return true;
