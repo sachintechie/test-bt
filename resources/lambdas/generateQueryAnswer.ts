@@ -124,7 +124,9 @@ export const handler = async (event: any, context: any) => {
 
         let finalAnswer = '';
         if (response?.citations) {
+            console.log(response?.citations)
             response.citations.forEach((citation: any) => {
+                console.log(citation.generatedResponsePart.textResponsePart.text);
                 const responseText = citation.generatedResponsePart.textResponsePart.text;
                 finalAnswer += responseText + " ";
             });

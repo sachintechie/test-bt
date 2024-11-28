@@ -59,7 +59,7 @@ export const handler = async (event: any) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
     // Extract values from the event
-    const { chainType, hash, uuid, isSecondTx } = event.arguments?.input || {};
+    const { chainType, hash, uuid, isSecondTx } = event || {};
     const tableName = 'aws-abu-dhabi-dynamodb'; // DynamoDB table name
     console.log(`Processing chainType: ${chainType}, hash: ${hash}, uuid: ${uuid}, isSecondTx: ${isSecondTx}`);
 
