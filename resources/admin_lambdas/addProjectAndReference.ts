@@ -86,8 +86,8 @@ async function addProjectAndReference(
     console.log("kbResponse", kbResponse);
 
 
-    if (project != null && kbResponse != null) {
-      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse?.Kb_Id ?? "", kbResponse?.Index_Name ?? "", kbResponse?.s3_bucket ?? "");
+    if (project != null && kbResponse.data != null) {
+      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
       console.log("updateProject", updateProject);
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
       console.log("stage1", stage1);
@@ -112,7 +112,7 @@ async function addProjectAndReference(
     } else {
       return {
         project: null,
-        error: "Project not created"
+        error: kbResponse.error
       };
     }
   } catch (e: any) {

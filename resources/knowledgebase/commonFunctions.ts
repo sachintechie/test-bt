@@ -124,8 +124,19 @@ export async function lambdaCallForCreateKB(projectId: string,name:string) {
   const combinedResponse = JSON.parse(responseStr);
 
   console.log("Decoded response:", combinedResponse);
+  if(combinedResponse.errorMessage){
+    return {
+      error : combinedResponse.errorMessage,
+      data:null
+    }
+  }
+  else{
+    return {
+      data:combinedResponse.body,
+      error:null
+    }
+  }
 
-  return combinedResponse.body; // Or process further as needed
 }
 
 
