@@ -132,7 +132,7 @@ export async function lambdaCallForCreateKB(projectId: string,name:string) {
   }
   else{
     return {
-      data:combinedResponse.body,
+      data:combinedResponse,
       error:null
     }
   }

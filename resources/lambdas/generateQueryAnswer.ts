@@ -2,18 +2,18 @@ import * as AWS from 'aws-sdk';
 import * as uuid from 'uuid';
 import { SecretsManager } from '@aws-sdk/client-secrets-manager';
 import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType } from "@aws-sdk/client-bedrock-agent-runtime";
- 
+
 const TABLE_NAME = 'aws-abu-dhabi-dynamodb';
 const SECRET_NAME = process.env.SECRET_NAME as string;
- 
+
 const dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
 const secretsManager = new SecretsManager({ region: 'us-east-1' });
- 
+
 // Function to generate job ID
 function generateJobId(length: number = 10): string {
     return uuid.v4().replace(/-/g, '').substring(0, length);
 }
- 
+
 // Lambda handler function
 export const handler = async (event: any, context: any) => {
     const jobId = generateJobId();
@@ -21,28 +21,28 @@ export const handler = async (event: any, context: any) => {
     const sourceFilenamelist: string[] = [""];
     let finalAnswer = '';
     let i = 1;
- 
+
     try {
         console.log("Starting Lambda execution...");
- 
+
         // Fetching secrets from AWS Secrets Manager
         console.log("Fetching secrets...");
         const getSecretValueResponse = await secretsManager.getSecretValue({ SecretId: SECRET_NAME });
         const secrets = JSON.parse(getSecretValueResponse.SecretString!);
         console.log("Secrets fetched successfully...");
- 
+
         // Initialize the Bedrock agent client
         const client = new BedrockAgentRuntimeClient({ region: 'us-east-1' });
- 
+
         // Parse the input from the event
         console.log("Parsing input from event...");
         const body = event.body;  // Event body is already parsed as JSON
         const userMessage = body.message;
         let sessionId = body.sessionId || `initial${uuid.v4()}`;
- 
+
         console.log(`User message: ${userMessage}`);
         console.log(`Session ID: ${sessionId}`);
- 
+
         // Set up the configuration for retrieval and generation
         const numberOfResults = 10;
         const promptTemplate = `
@@ -66,10 +66,10 @@ export const handler = async (event: any, context: any) => {
             },
             type: RetrieveAndGenerateType.KNOWLEDGE_BASE
         };
- 
+
         // Input data for retrieval and generation
         const inputData = { text: userMessage };
- 
+
         console.log("Sending request to Bedrock Agent...");
         let response;
         if (sessionId.includes('initial')) {
@@ -84,34 +84,34 @@ export const handler = async (event: any, context: any) => {
                 sessionId,
             }));
         }
- 
+
         // Processing response from Bedrock agent
         console.log("Bedrock agent response:", response);
         sessionId = response.sessionId;
- 
+
         // Extracting and formatting text and citations
         if (response?.citations) {
             console.log("Processing citations...");
- 
+
             // Loop through the citations
             // response.citations.forEach((citation: any) => {
             for (const citation of response.citations) {
                 if(citation){
                 const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
                 finalAnswer += responseText + " ";
- 
+
                 if(citation?.retrievedReferences){
                 for (const reference of citation?.retrievedReferences) {
                 // Extract and format the citations
              //   citation.retrievedReferences.forEach((reference: any) => {
                     const sourceUrl = reference?.content?.text;
-                   
+                    
                     const sourceFilename = reference?.metadata? reference?.metadata['x-amz-bedrock-kb-source-uri']: "";
- 
+
                     // Append the source filename and reference text to the lists
                     sourceFilenamelist.push(sourceFilename?.toString()?? "");
                     sourceText.push(`${sourceUrl}\n`);
- 
+
                     // Add source reference text to final answer
                     finalAnswer += `Source[${i}] `;
                     i++;
@@ -123,9 +123,9 @@ export const handler = async (event: any, context: any) => {
                 }
             }
         }
- 
+
         console.log("Final generated answer:", finalAnswer);
- 
+
         // Storing result in DynamoDB
         console.log("Storing result in DynamoDB...");
         await dynamodb.putItem({
@@ -141,7 +141,7 @@ export const handler = async (event: any, context: any) => {
             }
         }).promise();
         console.log("Result stored in DynamoDB.");
- 
+
         // Returning the response to the client
         return {
             statusCode: 200,
@@ -158,7 +158,7 @@ export const handler = async (event: any, context: any) => {
         };
     } catch (error) {
         console.error("Error during Lambda execution:", error);
- 
+
         // Storing error details in DynamoDB
         await dynamodb.putItem({
             TableName: TABLE_NAME,
@@ -172,7 +172,7 @@ export const handler = async (event: any, context: any) => {
             }
         }).promise();
         console.log("Error stored in DynamoDB.");
- 
+
         // Returning error response
         return {
             statusCode: 500,
