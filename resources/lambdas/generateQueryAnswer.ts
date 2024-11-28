@@ -9,25 +9,6 @@ const SECRET_NAME = process.env.SECRET_NAME as string;
 const dynamodb = new AWS.DynamoDB({ region: 'us-east-1' });
 const secretsManager = new SecretsManager({ region: 'us-east-1' });
 
-// Function to connect to OpenSearch (for querying)
-/*async function queryOpensearchCollection() {
-    try {
-        const client = await connectToOpenSearch();
-        console.log("OpenSearch Connection Successful...");
-
-        const query = { query: { match_all: {} } };
-        const index = 'bedrock-knowledge-base-default-index';
-
-        const response = await client.search({ body: query, index });
-        console.log("OpenSearch query response:", response);
-
-        return response;
-    } catch (error) {
-        console.error("Error during OpenSearch query:", error);
-        throw new Error('Error querying OpenSearch');
-    }
-}*/
-
 // Function to generate job ID
 function generateJobId(length: number = 10): string {
     return uuid.v4().replace(/-/g, '').substring(0, length);
@@ -37,6 +18,9 @@ function generateJobId(length: number = 10): string {
 export const handler = async (event: any, context: any) => {
     const jobId = generateJobId();
     const sourceText: string[] = [""];
+    const sourceFilenamelist: string[] = [""];
+    let finalAnswer = '';
+    let i = 1;
 
     try {
         console.log("Starting Lambda execution...");
@@ -49,23 +33,6 @@ export const handler = async (event: any, context: any) => {
 
         // Initialize the Bedrock agent client
         const client = new BedrockAgentRuntimeClient({ region: 'us-east-1' });
-
-        // Establish PostgreSQL connection using secrets
-        const { Client } = require('pg');
-        const pgClient = new Client({
-            host: secrets.host,
-            user: secrets.username,
-            password: secrets.password,
-            database: secrets.dbname,
-            port: secrets.port,
-        });
-
-        console.log("Connecting to PostgreSQL database...");
-        await pgClient.connect();
-        console.log("Database Connection successful...");
-
-        const res = await pgClient.query("SELECT * FROM reference WHERE name = 'test';");
-        console.log("Database query result:", res.rows);
 
         // Parse the input from the event
         console.log("Parsing input from event...");
@@ -122,15 +89,35 @@ export const handler = async (event: any, context: any) => {
         console.log("Bedrock agent response:", response);
         sessionId = response.sessionId;
 
-        let finalAnswer = '';
+        // Extracting and formatting text and citations
         if (response?.citations) {
-            console.log(response?.citations)
+            console.log("Processing citations...");
+
+            // Loop through the citations
             response.citations.forEach((citation: any) => {
-                console.log(citation.generatedResponsePart.textResponsePart.text);
                 const responseText = citation.generatedResponsePart.textResponsePart.text;
                 finalAnswer += responseText + " ";
+
+
+                for (const reference of citation.retrievedReferences) {
+                // Extract and format the citations
+             //   citation.retrievedReferences.forEach((reference: any) => {
+                    const sourceUrl = reference.content.text;
+                    const sourceFilename = reference.metadata['x-amz-bedrock-kb-source-uri'];
+
+                    // Append the source filename and reference text to the lists
+                    sourceFilenamelist.push(sourceFilename);
+                    sourceText.push(`${sourceUrl}\n`);
+
+                    // Add source reference text to final answer
+                    finalAnswer += `Source[${i}] `;
+                    i++;
+                }
+                // });
+                finalAnswer += `\n`;
             });
         }
+
         console.log("Final generated answer:", finalAnswer);
 
         // Storing result in DynamoDB
@@ -143,7 +130,8 @@ export const handler = async (event: any, context: any) => {
                 response: { S: finalAnswer },
                 user_query: { S: userMessage },
                 session_id: { S: sessionId },
-                source_text: { L: sourceText.map((text) => ({ S: text })) }
+                source_text: { L: sourceText.map((text) => ({ S: text })) },
+                source_filenamelist: { L: sourceFilenamelist.map((filename) => ({ S: filename })) }
             }
         }).promise();
         console.log("Result stored in DynamoDB.");
@@ -158,7 +146,8 @@ export const handler = async (event: any, context: any) => {
                 job_id: jobId,
                 message: finalAnswer,
                 sessionId,
-                source_text: sourceText
+                source_text: sourceText,
+                source_filenamelist: sourceFilenamelist
             })
         };
     } catch (error) {
