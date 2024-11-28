@@ -4,7 +4,6 @@ import {
   getProjectById,
 } from "../db/adminDbFunctions";
 import { addReferencesLambda } from "../knowledgebase/commonFunctions";
-import { Project } from "aws-cdk-lib/aws-codebuild";
 import { ProjectStage } from "@prisma/client";
 
 

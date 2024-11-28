@@ -1,6 +1,5 @@
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient,Prisma  } from "@prisma/client";
 import {
-  AuthType,
   CallbackStatus,
   customer,
   StakeAccountStatus,
@@ -21,14 +20,10 @@ import {
   OrderFindBy,
   productOwnership,
   productinventory,
-  productwithinventory,
   productcart
 } from "./models";
 import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
-import { toBech32 } from "@cosmjs/encoding";
-import { rawSecp256k1PubkeyToRawAddress } from "@cosmjs/amino";
-import { Secp256k1 } from "@cosmjs/crypto";
 import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 
 import {addActivityLog} from "./adminDbFunctions";

@@ -11,8 +11,7 @@ import {
   isProjectExist,
   updateProjectKbAndIndex,
   updateProjectStage,
-  updateReferenceStage,
-  updateReferenceStageById
+  updateReferenceStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
@@ -90,10 +89,11 @@ async function addProjectAndReference(
       const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
       console.log("updateProject", updateProject);
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
-      console.log("stage1", stage1);
+     // console.log("stage1", stage1);
       const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
       console.log("urls", urls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
+      console.log("projectData", projectData);
       if (projectData.error) {
         return {
           project: null,
