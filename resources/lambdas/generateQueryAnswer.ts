@@ -46,9 +46,21 @@ export const handler = async (event: any, context: any) => {
     // Set up the configuration for retrieval and generation
     const numberOfResults = 10;
     const promptTemplate = `
-            Here is some relevant information based on your query: $search_results$
-            Please proceed with generating a response based on this information.
-        `;
+        Human: You are an AI chatbot designed to answer questions about doing business in Abu Dhabi. I will provide you with a set of search results and a user's question. Use the provided search results as your reference to ensure accurate and relevant responses. Always respond in a friendly and conversational manner. Only to answer question like greetings, you can answer in professional manner using your knowledge and ignore the search results. In all other cases, If you don't find anything relevant about question in given search results then state Sorry, I don't have enough information in my database to answer this question.
+
+        Here are the search results in numbered order:
+        $search_results$
+
+        Here is the user's question:
+        <question>
+        $query$
+        </question>
+
+        $output_format_instructions$
+
+        Response:
+        Based on the information retrieved from the sources, here’s the answer to your query:
+    `;
     const retrieveAndGenerateConfiguration = {
       knowledgeBaseConfiguration: {
         knowledgeBaseId: "ET3BO7O02P", // Your knowledge base ID
