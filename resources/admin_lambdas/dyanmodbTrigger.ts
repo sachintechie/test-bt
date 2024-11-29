@@ -71,12 +71,20 @@ export const handler = async (event: any) => {
   try {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
-    // Extract values from the event (Remove projectId here)
-    const { hash, uuid, isSecondTx, source_filenamelist } = event || {};
+    // Extract values from the DynamoDB event (Add logic to handle DynamoDB streams event)
+    const record = event.Records[0];  // We're assuming one record for now
+
+    const { NewImage } = record.dynamodb;  // Get the NewImage from the event
+    const userQuery = NewImage?.user_query?.S || '';
+    const sourceFileList = NewImage?.source_filenamelist?.L || [];
+    const sourceText = NewImage?.source_text?.L || [];
+    const jobId = NewImage?.job_id?.S;  // Assuming job_id in the DynamoDB record is jobId
     const tableName = 'aws-abu-dhabi-dynamodb'; // DynamoDB table name
 
+    console.log(`Processing job_id: ${jobId}, userQuery: ${userQuery}`);
+
     // Check if the source_filenamelist contains a project_id
-    const extractedProjectId = getProjectIdFromSourceFileList(source_filenamelist);
+    const extractedProjectId = getProjectIdFromSourceFileList(sourceFileList);
     const finalProjectId = extractedProjectId || null; // Use the extracted project_id, or set it to null if not found
 
     let project;
@@ -98,7 +106,7 @@ export const handler = async (event: any) => {
 
     // Default to Avalanche if project is not found or projectId is missing
     const chainType = project?.data?.chaintype || CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE;
-    console.log(`Processing chainType: ${chainType}, hash: ${hash}, uuid: ${uuid}, isSecondTx: ${isSecondTx}`);
+    console.log(`Processing chainType: ${chainType}, userQuery: ${userQuery}`);
 
     let hashResult;
     let blockchainTransactionId: string | undefined;
@@ -107,7 +115,7 @@ export const handler = async (event: any) => {
     switch (chainType) {
       case CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE:
         console.log("Calling Avalanche storeHash function...");
-        hashResult = await avalancheStoreHash(hash, isSecondTx);
+        hashResult = await avalancheStoreHash(userQuery, false);  // Pass user query as hash and isSecondTx flag
         blockchainTransactionId = hashResult?.data?.txHash; // Assuming data contains transactionId
         console.log("Avalanche storeHash result:", JSON.stringify(hashResult, null, 2));
         break;
@@ -116,7 +124,7 @@ export const handler = async (event: any) => {
         console.log("Calling Provenance storeHash function...");
         const provenanceAddress = "0xa0f70a94393b30f8b06382aabe21f16e9bc11b0e6929586dcefb7e83fa6d4d2e";
         const mnemonic = process.env.PROVANENCE_MNEMONIC || "";
-        hashResult = await provenanceStoreHash(provenanceAddress, hash, mnemonic);
+        hashResult = await provenanceStoreHash(provenanceAddress, userQuery, mnemonic);
         blockchainTransactionId = hashResult?.data?.txHash; // Assuming data contains transactionId
         console.log("Provenance storeHash result:", JSON.stringify(hashResult, null, 2));
         break;
@@ -134,14 +142,16 @@ export const handler = async (event: any) => {
     if (hashResult?.data) {
       console.log("Hash result contains data. Proceeding with DynamoDB update...");
 
-      const jobId = uuid; // Assuming uuid is the job_id in your DynamoDB table
-      const primaryKey = { job_id: jobId };
+      const primaryKey = { job_id: jobId }; // Use job_id as the primary key
 
       const newAttributes = {
-        hash_value: hash,
+        user_query: userQuery,
+        source_filenamelist: sourceFileList,
+        source_text: sourceText,
+        hash_value: userQuery,  // Assuming hash value to be the userQuery for now
         blockchain_response: hashResult, // Store the response from the storeHash function
         blockchain_transactionId: blockchainTransactionId,
-        '#st': 'SUCCESS'
+        status: 'SUCCESS'
       };
 
       console.log("Updating DynamoDB with new attributes:", JSON.stringify(newAttributes, null, 2));
