@@ -59,7 +59,7 @@ export const handler = async (event: any, context: any) => {
         $output_format_instructions$
 
         Response:
-        Based on the information retrieved from the sources, here’s the answer to your query
+        Based on the information retrieved from the sources, here’s the answer to your query:
     `;
     const retrieveAndGenerateConfiguration = {
       knowledgeBaseConfiguration: {
