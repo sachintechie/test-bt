@@ -16,7 +16,6 @@ import {
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
-// const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -86,14 +85,15 @@ async function addProjectAndReference(
     console.log("kbResponse", kbResponse);
 
 
-    if (project != null && kbResponse.data != null) {
+    if (project != null && kbResponse && kbResponse.data != null) {
       const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
       console.log("updateProject", updateProject);
-      const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files);
-      console.log("stage1", stage1);
-      const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT));
-      console.log("urls", urls);
+      const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
+     // console.log("stage1", stage1);
+      const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
+      console.log("generatedUrls", generatedUrls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
+      console.log("projectData", projectData);
       if (projectData.error) {
         return {
           project: null,
@@ -102,8 +102,9 @@ async function addProjectAndReference(
       } else {
         const data = {
           project: projectData.data?.project,
-          urls: urls
+          urls: generatedUrls
         }
+        console.log("final-data", JSON.stringify(data));
         return {
           project: data,
           error: null
@@ -124,7 +125,7 @@ async function addProjectAndReference(
   }
 }
 
-export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, files: any) {
+export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, files: any,bucketName:string) {
   // Stage 1: Data Source
   const refIds : string[]= [];
   const stageType = await getStageType("Data Source");
@@ -158,11 +159,13 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
             tenantUserId
           );
           if(ref.data?.id)
-          refIds.push(ref.data?.id);
+      
 
           console.log("ref", ref);
           // const fileSize = await getFileSizeFromBase64(file.fileContent)
-          const downloadUrl = await generateSignedUrl(file);
+        if(ref.data?.reftype == RefType.DOCUMENT){
+         const  downloadUrl = await generateSignedUrl(file,bucketName);
+         refIds.push(ref.data?.id);
 
           const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
           // Step 1: File upload details
@@ -178,11 +181,15 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           const blockchainHashedData = await storeHashByChainType(file.hash, "Avalanche");
           if(blockchainHashedData != null)
           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
+
+          }
+
         }
 
         // Update project to reflect data ingestion status
         await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
         await updateReferenceStage(projectId, refIds,ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
+
       }
     }
   }

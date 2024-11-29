@@ -15,10 +15,10 @@ import { RefType } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
   try {
-    const { projectId, tenantUserId } = event;
+    const { projectId, tenantUserId,bucketName } = event;
 
     // Calls function to handle adding stages and steps for file processing
-    const data = await addStageAndSteps(tenantUserId, projectId);
+    const data = await addStageAndSteps(tenantUserId, projectId,bucketName);
 
     return {
       status: data ? 200 : 400,
@@ -32,7 +32,7 @@ export const handler = async (event: any, context: any) => {
 };
 
 // Function to add stages and steps for processing files in multiple stages
-export async function addStageAndSteps(tenantUserId: string, projectId: string) {
+export async function addStageAndSteps(tenantUserId: string, projectId: string,bucketName:string) {
   try {
     console.log("Creating admin project" , tenantUserId, projectId);
     //const stageType1 = await getStageType("Data Source");
@@ -60,8 +60,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
              // const data = JSON.parse(stepDetail.metadata);
 
             // Upload file content to S3
-            if(reference?.name){
-            const s3Data = await getS3DataWithoutContent(reference?.name);
+            if( reference.reftype == RefType.DOCUMENT && reference?.name){
+            const s3Data = await getS3DataWithoutContent(reference?.name,bucketName);
             refIds.push(reference.id);
 
               await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id);
@@ -103,7 +103,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
           for (const reference of referenceList) {
            // const data = JSON.parse(stepDetail.metadata);
            if(reference?.name && reference.reftype === RefType.DOCUMENT){
-            const getDataFromS3 = await getS3Data(reference.name);
+            const getDataFromS3 = await getS3Data(reference.name,bucketName);
             console.log("getDataFromS3", getDataFromS3);
             const s3data = {
               fileName: getDataFromS3.data?.fileName,
@@ -141,7 +141,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string) 
       }
     }
 
-    await dataPreperationLambda(tenantUserId, projectId);
+    await dataPreperationLambda(tenantUserId, projectId,bucketName);
 
 
     return true;
