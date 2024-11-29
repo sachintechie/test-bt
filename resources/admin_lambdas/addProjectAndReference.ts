@@ -31,11 +31,14 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.chainType,
       event.arguments?.input?.files
     );
-    console.log("data", data);
+    console.log("data", JSON.stringify( data));
 
     const response = {
       status: data.project != null ? 200 : 400,
-      data: data.project,
+      data: {
+        project: data.project?.project,
+        urls: data.project?.urls[0]
+      },
       error: data.error
     };
     console.log("project", response);
