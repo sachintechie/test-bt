@@ -90,8 +90,8 @@ async function addProjectAndReference(
       console.log("updateProject", updateProject);
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
      // console.log("stage1", stage1);
-      const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
-      console.log("urls", urls);
+      const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
+      console.log("generatedUrls", generatedUrls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
       console.log("projectData", projectData);
       if (projectData.error) {
@@ -102,8 +102,9 @@ async function addProjectAndReference(
       } else {
         const data = {
           project: projectData.data?.project,
-          urls: urls
+          urls: generatedUrls
         }
+        console.log("final-data", JSON.stringify(data));
         return {
           project: data,
           error: null
