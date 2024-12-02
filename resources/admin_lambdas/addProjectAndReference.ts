@@ -36,12 +36,12 @@ export const handler = async (event: any, context: any) => {
     const response = {
       status: data.project != null ? 200 : 400,
       data: {
-        project: data.project?.project,
-        urls: data.project?.urls[0]
+        project: data.project?.data,
+        urls: data.project?.urls
       },
       error: data.error
     };
-    console.log("project", response);
+    console.log("project", JSON.stringify(response));
 
     return response;
   } catch (err) {
@@ -104,7 +104,7 @@ async function addProjectAndReference(
         };
       } else {
         const data = {
-          project: projectData.data?.project,
+          data: projectData.data?.project,
           urls: generatedUrls
         }
         console.log("final-data", JSON.stringify(data));
