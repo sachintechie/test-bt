@@ -40,13 +40,13 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
     const project = await getProjectById(projectId);
     if(project && project.data){
     for (const file of files) {
-      file.refType = RefType.DOCUMENT;
       const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,true,tenant?.customerid ?? "");
-      console.log("ref", ref);
-      if (ref.data) refs.push(ref.data);
+      if (ref.data)
+         refs.push(ref.data);
     }
-    const urls = await generatePresignedUrl(files,project.data.s3bucketname ?? "");
+    const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT),project.data.s3bucketname ?? "");
     console.log("urls", urls);
+    console.log("refs", refs);
 
     return {
       data: {refs, urls},
