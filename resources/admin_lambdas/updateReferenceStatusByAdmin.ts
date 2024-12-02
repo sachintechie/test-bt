@@ -1,5 +1,6 @@
 import { tenant } from "../db/models";
 import {
+  getProjectById,
   updateReferenceStatusByAdmin,
 } from "../db/adminDbFunctions";
 import { addStage_1 } from "../knowledgebase/stageFunctions";
@@ -41,7 +42,8 @@ async function updateRefStatus(tenant: tenant,  files: any) {
 
 
     const refs = await updateReferenceStatusByAdmin(files);
-    await addStage_1(tenant.id,tenant.adminuserid?? "", refs[0].projectid?? "");
+    const project = await getProjectById(refs[0].projectid?? "");
+    await addStage_1(tenant.id,tenant.adminuserid?? "", refs[0].projectid?? "",project.data?.s3bucketname?? "");
 
 if(refs != null){
   return {
