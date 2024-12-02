@@ -36,9 +36,8 @@ export const handler = async (event: any, context: any) => {
 
     // Parse the input from the event
     console.log("Parsing input from event...");
-    const body = event.body; // Event body is already parsed as JSON
-    const userMessage = body.message;
-    let sessionId = body.sessionId || `initial${uuid.v4()}`;
+    const userMessage = event.message;
+    let sessionId = event.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
@@ -194,18 +193,12 @@ export const handler = async (event: any, context: any) => {
 
     // Returning the response to the client
     return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
         job_id: jobId,
         message: response.output?.text,
         sessionId,
         source_text: sourceText,
         source_filenamelist: sourceFilenamelist
-      })
-    };
+      };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
 
@@ -227,16 +220,10 @@ export const handler = async (event: any, context: any) => {
 
     // Returning error response
     return {
-      statusCode: 500,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
         job_id: jobId,
         message: "Something went wrong",
         sessionId: "N/A",
         source_text: sourceText
-      })
-    };
+      };
   }
 };
