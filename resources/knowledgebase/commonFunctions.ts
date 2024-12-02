@@ -532,7 +532,7 @@ async function getFileContentFromS3(fileData: Buffer, extension: string): Promis
 
 async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser();
+    const pdfParser = new PDFParser(this,true);
 
     pdfParser.on('pdfParser_dataError', (errData) => {
       console.error('Error parsing PDF:', errData.parserError);
