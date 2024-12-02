@@ -36,18 +36,19 @@ export const handler = async (event: any, context: any) => {
 export async function addStage_1( tenantUserId: string, projectId: string,bucketName:string,projectName:string) {
   // Stage 1: Data Source
   const refIds : string[]= [];
-  let sanitizedName: string = projectName
-    .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
-    .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
-  
-  let randomString: string = await generateRandomString(6); // Generate a 6-character random string
-  let finalName: string = `${sanitizedName}-${randomString}`;
-  console.log(finalName); 
   const stageType = await getStageType("Data Source");
-  const kbResponse = await lambdaCallForCreateKB( projectId,finalName);
-    console.log("kbResponse", kbResponse);
-  const updateProject = await updateProjectKbAndIndex(projectId, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "");
-  console.log("updateProject", updateProject);
+
+  // let sanitizedName: string = projectName
+  //   .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
+  //   .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
+  
+  // let randomString: string = await generateRandomString(6); // Generate a 6-character random string
+  // let finalName: string = `${sanitizedName}-${randomString}`;
+  // console.log(finalName); 
+  // const kbResponse = await lambdaCallForCreateKB( projectId,finalName);
+  //   console.log("kbResponse", kbResponse);
+  // const updateProject = await updateProjectKbAndIndex(projectId, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "");
+  // console.log("updateProject", updateProject);
   if (stageType) {
     const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId, 1);
     if (stage1) {
