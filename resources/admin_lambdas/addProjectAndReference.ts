@@ -1,5 +1,6 @@
 import { RefType, tenant } from "../db/models";
 import {
+  addReferences,
   addReferenceToDb,
   createProject,
   createStage,
@@ -14,7 +15,7 @@ import {
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
+import {  addReferencesLambda, addStage1Lambda, formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
 
 export const handler = async (event: any, context: any) => {
@@ -91,13 +92,16 @@ async function addProjectAndReference(
     if (project != null && kbResponse && kbResponse.data != null) {
       const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
       console.log("updateProject", updateProject);
-      const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
+      const refs = await addReferences(tenant.id, tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
+    //  const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
      // console.log("stage1", stage1);
       const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
       console.log("generatedUrls", generatedUrls);
+      await addStage1Lambda(tenant.adminuserid ?? "", project.id,kbResponse.data.s3_bucket);
+
       var projectData = await getProjectWithSteps(project.id, 1, 1);
       console.log("projectData", projectData);
-      if (projectData.error) {
+      if (projectData.data == null || projectData.error) {
         return {
           project: null,
           error: projectData.error
@@ -128,75 +132,10 @@ async function addProjectAndReference(
   }
 }
 
-export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, files: any,bucketName:string) {
-  // Stage 1: Data Source
-  const refIds : string[]= [];
-  const stageType = await getStageType("Data Source");
-  if (stageType) {
-    const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId, 1);
-    if (stage1) {
-      // Fetch step types for each action in the stage
-      const [stepType1, stepType2, stepType3] = await Promise.all([
-        getStepType("File upload from frontend"),
-        getStepType("File hashing"),
-        getStepType("Store to Blockchain")
-      ]);
 
-      if (stepType1 && stepType2 && stepType3) {
-        // Create steps for stage 1
-        const [step1, step2, step3] = await Promise.all([
-          createStep(tenantUserId, "File upload from frontend", "File upload from frontend", stepType1.id, stage1.id, 1),
-          createStep(tenantUserId, "File hashing", "File hashing", stepType2.id, stage1.id, 2),
-          createStep(tenantUserId, "Store to Blockchain", "Store to Blockchain", stepType3.id, stage1.id, 3)
-        ]);
+ 
 
-        for (const file of files) {
-         // file.refType = RefType.DOCUMENT;
-          const ref = await addReferenceToDb(
-            tenantId,
-            file,
-            false,
-            projectId,
-            ReferenceStatus.PROCESSING,
-            true,
-            tenantUserId
-          );
-          if(ref.data?.id)
-      
 
-          console.log("ref", ref);
-          // const fileSize = await getFileSizeFromBase64(file.fileContent)
-        if(ref.data?.reftype == RefType.DOCUMENT){
-         const  downloadUrl = await generateSignedUrl(file,bucketName);
-         refIds.push(ref.data?.id);
-
-          const fileData = { fileName: file.fileName, contentType: file.contentType, size: file.fileSize,downloadUrl:downloadUrl };
-          // Step 1: File upload details
-          await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
-
-          // Step 2: Hash the file data
-          const hashedData = {
-            hash: file.hash
-          };
-          await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
-
-          // Step 3: Store the hashed data on the blockchain
-          const blockchainHashedData = await storeHashByChainType(file.hash, "Avalanche");
-          if(blockchainHashedData != null)
-          await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
-
-          }
-
-        }
-
-        // Update project to reflect data ingestion status
-        await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
-        await updateReferenceStage(projectId, refIds,ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
-
-      }
-    }
-  }
-}
 
 async function getFileSizeFromBase64(base64String: string) {
   // Calculate the file size in bytes
