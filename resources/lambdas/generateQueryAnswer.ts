@@ -36,9 +36,8 @@ export const handler = async (event: any, context: any) => {
 
     // Parse the input from the event
     console.log("Parsing input from event...");
-    const body = event.body; // Event body is already parsed as JSON
-    const userMessage = body.message;
-    let sessionId = body.sessionId || `initial${uuid.v4()}`;
+    const userMessage = event.message;
+    let sessionId = event.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
