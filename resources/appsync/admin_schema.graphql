@@ -21,7 +21,7 @@ type AddProjectAndReferenceResponse {
 	error: AWSJSON
 }
 type ProjectAndUrlData {
-	project: ProjectAndStepData
+	project: ProjectData
 	urls: [S3PreSignedUrlData]
 }
 

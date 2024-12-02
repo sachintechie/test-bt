@@ -99,16 +99,16 @@ async function addProjectAndReference(
       console.log("generatedUrls", generatedUrls);
       await addStage1Lambda(tenant.adminuserid ?? "", project.id,kbResponse.data.s3_bucket);
 
-      var projectData = await getProjectWithSteps(project.id, 1, 1);
-      console.log("projectData", projectData);
-      if (projectData.data == null || projectData.error) {
+     // var projectData = await getProjectWithSteps(project.id, 1, 1);
+     // console.log("projectData", projectData);
+      if (updateProject == null ) {
         return {
           project: null,
-          error: projectData.error
+          error: "Not able to update project"
         };
       } else {
         const data = {
-          data: projectData.data?.project,
+          data: updateProject,
           urls: generatedUrls
         }
         console.log("final-data", JSON.stringify(data));
