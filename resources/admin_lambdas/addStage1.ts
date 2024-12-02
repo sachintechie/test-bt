@@ -6,20 +6,21 @@ import {
   getReferenceList,
   getStageType,
   getStepType,
+  updateProjectKbAndIndex,
   updateProjectStage,
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  getS3Data, getS3DataWithoutContent,dataPreperationLambda, storeHashByChainType, generateSignedUrl } from "../knowledgebase/commonFunctions";
+import {  getS3Data, getS3DataWithoutContent,dataPreperationLambda, storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString } from "../knowledgebase/commonFunctions";
 import { RefType } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
   try {
-    const { projectId, tenantUserId,bucketName } = event;
+    const { projectId, tenantUserId,bucketName,projectName } = event;
 
     // Calls function to handle adding stages and steps for file processing
-    const data = await addStage_1(tenantUserId, projectId,bucketName);
+    const data = await addStage_1(tenantUserId, projectId,bucketName,projectName);
 
     return {
       status: data ? 200 : 400,
@@ -32,10 +33,22 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-export async function addStage_1( tenantUserId: string, projectId: string,bucketName:string) {
+export async function addStage_1( tenantUserId: string, projectId: string,bucketName:string,projectName:string) {
   // Stage 1: Data Source
   const refIds : string[]= [];
   const stageType = await getStageType("Data Source");
+
+  // let sanitizedName: string = projectName
+  //   .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
+  //   .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
+  
+  // let randomString: string = await generateRandomString(6); // Generate a 6-character random string
+  // let finalName: string = `${sanitizedName}-${randomString}`;
+  // console.log(finalName); 
+  // const kbResponse = await lambdaCallForCreateKB( projectId,finalName);
+  //   console.log("kbResponse", kbResponse);
+  // const updateProject = await updateProjectKbAndIndex(projectId, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "");
+  // console.log("updateProject", updateProject);
   if (stageType) {
     const stage1 = await createStage(tenantUserId, "Data Source", "Data Source", stageType.id, projectId, 1);
     if (stage1) {
