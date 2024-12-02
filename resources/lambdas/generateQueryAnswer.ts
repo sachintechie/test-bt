@@ -36,9 +36,8 @@ export const handler = async (event: any, context: any) => {
 
     // Parse the input from the event
     console.log("Parsing input from event...");
-    const body = event.body; // Event body is already parsed as JSON
-    const userMessage = body.message;
-    let sessionId = body.sessionId || `initial${uuid.v4()}`;
+    const userMessage = event.message;
+    let sessionId = event.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
@@ -46,9 +45,21 @@ export const handler = async (event: any, context: any) => {
     // Set up the configuration for retrieval and generation
     const numberOfResults = 10;
     const promptTemplate = `
-            Here is some relevant information based on your query: $search_results$
-            Please proceed with generating a response based on this information.
-        `;
+        Human: You are an AI chatbot designed to answer questions about doing business in Abu Dhabi. I will provide you with a set of search results and a user's question. Use the provided search results as your reference to ensure accurate and relevant responses. Always respond in a friendly and conversational manner. Only to answer question like greetings, you can answer in professional manner using your knowledge and ignore the search results. In all other cases, If you don't find anything relevant about question in given search results then state Sorry, I don't have enough information in my database to answer this question.
+
+        Here are the search results in numbered order:
+        $search_results$
+
+        Here is the user's question:
+        <question>
+        $query$
+        </question>
+
+        $output_format_instructions$
+
+        Response:
+        Based on the information retrieved from the sources, here’s the answer to your query:
+    `;
     const retrieveAndGenerateConfiguration = {
       knowledgeBaseConfiguration: {
         knowledgeBaseId: "ET3BO7O02P", // Your knowledge base ID
@@ -182,18 +193,12 @@ export const handler = async (event: any, context: any) => {
 
     // Returning the response to the client
     return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
         job_id: jobId,
         message: response.output?.text,
         sessionId,
         source_text: sourceText,
         source_filenamelist: sourceFilenamelist
-      })
-    };
+      };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
 
@@ -215,16 +220,10 @@ export const handler = async (event: any, context: any) => {
 
     // Returning error response
     return {
-      statusCode: 500,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
         job_id: jobId,
         message: "Something went wrong",
         sessionId: "N/A",
         source_text: sourceText
-      })
-    };
+      };
   }
 };

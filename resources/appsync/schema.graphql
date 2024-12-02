@@ -1249,6 +1249,7 @@ type GenerateQueryAnswerResponse {
   message: String!  # The generated answer
   sessionId: String!  # The session ID to maintain context
   source_text: [String!]!  # List of sources or citations used to generate the response
+  source_filenamelist: [String!]!  # List of filenames of the sources or citations used to generate the response
 }
 
 # Define the input structure for submitting a query to the Lambda
