@@ -20,6 +20,16 @@ type AddProjectAndReferenceResponse {
 	data: ProjectAndUrlData
 	error: AWSJSON
 }
+type ProjectAndUrlData {
+	project: ProjectAndStepData
+	urls: [S3PreSignedUrlData]
+}
+
+type S3PreSignedUrlData {
+	key: String
+	url: String
+}
+
 
 type AddRefToKnowledgeBase {
 	status: Int
@@ -766,10 +776,7 @@ type ProjectAndStepsResponse {
 	error: AWSJSON
 }
 
-type ProjectAndUrlData {
-	project: ProjectAndStepData
-	urls: [S3PreSignedUrlData]
-}
+
 
 type ProjectData {
 	id: String
@@ -812,10 +819,7 @@ type ReferenceData {
 	referencestage: String
 }
 
-type S3PreSignedUrlData {
-	key: String
-	url: String
-}
+
 
 input SearchInventoryInput {
 	searchKeyword: String!
