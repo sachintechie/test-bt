@@ -1,12 +1,9 @@
 import * as AWS from 'aws-sdk';
 import { storeHash as avalancheStoreHash } from "../avalanche/storeHashFunctions";
 import { storeHash as provenanceStoreHash } from "../provenance/storeHashFunctions";
-
-// Create an enum for the chain types
-enum ChainType {
-  Avalanche = "Avalanche",
-  Provenance = "Provenance"
-}
+import { getProjectById } from '../db/adminDbFunctions';
+import { CHAIN_TO_CHAIN_NAME_MAPPING } from '../utils/utils';
+import * as crypto from 'crypto';
 
 // Initialize DynamoDB client
 const dynamodb = new AWS.DynamoDB.DocumentClient();
@@ -53,79 +50,120 @@ async function addAttributeToItem(
   }
 }
 
+// Helper function to extract project_id from source_filenamelist
+function getProjectIdFromSourceFileList(sourceFileList: any[]): string | null {
+  for (const file of sourceFileList) {
+    if (file.S) {
+      try {
+        const parsed = JSON.parse(file.S);
+        if (parsed.project_id) {
+          return parsed.project_id;
+        }
+      } catch (e) {
+        console.error("Error parsing source_filenamelist item:", e);
+      }
+    }
+  }
+  return null;
+}
+
 // Lambda Handler
 export const handler = async (event: any) => {
   try {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
-    // Extract values from the event
-    const { chainType, hash, uuid, isSecondTx } = event || {};
-    const tableName = 'aws-abu-dhabi-dynamodb'; // DynamoDB table name
-    console.log(`Processing chainType: ${chainType}, hash: ${hash}, uuid: ${uuid}, isSecondTx: ${isSecondTx}`);
+    // Process each record in the event
+    for (const record of event.Records) {
+      if (record.eventName === 'INSERT' && !record.dynamodb.NewImage?.hash_value) {
+        const item = record.dynamodb.NewImage;
 
-    let hashResult;
-    let blockchainTransactionId: string | undefined;
+        // Extract job_id from the item
+        const jobId = item?.job_id?.S;
+        if (!jobId) {
+          console.error("Job ID missing in record.");
+          continue; // Skip this record if job_id is missing
+        }
 
-    // Check the chainType and call the appropriate storeHash function
-    switch (chainType) {
-      case ChainType.Avalanche:
-        console.log("Calling Avalanche storeHash function...");
-        hashResult = await avalancheStoreHash(hash, isSecondTx);
-        blockchainTransactionId = hashResult?.data?.txHash; // Assuming data contains transactionId
-        console.log("Avalanche storeHash result:", JSON.stringify(hashResult, null, 2));
-        break;
+        const primaryKey = { job_id: jobId };
+        const itemJson = JSON.stringify(item, Object.keys(item).sort());
 
-      case ChainType.Provenance:
-        console.log("Calling Provenance storeHash function...");
-        const provenanceAddress = "0xa0f70a94393b30f8b06382aabe21f16e9bc11b0e6929586dcefb7e83fa6d4d2e";
-        const mnemonic = process.env.PROVANENCE_MNEMONIC || "";
-        hashResult = await provenanceStoreHash(provenanceAddress, hash, mnemonic);
-        blockchainTransactionId = hashResult?.data?.txHash; // Assuming data contains transactionId
-        console.log("Provenance storeHash result:", JSON.stringify(hashResult, null, 2));
-        break;
+        // Generate hash value
+        const hashValue = crypto.createHash('sha256').update(itemJson).digest('hex');
+        console.log("Generated hash value:", hashValue);
 
-      default:
-        console.error("ChainType not supported:", chainType);
-        return {
-          status: 400,
-          data: null,
-          error: "ChainType not supported"
-        };
+        // Extract source_filenamelist to get project_id
+        const sourceFileList = item?.source_filenamelist?.L || [];
+        const extractedProjectId = getProjectIdFromSourceFileList(sourceFileList);
+        const finalProjectId = extractedProjectId || null;
+
+        let project;
+        if (finalProjectId) {
+          project = await getProjectById(finalProjectId);
+
+          if (!project || !project.data) {
+            console.error("Project not found:", finalProjectId);
+            continue; // Skip this record if project is not found
+          }
+        }
+
+        // Default to Avalanche if no project is found or projectId is missing
+        const chainType = project?.data?.chaintype || CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE;
+        console.log(`Processing chainType: ${chainType} for job_id: ${jobId}`);
+
+        let hashResult;
+        let blockchainTransactionId: string | undefined;
+
+        // Call the appropriate storeHash function based on chainType
+        switch (chainType) {
+          case CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE:
+            console.log("Calling Avalanche storeHash function...");
+            hashResult = await avalancheStoreHash(hashValue, false); // Pass hashValue and isSecondTx flag
+            blockchainTransactionId = hashResult?.data?.txHash; // Assuming data contains transactionId
+            console.log("Avalanche storeHash result:", JSON.stringify(hashResult, null, 2));
+            break;
+
+          case CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE:
+            console.log("Calling Provenance storeHash function...");
+            const provenanceAddress = "0xa0f70a94393b30f8b06382aabe21f16e9bc11b0e6929586dcefb7e83fa6d4d2e";
+            const mnemonic = process.env.PROVANENCE_MNEMONIC || "";
+            hashResult = await provenanceStoreHash(provenanceAddress, hashValue, mnemonic);
+            blockchainTransactionId = hashResult?.data?.txHash; // Assuming data contains transactionId
+            console.log("Provenance storeHash result:", JSON.stringify(hashResult, null, 2));
+            break;
+
+          default:
+            console.error("ChainType not supported:", chainType);
+            continue; // Skip this record if chainType is unsupported
+        }
+
+        // If hashResult contains data, proceed with the DynamoDB update
+        if (hashResult?.data) {
+          console.log("Hash result contains data. Proceeding with DynamoDB update...");
+
+          const newAttributes = {
+            hash_value: hashValue,
+            blockchain_response: hashResult, // Store the response from the storeHash function
+            blockchain_transactionId: blockchainTransactionId,
+            status: 'SUCCESS',
+          };
+
+          console.log("Updating DynamoDB with new attributes:", JSON.stringify(newAttributes, null, 2));
+
+          // Update the DynamoDB item with the new attributes
+          await addAttributeToItem('aws-abu-dhabi-dynamodb', primaryKey, newAttributes);
+
+          console.log("DynamoDB update successful.");
+        } else {
+          console.error("Hash result does not contain data:", hashResult?.error || "No data returned");
+        }
+      }
     }
 
-    // If hashResult has data, we proceed with the DynamoDB update
-    if (hashResult?.data) {
-      console.log("Hash result contains data. Proceeding with DynamoDB update...");
-
-      const jobId = uuid; // Assuming uuid is the job_id in your DynamoDB table
-      const primaryKey = { job_id: jobId };
-
-      const newAttributes = {
-        hash_value: hash,
-        blockchain_response: hashResult, // Store the response from the storeHash function
-        blockchain_transactionId: blockchainTransactionId,
-        '#st': 'SUCCESS'
-      };
-
-      console.log("Updating DynamoDB with new attributes:", JSON.stringify(newAttributes, null, 2));
-
-      // Update the DynamoDB item with the new attributes
-      await addAttributeToItem(tableName, primaryKey, newAttributes);
-
-      console.log("DynamoDB update successful.");
-      return {
-        status: 200,
-        data: hashResult.data,
-        error: null
-      };
-    } else {
-      console.error("Hash result does not contain data:", hashResult?.error || "No data returned");
-      return {
-        status: 400,
-        data: null,
-        error: hashResult?.error || "Error storing the hash"
-      };
-    }
+    return {
+      status: 200,
+      data: "Processing complete",
+      error: null
+    };
   } catch (err) {
     console.error("Error in handler:", err);
     return {
