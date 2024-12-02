@@ -489,7 +489,7 @@ async function processStage(
 /**
  * Example usage: Process the "Data Source" stage.
  */
-export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string) {
+export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, bucketName: string,chainType:string) {
   console.log(`Processing stage "Data Source" for project ${projectId}`);
   await processStage(
     tenantId,
@@ -502,7 +502,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
       {
         name: "File upload from frontend",
         action: async (reference: any, stepId: string) => {
-          const downloadUrl = await generateSignedUrl(reference);
+          const downloadUrl = await generateSignedUrl(reference,bucketName);
           const fileData = {
             fileName: reference.name,
             contentType: reference.contenttype,
@@ -524,7 +524,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
         action: async (reference: any, stepId: string) => {
           const blockchainHashedData = await hashingAndStoreToBlockchain(
             reference.hash,
-            "Avalanche"
+            chainType
           );
           await createStepDetails(
             tenantUserId,
@@ -539,22 +539,22 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
   // Update the stage and reference statuses
   await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
   console.log(`Stage "Data Source" completed for project ${projectId}`);
-  await addStage_dataIngestion(tenantId, tenantUserId, projectId);
+  await addStage_dataIngestion(tenantId, tenantUserId, projectId,bucketName,chainType);
 }
 
-export async function addStage_dataIngestion(tenantId: string, tenantUserId: string, projectId: string) {
+export async function addStage_dataIngestion(tenantId: string, tenantUserId: string, projectId: string,bucketName: string,chainType:string) {
   try {
     console.log("Processing addStage_dataIngestion:", { tenantId, tenantUserId, projectId });
 
     const refIds: string[] = [];
 
     // Step 1: Handle Data Ingestion Stage
-    await handleDataIngestionStage(tenantUserId, projectId, refIds);
+    await handleDataIngestionStage(tenantUserId, projectId, refIds,bucketName);
 
     // Step 2: Handle Data Storage Stage
-    await handleDataStorageStage(tenantUserId, projectId, refIds);
+    await handleDataStorageStage(tenantUserId, projectId, refIds,bucketName,chainType);
 
-    await addStage_dataPrep(tenantUserId,projectId);
+    await addStage_dataPrep(tenantUserId,projectId,bucketName,chainType);
 
     console.log("addStage_dataIngestion completed successfully.");
   } catch (error) {
@@ -563,7 +563,7 @@ export async function addStage_dataIngestion(tenantId: string, tenantUserId: str
   }
 }
 
-async function handleDataIngestionStage(tenantUserId: string, projectId: string, refIds: string[]) {
+async function handleDataIngestionStage(tenantUserId: string, projectId: string, refIds: string[],bucketName: string) {
   const stageType = await getStageType("Data Ingestion");
   if (!stageType) return;
 
@@ -581,7 +581,7 @@ async function handleDataIngestionStage(tenantUserId: string, projectId: string,
   for (const reference of references) {
     if (!reference?.name) continue;
 
-    const s3Data = await getS3DataWithoutContent(reference.name);
+    const s3Data = await getS3DataWithoutContent(reference.name,bucketName);
     refIds.push(reference.id);
 
     await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step.id);
@@ -591,7 +591,7 @@ async function handleDataIngestionStage(tenantUserId: string, projectId: string,
   await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_INGESTION, ReferenceStatus.PROCESSING);
 }
 
-async function handleDataStorageStage(tenantUserId: string, projectId: string, refIds: string[]) {
+async function handleDataStorageStage(tenantUserId: string, projectId: string, refIds: string[],bucketName: string,chainType:string) {
   const stageType = await getStageType("Data Storage");
   if (!stageType) return;
 
@@ -617,7 +617,7 @@ async function handleDataStorageStage(tenantUserId: string, projectId: string, r
   for (const reference of references) {
     if (!reference?.name || reference.reftype !== RefType.DOCUMENT) continue;
 
-    const s3Data = await getS3Data(reference.name);
+    const s3Data = await getS3Data(reference.name,bucketName);
     const fileMetadata = extractS3Metadata(s3Data);
 
     // Step 1: Read file from S3
@@ -630,7 +630,7 @@ async function handleDataStorageStage(tenantUserId: string, projectId: string, r
     // Step 3: Store hash to Blockchain
     const blockchainData = await hashingAndStoreToBlockchain(
       { fileName: s3Data.data?.fileName, fileContent: s3Data.data?.content },
-      "Avalanche",
+      chainType,
       false
     );
     await createStepDetails(tenantUserId, JSON.stringify(blockchainData.data), step3.id);
@@ -650,7 +650,7 @@ function extractS3Metadata(s3Data: any) {
     downloadUrl: s3Data.data?.downloadUrl,
   };
 }
-export async function addStage_dataPrep(tenantUserId: string, projectId: string) {
+export async function addStage_dataPrep(tenantUserId: string, projectId: string, bucketName: string,chaintype:string) {
   try {
     console.log("projectId", projectId, tenantUserId);
     let file_embeddings;
@@ -711,7 +711,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string)
 
               if (reference.name && reference.reftype == RefType.DOCUMENT) {
                 // Step 1 and Step 3: Chunking and Embedding of chunks
-                file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId);
+                file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
 
                 if (file_embeddings.embeddings) {
                   // Step 2: Chunking hash
@@ -719,14 +719,14 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string)
 
                   // Step 5: Store chunk hash to Blockchain
                   if (hashed_chunkcontent) {
-                    const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, "Avalanche");
+                    const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, chaintype);
                     await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
                   }
 
                   // Step 4, 6, 7: Reconstruction, Hashing, and Storing recombined data on Blockchain
                   const combined_response = await combineChunks(file_embeddings.embeddings);
                   if (combined_response) {
-                    await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId);
+                    await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,chaintype);
                   }
                 }
               }

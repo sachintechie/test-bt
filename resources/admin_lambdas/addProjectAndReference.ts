@@ -1,21 +1,14 @@
 import { RefType, tenant } from "../db/models";
 import {
   addReferences,
-  addReferenceToDb,
   createProject,
-  createStage,
-  createStep,
-  createStepDetails,
-  getProjectWithSteps,
-  getStageType,
-  getStepType,
   isProjectExist,
+  updateProjectBucket,
   updateProjectKbAndIndex,
-  updateProjectStage,
-  updateReferenceStage
+  updateProjectKbBucket,
 } from "../db/adminDbFunctions";
-import { ProjectStage, ProjectStatusEnum, ProjectType, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  addReferencesLambda, addStage1Lambda, formatBytes, generatePresignedUrl, generateRandomString, generateSignedUrl, lambdaCallForCreateKB, storeHashByChainType } from "../knowledgebase/commonFunctions";
+import {  ProjectType,  } from "@prisma/client";
+import {   addStage1Lambda, formatBytes, generatePresignedUrl, generateRandomString, lambdaCallForCreateKB, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
 
 export const handler = async (event: any, context: any) => {
@@ -90,25 +83,28 @@ async function addProjectAndReference(
 
 
     if (project != null && kbResponse && kbResponse.data != null) {
-      const updateProject = await updateProjectKbAndIndex(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket ?? "");
-      console.log("updateProject", updateProject);
+      // const updateProject = await updateProjectBucket(project.id,  kbResponse?.data.s3_bucket ?? "");
+      // console.log("updateProjectBucketRes", updateProject);
+
+     const updateProject = await updateProjectKbBucket(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket);
+      console.log("updateProjectKB", updateProject);
       const refs = await addReferences(tenant.id, tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
     //  const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
      // console.log("stage1", stage1);
       const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
       console.log("generatedUrls", generatedUrls);
-      await addStage1Lambda(tenant.adminuserid ?? "", project.id,kbResponse.data.s3_bucket);
+      await addStage1Lambda(tenant.adminuserid ?? "", project.id,kbResponse.data.s3_bucket,name);
 
-      var projectData = await getProjectWithSteps(project.id, 1, 1);
-      console.log("projectData", projectData);
-      if (projectData.data == null || projectData.error) {
+     // var projectData = await getProjectWithSteps(project.id, 1, 1);
+     // console.log("projectData", projectData);
+      if (updateProject == null ) {
         return {
           project: null,
-          error: projectData.error
+          error: "Not able to update project"
         };
       } else {
         const data = {
-          data: projectData.data?.project,
+          data: updateProject,
           urls: generatedUrls
         }
         console.log("final-data", JSON.stringify(data));
@@ -132,14 +128,3 @@ async function addProjectAndReference(
   }
 }
 
-
- 
-
-
-
-async function getFileSizeFromBase64(base64String: string) {
-  // Calculate the file size in bytes
-  const fileSizeInBytes = (base64String.length * 3) / 4 - (base64String.endsWith("==") ? 2 : base64String.endsWith("=") ? 1 : 0);
-  const size = await formatBytes(fileSizeInBytes);
-  return size;
-}

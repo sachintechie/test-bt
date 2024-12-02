@@ -31,11 +31,12 @@ export async function addReferencesLambda(tenantUserId: string, projectId: strin
   await lambda.invoke(params).promise();
 }
 
-export async function addStage1Lambda(tenantUserId: string, projectId: string,bucketName:string) {
+export async function addStage1Lambda(tenantUserId: string, projectId: string,bucketName:string,projectName : string) {
   const event = {
     tenantUserId: tenantUserId,
     projectId: projectId,
-    bucketName: bucketName
+    bucketName: bucketName,
+    projectName: projectName
   };
 
   const params = {
@@ -119,6 +120,45 @@ export async function lambdaCallForIndexing(all_embeddings_with_metadata: any) {
   return combinedResponse.body; // Or process further as needed
 }
 export async function lambdaCallForCreateKB(projectId: string,name:string) {
+  const event = {
+    project_id: projectId,
+    project_name:name
+  };
+
+  const params = {
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_index_kb_creation_consolidate",
+    InvocationType: "RequestResponse",
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  const response = await lambda.invoke(params).promise();
+
+  const responsePayload = response.Payload as Buffer;
+
+  // Convert the buffer to string (UTF-8 encoded)
+  const responseStr = responsePayload.toString("utf-8");
+
+  // Parse the string into a JSON object
+  const combinedResponse = JSON.parse(responseStr);
+
+  console.log("Decoded response:", combinedResponse);
+  if(combinedResponse.errorMessage){
+    return {
+      error : combinedResponse.errorMessage,
+      data:null
+    }
+  }
+  else{
+    return {
+      data:combinedResponse,
+      error:null
+    }
+  }
+
+}
+
+export async function lambdaCallForCreateS3Bucket(projectId: string,name:string) {
   const event = {
     project_id: projectId,
     project_name:name
@@ -492,7 +532,7 @@ async function getFileContentFromS3(fileData: Buffer, extension: string): Promis
 
 async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser();
+    const pdfParser = new PDFParser(this,true);
 
     pdfParser.on('pdfParser_dataError', (errData) => {
       console.error('Error parsing PDF:', errData.parserError);

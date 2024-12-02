@@ -2,6 +2,7 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getProjectById,
   getReferenceByProjectId,
   getStageType,
   getStepType,
@@ -35,6 +36,7 @@ export const handler = async (event: any, context: any) => {
 export async function addStageAndSteps(tenantUserId: string, projectId: string,bucketName:string) {
   try {
     console.log("Creating admin project" , tenantUserId, projectId);
+    const project = await getProjectById(projectId);
     //const stageType1 = await getStageType("Data Source");
     const refIds : string[] = []; 
 
@@ -128,7 +130,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
             // Step 3: Store the hashed data on the blockchain
-            const blockchainHashedData = await hashingAndStoreToBlockchain(s3File,"Avalanche", false);
+            const blockchainHashedData = await hashingAndStoreToBlockchain(s3File,project.data?.chaintype??"", false);
             await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
           }
 
