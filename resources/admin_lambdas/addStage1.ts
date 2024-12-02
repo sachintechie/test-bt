@@ -2,17 +2,15 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getProjectById,
   getReferenceByProjectId,
-  getReferenceList,
   getStageType,
   getStepType,
-  updateProjectKbAndIndex,
   updateProjectStage,
   updateReferenceStage
 } from "../db/adminDbFunctions";
-import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
 import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  getS3Data, getS3DataWithoutContent,dataPreperationLambda, storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString } from "../knowledgebase/commonFunctions";
+import {  storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString } from "../knowledgebase/commonFunctions";
 import { RefType } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
@@ -37,6 +35,7 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
   // Stage 1: Data Source
   const refIds : string[]= [];
   const stageType = await getStageType("Data Source");
+  const project = await getProjectById(projectId);
 
   // let sanitizedName: string = projectName
   //   .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
@@ -91,7 +90,7 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
           await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
           // Step 3: Store the hashed data on the blockchain
-          const blockchainHashedData = await storeHashByChainType(ref?.hash?? "", "Avalanche");
+          const blockchainHashedData = await storeHashByChainType(ref?.hash?? "", project.data?.chaintype ?? "");
           if(blockchainHashedData != null)
           await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
 

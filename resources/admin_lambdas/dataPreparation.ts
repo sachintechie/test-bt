@@ -2,6 +2,7 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getProjectById,
   getReferenceByProjectId,
   getStageType,
   getStepType,
@@ -49,6 +50,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
     let file_embeddings;
     const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE, ReferenceStatus.PROCESSING);
     const refIds: string[] = [];
+    const project = await getProjectById(projectId);
 
     // Stage 4: Data Preparation
     //const stageType1 = await getStageType("Data Source");
@@ -109,7 +111,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
               // Step 5: Store chunk hash to Blockchain
 
               if (hashed_chunkcontent != null) {
-                const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, "Avalanche");
+                const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, project.data?.chaintype ?? "");
                 await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
               }
 
@@ -121,7 +123,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
 
                 const combined_response = await combineChunks(file_embeddings?.embeddings);
                 console.log("combined_response", combined_response);
-                const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId);
+                const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,project.data?.chaintype ?? ""); 
                 console.log("hashCombinedData", hashCombinedData);
               }
             }
@@ -209,7 +211,8 @@ export async function hashCombinedChunks(
   step6Id: string,
   step7Id: string,
 
-  createdBy: string
+  createdBy: string,
+  chainType: string
 ) {
   // console.log("combinedResponseBody", combinedResponseBody);
   const hashedData: Array<{ file_name: string; file_content_hash: string }> = [];
@@ -273,7 +276,7 @@ export async function hashCombinedChunks(
 
     await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id);
 
-    const combinedResponse = await storeHashByChainType(hashedEntry.file_content_hash, "Avalanche");
+    const combinedResponse = await storeHashByChainType(hashedEntry.file_content_hash, chainType);
     console.log("combinedResponse", combinedResponse);
     if (combinedResponse != null) await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
   }
