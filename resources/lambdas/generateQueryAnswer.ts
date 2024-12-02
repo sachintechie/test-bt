@@ -193,18 +193,12 @@ export const handler = async (event: any, context: any) => {
 
     // Returning the response to the client
     return {
-      statusCode: 200,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
         job_id: jobId,
         message: response.output?.text,
         sessionId,
         source_text: sourceText,
         source_filenamelist: sourceFilenamelist
-      })
-    };
+      };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
 
@@ -226,16 +220,10 @@ export const handler = async (event: any, context: any) => {
 
     // Returning error response
     return {
-      statusCode: 500,
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
         job_id: jobId,
         message: "Something went wrong",
         sessionId: "N/A",
         source_text: sourceText
-      })
-    };
+      };
   }
 };
