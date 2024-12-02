@@ -211,10 +211,7 @@ export const handler = async (event: any) => {
 
     const tenant = res.rows[0];
 
-    // Handle AI tenants
-    if (tenant.name === "AI" || tenant.name === "AI-Dev") {
-      return authorizeTenant(tenant, "ADMIN");
-    }
+   
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
@@ -232,6 +229,11 @@ export const handler = async (event: any) => {
       } else {
         return await authorizeCustomer(decodedToken, tenant, event);
       }
+    }
+
+     // Handle AI tenants
+     if (tenant.name === "AI" || tenant.name === "AI-Dev") {
+      return authorizeTenant(tenant, "ADMIN");
     }
 
     // Handle OnDemand tenant

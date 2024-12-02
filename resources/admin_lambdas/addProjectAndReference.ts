@@ -31,14 +31,17 @@ export const handler = async (event: any, context: any) => {
       event.arguments?.input?.chainType,
       event.arguments?.input?.files
     );
-    console.log("data", data);
+    console.log("data", JSON.stringify( data));
 
     const response = {
       status: data.project != null ? 200 : 400,
-      data: data.project,
+      data: {
+        project: data.project?.data,
+        urls: data.project?.urls
+      },
       error: data.error
     };
-    console.log("project", response);
+    console.log("project", JSON.stringify(response));
 
     return response;
   } catch (err) {
@@ -90,8 +93,8 @@ async function addProjectAndReference(
       console.log("updateProject", updateProject);
       const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
      // console.log("stage1", stage1);
-      const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
-      console.log("urls", urls);
+      const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
+      console.log("generatedUrls", generatedUrls);
       var projectData = await getProjectWithSteps(project.id, 1, 1);
       console.log("projectData", projectData);
       if (projectData.error) {
@@ -101,9 +104,10 @@ async function addProjectAndReference(
         };
       } else {
         const data = {
-          project: projectData.data?.project,
-          urls: urls
+          data: projectData.data?.project,
+          urls: generatedUrls
         }
+        console.log("final-data", JSON.stringify(data));
         return {
           project: data,
           error: null
