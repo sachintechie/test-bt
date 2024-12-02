@@ -71,16 +71,47 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
   }
 }
 
-export async function updateProjectKbAndIndex(projectId: string, kbId : string, indexId : string,bucketName : string) {
+export async function updateProjectKbAndIndex(projectId: string, kbId : string, indexId : string) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
       data: {
         knowledgebaseid: kbId,
+        indexid: indexId
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+export async function updateProjectKbBucket(projectId: string,kbId:string,indexId:string,bucketName : string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
         s3bucketname: bucketName,
         s3bucketregion: "us-east-1",
+        knowledgebaseid: kbId,
         indexid: indexId
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateProjectBucket(projectId: string,bucketName : string) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        s3bucketname: bucketName,
+        s3bucketregion: "us-east-1",
       }
     });
     return updatedProject;
