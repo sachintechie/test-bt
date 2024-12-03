@@ -43,7 +43,7 @@ async function updateRefStatus(tenant: tenant,  files: any) {
 
     const refs = await updateReferenceStatusByAdmin(files);
     const project = await getProjectById(refs[0].projectid?? "");
-    await addStage_1(tenant.id,tenant.adminuserid?? "", refs[0].projectid?? "",project.data?.s3bucketname?? "");
+    await addStage_1(tenant.id,tenant.adminuserid?? "", refs[0].projectid?? "",project.data?.s3bucketname?? "",project.data?.chaintype?? "");
 
 if(refs != null){
   return {

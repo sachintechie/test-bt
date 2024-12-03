@@ -35,8 +35,8 @@ async function indexDocuments( indexName: string, documents: any[]) {
     console.log(`Starting indexing of ${documents.length} documents...`);
 
     for (const doc of documents) {
-        console.log(`Indexing document: ${doc}`);
-        console.log(`Indexing document: ${doc.file_name}`);
+     //   console.log(`Indexing document: ${doc}`);
+     //   console.log(`Indexing document: ${doc.file_name}`);
         const chunkIndexValue = {
              id: '',  // You can choose a suitable ID generation method, e.g., UUID
             embedding: doc.embedding,
