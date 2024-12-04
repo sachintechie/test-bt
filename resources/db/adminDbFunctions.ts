@@ -1614,6 +1614,27 @@ export async function getReferenceByProjectId(projectId: string,referenceStage: 
   }
 }
 
+export async function getReferenceByProjectIdAndType(projectId: string,referenceStage: ReferenceStage,status : ReferenceStatus,refType : RefType) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.reference.findMany({
+      where: {
+        projectid: projectId,
+        referencestage: referenceStage,
+        status: status,
+        reftype: refType,
+        isdeleted: false
+      }
+    });
+    if (reference == null) {
+      throw new Error("Reference not found");
+    }
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function deleteRef(tenantId: string, refId: string) {
   try {
     const prisma = await getPrismaClient();

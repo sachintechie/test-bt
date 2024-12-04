@@ -388,6 +388,7 @@ import {
 import {
   createStepDetails,
   getReferenceByProjectId,
+  getReferenceByProjectIdAndType,
   getStageByProjectId,
   getStageType,
   getStepByProjectId,
@@ -449,10 +450,11 @@ async function processStage(
     return;
   }
 
-  const references = await getReferenceByProjectId(
+  const references = await getReferenceByProjectIdAndType(
     projectId,
     referenceStage,
-    referenceStatus
+    referenceStatus,
+    RefType.DOCUMENT
   );
 
   if (!references?.length) {
@@ -512,7 +514,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
         name: "File upload from frontend",
         action: async (reference: any, stepId: string) => {
           console.log(`Uploading file "${reference.name}" to S3...`);
-          const downloadUrl = await generateSignedUrl(reference,bucketName);
+          const downloadUrl = await generateSignedUrl(reference.name,bucketName);
           const fileData = {
             fileName: reference.name,
             contentType: reference.contenttype,
