@@ -49,7 +49,7 @@ export async function addStage1Lambda(tenantUserId: string, projectId: string,bu
   await lambda.invoke(params).promise();
 }
 
-export async function addAllStage1Lambda(tenantUserId: string, projectId: string,bucketName:string,projectName : string) {
+export async function addAllStageLambda(tenantUserId: string, projectId: string,bucketName:string,projectName : string) {
   const event = {
     tenantUserId: tenantUserId,
     projectId: projectId,

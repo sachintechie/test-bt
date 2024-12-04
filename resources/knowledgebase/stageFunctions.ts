@@ -388,6 +388,7 @@ import {
 import {
   createStepDetails,
   getReferenceByProjectId,
+  getReferenceByProjectIdAndType,
   getStageByProjectId,
   getStageType,
   getStepByProjectId,
@@ -449,16 +450,19 @@ async function processStage(
     return;
   }
 
-  const references = await getReferenceByProjectId(
+  const references = await getReferenceByProjectIdAndType(
     projectId,
     referenceStage,
-    referenceStatus
+    referenceStatus,
+    RefType.DOCUMENT
   );
 
   if (!references?.length) {
     console.error(`No references found for stage "${stageTypeName}".`);
     return;
   }
+
+  const refIds = references.map((ref) => ref.id);
 
   for (const step of steps) {
     const stepType = await getStepType(step.name);
@@ -486,7 +490,9 @@ async function processStage(
     for (const reference of references) {
       await step.action(reference, stepInstance.id);
     }
+
   }
+  return refIds;
 }
 catch(error){
   console.error("Error in processStage:", error);
@@ -500,7 +506,7 @@ catch(error){
 export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, bucketName: string,chainType:string) {
   try{
   console.log(`Processing stage "Data Source" for project ${projectId}`);
-  await processStage(
+  const refIds = await processStage(
     tenantId,
     tenantUserId,
     projectId,
@@ -512,7 +518,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
         name: "File upload from frontend",
         action: async (reference: any, stepId: string) => {
           console.log(`Uploading file "${reference.name}" to S3...`);
-          const downloadUrl = await generateSignedUrl(reference,bucketName);
+          const downloadUrl = await generateSignedUrl(reference.name,bucketName);
           const fileData = {
             fileName: reference.name,
             contentType: reference.contenttype,
@@ -555,6 +561,10 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
 
   // Update the stage and reference statuses
   await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
+  if(refIds != null && refIds?.length > 0){
+  await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_SOURCE, ReferenceStatus.PROCESSING);
+  }
+
   console.log(`Stage "Data Source" completed for project ${projectId}`);
   await addStage_dataIngestion(tenantId, tenantUserId, projectId,bucketName,chainType);
 }
@@ -675,7 +685,7 @@ function extractS3Metadata(s3Data: any) {
 export async function addStage_dataPrep(tenantUserId: string, projectId: string, bucketName: string,chaintype:string) {
   try {
     console.log("projectId", projectId, tenantUserId);
-    let file_embeddings;
+    let file_embeddings=[];
     const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE, ReferenceStatus.PROCESSING);
     const refIds: string[] = [];
 
@@ -733,11 +743,12 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
 
               if (reference.name && reference.reftype == RefType.DOCUMENT) {
                 // Step 1 and Step 3: Chunking and Embedding of chunks
-                file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
+                const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
+                file_embeddings.push(file_embedding);
 
-                if (file_embeddings.embeddings) {
+                if (file_embedding.embeddings) {
                   // Step 2: Chunking hash
-                  const hashed_chunkcontent = await hashChunkContents(file_embeddings.embeddings, step2.id, tenantUserId);
+                  const hashed_chunkcontent = await hashChunkContents(file_embedding.embeddings, step2.id, tenantUserId);
 
                   // Step 5: Store chunk hash to Blockchain
                   if (hashed_chunkcontent) {
@@ -746,7 +757,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
                   }
 
                   // Step 4, 6, 7: Reconstruction, Hashing, and Storing recombined data on Blockchain
-                  const combined_response = await combineChunks(file_embeddings.embeddings);
+                  const combined_response = await combineChunks(file_embedding.embeddings);
                   if (combined_response) {
                     await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,chaintype);
                   }
@@ -773,8 +784,10 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
         if (stage5 && stepType1) {
           const step1 = await getStepByProjectId(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1);
 
-          if (file_embeddings?.embeddings && step1) {
-            const indexedFiles = await addToOpenSearch(file_embeddings.embeddings);
+          if (file_embeddings && step1) {
+            const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
+
+            const indexedFiles = await addToOpenSearch(fileEmbeddings);
 
             for (const indexedFile of indexedFiles) {
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
@@ -784,8 +797,8 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
         }
 
         // Update project and reference stage
-        await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
-        await updateReferenceStage(projectId, refIds, ReferenceStage.RAG_INGESTION, ReferenceStatus.PROCESSING);
+        await updateProjectStage(projectId, ProjectStage.PUBLISHED, ProjectStatusEnum.ACTIVE);
+        await updateReferenceStage(projectId, refIds, ReferenceStage.PUBLISHED, ReferenceStatus.COMPLETED);
       }
     }
 
