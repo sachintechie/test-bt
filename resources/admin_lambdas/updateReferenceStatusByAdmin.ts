@@ -1,19 +1,12 @@
 import { tenant } from "../db/models";
-import {
-  getProjectById,
-  updateReferenceStatusByAdmin,
-} from "../db/adminDbFunctions";
+import { getProjectById, updateReferenceStatusByAdmin } from "../db/adminDbFunctions";
 import { addStage_1 } from "../knowledgebase/stageFunctions";
-
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const data = await updateRefStatus(
-      event.identity.resolverContext as tenant,
-      event.arguments?.input?.files
-    );
+    const data = await updateRefStatus(event.identity.resolverContext as tenant, event.arguments?.input?.files);
     console.log("data", data);
 
     const response = {
@@ -34,31 +27,33 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function updateRefStatus(tenant: tenant,  files: any) {
+async function updateRefStatus(tenant: tenant, files: any) {
   console.log("Creating admin project");
 
   try {
     console.log("project", tenant.id, files);
 
-
     const refs = await updateReferenceStatusByAdmin(files);
-    const project = await getProjectById(refs[0].projectid?? "");
-    await addStage_1(tenant.id,tenant.adminuserid?? "", refs[0].projectid?? "",project.data?.s3bucketname?? "",
-      project.data?.chaintype?? "");
+    const project = await getProjectById(refs[0].projectid ?? "");
+    await addStage_1(
+      tenant.id,
+      tenant.adminuserid ?? "",
+      refs[0].projectid ?? "",
+      project.data?.s3bucketname ?? "",
+      project.data?.chaintype ?? ""
+    );
 
-if(refs != null){
-  return {
-    project: refs,
-    error: null
-  };
-}
-else{
-  return {
-    project: null,
-    error: "Error updating reference status"
-  };
-}
-
+    if (refs != null) {
+      return {
+        project: refs,
+        error: null
+      };
+    } else {
+      return {
+        project: null,
+        error: "Error updating reference status"
+      };
+    }
   } catch (e: any) {
     console.log(`Not verified: ${e}`);
     return {
@@ -67,7 +62,3 @@ else{
     };
   }
 }
-
-
-
-
