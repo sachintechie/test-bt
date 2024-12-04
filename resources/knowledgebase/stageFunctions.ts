@@ -387,6 +387,7 @@ import {
 } from "@prisma/client";
 import {
   createStepDetails,
+  getProjectById,
   getReferenceByProjectId,
   getReferenceByProjectIdAndType,
   getStageByProjectId,
@@ -777,17 +778,17 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
     const stageType5 = await getStageType("RAG Ingestion");
     if (stageType5) {
       const stage5 = await getStageByProjectId(tenantUserId, "RAG Ingestion", "RAG Ingestion", stageType5.id, projectId, 5);
-
+      const project = await getProjectById(projectId);
       if (referenceList && referenceList.length > 0) {
         const stepType1 = await getStepType("Writing to open search");
 
-        if (stage5 && stepType1) {
+        if (stage5 && stepType1 && project.data) {
           const step1 = await getStepByProjectId(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1);
 
           if (file_embeddings && step1) {
             const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
 
-            const indexedFiles = await addToOpenSearch(fileEmbeddings);
+            const indexedFiles = await addToOpenSearch(fileEmbeddings,project?.data?.indexid?? "");
 
             for (const indexedFile of indexedFiles) {
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };

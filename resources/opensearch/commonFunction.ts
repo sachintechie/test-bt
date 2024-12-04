@@ -76,11 +76,11 @@ async function indexDocuments( indexName: string, documents: any[]) {
 }
 
 
-export async function addToOpenSearch( documents: any[]) {
+export async function addToOpenSearch( documents: any[],indexName: string) {
 
-    const indexName = process.env.OPENSEARCH_INDEX_NAME || 'sagemaker-index-1';
+    const index = process.env.OPENSEARCH_INDEX_NAME || 'sagemaker-index-1';
 
-    const response = await indexDocuments( indexName, documents);
+    const response = await indexDocuments( index, documents);
     console.log("response", response);
     return response;
 }
