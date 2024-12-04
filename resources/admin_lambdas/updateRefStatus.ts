@@ -1,10 +1,12 @@
 import { tenant } from "../db/models";
 
 import {
+  getProjectById,
   getRefById,
   updateRefStatus,
 } from "../db/adminDbFunctions";
 import { ReferenceStatus } from "@prisma/client";
+import { addStage_1 } from "../knowledgebase/stageFunctions";
 
 
 export const handler = async (event: any, context: any) => {
@@ -49,6 +51,11 @@ async function updateReferenceStatus(tenant: tenant, refId: string,status : Refe
       };
     } else {
         const ref = await updateRefStatus(refId,status)
+        if(status === ReferenceStatus.APPROVED){
+
+          const project = await getProjectById(ref.projectid?? "");
+          await addStage_1(tenant.id,tenant.adminuserid?? "", ref.projectid?? "",project.data?.s3bucketname?? "",project.data?.chaintype?? "");
+        }
     
       return {
         project: ref,
