@@ -183,6 +183,7 @@ export async function updateReferenceStatusByAdmin( files : any) {
           status: file.status == ReferenceStatus.UPLOADED ? ReferenceStatus.APPROVED : file.status
         }
       });
+      console.log("updatedRef",updatedRef);
       updatedRefs.push(updatedRef);
     }
   

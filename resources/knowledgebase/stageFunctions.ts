@@ -428,6 +428,7 @@ async function processStage(
   referenceStatus: ReferenceStatus,
   steps: Array<{ name: string; action: Function }>
 ) {
+  try{
   const stageType = await getStageType(stageTypeName);
   if (!stageType) {
     console.error(`Stage type "${stageTypeName}" not found.`);
@@ -475,6 +476,8 @@ async function processStage(
       steps.indexOf(step) + 1
     );
 
+    console.log(`Processing step "${stepInstance?.name}"...`);
+
     if (!stepInstance) {
       console.error(`Step "${step.name}" not initialized.`);
       continue;
@@ -485,11 +488,17 @@ async function processStage(
     }
   }
 }
+catch(error){
+  console.error("Error in processStage:", error);
+  throw error;
+}
+}
 
 /**
  * Example usage: Process the "Data Source" stage.
  */
 export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, bucketName: string,chainType:string) {
+  try{
   console.log(`Processing stage "Data Source" for project ${projectId}`);
   await processStage(
     tenantId,
@@ -502,6 +511,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
       {
         name: "File upload from frontend",
         action: async (reference: any, stepId: string) => {
+          console.log(`Uploading file "${reference.name}" to S3...`);
           const downloadUrl = await generateSignedUrl(reference,bucketName);
           const fileData = {
             fileName: reference.name,
@@ -509,23 +519,30 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
             size: reference.size,
             downloadUrl
           };
+          console.log("metaData", fileData);
           await createStepDetails(tenantUserId, JSON.stringify(fileData), stepId);
         }
       },
       {
         name: "File hashing",
         action: async (reference: any, stepId: string) => {
+          console.log(`Hashing file "${reference.name}"...`);
+
           const hashedData = { hash: reference.hash };
+          console.log("metaData", hashedData);
+
           await createStepDetails(tenantUserId, JSON.stringify(hashedData), stepId);
         }
       },
       {
         name: "Store to Blockchain",
         action: async (reference: any, stepId: string) => {
+          console.log(`Storing hash "${reference.hash}" to blockchain...`);
           const blockchainHashedData = await hashingAndStoreToBlockchain(
             reference.hash,
             chainType
           );
+          console.log("metaData", blockchainHashedData);
           await createStepDetails(
             tenantUserId,
             JSON.stringify(blockchainHashedData.data),
@@ -540,6 +557,11 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
   await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
   console.log(`Stage "Data Source" completed for project ${projectId}`);
   await addStage_dataIngestion(tenantId, tenantUserId, projectId,bucketName,chainType);
+}
+catch(error){
+  console.error("Error in addStage_1:", error);
+  throw error;
+}
 }
 
 export async function addStage_dataIngestion(tenantId: string, tenantUserId: string, projectId: string,bucketName: string,chainType:string) {
