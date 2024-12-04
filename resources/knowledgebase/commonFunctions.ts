@@ -165,7 +165,7 @@ export async function lambdaCallForCreateS3Bucket(projectId: string,name:string)
   };
 
   const params = {
-    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_index_kb_creation_consolidate",
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_bucket_creation_with_policy",
     InvocationType: "RequestResponse",
     Payload: JSON.stringify(event)
   };
