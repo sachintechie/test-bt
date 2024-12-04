@@ -93,7 +93,6 @@ async function addProjectAndReference(
      // console.log("stage1", stage1);
       const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
       console.log("generatedUrls", generatedUrls);
-      await addStage1Lambda(tenant.adminuserid ?? "", project.id,kbResponse.data.s3_bucket,name);
 
      // var projectData = await getProjectWithSteps(project.id, 1, 1);
      // console.log("projectData", projectData);
