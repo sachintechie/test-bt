@@ -47,7 +47,7 @@ export const handler = async (event: any, context: any) => {
 export async function addStageAndSteps(tenantUserId: string, projectId: string,bucketName:string) {
   try {
     console.log("projectId", projectId, tenantUserId);
-    let file_embeddings;
+    let file_embeddings =[];
     const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE, ReferenceStatus.PROCESSING);
     const refIds: string[] = [];
     const project = await getProjectById(projectId);
@@ -99,11 +99,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             // Step 1 and step 3: Chunking and Embedding of chunks
             if (reference.name != null && reference.reftype == RefType.DOCUMENT) {
               refIds.push(reference.id);
-              file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
+              const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
+              file_embeddings.push(file_embedding);
               let hashed_chunkcontent;
-              if (file_embeddings.embeddings != null) {
+              if (file_embedding.embeddings != null) {
                 // Step 2: Chunking hash
-                hashed_chunkcontent = await hashChunkContents(file_embeddings?.embeddings, step2.id, tenantUserId);
+                hashed_chunkcontent = await hashChunkContents(file_embedding?.embeddings, step2.id, tenantUserId);
               } else {
                 return false;
               }
@@ -117,11 +118,11 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
 
               // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
 
-              if (file_embeddings.embeddings != null) {
+              if (file_embedding.embeddings != null) {
                 // const combined_response1 = await lambdaCallForCombineChunks(file_embeddings.embeddings);
                 // console.log("combined_response1_lambda", combined_response1);
 
-                const combined_response = await combineChunks(file_embeddings?.embeddings);
+                const combined_response = await combineChunks(file_embedding?.embeddings);
                 console.log("combined_response", combined_response);
                 const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,project.data?.chaintype ?? ""); 
                 console.log("hashCombinedData", hashCombinedData);
@@ -157,8 +158,10 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
 
          // const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
-          if (file_embeddings?.embeddings != null) {
-            const indexedFiles: string[] = await addToOpenSearch(file_embeddings?.embeddings);
+          if (file_embeddings != null) {
+              const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
+  
+            const indexedFiles: string[] = await addToOpenSearch(fileEmbeddings);
             //  const indexedFiles: string[] = JSON.parse(openSearchResponse);
 
             console.log("opensearchResponse", indexedFiles);

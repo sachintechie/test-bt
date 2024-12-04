@@ -685,7 +685,7 @@ function extractS3Metadata(s3Data: any) {
 export async function addStage_dataPrep(tenantUserId: string, projectId: string, bucketName: string,chaintype:string) {
   try {
     console.log("projectId", projectId, tenantUserId);
-    let file_embeddings;
+    let file_embeddings=[];
     const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_STORAGE, ReferenceStatus.PROCESSING);
     const refIds: string[] = [];
 
@@ -743,11 +743,12 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
 
               if (reference.name && reference.reftype == RefType.DOCUMENT) {
                 // Step 1 and Step 3: Chunking and Embedding of chunks
-                file_embeddings = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
+                const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
+                file_embeddings.push(file_embedding);
 
-                if (file_embeddings.embeddings) {
+                if (file_embedding.embeddings) {
                   // Step 2: Chunking hash
-                  const hashed_chunkcontent = await hashChunkContents(file_embeddings.embeddings, step2.id, tenantUserId);
+                  const hashed_chunkcontent = await hashChunkContents(file_embedding.embeddings, step2.id, tenantUserId);
 
                   // Step 5: Store chunk hash to Blockchain
                   if (hashed_chunkcontent) {
@@ -756,7 +757,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
                   }
 
                   // Step 4, 6, 7: Reconstruction, Hashing, and Storing recombined data on Blockchain
-                  const combined_response = await combineChunks(file_embeddings.embeddings);
+                  const combined_response = await combineChunks(file_embedding.embeddings);
                   if (combined_response) {
                     await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,chaintype);
                   }
@@ -783,8 +784,10 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
         if (stage5 && stepType1) {
           const step1 = await getStepByProjectId(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1);
 
-          if (file_embeddings?.embeddings && step1) {
-            const indexedFiles = await addToOpenSearch(file_embeddings.embeddings);
+          if (file_embeddings && step1) {
+            const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
+
+            const indexedFiles = await addToOpenSearch(fileEmbeddings);
 
             for (const indexedFile of indexedFiles) {
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
@@ -794,8 +797,8 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
         }
 
         // Update project and reference stage
-        await updateProjectStage(projectId, ProjectStage.RAG_INGESTION, ProjectStatusEnum.ACTIVE);
-        await updateReferenceStage(projectId, refIds, ReferenceStage.RAG_INGESTION, ReferenceStatus.PROCESSING);
+        await updateProjectStage(projectId, ProjectStage.PUBLISHED, ProjectStatusEnum.ACTIVE);
+        await updateReferenceStage(projectId, refIds, ReferenceStage.PUBLISHED, ReferenceStatus.COMPLETED);
       }
     }
 
