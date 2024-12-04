@@ -2,6 +2,7 @@ import { Client as OpenSearchClient } from '@opensearch-project/opensearch';
 // import * as aws4 from 'aws4';
 import AWS from 'aws-sdk';
 import { BedrockAgentClient, CreateKnowledgeBaseCommand } from '@aws-sdk/client-bedrock-agent';
+import { connectToOpenSearch } from '../opensearch/commonFunction';
 
 AWS.config.update({ region: 'us-east-1' });
 
@@ -19,12 +20,6 @@ export class IndexS3Creation {
         this.projectId = projectId;
         this.s3 = new AWS.S3();
         this.bedrockAgentRuntimeClient = new BedrockAgentClient({ region: 'us-east-1' });
-        this.openSearchClient = new OpenSearchClient({
-            endpoint: 'https://gkl444a9g3cghs48thd8.us-east-1.aoss.amazonaws.com',
-        });
-        this.openSearchClient = new OpenSearchClient({
-            node: 'https://gkl444a9g3cghs48thd8.us-east-1.aoss.amazonaws.com',
-        });
     }
     //Function to validate S3 bucket name
     async validateS3BucketName(bucketName: string): Promise<{ isValid: boolean, message: string }> {
@@ -87,6 +82,33 @@ export class IndexS3Creation {
             ACL: 'private'
         }).promise();
 
+        this.s3.putPublicAccessBlock({
+            Bucket: bucketName,
+            PublicAccessBlockConfiguration: {
+                BlockPublicAcls: true,
+                IgnorePublicAcls: true,
+                BlockPublicPolicy: true,
+                RestrictPublicBuckets: true
+            }
+        })
+        // wait for some time to replicate policy to bucket
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+
+        await this.addPolicyToS3Bucket(bucketName);
+
+        // enable Block Public Access
+        await this.s3.putPublicAccessBlock({
+            Bucket: bucketName,
+            PublicAccessBlockConfiguration: {
+                BlockPublicAcls: true,
+                IgnorePublicAcls: true,
+                BlockPublicPolicy: true,
+                RestrictPublicBuckets: true
+            }
+        }).promise();
+
+        await this.addCORSConfigurationToS3Bucket(bucketName);
+        
         if (response.Location) {
             return `Bucket created successfully at ${response.Location}`;
         } else {
@@ -146,7 +168,7 @@ export class IndexS3Creation {
 
     // Function to create Opensearch Index
     async createOpenSearchIndex(indexName: string): Promise<string> {
-
+        this.openSearchClient = await connectToOpenSearch();
         const response = await this.openSearchClient.indices.create({
             index: indexName,
             body: {
