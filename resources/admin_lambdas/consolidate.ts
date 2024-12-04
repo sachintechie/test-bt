@@ -9,9 +9,9 @@ export const handler = async (event: any, context: any) => {
     let projectName = event.projectName;
 
     let indexS3CreationInstance = new IndexS3Creation(projectName, pid)
-    const data = await indexS3CreationInstance.validateS3BucketName('bucketName');
+    const data = await indexS3CreationInstance.validateS3BucketName('buketname');
     // create s3 bucket
-    let bucketName = 'bucketName';
+    let bucketName = 'bucketname';
     let bucketCreationResponse = await indexS3CreationInstance.createS3Bucket(bucketName);
     console.log(bucketCreationResponse);
     let indexCreationResponse = await indexS3CreationInstance.createOpenSearchIndex("index-name");
