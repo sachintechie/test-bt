@@ -2,6 +2,7 @@ import * as AWS from "aws-sdk";
 import * as uuid from "uuid";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType } from "@aws-sdk/client-bedrock-agent-runtime";
+import { getProjectById } from "../db/adminDbFunctions";
 
 const TABLE_NAME = "aws-abu-dhabi-dynamodb";
 const SECRET_NAME = process.env.SECRET_NAME as string;
@@ -37,10 +38,22 @@ export const handler = async (event: any, context: any) => {
     // Parse the input from the event
     console.log("Parsing input from event...");
     const userMessage = event.message;
+    const projectId = event.projectId;
     let sessionId = event.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
+    console.log(`Project ID: ${projectId}`);
+
+
+    // get the project from the database using projectId
+    const project = await getProjectById(projectId);
+
+    console.log("Project fetched successfully...");
+
+    // from project we will get the knowledge base id, and index name
+    const indexId = project.data?.indexid;
+    const knowledgebaseId = project.data?.knowledgebaseid;
 
     // Set up the configuration for retrieval and generation
     const numberOfResults = 10;
@@ -62,7 +75,7 @@ export const handler = async (event: any, context: any) => {
     `;
     const retrieveAndGenerateConfiguration = {
       knowledgeBaseConfiguration: {
-        knowledgeBaseId: "ET3BO7O02P", // Your knowledge base ID
+        knowledgeBaseId: knowledgebaseId ? knowledgebaseId : "ET3BO7O02P", // Your knowledge base ID
         modelArn: "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
         retrievalConfiguration: {
           vectorSearchConfiguration: {
