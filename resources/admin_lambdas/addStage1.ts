@@ -6,11 +6,13 @@ import {
   getReferenceByProjectId,
   getStageType,
   getStepType,
+  updateProjectKbAndIndex,
+  updateProjectKbBucket,
   updateProjectStage,
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString } from "../knowledgebase/commonFunctions";
+import {  storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
 import { RefType } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
@@ -36,6 +38,24 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
   const refIds : string[]= [];
   const stageType = await getStageType("Data Source");
   const project = await getProjectById(projectId);
+
+  if(project != null && project.data){
+    let sanitizedName: string = project.data.name
+    .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
+    .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
+  
+  let randomString: string = await generateRandomString(6); // Generate a 6-character random string
+  let finalName: string = `${sanitizedName}-${randomString}`;
+  const kbResponse = await lambdaCallForCreateKB( project.data.id,finalName);
+  if (project != null && kbResponse && kbResponse.data != null) {
+    
+
+   const updateProject = await updateProjectKbAndIndex(project.data.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "");
+    console.log("updateProjectKB", updateProject);
+  }
+
+  }
+
 
   // let sanitizedName: string = projectName
   //   .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
