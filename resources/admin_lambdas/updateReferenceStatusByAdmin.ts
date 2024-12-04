@@ -36,10 +36,10 @@ async function updateRefStatus(tenant: tenant, files: any) {
     const refs = await updateReferenceStatusByAdmin(files);
     const project = await getProjectById(refs[0].projectid ?? "");
     await addAllStageLambda(
-      tenant.id,
       tenant.adminuserid ?? "",
       refs[0].projectid ?? "",
-      project.data?.s3bucketname ?? ""
+      project.data?.s3bucketname ?? "",
+      project.data?.name ?? ""
     );
 
     if (refs != null) {
