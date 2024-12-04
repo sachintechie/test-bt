@@ -147,7 +147,7 @@ export async function hashingAndStoreToBlockchain(data: any,chainType:string, is
 export async function hashing(data: any) {
   try {
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
-    console.log("dataHash", dataHash);
+   // console.log("dataHash", dataHash);
 
     return {
       data: {
