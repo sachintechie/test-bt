@@ -49,6 +49,26 @@ export async function addStage1Lambda(tenantUserId: string, projectId: string,bu
   await lambda.invoke(params).promise();
 }
 
+export async function addAllStage1Lambda(tenantUserId: string, projectId: string,bucketName:string,projectName : string) {
+  const event = {
+    tenantUserId: tenantUserId,
+    projectId: projectId,
+    bucketName: bucketName,
+    projectName: projectName
+  };
+
+
+
+  const params = {
+    FunctionName: "addAllStage-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
+    InvocationType: "Event", // This makes the invocation asynchronous
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  await lambda.invoke(params).promise();
+}
+
 export async function dataPreperationLambda(tenantUserId: string, projectId: string,bucketName:string) {
   const event = {
     tenantUserId: tenantUserId,
