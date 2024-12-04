@@ -150,7 +150,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
         //  const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
         //const stepDetails = await getStepDetails(fileUploadStepId);
         const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
-
+        const project = await getProjectById(projectId);
         if (stepType1) {
           const [step1] = await Promise.all([
             createStep(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1)
@@ -160,8 +160,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
           if (file_embeddings != null) {
               const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
-  
-            const indexedFiles: string[] = await addToOpenSearch(fileEmbeddings);
+              const indexedFiles = await addToOpenSearch(fileEmbeddings,project?.data?.indexid?? "");
+
             //  const indexedFiles: string[] = JSON.parse(openSearchResponse);
 
             console.log("opensearchResponse", indexedFiles);
