@@ -37,7 +37,8 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "dataPreparation",
   "opensearchIndexing",
   "dyanmodbTrigger",
-  "addStage1"
+  "addStage1",
+  "consolidate"
 ];
 
 const GET_METADATA = "getMetadata";

@@ -85,6 +85,12 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_NETWORK_ID: "43113",
         OPEN_SEARCH_HOST:"https://gkl444a9g3cghs48thd8.us-east-1.aoss.amazonaws.com",
         OPENSEARCH_INDEX_NAME:"sagemaker-index-1",
+        ROLE_ARN:"arn:aws:iam::084828599845:role/kb_creation",
+        COLLECTION_ARN:"arn:aws:aoss:us-east-1:084828599845:collection/vld43rr1b3rhzucwcbg8",
+        VECTOR_FIELD:"vector_embeddings",
+        EMBEDDING_MODEL_ARN:"arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0",
+        
+
       };
     case "staging":
       return {
