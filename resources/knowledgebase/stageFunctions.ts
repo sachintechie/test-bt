@@ -496,7 +496,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
     tenantUserId,
     projectId,
     "Data Source",
-    ReferenceStage.DATA_STORAGE,
+    ReferenceStage.DATA_SOURCE,
     ReferenceStatus.APPROVED,
     [
       {
