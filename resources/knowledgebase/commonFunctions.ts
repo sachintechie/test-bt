@@ -49,6 +49,26 @@ export async function addStage1Lambda(tenantUserId: string, projectId: string,bu
   await lambda.invoke(params).promise();
 }
 
+export async function addAllStageLambda(tenantUserId: string, projectId: string,bucketName:string,projectName : string) {
+  const event = {
+    tenantUserId: tenantUserId,
+    projectId: projectId,
+    bucketName: bucketName,
+    projectName: projectName
+  };
+
+
+
+  const params = {
+    FunctionName: "addAllStage-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
+    InvocationType: "Event", // This makes the invocation asynchronous
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  await lambda.invoke(params).promise();
+}
+
 export async function dataPreperationLambda(tenantUserId: string, projectId: string,bucketName:string) {
   const event = {
     tenantUserId: tenantUserId,
@@ -165,7 +185,7 @@ export async function lambdaCallForCreateS3Bucket(projectId: string,name:string)
   };
 
   const params = {
-    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_index_kb_creation_consolidate",
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:s3_bucket_creation_with_policy",
     InvocationType: "RequestResponse",
     Payload: JSON.stringify(event)
   };

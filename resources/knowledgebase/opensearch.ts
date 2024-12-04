@@ -147,7 +147,7 @@ interface Document {
         filenames.push(doc.file_name);
   
         if (response.body.result === 'created') {
-          console.log(`Document indexed: ${doc.file_name}`);
+        //  console.log(`Document indexed: ${doc.file_name}`);
         } else {
           console.log(`Failed to index document: ${doc.file_name}, Response: ${JSON.stringify(response.body)}`);
         }

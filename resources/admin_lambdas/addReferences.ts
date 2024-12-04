@@ -2,6 +2,7 @@ import {
   createStage,
   createStep,
   createStepDetails,
+  getProjectById,
   getReferenceByProjectId,
   getStageType,
   getStepType,
@@ -35,19 +36,21 @@ export const handler = async (event: any, context: any) => {
 export async function addStageAndSteps(tenantUserId: string, projectId: string,bucketName:string) {
   try {
     console.log("Creating admin project" , tenantUserId, projectId);
+    const project = await getProjectById(projectId);
     //const stageType1 = await getStageType("Data Source");
     const refIds : string[] = []; 
-
+    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
+    console.log("referenceList", referenceList);
     // Stage 2: Data Ingestion
     const stageType2 = await getStageType("Data Ingestion");
+    if (referenceList != null && referenceList?.length > 0) {
+
     if (stageType2) {
       const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId, 2);
       // Retrieve details from the previous ingestion stage
       // const sourceStageDetails = await getStageDetails(projectId, stageType1?.id || "");
-      const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
-      console.log("referenceList", referenceList);
+     
 
-      if (referenceList != null && referenceList?.length > 0) {
        // const fileUploadStepId = sourceStageDetails.steps.filter((step) => step.name === "File upload from frontend")[0].id;
        // const stepDetails = await getStepDetails(fileUploadStepId);
 
@@ -74,7 +77,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
           }
         }
       }
-    }
+    
 
     // Stage 3: Data Storage
     const stageType3 = await getStageType("Data Storage");
@@ -83,9 +86,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
 
       // Retrieve details from the previous ingestion stage
     //  const ingestionStageDetails = await getStageDetails(projectId, stageType2?.id || "");
-    const referenceList = await getReferenceByProjectId(projectId, ReferenceStage.DATA_INGESTION,ReferenceStatus.PROCESSING);
-
-      if (referenceList != null && referenceList?.length > 0) {
+  
        // const stepDetails = await getStepDetails(ingestionStageDetails.steps[0].id);
         const [stepType1, stepType2, stepType3] = await Promise.all([
           getStepType("Read file from s3"),
@@ -128,7 +129,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
 
             // Step 3: Store the hashed data on the blockchain
-            const blockchainHashedData = await hashingAndStoreToBlockchain(s3File,"Avalanche", false);
+            const blockchainHashedData = await hashingAndStoreToBlockchain(s3File,project.data?.chaintype??"", false);
             await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
           }
 
@@ -136,15 +137,20 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
           await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
           await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_STORAGE,ReferenceStatus.PROCESSING);
 
-        }
+        
       }
       }
     }
 
     await dataPreperationLambda(tenantUserId, projectId,bucketName);
+    return true;
+  }
+  else{
 
+    console.log("Reference not found");
 
     return true;
+  }
   } catch (e) {
     console.error("Error in addStageAndSteps:", e);
     throw e;

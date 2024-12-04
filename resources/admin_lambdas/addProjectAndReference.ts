@@ -78,22 +78,21 @@ async function addProjectAndReference(
   let randomString: string = await generateRandomString(6); // Generate a 6-character random string
   let finalName: string = `${sanitizedName}-${randomString}`;
   console.log(finalName); // Output: "bridgetower-testptoject121-abc123"
-    const kbResponse = await lambdaCallForCreateKB( project.id,finalName);
+    const kbResponse = await lambdaCallForCreateS3Bucket( project.id,finalName);
     console.log("kbResponse", kbResponse);
 
 
     if (project != null && kbResponse && kbResponse.data != null) {
-      // const updateProject = await updateProjectBucket(project.id,  kbResponse?.data.s3_bucket ?? "");
-      // console.log("updateProjectBucketRes", updateProject);
+      const updateProject = await updateProjectBucket(project.id,  kbResponse?.data.s3_bucket ?? "");
+      console.log("updateProjectBucketRes", updateProject);
 
-     const updateProject = await updateProjectKbBucket(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket);
-      console.log("updateProjectKB", updateProject);
+    //  const updateProject = await updateProjectKbBucket(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket);
+    //   console.log("updateProjectKB", updateProject);
       const refs = await addReferences(tenant.id, tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
     //  const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
      // console.log("stage1", stage1);
       const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
       console.log("generatedUrls", generatedUrls);
-      await addStage1Lambda(tenant.adminuserid ?? "", project.id,kbResponse.data.s3_bucket,name);
 
      // var projectData = await getProjectWithSteps(project.id, 1, 1);
      // console.log("projectData", projectData);

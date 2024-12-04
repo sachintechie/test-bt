@@ -3,7 +3,7 @@ import { tenant } from "../db/models";
 import {
   getProjectById,
 } from "../db/adminDbFunctions";
-import { addReferencesLambda } from "../knowledgebase/commonFunctions";
+import { addReferencesLambda, addStage1Lambda } from "../knowledgebase/commonFunctions";
 import { ProjectStage } from "@prisma/client";
 
 
@@ -50,7 +50,8 @@ async function updateProjectStatus(tenant: tenant, projectId: string, files: any
       };
     } else {
       if(project.data.projectstage === ProjectStage.DATA_SOURCE){
-      await addReferencesLambda(tenant.adminuserid ?? "", project.data.id,project.data.s3bucketname?? "");
+        await addStage1Lambda(tenant.adminuserid ?? "", project.data.id,project.data.s3bucketname?? "",project.data.name);
+
       }
       return {
         project: project.data,
