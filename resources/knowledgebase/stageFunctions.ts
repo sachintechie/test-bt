@@ -462,6 +462,8 @@ async function processStage(
     return;
   }
 
+  const refIds = references.map((ref) => ref.id);
+
   for (const step of steps) {
     const stepType = await getStepType(step.name);
     if (!stepType) {
@@ -488,7 +490,9 @@ async function processStage(
     for (const reference of references) {
       await step.action(reference, stepInstance.id);
     }
+
   }
+  return refIds;
 }
 catch(error){
   console.error("Error in processStage:", error);
@@ -502,7 +506,7 @@ catch(error){
 export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, bucketName: string,chainType:string) {
   try{
   console.log(`Processing stage "Data Source" for project ${projectId}`);
-  await processStage(
+  const refIds = await processStage(
     tenantId,
     tenantUserId,
     projectId,
@@ -557,6 +561,10 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
 
   // Update the stage and reference statuses
   await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
+  if(refIds != null && refIds?.length > 0){
+  await updateReferenceStage(projectId, refIds, ReferenceStage.DATA_SOURCE, ReferenceStatus.PROCESSING);
+  }
+
   console.log(`Stage "Data Source" completed for project ${projectId}`);
   await addStage_dataIngestion(tenantId, tenantUserId, projectId,bucketName,chainType);
 }

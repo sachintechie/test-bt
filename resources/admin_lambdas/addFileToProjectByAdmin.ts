@@ -40,7 +40,7 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
     const project = await getProjectById(projectId);
     if(project && project.data){
     for (const file of files) {
-      const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,true,tenant?.customerid ?? "");
+      const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,true,tenant?.adminuserid ?? "");
       if (ref.data)
          refs.push(ref.data);
     }
