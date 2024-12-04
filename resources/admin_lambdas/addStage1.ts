@@ -12,7 +12,7 @@ import {
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
-import {  storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
+import {  storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString, lambdaCallForCreateS3Bucket, addReferencesLambda } from "../knowledgebase/commonFunctions";
 import { RefType } from "../db/models";
 
 export const handler = async (event: any, context: any) => {
@@ -123,6 +123,7 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
         
       }
 
+      await addReferencesLambda(tenantUserId, projectId,bucketName);
         // Update project to reflect data ingestion status
         await updateProjectStage(projectId, ProjectStage.DATA_SOURCE, ProjectStatusEnum.ACTIVE);
         await updateReferenceStage(projectId, refIds,ReferenceStage.DATA_SOURCE,ReferenceStatus.PROCESSING);
