@@ -68,6 +68,7 @@ model project {
   isactive          Boolean
   createdat         String
   createdby         String
+  collectionname    String
   adminUsers        adminuser[]
   references        reference[]
   stages            stage[]
