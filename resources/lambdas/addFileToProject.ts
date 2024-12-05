@@ -1,5 +1,5 @@
 import { RefType, tenant } from "../db/models";
-import { addReferenceToDb } from "../db/adminDbFunctions";
+import { addReferenceToDb, getProjectById } from "../db/adminDbFunctions";
 import { ReferenceStatus } from "@prisma/client";
 import { generatePresignedUrl } from "../knowledgebase/commonFunctions";
 
@@ -43,7 +43,8 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
       console.log("ref", ref);
       if (ref.data) refs.push(ref.data);
     }
-    const urls = await generatePresignedUrl(files);
+    const project = await getProjectById(projectId);
+    const urls = await generatePresignedUrl(files,project.data?.s3bucketname?? "");
     console.log("urls", urls);
 
     return {
