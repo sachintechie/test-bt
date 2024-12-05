@@ -50,7 +50,8 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
   if (project != null && kbResponse && kbResponse.data != null) {
     
 
-   const updateProject = await updateProjectKbAndIndex(project.data.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "");
+   const updateProject = await updateProjectKbAndIndex(project.data.id, kbResponse.data.Kb_Id ?? "",
+     kbResponse?.data.Index_Name ?? "",kbResponse?.data.Collection_Name ?? "");
     console.log("updateProjectKB", updateProject);
   }
 
