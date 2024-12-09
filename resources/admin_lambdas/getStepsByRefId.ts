@@ -6,7 +6,7 @@ export const handler = async (event: any) => {
     console.log(event);
 
     const data = await getStepsByRefId(
-      event.identity.resolverContext as tenant,
+    //  event.identity.resolverContext as tenant,
       event.arguments?.input?.refId,
       event.arguments.input.limit,
       event.arguments.input.pageNo
@@ -30,7 +30,7 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getStepsByRefId(tenant: tenant, refId: string, limit: number, pageNo: number) {
+async function getStepsByRefId( refId: string, limit: number, pageNo: number) {
   console.log("refId", refId);
 
   try {
