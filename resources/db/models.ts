@@ -57,6 +57,7 @@ export interface EmbeddingMetadata {
   chunk_index: number;
   chunk_content: string;
   project_id: string;
+  ref_id: string; 
   embedding: number[];
 }
 

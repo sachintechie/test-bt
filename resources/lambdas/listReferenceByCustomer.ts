@@ -8,7 +8,8 @@ export const handler = async (event: any) => {
     const tokens = await listReferenceByCustomer(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.limit,
-      event.arguments?.input?.pageNo
+      event.arguments?.input?.pageNo,
+      event.arguments?.input?.projectId
     );
     return {
       status: 200,
@@ -25,9 +26,9 @@ export const handler = async (event: any) => {
   }
 };
 
-async function listReferenceByCustomer(tenant: tenant, limit: number, pageNo: number) {
+async function listReferenceByCustomer(tenant: tenant, limit: number, pageNo: number,projectId:string) {
   try {
-    const refs = await getReferenceListByCustomer(limit, pageNo, tenant.id, tenant?.customerid ?? "");
+    const refs = await getReferenceListByCustomer(limit, pageNo,projectId, tenant.id, tenant?.customerid ?? "");
     console.log(refs, "refs");
     return refs;
   } catch (err) {

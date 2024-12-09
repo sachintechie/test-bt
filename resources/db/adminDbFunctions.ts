@@ -491,7 +491,7 @@ export async function createStep(
   }
 }
 
-export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string) {
+export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string,refId:string) {
   console.log("Creating step details",metaData, stepId);
   try {
     const prisma = await getPrismaClient();
@@ -503,6 +503,7 @@ export async function createStepDetails(tenantUserId: string, metaData: string, 
         isdeleted: false,
         metadata: metaData,
         createdat: new Date().toISOString(),
+        refid:refId,
         createdby: tenantUserId
       }
     });
@@ -1704,7 +1705,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
   }
 }
 
-export async function getReferenceListByCustomer(limit: number, pageNo: number, tenantId: string, customerId: string) {
+export async function getReferenceListByCustomer(limit: number, pageNo: number,projectId:string, tenantId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.reference.count({
@@ -1712,7 +1713,8 @@ export async function getReferenceListByCustomer(limit: number, pageNo: number, 
         tenantid: tenantId,
         isdeleted: false,
         createdby: customerId,
-        isaddedbyadmin:false
+        isaddedbyadmin:false,
+        projectid:projectId
       },
       orderBy: {
         createdat: "desc"
@@ -2004,6 +2006,80 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     console.log(data);
 
     return { data, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+export async function getRefWithSteps(refId: string, limit: number, pageNo: number) {
+  try {
+    const prisma = await getPrismaClient();
+ 
+
+    const reference = await prisma.reference.findFirst({
+      where: {
+        id: refId,
+      },
+      include: {
+        stepdetails: {
+          orderBy: {
+            // Order stepdetails by id or any other field
+            id: 'asc',
+          },
+          include: {
+            step: {
+              
+              include: {
+                stage: true, // Include the related stage data
+              },
+            },
+          },
+        },
+      },
+    });
+    if(reference == null){
+      return { data: null, error: "Reference not found" };
+    }
+
+    const stages = await prisma.stage.findMany({
+      where: {
+        projectid: reference.projectid,
+        isdeleted: false
+      },
+      include: {
+        steps: {
+          include: {
+            stepdetails: {
+              where:{
+                refid: refId
+              }
+            }
+          },
+          orderBy: {
+            stepsequence: "asc" // Sort steps within each stage by 'stepsequence' column
+          }
+        }      },
+      orderBy: {
+        stagesequence: "asc"
+      },
+
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
+    
+    
+
+    console.log("reference with stage and step",reference);
+
+
+
+    if (reference == null) {
+      return { data: null, error: "Reference not found" };
+    }
+
+  
+
+    return { data : reference, error: null };
   } catch (err) {
     return { data: null, error: err };
   }

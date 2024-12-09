@@ -1,13 +1,13 @@
-import {  getProjectWithSteps } from "../db/adminDbFunctions";
+import { getRefWithSteps } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const data = await getProject(
+    const data = await getStepsByRefId(
       event.identity.resolverContext as tenant,
-      event.arguments?.input?.projectId,
+      event.arguments?.input?.refId,
       event.arguments.input.limit,
       event.arguments.input.pageNo
     );
@@ -30,19 +30,19 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getProject(tenant: tenant, projectId: string, limit: number, pageNo: number) {
-  console.log("projectId", projectId);
+async function getStepsByRefId(tenant: tenant, refId: string, limit: number, pageNo: number) {
+  console.log("refId", refId);
 
   try {
-    const project = await getProjectWithSteps(projectId, limit, pageNo);
-    if (project.error) {
+    const ref = await getRefWithSteps(refId, limit, pageNo);
+    if (ref.error) {
       return {
         project: null,
-        error: project.error
+        error: ref.error
       };
     } else {
       return {
-        project: project.data?.project,
+        project: ref.data,
         error: null
       };
     }

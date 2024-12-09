@@ -1215,6 +1215,7 @@ type ReferenceData {
 input ListRefByCustomerInput{
 limit: Int!
 pageNo	: Int!
+projectId: String!
 }
 
 type ListRefByCustomerResponse{
