@@ -10,6 +10,7 @@ import {
 import {  ProjectType,  } from "@prisma/client";
 import {   addStage1Lambda, formatBytes, generatePresignedUrl, generateRandomString, lambdaCallForCreateKB, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
+import { addStagesStructure } from "../knowledgebase/addStageAndSteps";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -81,6 +82,8 @@ async function addProjectAndReference(
   console.log(finalName); // Output: "bridgetower-testptoject121-abc123"
     const kbResponse = await lambdaCallForCreateS3Bucket( project.id,finalName);
     console.log("kbResponse", kbResponse);
+
+    const stagesAndSteps = await addStagesStructure( tenant.adminuserid ?? "", project.id);
 
 
     if (project != null && kbResponse && kbResponse.data != null) {

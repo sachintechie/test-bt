@@ -103,7 +103,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
                 bucketName,
                 reference.id
               );
-              file_embeddings.push({ file_embedding: file_embedding.embeddings, referenceId: reference.id });
+              file_embeddings.push({ file_embedding: file_embedding.embeddings,
+                 referenceId: reference.id });
               console.log("file_embedding", file_embedding);
               let hashed_chunkcontent;
               if (file_embedding.embeddings != null) {
@@ -171,7 +172,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
           // const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
           if (file_embeddings != null) {
-            const fileEmbeddings = file_embeddings.map((ref) => ref?.file_embedding);
+            const fileEmbeddings = file_embeddings.map((ref) => ref?.file_embedding).flat();
             console.log("fileEmbeddings", fileEmbeddings);
             const indexedFiles = await addToOpenSearch(fileEmbeddings, project?.data?.indexid ?? "");
 
