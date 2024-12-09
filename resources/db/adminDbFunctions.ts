@@ -2043,7 +2043,7 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
 
     const stages = await prisma.stage.findMany({
       where: {
-        projectid: reference.projectid,
+        projectid: reference?.projectid?? "",
         isdeleted: false
       },
       include: {
@@ -2061,15 +2061,17 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
         }      },
       orderBy: {
         stagesequence: "asc"
-      },
+      }
 
-      take: limit,
-      skip: (pageNo - 1) * limit
+      // take: limit,
+      // skip: (pageNo - 1) * limit
     });
+
+    console.log("reference with stage and step",stages);
     
     
 
-    console.log("reference with stage and step",reference);
+   // console.log("reference with stage and step",reference);
 
 
 
