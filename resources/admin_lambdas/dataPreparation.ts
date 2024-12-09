@@ -161,6 +161,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
           if (file_embeddings != null) {
               const fileEmbeddings = file_embeddings.map((ref) => ref.file_embedding.embeddings);
+              console.log("fileEmbeddings", fileEmbeddings);
               const indexedFiles = await addToOpenSearch(fileEmbeddings,project?.data?.indexid?? "");
 
             //  const indexedFiles: string[] = JSON.parse(openSearchResponse);
@@ -376,7 +377,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
 
   try {
     // Process chunks in parallel batches
-    const results = await processBatchesInParallel(chunks, batchSize, concurrencyLimit, fileKey, projectId);
+    const results = await processBatchesInParallel(chunks, batchSize, concurrencyLimit, fileKey, projectId,refId);
 
     // Flatten the results and add metadata to the embeddings
     embeddingsWithMetadata.push(...results);
@@ -402,7 +403,8 @@ export async function processBatchesInParallel(
   batchSize: number,
   concurrencyLimit: number,
   fileKey: string,
-  projectId: string
+  projectId: string,
+  refId:string
 ): Promise<EmbeddingMetadata[]> {
   const results: EmbeddingMetadata[] = [];
   const batchPromises: Promise<EmbeddingMetadata[]>[] = [];
@@ -419,7 +421,7 @@ export async function processBatchesInParallel(
     }
 
     // Process batch in the background
-    batchPromises.push(processEmbeddingBatch(batch, fileKey, projectId, batchIndex));
+    batchPromises.push(processEmbeddingBatch(batch, fileKey, projectId,refId, batchIndex));
   }
 
   // Process any remaining batches
@@ -436,6 +438,7 @@ export async function processEmbeddingBatch(
   batch: string[],
   fileKey: string,
   projectId: string,
+  refId:string,
   batchIndex: number
 ): Promise<EmbeddingMetadata[]> {
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
@@ -449,6 +452,7 @@ export async function processEmbeddingBatch(
           chunk_index: batchIndex * batch.length + chunkIndex,
           chunk_content: chunk,
           project_id: projectId,
+          ref_id:refId,
           embedding
         });
       } catch (error) {

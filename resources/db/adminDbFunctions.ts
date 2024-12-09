@@ -2037,6 +2037,35 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
         },
       },
     });
+    if(reference == null){
+      return { data: null, error: "Reference not found" };
+    }
+
+    const stages = await prisma.stage.findMany({
+      where: {
+        projectid: reference.projectid,
+        isdeleted: false
+      },
+      include: {
+        steps: {
+          include: {
+            stepdetails: {
+              where:{
+                refid: refId
+              }
+            }
+          },
+          orderBy: {
+            stepsequence: "asc" // Sort steps within each stage by 'stepsequence' column
+          }
+        }      },
+      orderBy: {
+        stagesequence: "asc"
+      },
+
+      take: limit,
+      skip: (pageNo - 1) * limit
+    });
     
     
 

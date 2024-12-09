@@ -31,6 +31,23 @@ export const getLambdaRole = (scope: Construct) => {
     // Grant Lambda role necessary permissions for VPC and CloudWatch logs
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaVPCAccessExecutionRole"));
     lambdaRoleSingleton.addManagedPolicy(iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"));
+  
+  
+    // Grant Lambda role permissions for AOSS and Elasticsearch (ES)
+    lambdaRoleSingleton.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["aoss:*"],
+        resources: ["*"], // Allow access to all AOSS resources
+      })
+    );
+
+    lambdaRoleSingleton.addToPolicy(
+      new iam.PolicyStatement({
+        actions: ["es:*"],
+        resources: ["*"], // Allow access to all Elasticsearch resources
+      })
+    );
   }
+  
   return lambdaRoleSingleton;
 };

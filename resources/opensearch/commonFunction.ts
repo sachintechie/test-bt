@@ -35,7 +35,7 @@ async function indexDocuments( indexName: string, documents: any[]) {
     console.log(`Starting indexing of ${documents.length} documents...`);
 
     for (const doc of documents) {
-     //   console.log(`Indexing document: ${doc}`);
+        console.log(`Indexing document: ${doc}`);
      //   console.log(`Indexing document: ${doc.file_name}`);
         const chunkIndexValue = {
              id: '',  // You can choose a suitable ID generation method, e.g., UUID
@@ -43,6 +43,7 @@ async function indexDocuments( indexName: string, documents: any[]) {
             "x-amz-bedrock-kb-source-uri": JSON.stringify({
                 file_name: doc.file_name,
                 project_id: doc.project_id,
+                ref_id: doc.ref_id,
             }),
             metadata: JSON.stringify({ chunk_index: doc.chunk_index }),
             "x-amz-bedrock-kb-data-source-id": "",  // If you have a data source ID, you can fill it here
