@@ -39,8 +39,7 @@ const EXCLUDED_LAMBDAS_IN_APPSYNC = [
   "dyanmodbTrigger",
   "addStage1",
   "consolidate",
-  "addAllStage",
-  "getStepsByRefId"
+  "addAllStage"
 ];
 
 const GET_METADATA = "getMetadata";

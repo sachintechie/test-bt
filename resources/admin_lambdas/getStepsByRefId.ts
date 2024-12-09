@@ -7,9 +7,7 @@ export const handler = async (event: any) => {
 
     const data = await getStepsByRefId(
     //  event.identity.resolverContext as tenant,
-      event.arguments?.input?.refId,
-      event.arguments.input.limit,
-      event.arguments.input.pageNo
+      event.arguments?.input?.refId
     );
     const projectData = {
       status: data.project != null ? 200 : 400,
@@ -30,11 +28,11 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getStepsByRefId( refId: string, limit: number, pageNo: number) {
+async function getStepsByRefId( refId: string) {
   console.log("refId", refId);
 
   try {
-    const ref = await getRefWithSteps(refId, limit, pageNo);
+    const ref = await getRefWithSteps(refId);
     if (ref.error) {
       return {
         project: null,

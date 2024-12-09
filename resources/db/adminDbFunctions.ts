@@ -2011,7 +2011,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
   }
 }
 
-export async function getRefWithSteps(refId: string, limit: number, pageNo: number) {
+export async function getRefWithSteps(refId: string) {
   try {
     const prisma = await getPrismaClient();
  
@@ -2019,23 +2019,7 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
     const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
-      },
-      include: {
-        stepdetails: {
-          orderBy: {
-            // Order stepdetails by id or any other field
-            id: 'asc',
-          },
-          include: {
-            step: {
-              
-              include: {
-                stage: true, // Include the related stage data
-              },
-            },
-          },
-        },
-      },
+      }
     });
     if(reference == null){
       return { data: null, error: "Reference not found" };
@@ -2043,7 +2027,7 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
 
     const stages = await prisma.stage.findMany({
       where: {
-        projectid: reference.projectid,
+        projectid: reference?.projectid?? "",
         isdeleted: false
       },
       include: {
@@ -2061,15 +2045,17 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
         }      },
       orderBy: {
         stagesequence: "asc"
-      },
+      }
 
-      take: limit,
-      skip: (pageNo - 1) * limit
+      // take: limit,
+      // skip: (pageNo - 1) * limit
     });
+
+    console.log("reference with stage and step",stages);
     
     
 
-    console.log("reference with stage and step",reference);
+   // console.log("reference with stage and step",reference);
 
 
 
@@ -2077,9 +2063,12 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
       return { data: null, error: "Reference not found" };
     }
 
-  
+   const data = {
+    reference: reference,
+    stages: stages
+   }
 
-    return { data : reference, error: null };
+    return { data : data, error: null };
   } catch (err) {
     return { data: null, error: err };
   }
