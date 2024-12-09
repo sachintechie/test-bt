@@ -41,9 +41,10 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
 
   if(project != null && project.data){
     let sanitizedName: string = project.data.name
-    .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
-    .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
-  
+    .replace(/[^a-z0-9-]/g, '')   // Remove invalid characters
+    .replace(/^-+/, '')           // Remove leading hyphens
+    .replace(/^[^a-z0-9]/, 'a');  // Ensure it starts with a lowercase letter or alphanumeric
+
   let randomString: string = await generateRandomString(6); // Generate a 6-character random string
   let finalName: string = `${sanitizedName}-${randomString}`;
   const kbResponse = await lambdaCallForCreateKB( project.data.id,finalName);

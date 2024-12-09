@@ -72,9 +72,10 @@ async function addProjectAndReference(
 
     const project = await createProject(tenant, name, description, projectType,chainType, organizationId);
     let sanitizedName: string = name
-    .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
-    .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
-  
+    .replace(/[^a-z0-9-]/g, '')   // Remove invalid characters
+    .replace(/^-+/, '')           // Remove leading hyphens
+    .replace(/^[^a-z0-9]/, 'a');  // Ensure it starts with a lowercase letter or alphanumeric
+
   let randomString: string = await generateRandomString(6); // Generate a 6-character random string
   let finalName: string = `${sanitizedName}-${randomString}`;
   console.log(finalName); // Output: "bridgetower-testptoject121-abc123"
