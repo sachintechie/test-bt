@@ -527,7 +527,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
             downloadUrl
           };
           console.log("metaData", fileData);
-          await createStepDetails(tenantUserId, JSON.stringify(fileData), stepId);
+          await createStepDetails(tenantUserId, JSON.stringify(fileData), stepId,reference.id);
         }
       },
       {
@@ -538,7 +538,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           const hashedData = { hash: reference.hash };
           console.log("metaData", hashedData);
 
-          await createStepDetails(tenantUserId, JSON.stringify(hashedData), stepId);
+          await createStepDetails(tenantUserId, JSON.stringify(hashedData), stepId,reference.id);
         }
       },
       {
@@ -553,7 +553,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           await createStepDetails(
             tenantUserId,
             JSON.stringify(blockchainHashedData.data),
-            stepId
+            stepId,reference.id
           );
         }
       }
@@ -617,7 +617,7 @@ async function handleDataIngestionStage(tenantUserId: string, projectId: string,
     const s3Data = await getS3DataWithoutContent(reference.name,bucketName);
     refIds.push(reference.id);
 
-    await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step.id);
+    await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step.id,reference.id);
   }
 
   await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
@@ -654,11 +654,11 @@ async function handleDataStorageStage(tenantUserId: string, projectId: string, r
     const fileMetadata = extractS3Metadata(s3Data);
 
     // Step 1: Read file from S3
-    await createStepDetails(tenantUserId, JSON.stringify(fileMetadata), step1.id);
+    await createStepDetails(tenantUserId, JSON.stringify(fileMetadata), step1.id,reference.id);
 
     // Step 2: Hash S3 file content
     const hash = await hashing({ fileName: s3Data.data?.fileName, fileContent: s3Data.data?.content });
-    await createStepDetails(tenantUserId, JSON.stringify({ hash: hash.data?.dataHash }), step2.id);
+    await createStepDetails(tenantUserId, JSON.stringify({ hash: hash.data?.dataHash }), step2.id,reference.id);
 
     // Step 3: Store hash to Blockchain
     const blockchainData = await hashingAndStoreToBlockchain(
@@ -666,7 +666,7 @@ async function handleDataStorageStage(tenantUserId: string, projectId: string, r
       chainType,
       false
     );
-    await createStepDetails(tenantUserId, JSON.stringify(blockchainData.data), step3.id);
+    await createStepDetails(tenantUserId, JSON.stringify(blockchainData.data), step3.id,reference.id);
   }
 
   await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
@@ -744,23 +744,23 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
 
               if (reference.name && reference.reftype == RefType.DOCUMENT) {
                 // Step 1 and Step 3: Chunking and Embedding of chunks
-                const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
-                file_embeddings.push(file_embedding);
+                const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName,reference.id);
+                file_embeddings.push({file_embedding,referenceId:reference.id});
 
                 if (file_embedding.embeddings) {
                   // Step 2: Chunking hash
-                  const hashed_chunkcontent = await hashChunkContents(file_embedding.embeddings, step2.id, tenantUserId);
+                  const hashed_chunkcontent = await hashChunkContents(file_embedding.embeddings, step2.id, tenantUserId,reference.id);
 
                   // Step 5: Store chunk hash to Blockchain
                   if (hashed_chunkcontent) {
                     const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, chaintype);
-                    await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
+                    await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id,reference.id);
                   }
 
                   // Step 4, 6, 7: Reconstruction, Hashing, and Storing recombined data on Blockchain
                   const combined_response = await combineChunks(file_embedding.embeddings);
                   if (combined_response) {
-                    await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,chaintype);
+                    await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,chaintype,reference.id);
                   }
                 }
               }
@@ -786,13 +786,18 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
           const step1 = await getStepByProjectId(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1);
 
           if (file_embeddings && step1) {
-            const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
+            const fileEmbeddings = file_embeddings.map((ref) => ref.file_embedding.embeddings);
 
             const indexedFiles = await addToOpenSearch(fileEmbeddings,project?.data?.indexid?? "");
 
             for (const indexedFile of indexedFiles) {
+               
+                const refId = file_embeddings.filter((ref) =>{
+                  if(ref.file_embedding.embeddings)
+                   ref?.file_embedding.embeddings[0].file_name == indexedFile
+              })[0].referenceId;
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
-              await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
+              await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id,refId);
             }
           }
         }

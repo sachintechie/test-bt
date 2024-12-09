@@ -118,6 +118,8 @@ model stepdetail {
   isdeleted         Boolean
   createdat         String
   createdby         String
+  refid             String
+  reference         reference @relation(fields: [refid], references: [id])
 }
 
 model stagetype {
@@ -239,6 +241,7 @@ model reference  {
   isaddedbyadmin    Boolean
   contenttype       String?
   errreason         String?
+  stepdetails       stepdetail[]
 
 
 }

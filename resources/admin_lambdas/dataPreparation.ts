@@ -99,12 +99,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             // Step 1 and step 3: Chunking and Embedding of chunks
             if (reference.name != null && reference.reftype == RefType.DOCUMENT) {
               refIds.push(reference.id);
-              const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName);
-              file_embeddings.push(file_embedding);
+              const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName,reference.id);
+              file_embeddings.push({file_embedding,referenceId:reference.id});
               let hashed_chunkcontent;
               if (file_embedding.embeddings != null) {
                 // Step 2: Chunking hash
-                hashed_chunkcontent = await hashChunkContents(file_embedding?.embeddings, step2.id, tenantUserId);
+                hashed_chunkcontent = await hashChunkContents(file_embedding?.embeddings, step2.id, tenantUserId,reference.id);
               } else {
                 return false;
               }
@@ -113,7 +113,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
 
               if (hashed_chunkcontent != null) {
                 const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, project.data?.chaintype ?? "");
-                await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id);
+                await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id,reference.id);
               }
 
               // Step 4,6,7:Hashing of reconstructive data , Store recombined file to Blockchain ,Store recombined file to Blockchain
@@ -124,7 +124,8 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
 
                 const combined_response = await combineChunks(file_embedding?.embeddings);
                 console.log("combined_response", combined_response);
-                const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,project.data?.chaintype ?? ""); 
+                const hashCombinedData = await hashCombinedChunks(combined_response, step4.id, step6.id, 
+                  step7.id, tenantUserId,project.data?.chaintype ?? "",reference.id); 
                 console.log("hashCombinedData", hashCombinedData);
               }
             }
@@ -159,7 +160,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
          // const lambdaResponseForIndexing = await lambdaCallForIndexing(file_embeddings?.embeddings);
           // console.log("lambdaResponseForIndexing", lambdaResponseForIndexing);
           if (file_embeddings != null) {
-              const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
+              const fileEmbeddings = file_embeddings.map((ref) => ref.file_embedding.embeddings);
               const indexedFiles = await addToOpenSearch(fileEmbeddings,project?.data?.indexid?? "");
 
             //  const indexedFiles: string[] = JSON.parse(openSearchResponse);
@@ -167,8 +168,12 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             console.log("opensearchResponse", indexedFiles);
             for (const indexedFile of indexedFiles) {
               console.log("indexedFile", indexedFile);
+              const refId = file_embeddings.filter((ref) =>{
+                if(ref.file_embedding.embeddings)
+                 ref?.file_embedding.embeddings[0].file_name == indexedFile
+            })[0].referenceId;
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
-              await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id);
+              await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id,refId);
             }
           }
           // const indexedFiles: string[] = JSON.parse(lambdaResponseForIndexing);
@@ -215,7 +220,8 @@ export async function hashCombinedChunks(
   step7Id: string,
 
   createdBy: string,
-  chainType: string
+  chainType: string,
+  refId:string
 ) {
   // console.log("combinedResponseBody", combinedResponseBody);
   const hashedData: Array<{ file_name: string; file_content_hash: string }> = [];
@@ -229,7 +235,7 @@ export async function hashCombinedChunks(
     const metadata4 = { file_name: entry["file_name"] };
     console.log("metadata4", metadata4);
 
-    await createStepDetails(createdBy, JSON.stringify(metadata4), step4Id);
+    await createStepDetails(createdBy, JSON.stringify(metadata4), step4Id,refId);
 
     // Hash the content
     const fileContent = entry["file_content"] || "";
@@ -277,11 +283,11 @@ export async function hashCombinedChunks(
     hashedData.push(hashedEntry);
     console.log("hashedEntry", hashedEntry);
 
-    await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id);
+    await createStepDetails(createdBy, JSON.stringify(hashedFileData), step6Id,refId);
 
     const combinedResponse = await storeHashByChainType(hashedEntry.file_content_hash, chainType);
     console.log("combinedResponse", combinedResponse);
-    if (combinedResponse != null) await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id);
+    if (combinedResponse != null) await createStepDetails(createdBy, JSON.stringify(combinedResponse.data), step7Id,refId);
   }
   console.log("hashedData", hashedData);
 
@@ -291,7 +297,8 @@ export async function hashCombinedChunks(
 export async function hashChunkContents(
   allEmbeddingsWithMetadata: EmbeddingMetadata[],
   step1Id: string,
-  createdBy: string
+  createdBy: string,
+  refId:string
 ): Promise<GroupedChunk[]> {
   const hashedDataPromises = allEmbeddingsWithMetadata.map(async (entry) => {
     const chunkContent = entry.chunk_content || "";
@@ -323,7 +330,7 @@ export async function hashChunkContents(
 
     // Metadata for step details
     const metaData = { fileName, hash: hashContent.data?.dataHash ?? "" };
-    await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+    await createStepDetails(createdBy, JSON.stringify(metaData), step1Id,refId);
 
     return {
       file_name: fileName,
@@ -338,7 +345,8 @@ export async function hashChunkContents(
   return hashedChunkContent;
 }
 
-export async function processFile(fileKey: string, step1Id: string, step2Id: string, createdBy: string, projectId: string,bucketName:string) {
+export async function processFile(fileKey: string, step1Id: string, step2Id: string, 
+  createdBy: string, projectId: string,bucketName:string,refId:string) {
   let fileContent = "";
   try {
     // Fetch the file content from S3
@@ -357,7 +365,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   const chunks = textSplitter.splitText(fileContent);
   const metaData = { fileName: fileKey, number_of_chunks: chunks.length.toString() };
   console.log("metaData", metaData);
-  await createStepDetails(createdBy, JSON.stringify(metaData), step1Id);
+  await createStepDetails(createdBy, JSON.stringify(metaData), step1Id,refId);
 
   // Prepare list to store embeddings with metadata
   const embeddingsWithMetadata: EmbeddingMetadata[] = [];
@@ -382,7 +390,7 @@ export async function processFile(fileKey: string, step1Id: string, step2Id: str
   const metaData2 = { fileName: fileKey, number_of_chunks: chunks.length.toString(), vector_dimensions: "1024" };
   console.log("metaData2", metaData2);
 
-  await createStepDetails(createdBy, JSON.stringify(metaData2), step2Id);
+  await createStepDetails(createdBy, JSON.stringify(metaData2), step2Id,refId);
 
   return { filename: fileKey, error: "", embeddings: embeddingsWithMetadata };
 }
