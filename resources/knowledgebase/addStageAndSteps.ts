@@ -170,11 +170,12 @@ async function createStageWithSteps(
   stageName: string,
   projectId: string,
   stageTypeName: string,
-  stepDetails: { name: string; description: string; stepOrder: number }[]
+  stepDetails: { name: string; description: string; stepOrder: number }[],
+    stageOrder: number
 ) {
   const stageType = await getStageType(stageTypeName);
   if (stageType) {
-    const stage = await createStage(tenantUserId, stageName, stageName, stageType.id, projectId, stepDetails[0].stepOrder);
+    const stage = await createStage(tenantUserId, stageName, stageName, stageType.id, projectId, stageOrder);
     if (stage) {
       await createStepsForStage(tenantUserId, stage.id, stepDetails);
       return stage.id;
@@ -182,6 +183,25 @@ async function createStageWithSteps(
   }
   return null;
 }
+
+// Utility function to create a stage and steps
+async function createStageWithOutSteps(
+    tenantUserId: string,
+    stageName: string,
+    projectId: string,
+    stageTypeName: string,
+    stepDetails: { name: string; description: string; stepOrder: number }[],
+    stageOrder: number
+  ) {
+    const stageType = await getStageType(stageTypeName);
+    if (stageType) {
+      const stage = await createStage(tenantUserId, stageName, stageName, stageType.id, projectId, stageOrder);
+      if (stage) {
+        return stage.id;
+      }
+    }
+    return null;
+  }
 
 // Main function to add all stages
 export async function addStagesStructure(tenantUserId: string, projectId: string) {
@@ -206,20 +226,20 @@ export async function addStagesStructure(tenantUserId: string, projectId: string
     { name: "Store recombined file to Blockchain", description: "Store recombined file to Blockchain", stepOrder: 7 },
   ];
   const stage5Details = [{ name: "Writing to open search", description: "Writing to open search", stepOrder: 1 }];
-  const stage6Details: { name: string; description: string; stepOrder: number }[] = [];  // Empty array
+  const stage6Details =[ { name: "Published", description: "Published", stepOrder: 1 }]; // Empty array
 
   // Create each stage and its steps
-  const stage1Id = await createStageWithSteps(tenantUserId, "Data Source", projectId, "Data Source", stage1Details);
+  const stage1Id = await createStageWithSteps(tenantUserId, "Data Source", projectId, "Data Source", stage1Details,1);
   if (stage1Id) {
-    const stage2Id = await createStageWithSteps(tenantUserId, "Data Ingestion", projectId, "Data Ingestion", stage2Details);
+    const stage2Id = await createStageWithSteps(tenantUserId, "Data Ingestion", projectId, "Data Ingestion", stage2Details,2);
     if (stage2Id) {
-      const stage3Id = await createStageWithSteps(tenantUserId, "Data Storage", projectId, "Data Storage", stage3Details);
+      const stage3Id = await createStageWithSteps(tenantUserId, "Data Storage", projectId, "Data Storage", stage3Details,3);
       if (stage3Id) {
-        const stage4Id = await createStageWithSteps(tenantUserId, "Data Preparation", projectId, "Data Preparation", stage4Details);
+        const stage4Id = await createStageWithSteps(tenantUserId, "Data Preparation", projectId, "Data Preparation", stage4Details,4);
         if (stage4Id) {
-          const stage5Id = await createStageWithSteps(tenantUserId, "RAG Ingestion", projectId, "RAG Ingestion", stage5Details);
+          const stage5Id = await createStageWithSteps(tenantUserId, "RAG Ingestion", projectId, "RAG Ingestion", stage5Details,5);
           if (stage5Id) {
-            await createStageWithSteps(tenantUserId, "Published", projectId, "Published", stage6Details);
+            await createStageWithOutSteps(tenantUserId, "Published", projectId, "Published", stage6Details,6);
           }
         }
       }
