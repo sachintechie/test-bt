@@ -1683,6 +1683,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
+        isaddedbyadmin:false,
         status: status
       },
 
@@ -1727,7 +1728,9 @@ export async function getReferenceListByCustomer(limit: number, pageNo: number,p
       where: {
         tenantid: tenantId,
         isdeleted: false,
-        createdby: customerId
+        createdby: customerId,
+        isaddedbyadmin:false,
+        projectid:projectId
       },
 
       orderBy: {
@@ -2011,7 +2014,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
   }
 }
 
-export async function getRefWithSteps(refId: string, limit: number, pageNo: number) {
+export async function getRefWithSteps(refId: string) {
   try {
     const prisma = await getPrismaClient();
  
@@ -2019,23 +2022,7 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
     const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
-      },
-      include: {
-        stepdetails: {
-          orderBy: {
-            // Order stepdetails by id or any other field
-            id: 'asc',
-          },
-          include: {
-            step: {
-              
-              include: {
-                stage: true, // Include the related stage data
-              },
-            },
-          },
-        },
-      },
+      }
     });
     if(reference == null){
       return { data: null, error: "Reference not found" };
@@ -2079,9 +2066,12 @@ export async function getRefWithSteps(refId: string, limit: number, pageNo: numb
       return { data: null, error: "Reference not found" };
     }
 
-  
+   const data = {
+    reference: reference,
+    stages: stages
+   }
 
-    return { data : reference, error: null };
+    return { data : data, error: null };
   } catch (err) {
     return { data: null, error: err };
   }

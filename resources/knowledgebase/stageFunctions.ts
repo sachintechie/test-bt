@@ -746,6 +746,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
                 // Step 1 and Step 3: Chunking and Embedding of chunks
                 const file_embedding = await processFile(reference.name, step1.id, step3.id, tenantUserId, projectId,bucketName,reference.id);
                 file_embeddings.push({ file_embedding: file_embedding.embeddings, referenceId: reference.id });
+                console.log("file_embedding", file_embeddings);
 
                 if (file_embedding.embeddings) {
                   // Step 2: Chunking hash
@@ -786,8 +787,9 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
           const step1 = await getStepByProjectId(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1);
 
           if (file_embeddings && step1) {
-            const fileEmbeddings = file_embeddings.map((ref) => ref.file_embedding);
-
+            const fileEmbeddings = file_embeddings.map((ref) => ref.file_embedding).flat();
+            console.log("fileEmbeddings", fileEmbeddings);
+            // const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
             const indexedFiles = await addToOpenSearch(fileEmbeddings,project?.data?.indexid?? "");
 
             for (const indexedFile of indexedFiles) {
@@ -796,6 +798,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
               const refId = file_embeddings.find((ref) =>
                 ref.file_embedding?.some((embedding) => embedding.file_name === indexedFile)
               )?.referenceId;
+
               console.log("refId", refId);
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id,refId ?? "");
