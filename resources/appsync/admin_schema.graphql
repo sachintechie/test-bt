@@ -762,6 +762,7 @@ type ProjectData {
 	projectstage: String
 	projectstatus: String
 	organizationid: String
+	projectid: String
 	name: String
 	description: String
 	isactive: Boolean
