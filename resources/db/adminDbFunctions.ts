@@ -1683,6 +1683,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
+        isaddedbyadmin:false,
         status: status
       },
 
@@ -1727,7 +1728,9 @@ export async function getReferenceListByCustomer(limit: number, pageNo: number,p
       where: {
         tenantid: tenantId,
         isdeleted: false,
-        createdby: customerId
+        createdby: customerId,
+        isaddedbyadmin:false,
+        projectid:projectId
       },
 
       orderBy: {

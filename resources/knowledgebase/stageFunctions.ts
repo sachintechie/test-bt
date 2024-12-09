@@ -787,7 +787,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
           const step1 = await getStepByProjectId(tenantUserId, "Writing to open search", "Writing to open search", stepType1.id, stage5.id, 1);
 
           if (file_embeddings && step1) {
-            const fileEmbeddings = file_embeddings.map((ref) => ref.file_embedding);
+            const fileEmbeddings = file_embeddings.map((ref) => ref.file_embedding).flat();
             console.log("fileEmbeddings", fileEmbeddings);
             // const fileEmbeddings = file_embeddings.map((ref) => ref.embeddings);
             const indexedFiles = await addToOpenSearch(fileEmbeddings,project?.data?.indexid?? "");
