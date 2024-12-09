@@ -104,6 +104,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
                 reference.id
               );
               file_embeddings.push({ file_embedding: file_embedding.embeddings, referenceId: reference.id });
+              console.log("file_embedding", file_embedding);
               let hashed_chunkcontent;
               if (file_embedding.embeddings != null) {
                 // Step 2: Chunking hash

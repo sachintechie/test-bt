@@ -882,6 +882,7 @@ type StepDetailsData {
 	isdeleted: Boolean
 	createdat: String
 	metadata: String
+	refid: String
 }
 
 type TransactionData {
@@ -1042,6 +1043,21 @@ type UpdateReferenceStatusResponse {
 	error: AWSJSON
 }
 
+input ListRefStepInput{
+	refId: String!
+}
+
+type StepAndReferenceResponse{
+status: Int
+data: StepAndReferenceData
+error: AWSJSON
+}
+
+type StepAndReferenceData{
+reference: ReferenceData
+stages : [StageData]
+}
+
 type Mutation {
 	AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
 	AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -1077,6 +1093,7 @@ type Mutation {
 
 }
 
+
 type Query {
 	AdminSignin(input: SigninInput): SignIn
 	CreateAdminWallet(input: CreateWalletInput): GetWallet
@@ -1098,6 +1115,7 @@ type Query {
 	ListStageTypeAndStepType(input: ListStageTypeAndStepTypeInput): ListStageTypeAndStepTypeResponse
 	GetActivityLogs: GetActivityLogsResponse
 	TransferNftAdmin(input: TransferNftAdminInput): TransferNftAdmin
+	GetStepsByRefId(input : ListRefStepInput): StepAndReferenceResponse
 }
 
 schema {
