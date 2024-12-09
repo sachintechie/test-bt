@@ -41,16 +41,18 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
 
   if(project != null && project.data){
     let sanitizedName: string = project.data.name
-    .replace(/[^a-z0-9-]/g, '')  // Remove invalid characters
-    .replace(/^[^a-z]/, 'a');    // Ensure it starts with a lowercase letter
-  
+    .replace(/[^a-z0-9-]/g, '')   // Remove invalid characters
+    .replace(/^-+/, '')           // Remove leading hyphens
+    .replace(/^[^a-z0-9]/, 'a');  // Ensure it starts with a lowercase letter or alphanumeric
+
   let randomString: string = await generateRandomString(6); // Generate a 6-character random string
   let finalName: string = `${sanitizedName}-${randomString}`;
   const kbResponse = await lambdaCallForCreateKB( project.data.id,finalName);
   if (project != null && kbResponse && kbResponse.data != null) {
     
 
-   const updateProject = await updateProjectKbAndIndex(project.data.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "");
+   const updateProject = await updateProjectKbAndIndex(project.data.id, kbResponse.data.Kb_Id ?? "",
+     kbResponse?.data.Index_Name ?? "",kbResponse?.data.Collection_Name ?? "");
     console.log("updateProjectKB", updateProject);
   }
 
@@ -101,18 +103,18 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
 
           const fileData = { fileName: ref.name, contentType: ref.contenttype, size: ref.size,downloadUrl:downloadUrl };
           // Step 1: File upload details
-          await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id);
+          await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id,ref.id);
 
           // Step 2: Hash the file data
           const hashedData = {
             hash: ref.hash
           };
-          await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id);
+          await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id,ref.id);
 
           // Step 3: Store the hashed data on the blockchain
           const blockchainHashedData = await storeHashByChainType(ref?.hash?? "", project.data?.chaintype ?? "");
           if(blockchainHashedData != null)
-          await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id);
+          await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id,ref.id);
 
           }
           else{
