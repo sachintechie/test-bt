@@ -1,6 +1,7 @@
 import { Client } from "@opensearch-project/opensearch";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { defaultProvider } from "@aws-sdk/credential-provider-node";
+import { lambdaCallForPrinicplePolicyAdd } from "../knowledgebase/commonFunctions";
 
 // Function to connect to OpenSearch
 export async function connectToOpenSearch() {
@@ -35,7 +36,7 @@ async function indexDocuments( indexName: string, documents: any[]) {
     console.log(`Starting indexing of ${documents.length} documents...`);
 
     for (const doc of documents) {
-        console.log(`Indexing document: ${doc}`);
+     //   console.log(`Indexing document: ${doc}`);
      //   console.log(`Indexing document: ${doc.file_name}`);
         const chunkIndexValue = {
              id: '',  // You can choose a suitable ID generation method, e.g., UUID
@@ -62,11 +63,14 @@ async function indexDocuments( indexName: string, documents: any[]) {
 
             if (response.body.result === 'created') {
                 filenames.push(doc.file_name);
-                console.log(`Document indexed successfully: ${doc.file_name}`);
+               // console.log(`Document indexed successfully: ${doc.file_name}`);
             } else {
                 console.log(`Failed to index document: ${doc.file_name}. Response: ${JSON.stringify(response.body)}`);
             }
-        } catch (error) {
+        } catch (error :any) {
+            if(error?.status == 403){
+                  const policyAdd = await lambdaCallForPrinicplePolicyAdd(doc.project_id,doc.ref_id);
+            }
             console.error(`Error indexing document: ${doc.file_name}. Error: ${error}`);
         }
     }

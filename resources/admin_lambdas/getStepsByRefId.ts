@@ -1,9 +1,21 @@
 import { getRefWithSteps } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
-
-export const handler = async (event: any) => {
+const AWS = require('aws-sdk');
+const lambda = new AWS.Lambda();
+export const handler = async (event: any,context:any) => {
   try {
     console.log(event);
+    
+      // Get Lambda function metadata using AWS SDK
+      const functionName = context.functionName;
+    
+      // Call Lambda's GetFunction API to get the function configuration
+      const functionData = await lambda.getFunction({ FunctionName: functionName }).promise();
+  
+      // Extract the Role ARN from the function's configuration
+      const roleArn = functionData.Configuration.Role;
+  
+      console.log('Lambda Role ARN:', roleArn);
 
     const data = await getStepsByRefId(
     //  event.identity.resolverContext as tenant,
