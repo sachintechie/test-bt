@@ -38,9 +38,9 @@ export const handler = async (event: any, context: any) => {
     // Parse the input from the event
     console.log("Parsing input from event...");
     console.log("Event:", event);
-    const userMessage = event.body.message;
-    const projectId = event.body.projectId;
-    let sessionId = event.body.sessionId || `initial${uuid.v4()}`;
+    const userMessage = event.arguments?.input?.message;
+    const projectId = event.arguments?.input?.projectId;
+    let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
@@ -237,7 +237,8 @@ export const handler = async (event: any, context: any) => {
         job_id: jobId,
         message: "Something went wrong",
         sessionId: "N/A",
-        source_text: sourceText
+        source_text: sourceText,
+        source_filenamelist: sourceFilenamelist
       };
   }
 };
