@@ -53,7 +53,7 @@ export const handler = async (event: any, context: any) => {
     console.log("Project fetched successfully...");
 
     // from project we will get the knowledge base id, and index name
-    const indexId = project.data?.indexid;
+    //const indexId = project.data?.indexid;
     const knowledgebaseId = project.data?.knowledgebaseid;
 
     // Set up the configuration for retrieval and generation
