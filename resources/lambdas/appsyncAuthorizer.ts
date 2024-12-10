@@ -1,148 +1,3 @@
-// import { executeQuery } from "../db/PgClient";
-// import { getCustomerIdByTenant } from "../db/dbFunctions";
-// import { verifyToken } from "../cognito/commonFunctions";
-
-// export const handler = async (event: any) => {
-//   try {
-//     console.log("Event", event);
-//     let token = event.authorizationToken;
-//     console.log("queryType:" + event?.requestContext?.queryString.toString().includes("Signin"));
-
-//     if (token != null) {
-//       // console.log("Token provided", token);
-//       let query = `SELECT * FROM tenant where apikey = '${token}';`;
-//       const res = await executeQuery(query);
-//       console.log(res.rows);
-//       if (res.rows.length > 0 && res.rows[0].apikey === token) {
-//         console.log("tenant-inside-if");
-
-//         const tenant = res.rows[0];
-//         console.log(tenant);
-//         if (tenant.name === "AI" || tenant.name === "AI-Dev") {
-//           return {
-//             isAuthorized: true,
-//             resolverContext: {
-//               id: tenant.id,
-//               name: tenant.name,
-//               apikey: tenant.apikey,
-//               logo: tenant.logo,
-//               isactive: tenant.isactive,
-//               createdat: tenant.createdat,
-//               userpoolid: tenant.userpoolid,
-//               cognitoclientid: tenant.cognitoclientid,
-//               iscubistactive: tenant.iscubistactive
-//             }
-//           };
-//         } else if (tenant.iscognitoactive === true) {
-//           let idToken = event?.requestHeaders?.identity;
-//           if (idToken != null) {
-//             const decodedToken: any = await verifyToken(tenant, idToken);
-//             console.log("Decoded token:", decodedToken);
-
-//             if (decodedToken != null && decodedToken["email"] != null) {
-//               const expireTime = decodedToken["exp"];
-
-//               // Convert the expiration timestamp to milliseconds
-//               const expireTimeInMs = expireTime * 1000;
-
-//               // Get the current time in milliseconds
-//               const currentTime = Date.now();
-//               // Check if the expiration time has passed
-//               if (currentTime > expireTimeInMs) {
-//                 console.log("Token expired");
-//                 return {
-//                   isAuthorized: false
-//                 };
-//               } else {
-//                 const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
-//                 if (customer == null) {
-//                   if (event?.requestContext?.queryString.toString().includes("Signin")) {
-//                     return {
-//                       isAuthorized: true,
-//                       resolverContext: {
-//                         id: tenant.id,
-//                         name: tenant.name,
-//                         apikey: tenant.apikey,
-//                         logo: tenant.logo,
-//                         isactive: tenant.isactive,
-//                         createdat: tenant.createdat,
-//                         userpoolid: tenant.userpoolid,
-//                         cognitoclientid: tenant.cognitoclientid,
-//                         iscubistactive: tenant.iscubistactive,
-//                         usertype: "CUSTOMER"
-//                       }
-//                     };
-//                   } else {
-//                     console.log("Customer not found");
-//                     return {
-//                       isAuthorized: false
-//                     };
-//                   }
-//                 } else {
-//                   return {
-//                     isAuthorized: true,
-//                     resolverContext: {
-//                       id: tenant.id,
-//                       name: tenant.name,
-//                       apikey: tenant.apikey,
-//                       logo: tenant.logo,
-//                       isactive: tenant.isactive,
-//                       createdat: tenant.createdat,
-//                       userpoolid: tenant.userpoolid,
-//                       cognitoclientid: tenant.cognitoclientid,
-//                       iscubistactive: tenant.iscubistactive,
-//                       usertype: "CUSTOMER",
-//                       customerid: customer.id
-//                     }
-//                   };
-//                 }
-//               }
-//             } else {
-//               console.log("decoded token null");
-//               return { isAuthorized: false };
-//             }
-//           } else {
-//             console.log("id token null");
-//             return {
-//               isAuthorized: false
-//             };
-//           }
-//         } else {
-//           return {
-//             isAuthorized: true,
-//             resolverContext: {
-//               id: tenant.id,
-//               name: tenant.name,
-//               apikey: tenant.apikey,
-//               logo: tenant.logo,
-//               isactive: tenant.isactive,
-//               createdat: tenant.createdat,
-//               userpoolid: tenant.userpoolid,
-//               cognitoclientid: tenant.cognitoclientid
-//             }
-//           };
-//         }
-//       } else {
-//         console.log("Api token not matched");
-//         return { isAuthorized: false };
-//       }
-//     } else {
-//       console.log("No token provided");
-//       return {
-//         isAuthorized: false
-//       };
-//     }
-//   } catch (err) {
-//     console.log("Error", err);
-//     return {
-//       isAuthorized: false
-//     };
-//   } finally {
-//     console.log("Disconnected from database.");
-//   }
-// };
-
-
 import { verifyToken } from "../cognito/commonFunctions";
 import { getAdminUserByTenant } from "../db/adminDbFunctions";
 import { getCustomerIdByTenant } from "../db/dbFunctions";
@@ -157,6 +12,25 @@ export const handler = async (event: any) => {
   try {
     console.log("Event received:", event);
     const token = event.authorizationToken;
+
+    const operationType = event?.requestContext?.queryString;  // Should be "Query", "Mutation", or "Subscription"
+    console.log("Operation type:", operationType);
+    let queryType  = false;
+    let mutationType  = false;
+    let subscriptionType = false;
+    if (operationType?.includes("query")) {
+      console.log('This is a Query operation');
+      queryType = true;
+  } else if (operationType?.includes("mutation")) {
+      console.log('This is a Mutation operation');
+      mutationType = true;
+  } else {
+      console.log('This is a Subscription operation');
+      subscriptionType = true;
+      return { isAuthorized: true };
+  }
+
+console.log(queryType,mutationType,subscriptionType);
 
     if (!token) {
       console.log("No token provided");

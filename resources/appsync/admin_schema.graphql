@@ -28,6 +28,7 @@ type ProjectAndUrlData {
 type S3PreSignedUrlData {
 	key: String
 	url: String
+	id: String
 }
 
 
@@ -348,7 +349,7 @@ input FileInput {
 }
 
 input FileStatusInput {
-	fileName: String!
+	id: String!
 	status: String!
 }
 
@@ -996,7 +997,7 @@ input UpdateProductStatusInput {
 
 input UpdateProjectStatusInput {
 	projectId: String!
-	fileStatus: [FileStatusInput]
+	files: [FileStatusInput]!
 }
 
 input UpdateRefStatusInput{
@@ -1119,7 +1120,13 @@ type Query {
 	GetStepsByRefId(input : ListRefStepInput): StepAndReferenceResponse
 }
 
+type Subscription {
+  ProjectUpdated(projectId: String!): AddFileToProjectResponse
+    @aws_subscribe(mutations: ["AddFileToProjectByAdmin"])
+}
+
 schema {
 	query: Query
 	mutation: Mutation
+	subscription: Subscription
 }

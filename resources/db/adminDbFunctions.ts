@@ -491,7 +491,7 @@ export async function createStep(
   }
 }
 
-export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string,refId:string) {
+export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string,refId:string,status : ActionStatus) {
   console.log("Creating step details",metaData, stepId);
   try {
     const prisma = await getPrismaClient();
@@ -499,7 +499,7 @@ export async function createStepDetails(tenantUserId: string, metaData: string, 
       data: {
         isactive: true,
         stepid: stepId,
-        status: ActionStatus.COMPLETED,
+        status: status,
         isdeleted: false,
         metadata: metaData,
         createdat: new Date().toISOString(),
@@ -1302,7 +1302,7 @@ export async function addReferences(
     });
 
     console.log(`Successfully added ${createdReferences.count} references.`);
-    return { data: createdReferences, error: null };
+    return { data: referencesData, error: null };
   } catch (err) {
     console.error("Error adding references:", err);
     return { data: null, error: err };

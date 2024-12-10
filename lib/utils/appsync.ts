@@ -41,6 +41,7 @@ export const newAppSyncApi = (
 
 export const configResolver = (api: GraphqlApi, lambda: IFunction, typeName: string, fieldName: string) => {
   const dataSource = api.addLambdaDataSource(env`${fieldName}LambdaDataSource`, lambda);
+  
   dataSource.createResolver(env`${fieldName}Resolver`, {
     typeName: typeName,
     fieldName: fieldName,
@@ -53,8 +54,9 @@ export const configResolver = (api: GraphqlApi, lambda: IFunction, typeName: str
           "resolverContext": $util.toJson($ctx.identity.resolverContext),
           "headers": $util.toJson($ctx.request.headers),
           "arguments": $util.toJson($ctx.arguments),
-          "parentTypeName": "$ctx.parentTypeName",
-          "fieldName": "$ctx.fieldName"
+          "parentTypeName": $util.toJson($ctx.parentTypeName),
+          "typeName": $util.toJson($ctx.typeName),
+          "fieldName": $util.toJson($ctx.fieldName)
         }
       }
       `),
@@ -63,3 +65,4 @@ export const configResolver = (api: GraphqlApi, lambda: IFunction, typeName: str
       `)
   });
 };
+
