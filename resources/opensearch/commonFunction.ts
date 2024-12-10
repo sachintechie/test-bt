@@ -29,7 +29,7 @@ export async function connectToOpenSearch() {
 
 // Function to index documents in OpenSearch
 async function indexDocuments( indexName: string, documents: any[]) {
-    const filenames: string[] = [];
+    const filenames = [];
     const client = await connectToOpenSearch();
 
     console.log(`Starting indexing of ${documents.length} documents...`);
@@ -58,12 +58,14 @@ async function indexDocuments( indexName: string, documents: any[]) {
                 body: chunkIndexValue,
                 // refresh: true,  // Ensure the index is refreshed after the document is added
             });
-
+          console.log("response", response);
 
             if (response.body.result === 'created') {
-                filenames.push(doc.file_name);
+                filenames.push({fileName : doc.file_name ,status : "success"});
                // console.log(`Document indexed successfully: ${doc.file_name}`);
             } else {
+                filenames.push({fileName : doc.file_name ,status : "errored"});
+
                 console.log(`Failed to index document: ${doc.file_name}. Response: ${JSON.stringify(response.body)}`);
             }
         } catch (error :any) {
@@ -73,8 +75,12 @@ async function indexDocuments( indexName: string, documents: any[]) {
     }
 
     console.log("Indexing completed.",filenames);
+    // To return unique filenames based on the `fileName` property
+const uniqueFilenames = [
+    ...new Map(filenames.map(item => [item.fileName, item])).values()
+];
 
-    return Array.from(new Set(filenames));  // Return unique file names
+    return uniqueFilenames  // Return unique file names
 }
 
 

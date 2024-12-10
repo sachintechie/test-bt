@@ -195,16 +195,27 @@ export const handler = async (event: any,context: any) => {
   try {
     console.log("Event received:", event,context);
     const token = event.authorizationToken;
-    const operationType = event?.parentTypeName;  // Should be "Query", "Mutation", or "Subscription"
+    const operationType = event?.requestContext?.queryString;  // Should be "Query", "Mutation", or "Subscription"
         console.log("Operation type:", operationType);
-    if (operationType === 'Query') {
+        let queryType  = false;
+        let mutationType  = false;
+        let subscriptionType = false;
+    if (operationType.contains("query") === 'Query') {
       console.log('This is a Query operation');
-    } else if (operationType === 'Mutation') {
+      queryType = true;
+    } else if (operationType.contains("mutation") === 'Mutation') {
       console.log('This is a Mutation operation');
-    } else if (operationType === 'Subscription') {
+      mutationType = true;
+    } else  {
       console.log('This is a Subscription operation');
+      subscriptionType = true;
       return { isAuthorized: true };
     }
+
+    console.log(queryType,mutationType,subscriptionType);
+
+
+  
 
     if (!token) {
       console.log("No token provided");

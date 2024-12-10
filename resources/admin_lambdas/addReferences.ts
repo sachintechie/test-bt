@@ -10,7 +10,7 @@ import {
   updateReferenceStage
 } from "../db/adminDbFunctions";
 import { hashing, hashingAndStoreToBlockchain } from "../avalanche/storeHashFunctions";
-import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
+import { ActionStatus, ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  getS3Data, getS3DataWithoutContent,dataPreperationLambda } from "../knowledgebase/commonFunctions";
 import { RefType } from "../db/models";
 
@@ -67,7 +67,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             const s3Data = await getS3DataWithoutContent(reference?.name,bucketName);
             refIds.push(reference.id);
 
-              await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id,reference.id);
+              await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step1.id,reference.id,ActionStatus.COMPLETED);
             }
             }
 
@@ -117,7 +117,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             };
 
             // Step 1: Read file from S3
-            await createStepDetails(tenantUserId, JSON.stringify(s3data), step1.id,reference.id);
+            await createStepDetails(tenantUserId, JSON.stringify(s3data), step1.id,reference.id,ActionStatus.COMPLETED);
 
             // Step 2: Hash the S3 file data
             const s3File = { fileName: getDataFromS3?.data?.fileName, fileContent: getDataFromS3?.data?.content };
@@ -126,11 +126,11 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string,b
             const hashedData = {
               hash: hash.data?.dataHash
             };
-            await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id,reference.id);
+            await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id,reference.id,ActionStatus.COMPLETED);
 
             // Step 3: Store the hashed data on the blockchain
             const blockchainHashedData = await hashingAndStoreToBlockchain(s3File,project.data?.chaintype??"", false);
-            await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id,reference.id);
+            await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id,reference.id,ActionStatus.COMPLETED);
           }
 
           // Update project to reflect data preparation status

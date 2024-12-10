@@ -11,7 +11,7 @@ import {
   updateProjectStage,
   updateReferenceStage
 } from "../db/adminDbFunctions";
-import { ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
+import { ActionStatus, ProjectStage, ProjectStatusEnum, ReferenceStage, ReferenceStatus } from "@prisma/client";
 import {  storeHashByChainType, generateSignedUrl, lambdaCallForCreateKB, generateRandomString, lambdaCallForCreateS3Bucket, addReferencesLambda } from "../knowledgebase/commonFunctions";
 import { RefType } from "../db/models";
 
@@ -103,18 +103,18 @@ export async function addStage_1( tenantUserId: string, projectId: string,bucket
 
           const fileData = { fileName: ref.name, contentType: ref.contenttype, size: ref.size,downloadUrl:downloadUrl };
           // Step 1: File upload details
-          await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id,ref.id);
+          await createStepDetails(tenantUserId, JSON.stringify(fileData), step1.id,ref.id,ActionStatus.COMPLETED);
 
           // Step 2: Hash the file data
           const hashedData = {
             hash: ref.hash
           };
-          await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id,ref.id);
+          await createStepDetails(tenantUserId, JSON.stringify(hashedData), step2.id,ref.id,ActionStatus.COMPLETED);
 
           // Step 3: Store the hashed data on the blockchain
           const blockchainHashedData = await storeHashByChainType(ref?.hash?? "", project.data?.chaintype ?? "");
           if(blockchainHashedData != null)
-          await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id,ref.id);
+          await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step3.id,ref.id,ActionStatus.COMPLETED);
 
           }
           else{
