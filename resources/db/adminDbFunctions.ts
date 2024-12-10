@@ -1302,7 +1302,7 @@ export async function addReferences(
     });
 
     console.log(`Successfully added ${createdReferences.count} references.`);
-    return { data: createdReferences, error: null };
+    return { data: referencesData, error: null };
   } catch (err) {
     console.error("Error adding references:", err);
     return { data: null, error: err };

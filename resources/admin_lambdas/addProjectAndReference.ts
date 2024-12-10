@@ -8,7 +8,7 @@ import {
   updateProjectKbBucket,
 } from "../db/adminDbFunctions";
 import {  ProjectType,  } from "@prisma/client";
-import {   addStage1Lambda, formatBytes, generatePresignedUrl, generateRandomString, lambdaCallForCreateKB, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
+import {   addStage1Lambda, formatBytes, generatePresignedUrl, generatePresignedUrlForFirstUpload, generateRandomString, lambdaCallForCreateKB, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
 import { addStagesStructure } from "../knowledgebase/addStageAndSteps";
 
@@ -93,9 +93,10 @@ async function addProjectAndReference(
     //  const updateProject = await updateProjectKbBucket(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket);
     //   console.log("updateProjectKB", updateProject);
       const refs = await addReferences(tenant.id, tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
+      console.log("refs", refs);
     //  const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
      // console.log("stage1", stage1);
-      const generatedUrls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT), kbResponse.data.s3_bucket);
+      const generatedUrls = await generatePresignedUrlForFirstUpload(refs.data?.filter((file: any) => file.reftype === RefType.DOCUMENT), kbResponse.data.s3_bucket);
       console.log("generatedUrls", generatedUrls);
 
      // var projectData = await getProjectWithSteps(project.id, 1, 1);
