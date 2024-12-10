@@ -348,7 +348,7 @@ input FileInput {
 }
 
 input FileStatusInput {
-	fileName: String!
+	id: String!
 	status: String!
 }
 
@@ -996,7 +996,7 @@ input UpdateProductStatusInput {
 
 input UpdateProjectStatusInput {
 	projectId: String!
-	fileStatus: [FileStatusInput]
+	files: [FileStatusInput]!
 }
 
 input UpdateRefStatusInput{
