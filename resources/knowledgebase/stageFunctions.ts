@@ -1,5 +1,6 @@
 
 import {
+  ActionStatus,
   ProjectStage,
   ProjectStatusEnum,
   ReferenceStage,
@@ -151,7 +152,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
             downloadUrl
           };
           console.log("metaData", fileData);
-          await createStepDetails(tenantUserId, JSON.stringify(fileData), stepId,reference.id);
+          await createStepDetails(tenantUserId, JSON.stringify(fileData), stepId,reference.id,ActionStatus.COMPLETED);
         }
       },
       {
@@ -162,7 +163,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           const hashedData = { hash: reference.hash };
           console.log("metaData", hashedData);
 
-          await createStepDetails(tenantUserId, JSON.stringify(hashedData), stepId,reference.id);
+          await createStepDetails(tenantUserId, JSON.stringify(hashedData), stepId,reference.id,ActionStatus.COMPLETED);
         }
       },
       {
@@ -177,7 +178,7 @@ export async function addStage_1(tenantId: string, tenantUserId: string, project
           await createStepDetails(
             tenantUserId,
             JSON.stringify(blockchainHashedData.data),
-            stepId,reference.id
+            stepId,reference.id,ActionStatus.COMPLETED
           );
         }
       }
@@ -241,7 +242,7 @@ async function handleDataIngestionStage(tenantUserId: string, projectId: string,
     const s3Data = await getS3DataWithoutContent(reference.name,bucketName);
     refIds.push(reference.id);
 
-    await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step.id,reference.id);
+    await createStepDetails(tenantUserId, JSON.stringify(s3Data.data), step.id,reference.id,ActionStatus.COMPLETED);
   }
 
  // await updateProjectStage(projectId, ProjectStage.DATA_INGESTION, ProjectStatusEnum.ACTIVE);
@@ -278,11 +279,11 @@ async function handleDataStorageStage(tenantUserId: string, projectId: string, r
     const fileMetadata = extractS3Metadata(s3Data);
 
     // Step 1: Read file from S3
-    await createStepDetails(tenantUserId, JSON.stringify(fileMetadata), step1.id,reference.id);
+    await createStepDetails(tenantUserId, JSON.stringify(fileMetadata), step1.id,reference.id,ActionStatus.COMPLETED);
 
     // Step 2: Hash S3 file content
     const hash = await hashing({ fileName: s3Data.data?.fileName, fileContent: s3Data.data?.content });
-    await createStepDetails(tenantUserId, JSON.stringify({ hash: hash.data?.dataHash }), step2.id,reference.id);
+    await createStepDetails(tenantUserId, JSON.stringify({ hash: hash.data?.dataHash }), step2.id,reference.id,ActionStatus.COMPLETED);
 
     // Step 3: Store hash to Blockchain
     const blockchainData = await hashingAndStoreToBlockchain(
@@ -290,7 +291,7 @@ async function handleDataStorageStage(tenantUserId: string, projectId: string, r
       chainType,
       false
     );
-    await createStepDetails(tenantUserId, JSON.stringify(blockchainData.data), step3.id,reference.id);
+    await createStepDetails(tenantUserId, JSON.stringify(blockchainData.data), step3.id,reference.id,ActionStatus.COMPLETED);
   }
 
   //await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
@@ -379,7 +380,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
                   // Step 5: Store chunk hash to Blockchain
                   if (hashed_chunkcontent) {
                     const blockchainHashedData = await hashingAndStoreToBlockchain(hashed_chunkcontent[0].hash, chaintype);
-                    await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id,reference.id);
+                    await createStepDetails(tenantUserId, JSON.stringify(blockchainHashedData.data), step5.id,reference.id,ActionStatus.COMPLETED);
                   }
 
                   // Step 4, 6, 7: Reconstruction, Hashing, and Storing recombined data on Blockchain
@@ -387,6 +388,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
                   if (combined_response) {
                     await hashCombinedChunks(combined_response, step4.id, step6.id, step7.id, tenantUserId,chaintype,reference.id);
                   }
+                  
                 }
               }
             }
@@ -420,12 +422,13 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
                
               console.log("indexedFile", indexedFile);
               const refId = file_embeddings.find((ref) =>
-                ref.file_embedding?.some((embedding) => embedding.file_name === indexedFile)
+                ref.file_embedding?.some((embedding) => embedding.file_name === indexedFile.fileName)
               )?.referenceId;
 
               console.log("refId", refId);
               const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
-              await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id,refId ?? "");
+              const status = indexedFile.status === "success" ? ActionStatus.COMPLETED : ActionStatus.ERROR;
+              await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id,refId ?? "",status);
             }
           }
         }
