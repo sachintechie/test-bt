@@ -2,6 +2,7 @@ import { tenant } from "../db/models";
 
 import {
   getProjectById,
+  updateReferenceStatusByAdmin,
 } from "../db/adminDbFunctions";
 import { addAllStageLambda, addReferencesLambda, addStage1Lambda } from "../knowledgebase/commonFunctions";
 import { ProjectStage } from "@prisma/client";
@@ -50,6 +51,8 @@ async function updateProjectStatus(tenant: tenant, projectId: string, files: any
       };
     } else {
       if(project.data.projectstage === ProjectStage.DATA_SOURCE){
+        const refs = await updateReferenceStatusByAdmin(files);
+
        // await addStage1Lambda(tenant.adminuserid ?? "", project.data.id,project.data.s3bucketname?? "",project.data.name);
         await addAllStageLambda(
           tenant.adminuserid ?? "",
