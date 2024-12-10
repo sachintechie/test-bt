@@ -52,7 +52,9 @@ export const configResolver = (api: GraphqlApi, lambda: IFunction, typeName: str
           "identity": $util.toJson($ctx.identity),
           "resolverContext": $util.toJson($ctx.identity.resolverContext),
           "headers": $util.toJson($ctx.request.headers),
-          "arguments": $util.toJson($ctx.arguments)
+          "arguments": $util.toJson($ctx.arguments),
+          "parentTypeName": "$ctx.parentTypeName",
+          "fieldName": "$ctx.fieldName"
         }
       }
       `),
