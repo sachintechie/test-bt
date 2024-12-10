@@ -200,10 +200,10 @@ export const handler = async (event: any,context: any) => {
         let queryType  = false;
         let mutationType  = false;
         let subscriptionType = false;
-    if (operationType.contains("query") === 'Query') {
+    if (operationType?.contains("query") === 'Query') {
       console.log('This is a Query operation');
       queryType = true;
-    } else if (operationType.contains("mutation") === 'Mutation') {
+    } else if (operationType?.contains("mutation") === 'Mutation') {
       console.log('This is a Mutation operation');
       mutationType = true;
     } else  {
