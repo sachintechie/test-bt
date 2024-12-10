@@ -17,7 +17,7 @@ export const handler = async (event: any,context: any) => {
         let queryType  = false;
         let mutationType  = false;
         let subscriptionType = false;
-        
+
         if (operationType?.includes("query")) {
           console.log('This is a Query operation');
           queryType = true;
@@ -27,6 +27,7 @@ export const handler = async (event: any,context: any) => {
       } else {
           console.log('This is a Subscription operation');
           subscriptionType = true;
+          return { isAuthorized: true };
       }
 
     console.log(queryType,mutationType,subscriptionType);
