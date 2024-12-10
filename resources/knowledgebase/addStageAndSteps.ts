@@ -159,6 +159,7 @@ async function createStepsForStage(
         if (stepType) {
           return createStep(tenantUserId, name, description, stepType.id, stageId, stepOrder);
         }
+        return null;
       })
     )
   );
