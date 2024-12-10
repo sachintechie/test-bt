@@ -13,6 +13,7 @@ import mammoth from "mammoth";
 import { parse as parseCSV } from '@fast-csv/parse';
 import * as XLSX from "xlsx";
 import PDFParser from 'pdf2json';
+import { getProjectById } from "../db/adminDbFunctions";
 
 export async function addReferencesLambda(tenantUserId: string, projectId: string,bucketName:string) {
   const event = {
@@ -217,6 +218,47 @@ export async function lambdaCallForCreateS3Bucket(projectId: string,name:string)
 
 }
 
+
+export async function lambdaCallForPrinicplePolicyAdd(projectId: string,roleArn:string) {
+  const project = await getProjectById(projectId);
+
+  const event = {
+    collection_name: project.data?.collectionname,
+    new_arn:roleArn
+  };
+
+  const params = {
+    FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:update-data-access-policy-collection",
+    InvocationType: "RequestResponse",
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  const response = await lambda.invoke(params).promise();
+
+  const responsePayload = response.Payload as Buffer;
+
+  // Convert the buffer to string (UTF-8 encoded)
+  const responseStr = responsePayload.toString("utf-8");
+
+  // Parse the string into a JSON object
+  const combinedResponse = JSON.parse(responseStr);
+
+  console.log("Decoded response:", combinedResponse);
+  if(combinedResponse.errorMessage){
+    return {
+      error : combinedResponse.errorMessage,
+      data:null
+    }
+  }
+  else{
+    return {
+      data:combinedResponse,
+      error:null
+    }
+  }
+
+}
 
 export async function generateRandomString(length: number): Promise<string> {
   return Math.random().toString(36).substring(2, 2 + length); // Random string of specified length
