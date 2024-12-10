@@ -191,10 +191,20 @@ const ADMIN_GROUP = process.env["ADMIN_GROUP"];
 const ADMIN_ROLE = process.env["ADMIN_ROLE"];
 
 // Lambda handler function
-export const handler = async (event: any) => {
+export const handler = async (event: any,context: any) => {
   try {
-    console.log("Event received:", event);
+    console.log("Event received:", event,context);
     const token = event.authorizationToken;
+    const operationType = event?.parentTypeName;  // Should be "Query", "Mutation", or "Subscription"
+        console.log("Operation type:", operationType);
+    if (operationType === 'Query') {
+      console.log('This is a Query operation');
+    } else if (operationType === 'Mutation') {
+      console.log('This is a Mutation operation');
+    } else if (operationType === 'Subscription') {
+      console.log('This is a Subscription operation');
+      return { isAuthorized: true };
+    }
 
     if (!token) {
       console.log("No token provided");
