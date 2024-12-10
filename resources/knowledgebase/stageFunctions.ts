@@ -22,7 +22,8 @@ import {
   generateSignedUrl,
   getS3Data,
   getS3DataWithoutContent,
-  combineChunks
+  combineChunks,
+  lambdaCallForPrinicplePolicyAdd
 } from "./commonFunctions";
 import {
   hashing,
@@ -124,9 +125,12 @@ catch(error){
 /**
  * Example usage: Process the "Data Source" stage.
  */
-export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, bucketName: string,chainType:string) {
+export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, bucketName: string,chainType:string,roleArn:string) {
   try{
   console.log(`Processing stage "Data Source" for project ${projectId}`);
+    const policyAdd = await lambdaCallForPrinicplePolicyAdd(projectId,roleArn);
+    console.log("policyAdd", policyAdd);
+    
   const refIds = await processStage(
     tenantId,
     tenantUserId,

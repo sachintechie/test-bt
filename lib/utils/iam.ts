@@ -25,7 +25,7 @@ export const getLambdaRole = (scope: Construct) => {
           "s3:GetObject",
           "s3:PutObject"
         ],
-        resources: ["arn:aws:lambda:us-east-1:084828599845:function:*","*"] // Allow access to all RDS instances and Secrets Manager secrets
+        resources: ["*"] // Allow access to all RDS instances and Secrets Manager secrets
       })
     );
 

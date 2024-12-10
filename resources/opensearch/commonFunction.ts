@@ -1,7 +1,6 @@
 import { Client } from "@opensearch-project/opensearch";
 import { AwsSigv4Signer } from "@opensearch-project/opensearch/aws";
 import { defaultProvider } from "@aws-sdk/credential-provider-node";
-import { lambdaCallForPrinicplePolicyAdd } from "../knowledgebase/commonFunctions";
 
 // Function to connect to OpenSearch
 export async function connectToOpenSearch() {
@@ -68,9 +67,7 @@ async function indexDocuments( indexName: string, documents: any[]) {
                 console.log(`Failed to index document: ${doc.file_name}. Response: ${JSON.stringify(response.body)}`);
             }
         } catch (error :any) {
-            if(error?.status == 403){
-                  const policyAdd = await lambdaCallForPrinicplePolicyAdd(doc.project_id,doc.ref_id);
-            }
+           
             console.error(`Error indexing document: ${doc.file_name}. Error: ${error}`);
         }
     }
