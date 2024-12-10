@@ -392,6 +392,26 @@ export async function generatePresignedUrl(files: any,bucketName:string) {
 
   return urls;
 }
+export async function generatePresignedUrlForFirstUpload(files: any,bucketName:string) {
+  const urls = await Promise.all(
+    files.map(async (file: { contenttype: any; name: any,id:any }) => {
+      const key = file.name;
+
+      const params = {
+        Bucket: bucketName,
+        Key: key,
+        Expires: 180, // URL expiration time in seconds
+        ContentType: file.contenttype // Adjust the content type if needed
+      };
+
+      const url = await s3.getSignedUrlPromise("putObject", params);
+
+      return { url, key ,id:file.id};
+    })
+  );
+
+  return urls;
+}
 
 export async function generateSignedUrl(fileName: string,bucketName:string) {
   const downloadParams = {
