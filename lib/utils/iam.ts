@@ -21,6 +21,7 @@ export const getLambdaRole = (scope: Construct) => {
           "dynamodb:*",
           "bedrock:*",
           "lambda:InvokeFunction",
+          "lambda:GetFunction",
           "s3:GetObject",
           "s3:PutObject"
         ],

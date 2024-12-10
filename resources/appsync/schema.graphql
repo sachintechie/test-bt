@@ -1257,6 +1257,7 @@ type GenerateQueryAnswerResponse {
 input GenerateQueryAnswerInput {
   message: String!  # The user query to be answered
   sessionId: String  # Optional session ID for maintaining context
+  projectId: String!  # The knowledge base ID to query
 }
 
 
