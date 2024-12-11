@@ -38,7 +38,7 @@ export const handler = async (event: any, context: any) => {
     // Parse the input from the event
     console.log("Parsing input from event...");
     console.log("Event:", event);
-    console.log(event.arguments.input);
+    console.log("Event arguments Input :", event.arguments?.input);
     const userMessage = event.arguments?.input?.message;
     const projectId = event.arguments?.input?.projectId;
     let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
