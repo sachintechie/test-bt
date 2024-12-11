@@ -227,6 +227,8 @@ export async function lambdaCallForPrinicplePolicyAdd(projectId: string,roleArn:
     new_arn:roleArn
   };
 
+  console.log("lambdaCallForPrinicplePolicyAdd-event",event);
+
   const params = {
     FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:update-data-access-policy-collection",
     InvocationType: "RequestResponse",
