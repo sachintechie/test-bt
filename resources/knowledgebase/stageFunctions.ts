@@ -426,7 +426,7 @@ export async function addStage_dataPrep(tenantUserId: string, projectId: string,
               )?.referenceId;
 
               console.log("refId", refId);
-              const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
+              const metaData = { filename: indexedFile.fileName, vector_database: "OPENSEARCH" };
               const status = indexedFile.status === "success" ? ActionStatus.COMPLETED : ActionStatus.ERROR;
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id,refId ?? "",status);
             }
