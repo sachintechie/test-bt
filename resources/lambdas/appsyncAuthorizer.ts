@@ -26,7 +26,7 @@ export const handler = async (event: any) => {
   } else {
       console.log('This is a Subscription operation');
       subscriptionType = true;
-      return { isAuthorized: true };
+     // return { isAuthorized: true };
   }
 
 console.log(queryType,mutationType,subscriptionType);
