@@ -187,7 +187,7 @@ export async function addStageAndSteps(tenantUserId: string, projectId: string, 
               console.log("refId", refId);
               const status = indexedFile.status === "success" ? ActionStatus.COMPLETED : ActionStatus.ERROR;
 
-              const metaData = { filename: indexedFile, vector_database: "OPENSEARCH" };
+              const metaData = { filename: indexedFile.fileName, vector_database: "OPENSEARCH" };
               await createStepDetails(tenantUserId, JSON.stringify(metaData), step1.id, refId ?? "",status);
             }
           }

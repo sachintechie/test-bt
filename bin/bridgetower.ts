@@ -14,7 +14,6 @@ if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
   });
 }
 
-// Create the stack with an environment-specific ID
 // new BridgeTowerAppSyncStack(app, env`BTAppSyncStack`, {
 //   env: envConfig,
 //   lambdaFolder: "../../resources/lambdas",
@@ -27,6 +26,7 @@ if (!isDevOrProd() && !isOnDemandProd() && !isPlaygroundDev()) {
 //   auroraStack: auroraStack,
 // });
 
+// Create the stack with an environment-specific ID
 new BridgeTowerAppSyncStack(app, env`BTAppSyncStackAdmin`, {
   env: envConfig,
   lambdaFolder: "../../resources/admin_lambdas",

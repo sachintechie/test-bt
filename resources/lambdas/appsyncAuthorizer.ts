@@ -11,7 +11,6 @@ const ADMIN_ROLE = process.env["ADMIN_ROLE"];
 export const handler = async (event: any) => {
   try {
     console.log("Event received:", event);
-    const token = event.authorizationToken;
 
     const operationType = event?.requestContext?.queryString;  // Should be "Query", "Mutation", or "Subscription"
     console.log("Operation type:", operationType);
@@ -31,6 +30,7 @@ export const handler = async (event: any) => {
   }
 
 console.log(queryType,mutationType,subscriptionType);
+const token = event?.authorizationToken;
 
     if (!token) {
       console.log("No token provided");
