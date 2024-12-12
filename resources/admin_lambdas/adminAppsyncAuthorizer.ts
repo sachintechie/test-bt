@@ -17,6 +17,7 @@ export const handler = async (event: any, context: any) => {
     let queryType = false;
     let mutationType = false;
     let subscriptionType = false;
+    let subscriptionPreType = false;
 
     if (operationType?.includes("query")) {
       console.log("This is a Query operation");
@@ -24,23 +25,20 @@ export const handler = async (event: any, context: any) => {
     } else if (operationType?.includes("mutation")) {
       console.log("This is a Mutation operation");
       mutationType = true;
-    } else {
-      console.log("This is a Subscription operation");
+    } else if (operationType?.includes("subscription")) {
+      console.log("This is a subscription operation");
       subscriptionType = true;
+    }
+    else {
+      console.log("This is a Subscription pre type operation");
+      subscriptionPreType = true;
       // return { isAuthorized: true };
     }
-    var token = event?.authorizationToken;
-    var identityToken = event?.requestHeaders?.identity;
+  
 
-    //Handle AI tenants
-    if (subscriptionType) {
-      const subscriptionToken = event?.authorizationToken;
-      token = subscriptionToken.split(";")[0];
-    } else {
-      token = event?.authorizationToken;
-    }
-    console.log(queryType, mutationType, subscriptionType, token, identityToken);
-    //const token = event?.authorizationToken;
+  
+    console.log(queryType, mutationType, subscriptionType);
+    const token = event?.authorizationToken;
 
     if (!token) {
       console.log("No token provided");
@@ -57,18 +55,17 @@ export const handler = async (event: any, context: any) => {
 
     const tenant = res.rows[0];
     console.log("tenant", tenant);
+      //Handle AI tenants
+      if (tenant && subscriptionPreType) {
+        return authorizeTenant(tenant, "ADMIN");
+      }
+
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
       //Handle AI tenants
-      if (subscriptionType) {
-        const subscriptionToken = event?.authorizationToken;
-        identityToken = subscriptionToken.split(";")[1];
-      } else {
-        identityToken = event?.requestHeaders?.identity;
-      }
-      console.log("identityToken", identityToken);
-      const idToken = identityToken;
+  
+      const idToken = event?.requestHeaders?.identity;
 
       if (!idToken) {
         console.log("No ID token provided");
@@ -87,6 +84,7 @@ export const handler = async (event: any, context: any) => {
     // Handle AI tenants
     if (tenant.name === "AI" || tenant.name === "AI-Dev") {
       return authorizeTenant(tenant, "ADMIN");
+  
     }
 
     // Handle OnDemand tenant
