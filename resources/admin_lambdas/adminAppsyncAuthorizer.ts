@@ -11,7 +11,7 @@ const ADMIN_ROLE = process.env["ADMIN_ROLE"];
 export const handler = async (event: any, context: any) => {
   try {
     console.log("Event received:", event, context);
-   
+
     const operationType = event?.requestContext?.queryString; // Should be "Query", "Mutation", or "Subscription"
     console.log("Operation type:", operationType);
     let queryType = false;
@@ -30,21 +30,16 @@ export const handler = async (event: any, context: any) => {
       // return { isAuthorized: true };
     }
     var token = event?.authorizationToken;
-    var identityToken =  event?.requestHeaders?.identity;
+    var identityToken = event?.requestHeaders?.identity;
 
-
-     //Handle AI tenants
-     if ( subscriptionType) {
+    //Handle AI tenants
+    if (subscriptionType) {
       const subscriptionToken = event?.authorizationToken;
       token = subscriptionToken.split(";")[0];
-      identityToken = subscriptionToken.split(";")[1];
+    } else {
+      token = event?.authorizationToken;
     }
-    else{
-      token = event?.authorizationToken; 
-      identityToken =  event?.requestHeaders?.identity;
-
-    }
-    console.log(queryType, mutationType, subscriptionType,token,identityToken);
+    console.log(queryType, mutationType, subscriptionType, token, identityToken);
     //const token = event?.authorizationToken;
 
     if (!token) {
@@ -63,10 +58,16 @@ export const handler = async (event: any, context: any) => {
     const tenant = res.rows[0];
     console.log("tenant", tenant);
 
-   
-
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
+      //Handle AI tenants
+      if (subscriptionType) {
+        const subscriptionToken = event?.authorizationToken;
+        identityToken = subscriptionToken.split(";")[1];
+      } else {
+        identityToken = event?.requestHeaders?.identity;
+      }
+      console.log("identityToken", identityToken);
       const idToken = identityToken;
 
       if (!idToken) {
@@ -95,14 +96,12 @@ export const handler = async (event: any, context: any) => {
 
     console.log("No matching case for tenant");
     return { isAuthorized: false };
-  
   } catch (err) {
     console.error("Error occurred:", err);
     return { isAuthorized: false };
   } finally {
     console.log("Execution completed.");
   }
-
 };
 
 // Helper to authorize tenant
