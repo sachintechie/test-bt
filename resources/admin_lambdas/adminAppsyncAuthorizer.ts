@@ -11,6 +11,10 @@ const ADMIN_ROLE = process.env["ADMIN_ROLE"];
 export const handler = async (event: any,context: any) => {
   try {
     console.log("Event received:", event,context);
+    const authorizationToken = event?.headers?.authorization || event?.requestHeaders?.authorization;
+const identityToken = event?.headers?.identity || event?.requestHeaders?.identity;
+console.log("authorizationToken",authorizationToken);
+console.log("identityToken",identityToken);
     const operationType = event?.requestContext?.queryString;  // Should be "Query", "Mutation", or "Subscription"
         console.log("Operation type:", operationType);
         let queryType  = false;
@@ -26,7 +30,7 @@ export const handler = async (event: any,context: any) => {
       } else {
           console.log('This is a Subscription operation');
           subscriptionType = true;
-         return { isAuthorized: true };
+        // return { isAuthorized: true };
       }
 
     console.log(queryType,mutationType,subscriptionType);
@@ -49,8 +53,12 @@ export const handler = async (event: any,context: any) => {
     }
 
     const tenant = res.rows[0];
+    console.log("tenant",tenant);
 
-   
+    // Handle AI tenants
+    if (tenant && subscriptionType) {
+      return authorizeTenant(tenant, "ADMIN");
+    }
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
