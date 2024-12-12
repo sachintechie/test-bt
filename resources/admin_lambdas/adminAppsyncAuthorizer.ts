@@ -8,36 +8,44 @@ const ADMIN_GROUP = process.env["ADMIN_GROUP"];
 const ADMIN_ROLE = process.env["ADMIN_ROLE"];
 
 // Lambda handler function
-export const handler = async (event: any,context: any) => {
+export const handler = async (event: any, context: any) => {
   try {
-    console.log("Event received:", event,context);
-    const authorizationToken = event?.headers?.authorization || event?.requestHeaders?.authorization;
-const identityToken = event?.headers?.identity || event?.requestHeaders?.identity;
-console.log("authorizationToken",authorizationToken);
-console.log("identityToken",identityToken);
-    const operationType = event?.requestContext?.queryString;  // Should be "Query", "Mutation", or "Subscription"
-        console.log("Operation type:", operationType);
-        let queryType  = false;
-        let mutationType  = false;
-        let subscriptionType = false;
+    console.log("Event received:", event, context);
+   
+    const operationType = event?.requestContext?.queryString; // Should be "Query", "Mutation", or "Subscription"
+    console.log("Operation type:", operationType);
+    let queryType = false;
+    let mutationType = false;
+    let subscriptionType = false;
 
-        if (operationType?.includes("query")) {
-          console.log('This is a Query operation');
-          queryType = true;
-      } else if (operationType?.includes("mutation")) {
-          console.log('This is a Mutation operation');
-          mutationType = true;
-      } else {
-          console.log('This is a Subscription operation');
-          subscriptionType = true;
-        // return { isAuthorized: true };
-      }
-
-    console.log(queryType,mutationType,subscriptionType);
-    const token = event?.authorizationToken;
+    if (operationType?.includes("query")) {
+      console.log("This is a Query operation");
+      queryType = true;
+    } else if (operationType?.includes("mutation")) {
+      console.log("This is a Mutation operation");
+      mutationType = true;
+    } else {
+      console.log("This is a Subscription operation");
+      subscriptionType = true;
+      // return { isAuthorized: true };
+    }
+    var token = event?.authorizationToken;
+    var identityToken =  event?.requestHeaders?.identity;
 
 
-  
+     //Handle AI tenants
+     if ( subscriptionType) {
+      const subscriptionToken = event?.authorizationToken;
+      token = subscriptionToken.split(";")[0];
+      identityToken = subscriptionToken.split(";")[1];
+    }
+    else{
+      token = event?.authorizationToken; 
+      identityToken =  event?.requestHeaders?.identity;
+
+    }
+    console.log(queryType, mutationType, subscriptionType,token,identityToken);
+    //const token = event?.authorizationToken;
 
     if (!token) {
       console.log("No token provided");
@@ -53,16 +61,13 @@ console.log("identityToken",identityToken);
     }
 
     const tenant = res.rows[0];
-    console.log("tenant",tenant);
+    console.log("tenant", tenant);
 
-    // Handle AI tenants
-    if (tenant && subscriptionType) {
-      return authorizeTenant(tenant, "ADMIN");
-    }
+   
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
-      const idToken = event?.requestHeaders?.identity;
+      const idToken = identityToken;
 
       if (!idToken) {
         console.log("No ID token provided");
@@ -78,8 +83,8 @@ console.log("identityToken",identityToken);
       }
     }
 
-     // Handle AI tenants
-     if (tenant.name === "AI" || tenant.name === "AI-Dev") {
+    // Handle AI tenants
+    if (tenant.name === "AI" || tenant.name === "AI-Dev") {
       return authorizeTenant(tenant, "ADMIN");
     }
 
@@ -90,13 +95,14 @@ console.log("identityToken",identityToken);
 
     console.log("No matching case for tenant");
     return { isAuthorized: false };
-
+  
   } catch (err) {
     console.error("Error occurred:", err);
     return { isAuthorized: false };
   } finally {
     console.log("Execution completed.");
   }
+
 };
 
 // Helper to authorize tenant
@@ -201,4 +207,3 @@ function isTokenExpired(decodedToken: any): boolean {
   const expireTimeInMs = decodedToken["exp"] * 1000;
   return Date.now() > expireTimeInMs;
 }
-
