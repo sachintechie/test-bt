@@ -56,13 +56,13 @@ console.log("identityToken",identityToken);
     console.log("tenant",tenant);
 
     // Handle AI tenants
-    if (tenant && subscriptionType) {
-      return authorizeTenant(tenant, "ADMIN");
-    }
+    // if (tenant && subscriptionType) {
+    //   return authorizeTenant(tenant, "ADMIN");
+    // }
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
-      const idToken = event?.requestHeaders?.identity;
+      const idToken = identityToken;
 
       if (!idToken) {
         console.log("No ID token provided");
