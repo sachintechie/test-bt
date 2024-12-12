@@ -1,4 +1,3 @@
-import { tenant } from "../db/models";
 import { CognitoJwtVerifier } from "aws-jwt-verify";
 
 export async function verifyToken(tenant: any, token: string) {
