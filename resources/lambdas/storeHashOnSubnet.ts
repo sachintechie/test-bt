@@ -12,6 +12,7 @@ export const handler = async (event: any) => {
         data: hash?.data,
         error: hash?.error
       };
+      
       return response;
     } else {
       return {
