@@ -93,6 +93,10 @@ const MUTATIONS = [
   "addFileToProjectByAdmin",
   "updateReferenceStatusByAdmin",
   "generateQueryAnswer",
+  "addToCart",
+  "removeFromCart",
+  "mergeStake",
+  "storeHashOnSubnet",
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {
