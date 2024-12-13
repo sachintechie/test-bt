@@ -1265,7 +1265,6 @@ input GenerateQueryAnswerInput {
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
-	MergeStake(input: MergeStakeInput): ListStakeAccounts
 	WithdrawStake(input: WithdrawStakeInput): WithdrawStake
 	BatchMintCnft(input: MintCnftInput): BatchMintCnft
 	AddToWishlist(input: WishlistInput): WishlistResponse
@@ -1277,9 +1276,6 @@ type Mutation {
 	AddProductToCollection(input: AddProductToCollectionInput): ProductToCollectionUniqueResponse
 	RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
 	StoreHash(input: StoreHashInput): StoreHash
-	StoreHashOnSubnet(input: StoreHashInput): StoreHash
-	AddToCart(input: CartInput): CartResponse
-	RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
 	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
 	UpdateReferenceStatus(input : UpdateReferenceStatusInput): UpdateReferenceStatusResponse
 	GenerateQueryAnswer(input: GenerateQueryAnswerInput): GenerateQueryAnswerResponse
@@ -1326,11 +1322,9 @@ type Query {
 	GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
 	GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
 	GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
-	GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
 	CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
 	GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 	GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
-	GetUserCart: GetUserCartResponse
 	GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
 	GetProjectAndStepById(input: ListProjectByIdInput): ProjectAndStepsResponse
 	ListReferenceByCustomer(input: ListRefByCustomerInput): ListRefByCustomerResponse
