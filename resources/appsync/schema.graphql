@@ -1276,7 +1276,11 @@ type Mutation {
 	AddProductToCollection(input: AddProductToCollectionInput): ProductToCollectionUniqueResponse
 	RemoveProductFromCollection(input: RemoveProductFromCollectionInput): ProductToCollectionUniqueResponse
 	StoreHash(input: StoreHashInput): StoreHash
-	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
+	StoreHashOnSubnet(input: StoreHashInput): StoreHash
+	AddToCart(input: CartInput): CartResponse
+	RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
+  	MergeStake(input: MergeStakeInput): ListStakeAccounts
+  	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
 	UpdateReferenceStatus(input : UpdateReferenceStatusInput): UpdateReferenceStatusResponse
 	GenerateQueryAnswer(input: GenerateQueryAnswerInput): GenerateQueryAnswerResponse
 
@@ -1299,6 +1303,8 @@ type Query {
 	GetCubistOrgData: GetCubistOrgData
 	MasterTransfer(input: MasterTransferInput): Transfer
 	Signin: SignIn
+	GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
+	GetUserCart: GetUserCartResponse
 	Staking(input: StakingInput): Staking
 	Transfer(input: TransferInput): Transfer
 	SendEmailOtpSignin(input: EmailSigninInput): SignIn
