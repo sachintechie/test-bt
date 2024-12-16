@@ -119,56 +119,27 @@ export const handler = async (event: any, context: any) => {
     console.log("Bedrock agent response:", response);
     sessionId = response.sessionId;
 
-    // // Extracting and formatting text and citations
-    // if (response?.citations) {
-    //     console.log("Processing citations...");
-
-    //     // Loop through the citations
-    //     for (const citation of response.citations) {
-    //         if (citation) {
-    //             const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
-    //             finalAnswer += responseText + " ";
-
-    //             if (citation?.retrievedReferences) {
-    //                 for (const reference of citation?.retrievedReferences) {
-    //                     // Extract and format the citations
-    //                     const sourceUrl = reference?.content?.text;
-    //                     const sourceFilename = reference?.metadata ? reference?.metadata['x-amz-bedrock-kb-source-uri'] : "";
-
-    //                     // Append the source filename and reference text to the lists
-    //                     sourceFilenamelist.push(sourceFilename?.toString() ?? "");
-    //                     sourceText.push(`${sourceUrl}\n`);
-
-    //                     // Add source reference text to final answer
-    //                     finalAnswer += `Source[${i}] `;
-    //                     i++;
-    //                 }
-    //             }
-    //             finalAnswer += `\n`;
-    //         }
-    //     }
-    // }
-
     // Extracting and formatting text and citations
-    if (response?.citations?.length) {
+    if (response?.citations) {
       console.log("Processing citations...");
+
+      // Loop through the citations
       for (const citation of response.citations) {
         if (citation) {
-          const responseText = citation?.generatedResponsePart?.textResponsePart?.text || "";
+          const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
           finalAnswer += responseText + " ";
 
-          if (citation?.retrievedReferences?.length) {
+          if (citation?.retrievedReferences) {
             for (const reference of citation?.retrievedReferences) {
-              const sourceUrl = reference?.content?.text || "";
-              const sourceFilename = reference?.metadata?.["x-amz-bedrock-kb-source-uri"] || "";
+              // Extract and format the citations
+              const sourceUrl = reference?.content?.text;
+              const sourceFilename = reference?.metadata ? reference?.metadata['x-amz-bedrock-kb-source-uri'] : "";
 
-             // sourceFilenamelist.push(sourceFilename);
-              if (typeof sourceFilename === 'string') {
-                sourceFilenamelist.push(sourceFilename);
-            } else {
-                console.warn("sourceFilename is not a string:", sourceFilename);
-            }
+              // Append the source filename and reference text to the lists
+              sourceFilenamelist.push(sourceFilename?.toString() ?? "");
               sourceText.push(`${sourceUrl}\n`);
+
+              // Add source reference text to final answer
               finalAnswer += `Source[${i}] `;
               i++;
             }
@@ -176,12 +147,6 @@ export const handler = async (event: any, context: any) => {
           finalAnswer += `\n`;
         }
       }
-    }
-
-    // If no citations or generated response part, fallback to `output.text`
-    if (!finalAnswer.trim() && response?.output?.text) {
-      console.log("Using fallback output text...");
-      finalAnswer = response.output.text;
     }
 
     console.log("Final generated answer:", finalAnswer);
