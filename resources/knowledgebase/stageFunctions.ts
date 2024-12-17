@@ -15,6 +15,7 @@ import {
   getStageType,
   getStepByProjectId,
   getStepType,
+  updateProjectKbAndIndex,
   updateProjectStage,
   updateReferenceStage
 } from "../db/adminDbFunctions";
@@ -24,7 +25,9 @@ import {
   getS3Data,
   getS3DataWithoutContent,
   combineChunks,
-  lambdaCallForPrinicplePolicyAdd
+  lambdaCallForPrinicplePolicyAdd,
+  generateRandomString,
+  lambdaCallForCreateKB
 } from "./commonFunctions";
 import {
   hashing,
@@ -128,6 +131,24 @@ catch(error){
  */
 export async function addStage_1(tenantId: string, tenantUserId: string, projectId: string, bucketName: string,chainType:string,roleArn:string) {
   try{
+    const project = await getProjectById(projectId);
+    if(project != null && project.data  && project.data.knowledgebaseid == null){
+      let sanitizedName: string = project.data.name
+      .replace(/[^a-z0-9-]/g, '')   // Remove invalid characters
+      .replace(/^-+/, '')           // Remove leading hyphens
+      .replace(/^[^a-z0-9]/, 'a');  // Ensure it starts with a lowercase letter or alphanumeric
+  
+    let randomString: string = await generateRandomString(6); // Generate a 6-character random string
+    let finalName: string = `${sanitizedName}-${randomString}`;
+    const kbResponse = await lambdaCallForCreateKB( project.data.id,finalName);
+    if (project != null && kbResponse && kbResponse.data != null) {
+      
+  
+     const updateProject = await updateProjectKbAndIndex(project.data.id, kbResponse.data.Kb_Id ?? "",
+       kbResponse?.data.Index_Name ?? "",kbResponse?.data.Collection_Name ?? "");
+      console.log("updateProjectKB", updateProject);
+    }
+  }
   console.log(`Processing stage "Data Source" for project ${projectId}`);
     const policyAdd = await lambdaCallForPrinicplePolicyAdd(projectId,roleArn);
     console.log("policyAdd", policyAdd);

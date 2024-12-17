@@ -55,8 +55,8 @@ export const handler = async (event: any, context: any) => {
 
     // from project we will get the knowledge base id, and index name
     //const indexId = project.data?.indexid;
-    const knowledgebaseId = project.data?.knowledgebaseid;
-
+    const knowledgebaseId = project.data?.knowledgebaseid ? project.data?.knowledgebaseid  : "ET3BO7O02P";
+    console.log("knowledgebaseId",knowledgebaseId);
     // Set up the configuration for retrieval and generation
     const numberOfResults = 10;
     const promptTemplate = `
@@ -77,7 +77,7 @@ export const handler = async (event: any, context: any) => {
     `;
     const retrieveAndGenerateConfiguration = {
       knowledgeBaseConfiguration: {
-        knowledgeBaseId: knowledgebaseId ?? "ET3BO7O02P", // Your knowledge base ID
+        knowledgeBaseId: knowledgebaseId, // Your knowledge base ID
         modelArn: "arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0",
         retrievalConfiguration: {
           vectorSearchConfiguration: {
