@@ -180,7 +180,7 @@ export class IndexS3Creation {
                 },
                 mappings: {
                     properties: {
-                        [process.env.VECTOR_FIELD]: {
+                        [process.env.VECTOR_FIELD?? ""]: {
                             type: 'knn_vector',
                             dimension: 768,
                             method: {
@@ -236,6 +236,7 @@ export class IndexS3Creation {
             return response;
         }
         );
+        return "null";
     }
 
 }

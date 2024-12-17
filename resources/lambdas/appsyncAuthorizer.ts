@@ -8,29 +8,37 @@ const ADMIN_GROUP = process.env["ADMIN_GROUP"];
 const ADMIN_ROLE = process.env["ADMIN_ROLE"];
 
 // Lambda handler function
-export const handler = async (event: any) => {
+export const handler = async (event: any, context: any) => {
   try {
-    console.log("Event received:", event);
+    console.log("Event received:", event, context);
 
-    const operationType = event?.requestContext?.queryString;  // Should be "Query", "Mutation", or "Subscription"
+    const operationType = event?.requestContext?.queryString; // Should be "Query", "Mutation", or "Subscription"
     console.log("Operation type:", operationType);
-    let queryType  = false;
-    let mutationType  = false;
+    let queryType = false;
+    let mutationType = false;
     let subscriptionType = false;
-    if (operationType?.includes("query")) {
-      console.log('This is a Query operation');
-      queryType = true;
-  } else if (operationType?.includes("mutation")) {
-      console.log('This is a Mutation operation');
-      mutationType = true;
-  } else {
-      console.log('This is a Subscription operation');
-      subscriptionType = true;
-      return { isAuthorized: true };
-  }
+    let subscriptionPreType = false;
 
-console.log(queryType,mutationType,subscriptionType);
-const token = event?.authorizationToken;
+    if (operationType?.includes("query")) {
+      console.log("This is a Query operation");
+      queryType = true;
+    } else if (operationType?.includes("mutation")) {
+      console.log("This is a Mutation operation");
+      mutationType = true;
+    } else if (operationType?.includes("subscription")) {
+      console.log("This is a subscription operation");
+      subscriptionType = true;
+    }
+    else {
+      console.log("This is a Subscription pre type operation");
+      subscriptionPreType = true;
+      // return { isAuthorized: true };
+    }
+  
+
+  
+    console.log(queryType, mutationType, subscriptionType);
+    const token = event?.authorizationToken;
 
     if (!token) {
       console.log("No token provided");
@@ -46,14 +54,21 @@ const token = event?.authorizationToken;
     }
 
     const tenant = res.rows[0];
+    console.log("tenant", tenant);
+      //Handle AI tenants
+      if (tenant && subscriptionPreType) {
+        return authorizeTenant(tenant, "ADMIN");
+      }
+  // Handle AI tenants
+  if (tenant.name === "AI" || tenant.name === "AI-Dev") {
+    return authorizeTenant(tenant, "ADMIN");
 
-    // Handle AI tenants
-    if (tenant.name === "AI" || tenant.name === "AI-Dev") {
-      return authorizeTenant(tenant, "ADMIN");
-    }
+  }
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
+      //Handle AI tenants
+  
       const idToken = event?.requestHeaders?.identity;
 
       if (!idToken) {
@@ -70,6 +85,8 @@ const token = event?.authorizationToken;
       }
     }
 
+  
+
     // Handle OnDemand tenant
     if (tenant.name === "OnDemand") {
       return authorizeTenant(tenant, "ADMIN");
@@ -77,7 +94,6 @@ const token = event?.authorizationToken;
 
     console.log("No matching case for tenant");
     return { isAuthorized: false };
-
   } catch (err) {
     console.error("Error occurred:", err);
     return { isAuthorized: false };
@@ -188,8 +204,3 @@ function isTokenExpired(decodedToken: any): boolean {
   const expireTimeInMs = decodedToken["exp"] * 1000;
   return Date.now() > expireTimeInMs;
 }
-
-
-
-
-

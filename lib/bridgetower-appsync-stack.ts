@@ -53,7 +53,6 @@ const MUTATIONS = [
   "createScopeSpecification",
   "createWallet",
   "unstaking",
-  "mergeStake",
   "withdrawStake",
   "batchMintCnft",
   "adminTransfer",
@@ -74,7 +73,6 @@ const MUTATIONS = [
   "updateProductStatus",
   "deleteProduct",
   "addRefToKnowledgeBase",
-  "storeHashOnSubnet",
   "createInventory",
   "updateInventory",
   "bulkImportInventory",
@@ -88,8 +86,6 @@ const MUTATIONS = [
   "createStepType",
   "createStageType",
   "updateProjectStatus",
-  "addToCart",
-  "removeFromCart",
   "deleteCategory",
   "updateRefStatus",
   "addFileToProject",
@@ -97,6 +93,10 @@ const MUTATIONS = [
   "addFileToProjectByAdmin",
   "updateReferenceStatusByAdmin",
   "generateQueryAnswer",
+  "addToCart",
+  "removeFromCart",
+  "mergeStake",
+  "storeHashOnSubnet",
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {

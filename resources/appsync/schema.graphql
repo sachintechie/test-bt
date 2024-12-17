@@ -1265,7 +1265,6 @@ input GenerateQueryAnswerInput {
 type Mutation {
 	CreateWallet(input: CreateWalletInput): GetWallet
 	Unstaking(input: UnStakingInput): Staking
-	MergeStake(input: MergeStakeInput): ListStakeAccounts
 	WithdrawStake(input: WithdrawStakeInput): WithdrawStake
 	BatchMintCnft(input: MintCnftInput): BatchMintCnft
 	AddToWishlist(input: WishlistInput): WishlistResponse
@@ -1280,7 +1279,8 @@ type Mutation {
 	StoreHashOnSubnet(input: StoreHashInput): StoreHash
 	AddToCart(input: CartInput): CartResponse
 	RemoveFromCart(input: RemoveFromCartInput): RemoveFromCartResponse
-	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
+  	MergeStake(input: MergeStakeInput): ListStakeAccounts
+  	AddFileToProject(input: AddFileToProjectInput): AddFileToProjectResponse
 	UpdateReferenceStatus(input : UpdateReferenceStatusInput): UpdateReferenceStatusResponse
 	GenerateQueryAnswer(input: GenerateQueryAnswerInput): GenerateQueryAnswerResponse
 
@@ -1303,6 +1303,8 @@ type Query {
 	GetCubistOrgData: GetCubistOrgData
 	MasterTransfer(input: MasterTransferInput): Transfer
 	Signin: SignIn
+	GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
+	GetUserCart: GetUserCartResponse
 	Staking(input: StakingInput): Staking
 	Transfer(input: TransferInput): Transfer
 	SendEmailOtpSignin(input: EmailSigninInput): SignIn
@@ -1326,11 +1328,9 @@ type Query {
 	GetStripeProducts(input: GetStripeProductsInput): GetStripeProductsResponse
 	GetStripeCheckoutLink(input: GetStripeCheckoutLinkInput): GetStripeCheckoutResponse
 	GetStripePaymentIntentClientSecret(input: GetStripePaymentIntentClientSecretInput): GetStripePaymentIntentClientSecretResponse
-	GetPaymentTransactionDetails(input: GetPaymentTransactionDetailsInput): GetPaymentTransactionDetailsResponse
 	CryptoPurchase(input: CryptoPurchaseInput): CryptoPurchaseResponse
 	GetOwnershipByInventoryId(input: GetOwnershipByInventoryIdInput): GetOwnershipByInventoryIdResponse
 	GetOwnershipDetailByCustomerId(input: GetOwnershipDetailByCustomerIdInput): GetOwnershipDetailByCustomerIdResponse
-	GetUserCart: GetUserCartResponse
 	GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
 	GetProjectAndStepById(input: ListProjectByIdInput): ProjectAndStepsResponse
 	ListReferenceByCustomer(input: ListRefByCustomerInput): ListRefByCustomerResponse
