@@ -88,6 +88,7 @@ export async function addToOpenSearch( documents: any[],indexName: string) {
 
    // const index = process.env.OPENSEARCH_INDEX_NAME || 'sagemaker-index-1';
     const index = indexName;
+    console.log("indexName",index)
 
 
 
