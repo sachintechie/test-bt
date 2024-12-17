@@ -46,9 +46,9 @@ async function indexDocuments( indexName: string, documents: any[]) {
                 project_id: doc.project_id,
                 ref_id: doc.ref_id,
             }),
-            metadata: JSON.stringify({ chunk_index: doc.chunk_index }),
+            "meta-data": JSON.stringify({ chunk_index: doc.chunk_index }),
             "x-amz-bedrock-kb-data-source-id": "",  // If you have a data source ID, you can fill it here
-            chunk_content: doc.chunk_content,
+            text: doc.chunk_content,
         };
 
         try {
