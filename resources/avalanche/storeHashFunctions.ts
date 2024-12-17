@@ -62,7 +62,7 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
 
     const transactionReceipt = await provider.getTransactionReceipt(receipt.transactionHash);
     const blockDetails = await provider.getBlock(receipt.blockHash);
-    const transactionTimestamp = new Date(blockDetails.timestamp * 1000);
+    const transactionTimestamp = new Date(blockDetails.timestamp * 1000).toISOString();
 
     const status = AvalancheTransactionStatus[transactionReceipt.status!];
 
@@ -82,13 +82,13 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
       data: {
         hash: parsedTransaction.args._dataHash.split("0x")[1],
         txHash: transactionReceipt.transactionHash,
-        chainId: transaction.chainId,
+        chainId: String(transaction.chainId),
         chainType: "Avalanche",
         status: status,
         gasFee: gas.toString(),
         nonce: transaction.nonce,
         blockHash: transaction.blockHash,
-        blockNumber: transaction.blockNumber,
+        blockNumber: String(transaction.blockNumber),
         type: transaction.type,
         timestamp: transactionTimestamp,
         confirmations: transaction.confirmations,
