@@ -1274,6 +1274,7 @@ export async function addReferences(
     // Prepare batch data
     const referencesData = files.map((file) => ({
       tenantid: tenantId,
+      id:file.id,
       projectid: projectId,
       referencestage: ReferenceStage.DATA_SOURCE,
       status: ReferenceStatus.PENDING,
