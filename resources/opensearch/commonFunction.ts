@@ -86,7 +86,10 @@ const uniqueFilenames = [
 
 export async function addToOpenSearch( documents: any[],indexName: string) {
 
-    const index = process.env.OPENSEARCH_INDEX_NAME || 'sagemaker-index-1';
+   // const index = process.env.OPENSEARCH_INDEX_NAME || 'sagemaker-index-1';
+    const index = indexName;
+
+
 
     const response = await indexDocuments( index, documents);
     console.log("response", response);
