@@ -40,6 +40,7 @@ async function indexDocuments( indexName: string, documents: any[]) {
         const chunkIndexValue = {
              id: '',  // You can choose a suitable ID generation method, e.g., UUID
             embedding: doc.embedding,
+            vector_embeddings:doc.embedding,
             "x-amz-bedrock-kb-source-uri": JSON.stringify({
                 file_name: doc.file_name,
                 project_id: doc.project_id,
