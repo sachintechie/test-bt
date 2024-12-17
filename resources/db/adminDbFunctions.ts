@@ -1355,10 +1355,7 @@ export async function addReferences(
         projectid: projectId,
         referencestage: ReferenceStage.DATA_SOURCE,
         status: ReferenceStatus.PENDING,
-        createdby: tenantUserId,
-        createdat: {
-          gte: new Date().toISOString(), // This assumes you're using the exact time the references were created
-        },
+        createdby: tenantUserId
       },
     });
 
