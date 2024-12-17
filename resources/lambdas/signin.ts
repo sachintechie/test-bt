@@ -37,15 +37,18 @@ async function createUser(tenant: tenant, oidcToken: string) {
   console.log("Creating user");
 
   try {
-    const userData = await verifyToken(tenant, oidcToken);
+    const userData :any = await verifyToken(tenant, oidcToken);
     if (userData == null || userData.email == null) {
       return {
         customer: null,
         error: "Please provide a valid access token for verification"
       };
     }
+    if (tenant.iscubistactive == "true") {
+
     // Create a wallet for Ethereum
     await createCustomerWallet(tenant,'Ethereum', oidcToken);
+    }
 
     console.log("createUser", tenant.id, userData.email);
     const customer = await getCustomer(userData?.email.toString(), tenant.id);
@@ -53,13 +56,22 @@ async function createUser(tenant: tenant, oidcToken: string) {
       console.log("Customer exists", customer);
       return { customer, error: null };
     } else {
+
       if (!oidcToken) {
         return {
           customer: null,
           error: "Please provide an identity token for verification"
         };
       } else {
+
         try {
+          let cubistUserId;
+          let email;
+          let name;
+          let iss;
+          let sub;
+          if (tenant.iscubistactive == "true") {
+
           const { client, org, orgId } = await getCsClient(tenant.id);
           if (client == null || org == null) {
             return {
@@ -77,11 +89,11 @@ async function createUser(tenant: tenant, oidcToken: string) {
           console.log("Verified");
 
           //assert(proof.identity, "Identity should be set when proof is obtained using OIDC token");
-          const iss = proof.identity!.iss;
-          const sub = proof.identity!.sub;
-          const email = proof.email;
-          const name = proof.preferred_username;
-          let cubistUserId;
+           iss = proof.identity!.iss;
+           sub = proof.identity!.sub;
+           email = proof.email;
+           name = proof.preferred_username;
+          
           // If user does not exist, create it
           if (!proof.user_info?.user_id) {
             console.log(`Creating OIDC user ${email}`);
@@ -91,8 +103,13 @@ async function createUser(tenant: tenant, oidcToken: string) {
           } else {
             cubistUserId = proof.user_info?.user_id;
           }
+        }
+        else{
+          cubistUserId = "";
+          email = userData.email;
+        }
           const customer = await createCustomer({
-            emailid: email ? email : "",
+            emailid: email ?? ""  ,
             name: name ? name : "----",
             tenantuserid: userData.email.toString(),
             tenantid: tenant.id,
