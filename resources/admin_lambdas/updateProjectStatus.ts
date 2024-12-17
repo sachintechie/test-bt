@@ -2,9 +2,10 @@ import { tenant } from "../db/models";
 
 import {
   getProjectById,
+  updateProjectKbAndIndex,
   updateReferenceStatusByAdmin,
 } from "../db/adminDbFunctions";
-import { addAllStageLambda, addReferencesLambda, addStage1Lambda } from "../knowledgebase/commonFunctions";
+import { addAllStageLambda, addReferencesLambda, addStage1Lambda, generateRandomString, lambdaCallForCreateKB } from "../knowledgebase/commonFunctions";
 import { ProjectStage } from "@prisma/client";
 
 
@@ -52,6 +53,25 @@ async function updateProjectStatus(tenant: tenant, projectId: string, files: any
     } else {
       if(project.data.projectstage === ProjectStage.DATA_SOURCE){
         const refs = await updateReferenceStatusByAdmin(files);
+
+        
+  if(project != null && project.data  && project.data.knowledgebaseid == null){
+    let sanitizedName: string = project.data.name
+    .replace(/[^a-z0-9-]/g, '')   // Remove invalid characters
+    .replace(/^-+/, '')           // Remove leading hyphens
+    .replace(/^[^a-z0-9]/, 'a');  // Ensure it starts with a lowercase letter or alphanumeric
+
+  let randomString: string = await generateRandomString(6); // Generate a 6-character random string
+  let finalName: string = `${sanitizedName}-${randomString}`;
+  const kbResponse = await lambdaCallForCreateKB( project.data.id,finalName);
+  if (project != null && kbResponse && kbResponse.data != null) {
+    
+
+   const updateProject = await updateProjectKbAndIndex(project.data.id, kbResponse.data.Kb_Id ?? "",
+     kbResponse?.data.Index_Name ?? "",kbResponse?.data.Collection_Name ?? "");
+    console.log("updateProjectKB", updateProject);
+  }
+}
 
        // await addStage1Lambda(tenant.adminuserid ?? "", project.data.id,project.data.s3bucketname?? "",project.data.name);
         await addAllStageLambda(
