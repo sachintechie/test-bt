@@ -39,7 +39,7 @@ async function indexDocuments( indexName: string, documents: any[]) {
      //   console.log(`Indexing document: ${doc.file_name}`);
         const chunkIndexValue = {
              id: '',  // You can choose a suitable ID generation method, e.g., UUID
-            embedding: doc.embedding,
+           // embedding: doc.embedding,
             vector_embeddings:doc.embedding,
             "x-amz-bedrock-kb-source-uri": JSON.stringify({
                 file_name: doc.file_name,
