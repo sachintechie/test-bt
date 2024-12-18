@@ -219,6 +219,12 @@ async function isUserAdminLike(idToken: string, tenant: any) {
 
 // Helper function to check if token is expired
 function isTokenExpired(decodedToken: any): boolean {
+  try{
   const expireTimeInMs = decodedToken["exp"] * 1000;
   return Date.now() > expireTimeInMs;
+  }
+  catch(e){
+    console.log(e);
+    return false;
+  }
 }

@@ -1255,7 +1255,6 @@ export async function addReferenceToDb(
           status: status,
           name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
           url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
-          contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
           hash: file.hash,
           ingested: isIngested,
           isdeleted: false,
