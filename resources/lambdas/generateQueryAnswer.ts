@@ -18,8 +18,8 @@ function generateJobId(length: number = 10): string {
 // Lambda handler function
 export const handler = async (event: any, context: any) => {
   const jobId = generateJobId();
-  const sourceText: string[] = [""];
-  const sourceFilenamelist: string[] = [""];
+  const sourceText: string[] = [];
+  const sourceFilenamelist: string[] = [];
   let finalAnswer = "";
   let i = 1;
 
