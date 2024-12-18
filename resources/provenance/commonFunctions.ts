@@ -1,13 +1,142 @@
 import * as cs from "@cubist-labs/cubesigner-sdk";
-import { tenant, TransactionStatus } from "../db/models";
-import { getCubistConfig, getWalletAndTokenByWalletAddressBySymbol, insertTransaction } from "../db/dbFunctions";
+import { StakeType, tenant, TransactionStatus } from "../db/models";
+import { getCubistConfig, getWalletAndTokenByWalletAddressBySymbol, insertStakingTransaction, insertTransaction } from "../db/dbFunctions";
 import { oidcLogin } from "../cubist/CubeSignerClient";
 import { CHAIN_TO_CHAIN_NAME_MAPPING, deriveDisplayAddressForCustomChains, logWithTrace } from "../utils/utils";
 import { ProvenanceClient } from "./provenanceClient";
+import { getWallet, getToken } from "../db/dbFunctions";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
+
+
+export async function provenanceStaking(
+  tenant: tenant,
+  delegatorWalletAddress: string,
+  validatorWalletAddress: string,
+  amount: number,
+  symbol: string,
+  oidcToken: string,
+  tenantUserId: string,
+  chainType: string,
+  tenantTransactionId: string,
+) {
+
+  try {
+    if(!oidcToken) {
+      return {
+        transaction: null,
+        error: "Please provide an identity token for verification"
+      };
+    }
+
+    const cubistConfig = await getCubistConfig(tenant.id);
+    if (cubistConfig == null) {
+      return {
+        transaction: null,
+        error: "Cubist Configuration not found for the given tenant"
+      };
+    }
+
+    // Fetch the wallet and tokens owned by it
+    const wallet = await getWallet(validatorWalletAddress);
+
+    if (!wallet) {
+      return {
+        transaction: null,
+        error: "Wallet not found for the given wallet address"
+      };
+    }
+
+    // check the customer id of the wallet
+    if (wallet.customerid == null) {
+      return {
+        transaction: null,
+        error: "Wallet is not associated with any customer"
+      };
+    }
+
+    // get the oidc client
+    const oidcClient = await oidcLogin(env, cubistConfig.orgid, oidcToken, ["sign:*", "manage:key:*"]);
+
+    if (!oidcClient) {
+      return {
+        trxHash: null,
+        error: "Please send a valid identity token for verification"
+      };
+    }
+
+    // fetch all the keys for the user
+    const keys = await oidcClient.sessionKeys();
+
+    // find the key that matches the wallet address
+    const key = keys.find(
+      (key: cs.Key) => deriveDisplayAddressForCustomChains(CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE, key) === delegatorWalletAddress
+    );
+
+    if (!key) {
+      return {
+        trxHash: null,
+        error: "Given identity token is not the owner of given wallet address"
+      };
+    }
+
+    const provenanceClient = new ProvenanceClient("https://rpc.test.provenance.io:443/", key);
+
+    // check if sender address has enough balance
+    const balance = await provenanceClient.getBalance(delegatorWalletAddress, symbol);
+
+    if (Number(balance) < amount) {
+      return {
+        transaction: null,
+        error: "Insufficient balance"
+      };
+    }
+
+    const token = await getToken(symbol)
+
+    try {
+      const result = await provenanceClient.delegateTokensToValidator(delegatorWalletAddress, validatorWalletAddress, amount.toString(), symbol);
+
+      const transaction = await insertStakingTransaction(
+        delegatorWalletAddress,
+        validatorWalletAddress,
+        amount,
+        chainType,
+        symbol,
+        result.data.transactionId,
+        tenant.id,
+        wallet.customerid,
+        token?.id as string,
+        tenantUserId,
+        "Provenance",
+        TransactionStatus.SUCCESS,
+        tenantTransactionId,
+        "",
+        "",
+        StakeType.STAKE,
+      )
+
+      return {
+        transaction: transaction,
+        error: null
+      };
+
+  }
+  catch (err) {
+    return {
+      transaction: null,
+      error: err
+    };
+  }
+  } catch (err) {
+    return {
+      transaction: null,
+      error: err
+    };
+  }
+}
 
 export async function provenanceTransfer(
   tenant: tenant,
