@@ -31,6 +31,7 @@ import { addActivityLog } from "./adminDbFunctions";
 let prismaClient: PrismaClient;
 
 export async function getPrismaClient() {
+  try{
   if (prismaClient) {
     return prismaClient;
   }
@@ -58,6 +59,11 @@ export async function getPrismaClient() {
   console.log("prismaClient",prismaClient)
 
   return prismaClient;
+}
+catch(e){
+  console.log(e);
+  throw e;
+}
 }
 export async function getWalletByChainType(chainType: string) {
   try {
