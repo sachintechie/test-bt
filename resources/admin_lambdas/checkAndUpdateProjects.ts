@@ -77,7 +77,7 @@ async function updateReferences() {
 
     for (const ref of refs) {
       if (ref != null) {
-        if (ref.referencestage == ReferenceStage.DATA_SELECTION) {
+        if (ref.referencestage == ReferenceStage.DATA_SOURCE) {
           const dataStoredToDb: any = {
             s3PreStoreHash: "",
             s3PreStoreTxHash: "",

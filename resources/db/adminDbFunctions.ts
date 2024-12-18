@@ -1355,7 +1355,8 @@ export async function addReferences(
         projectid: projectId,
         referencestage: ReferenceStage.DATA_SOURCE,
         status: ReferenceStatus.PENDING,
-        createdby: tenantUserId
+        createdby: tenantUserId,
+        isdeleted:false
       },
     });
 
@@ -2088,6 +2089,7 @@ export async function getRefWithSteps(refId: string) {
     const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
+        isdeleted:false
       }
     });
     if(reference == null){
@@ -2162,7 +2164,8 @@ export async function getAllReferences() {
     const prisma = await getPrismaClient();
     const transactions = await prisma.reference.findMany({
       where: {
-        referencestage: ReferenceStage.DATA_STORAGE || ReferenceStage.DATA_SOURCE
+        referencestage: ReferenceStage.DATA_STORAGE || ReferenceStage.DATA_SOURCE,
+        isdeleted:false
       }
     });
     return transactions;

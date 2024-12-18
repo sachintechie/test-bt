@@ -1,7 +1,8 @@
 import { RefType, tenant } from "../db/models";
-import { deleteRef, getReferenceById } from "../db/adminDbFunctions";
+import { deleteRef, getProjectById, getReferenceById } from "../db/adminDbFunctions";
 import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
+import { IndexS3Deletion } from "../knowledgebase/indexS3deletion";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
@@ -37,6 +38,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     console.log("createUser", tenant.id);
     let data;
     const reference = await getReferenceById(tenant.id, refId);
+    const project = await getProjectById(reference.projectid?? "");
     if (reference == null) {
       return {
         document: null,
@@ -46,7 +48,8 @@ async function deleteReference(tenant: tenant, refId: string) {
     if (reference != null && reference.reftype == RefType.DOCUMENT) {
       data = await deleteFromS3(reference?.name ?? "");
       console.log("data", data);
-    } else if (reference != null && reference.reftype == RefType.WEBSITE) {
+    } 
+    else if (reference != null && reference.reftype == RefType.WEBSITE) {
       const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "", "", reference?.datasourceid ?? "");
       if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
         return {
@@ -57,8 +60,10 @@ async function deleteReference(tenant: tenant, refId: string) {
       console.log("deleted dataSourceDetails", dataSourceDetails);
     }
 
-    const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
-    console.log("syncKbResponse", syncKbResponse);
+    // const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
+    const indexS3Deletion = new IndexS3Deletion("",reference.projectid?? "");
+    const indexDeleteResponse = indexS3Deletion.deleteFilesFromOpenSearchIndex(project.data?.indexid ?? "" ,reference.name ?? "");
+    console.log("indexDeleteResponse", indexDeleteResponse);
     const ref = await deleteRef(tenant.id, refId);
 
     return {
