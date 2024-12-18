@@ -3,8 +3,9 @@ import * as uuid from "uuid";
 import { SecretsManager } from "@aws-sdk/client-secrets-manager";
 import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGenerateType } from "@aws-sdk/client-bedrock-agent-runtime";
 import { getProjectById } from "../db/adminDbFunctions";
+import { tenant } from "../db/models";
 
-const TABLE_NAME = "aws-abu-dhabi-dynamodb";
+const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME?? "";
 const SECRET_NAME = process.env.SECRET_NAME as string;
 
 const dynamodb = new AWS.DynamoDB({ region: "us-east-1" });
@@ -17,9 +18,13 @@ function generateJobId(length: number = 10): string {
 
 // Lambda handler function
 export const handler = async (event: any, context: any) => {
+  const tenant = event.identity.resolverContext as tenant;
+
+  const customerId = tenant?.customerid;
+  const projectId = event.arguments?.input?.projectId;
   const jobId = generateJobId();
-  const sourceText: string[] = [""];
-  const sourceFilenamelist: string[] = [""];
+  const sourceText: string[] = [];
+  const sourceFilenamelist: string[] = [];
   let finalAnswer = "";
   let i = 1;
 
@@ -40,13 +45,12 @@ export const handler = async (event: any, context: any) => {
     console.log("Event:", event);
     console.log("Event arguments Input :", event.arguments?.input);
     const userMessage = event.arguments?.input?.message;
-    const projectId = event.arguments?.input?.projectId;
+
     let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
     console.log(`Project ID: ${projectId}`);
-
 
     // get the project from the database using projectId
     const project = await getProjectById(projectId);
@@ -55,8 +59,8 @@ export const handler = async (event: any, context: any) => {
 
     // from project we will get the knowledge base id, and index name
     //const indexId = project.data?.indexid;
-    const knowledgebaseId = project.data?.knowledgebaseid ? project.data?.knowledgebaseid  : "ET3BO7O02P";
-    console.log("knowledgebaseId",knowledgebaseId);
+    const knowledgebaseId = project.data?.knowledgebaseid ? project.data?.knowledgebaseid : "ET3BO7O02P";
+    console.log("knowledgebaseId", knowledgebaseId);
     // Set up the configuration for retrieval and generation
     const numberOfResults = 10;
     const promptTemplate = `
@@ -133,7 +137,7 @@ export const handler = async (event: any, context: any) => {
             for (const reference of citation?.retrievedReferences) {
               // Extract and format the citations
               const sourceUrl = reference?.content?.text;
-              const sourceFilename = reference?.metadata ? reference?.metadata['x-amz-bedrock-kb-source-uri'] : "";
+              const sourceFilename = reference?.metadata ? reference?.metadata["x-amz-bedrock-kb-source-uri"] : "";
 
               // Append the source filename and reference text to the lists
               sourceFilenamelist.push(sourceFilename?.toString() ?? "");
@@ -160,6 +164,8 @@ export const handler = async (event: any, context: any) => {
         TableName: TABLE_NAME,
         Item: {
           job_id: { S: jobId },
+          customer_id: { S: customerId },
+          project_id: { S: projectId },
           status: { S: "PENDING" },
           response: { S: finalAnswer },
           user_query: { S: userMessage },
@@ -173,12 +179,12 @@ export const handler = async (event: any, context: any) => {
 
     // Returning the response to the client
     return {
-        job_id: jobId,
-        message: response.output?.text,
-        sessionId,
-        source_text: sourceText,
-        source_filenamelist: sourceFilenamelist
-      };
+      job_id: jobId,
+      message: response.output?.text,
+      sessionId,
+      source_text: sourceText,
+      source_filenamelist: sourceFilenamelist
+    };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
 
@@ -188,6 +194,8 @@ export const handler = async (event: any, context: any) => {
         TableName: TABLE_NAME,
         Item: {
           job_id: { S: jobId },
+          customer_id: { S: customerId },
+          project_id: { S: projectId },
           status: { S: "ERROR" },
           response: { S: "Something went wrong" },
           user_query: { S: "General query" },
@@ -200,11 +208,11 @@ export const handler = async (event: any, context: any) => {
 
     // Returning error response
     return {
-        job_id: jobId,
-        message: "Something went wrong",
-        sessionId: "N/A",
-        source_text: sourceText,
-        source_filenamelist: sourceFilenamelist
-      };
+      job_id: jobId,
+      message: "Something went wrong",
+      sessionId: "N/A",
+      source_text: sourceText,
+      source_filenamelist: sourceFilenamelist
+    };
   }
 };

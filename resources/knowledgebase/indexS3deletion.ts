@@ -106,7 +106,7 @@ export class IndexS3Deletion {
     }
 
     // Function to delete files from index
-    async deleteFilesFromOpenSearchIndex(indexName: string, fileName: string): Promise<{ success: boolean, message: string }> {
+      async deleteFilesFromOpenSearchIndex(indexName: string, fileName: string): Promise<{ success: boolean, message: string }> {
         console.log(`[DELETE_FILES_INDEX] Attempting to delete files with name: ${fileName} from index: ${indexName}`);
         try {
             this.openSearchClient = await connectToOpenSearch();

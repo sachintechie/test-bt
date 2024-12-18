@@ -71,6 +71,7 @@ model project {
   collectionname    String?
   adminUsers        adminuser[]
   references        reference[]
+  websitereferences websitereference[]
   stages            stage[]
 }
 
@@ -241,9 +242,31 @@ model reference  {
   isaddedbyadmin    Boolean
   contenttype       String?
   errreason         String?
+  parentrefid       String?
+  websitereference  websitereference?            @relation(fields: [parentrefid], references: [id])
   stepdetails       stepdetail[]
+}
 
-
+model websitereference  {
+  id                String             @id @default(uuid())
+  tenantid          String
+  tenant            tenant            @relation(fields: [tenantid], references: [id])
+  projectid         String?
+  project           project?            @relation(fields: [projectid], references: [id])
+  referencestage    ReferenceStage
+  name              String?
+  url               String? 
+  depth             Int?
+  ingested          Boolean  
+  isdeleted         Boolean          @default(false)    
+  isactive          Boolean
+  createdat         String? 
+  status            ReferenceStatus 
+  createdby         String
+  hash              String?
+  isaddedbyadmin    Boolean
+  errreason         String?
+  references       reference[]
 }
 
 model customer {
@@ -433,6 +456,7 @@ model tenant {
   categories       productcategory[]
   products         product[]
   references       reference[]   
+  websitereferences websitereference[]
   organizations    organization[]
   projects         project[]
   referencetransactions referencetransaction[]

@@ -88,6 +88,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         COLLECTION_ARN:"arn:aws:aoss:us-east-1:084828599845:collection/vld43rr1b3rhzucwcbg8",
         VECTOR_FIELD:"vector_embeddings",
         EMBEDDING_MODEL_ARN:"arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0",
+        DYNAMODB_TABLE_NAME:"ai_sovereignty_query_answer_data"
         
 
       };
