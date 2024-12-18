@@ -74,6 +74,8 @@ export const handler = async (event: any, context: any) => {
 
       const { isAdmin, decodedToken } = await isUserAdminLike(idToken, tenant);
 
+      console.log("isAdmin",isAdmin,decodedToken);
+
       if (isAdmin) {
         return await authorizeAdmin(decodedToken, tenant, event);
       } else {
