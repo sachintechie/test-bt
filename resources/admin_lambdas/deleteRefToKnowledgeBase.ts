@@ -2,7 +2,6 @@ import { RefType, tenant } from "../db/models";
 import { deleteRef, getProjectById, getReferenceById } from "../db/adminDbFunctions";
 import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
-import { IndexS3Deletion } from "../knowledgebase/indexS3deletion";
 const s3 = new S3();
 const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
