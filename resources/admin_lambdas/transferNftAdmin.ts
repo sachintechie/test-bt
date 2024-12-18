@@ -38,14 +38,7 @@ export const handler = async (event: any, context: any) => {
     }
   } else if (chain == CHAIN_TO_CHAIN_NAME_MAPPING.PROVENANCE) {
     try {
-
-      const result = await transferNFTProvenance(
-        fromAddress,
-        toAddress,
-        tokenId,
-        chain,
-        contractAddress,
-      );
+      const result = await transferNFTProvenance(fromAddress, toAddress, tokenId, chain, contractAddress);
 
       return {
         status: 200,

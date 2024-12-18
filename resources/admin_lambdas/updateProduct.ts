@@ -1,4 +1,4 @@
-import { updateProduct,getAdminUserById } from "../db/adminDbFunctions";
+import { updateProduct, getAdminUserById } from "../db/adminDbFunctions";
 import { getCustomer } from "../db/dbFunctions";
 import { tenant } from "../db/models";
 
@@ -8,7 +8,7 @@ export const handler = async (event: any, context: any) => {
 
     const { productId, productData } = event.arguments?.input;
 
-	const tenant = event.identity?.resolverContext as tenant;
+    const tenant = event.identity?.resolverContext as tenant;
 
     // Validate the input
     if (!productId || !productData) {
@@ -29,7 +29,7 @@ export const handler = async (event: any, context: any) => {
       delete updatedProductData.categoryId; // Remove the original camel case field
     }
 
-	const adminUser = await getAdminUserById(tenant.adminuserid!);
+    const adminUser = await getAdminUserById(tenant.adminuserid!);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
 
     const updatedProduct = await updateProduct(productId, updatedProductData, customer.id);

@@ -192,7 +192,6 @@ export async function getHashTransactionDetails(txID: string) {
   }
 }
 
-
 export const getUsdcBalance = async (chain: string, address: string) => {
   // Select the appropriate web3 instance based on the chain
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
@@ -205,4 +204,3 @@ export const getUsdcBalance = async (chain: string, address: string) => {
 
   return Number(balance);
 };
-

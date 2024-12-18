@@ -1,6 +1,6 @@
 import * as XLSX from "xlsx";
 import { tenant } from "../db/models";
-import { createBulkProduct,getAdminUserById } from "../db/adminDbFunctions";
+import { createBulkProduct, getAdminUserById } from "../db/adminDbFunctions";
 import { getCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
@@ -20,7 +20,7 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenantContext.id!);
     console.log("customer", customer);
-    const customerId  = customer.id
+    const customerId = customer.id;
 
     const buffer = Buffer.from(fileContent, "base64");
     let workbook;

@@ -1,17 +1,11 @@
 import { tenant } from "../db/models";
-import {
-  updateReferenceStatus,
-} from "../db/adminDbFunctions";
-
+import { updateReferenceStatus } from "../db/adminDbFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const data = await updateRefStatus(
-      event.identity.resolverContext as tenant,
-      event.arguments?.input?.files
-    );
+    const data = await updateRefStatus(event.identity.resolverContext as tenant, event.arguments?.input?.files);
     console.log("data", data);
 
     const response = {
@@ -32,28 +26,25 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function updateRefStatus(tenant: tenant,  files: any) {
+async function updateRefStatus(tenant: tenant, files: any) {
   console.log("Creating admin project");
 
   try {
     console.log("project", tenant.id, files);
 
+    const refs = await updateReferenceStatus(files);
 
-    const refs = await updateReferenceStatus( files);
-
-if(refs != null){
-  return {
-    project: refs,
-    error: null
-  };
-}
-else{
-  return {
-    project: null,
-    error: "Error updating reference status"
-  };
-}
-
+    if (refs != null) {
+      return {
+        project: refs,
+        error: null
+      };
+    } else {
+      return {
+        project: null,
+        error: "Error updating reference status"
+      };
+    }
   } catch (e: any) {
     console.log(`Not verified: ${e}`);
     return {
@@ -62,7 +53,3 @@ else{
     };
   }
 }
-
-
-
-

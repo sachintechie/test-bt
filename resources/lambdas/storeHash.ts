@@ -17,7 +17,7 @@ export const handler = async (event: any) => {
 
     switch (chainType) {
       case ChainType.Avalanche:
-        hashResult = await avalancheStoreHash(hash,isSecondTx);
+        hashResult = await avalancheStoreHash(hash, isSecondTx);
         break;
 
       case ChainType.Provenance:

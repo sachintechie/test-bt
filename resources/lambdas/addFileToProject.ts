@@ -39,16 +39,16 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
     console.log("createUser", tenant.id);
     for (const file of files) {
       file.refType = RefType.DOCUMENT;
-      const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,false,tenant?.customerid ?? "");
+      const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING, false, tenant?.customerid ?? "");
       console.log("ref", ref);
       if (ref.data) refs.push(ref.data);
     }
     const project = await getProjectById(projectId);
-    const urls = await generatePresignedUrl(files,project.data?.s3bucketname?? "");
+    const urls = await generatePresignedUrl(files, project.data?.s3bucketname ?? "");
     console.log("urls", urls);
 
     return {
-      data: {refs, urls},
+      data: { refs, urls },
       error: null
     };
   } catch (e: any) {

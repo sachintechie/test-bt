@@ -93,8 +93,8 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
         timestamp: transactionTimestamp,
         confirmations: transaction.confirmations,
         message: "Transaction successful!",
-	      from: transaction.from,
-	      to: transaction.to
+        from: transaction.from,
+        to: transaction.to
       },
       error: null
     };
@@ -108,12 +108,12 @@ export async function storeHash(hash: string, isSecondTx?: boolean) {
   }
 }
 
-export async function hashingAndStoreToBlockchain(data: any,chainType:string, isSecondTx?: boolean) {
+export async function hashingAndStoreToBlockchain(data: any, chainType: string, isSecondTx?: boolean) {
   try {
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
-  //  console.log("dataHash", dataHash);
+    //  console.log("dataHash", dataHash);
     const dataTxHash = await storeHashByChainType(dataHash, chainType);
-   // console.log("dataTxHash", dataTxHash);
+    // console.log("dataTxHash", dataTxHash);
 
     return {
       data: {
@@ -130,8 +130,8 @@ export async function hashingAndStoreToBlockchain(data: any,chainType:string, is
         blockNumber: dataTxHash?.data?.blockNumber,
         confirmations: dataTxHash?.data?.confirmations,
         message: dataTxHash?.data?.message,
-	      from: dataTxHash?.data?.from,
-	      to: dataTxHash?.data?.to
+        from: dataTxHash?.data?.from,
+        to: dataTxHash?.data?.to
       },
       error: null
     };
@@ -147,7 +147,7 @@ export async function hashingAndStoreToBlockchain(data: any,chainType:string, is
 export async function hashing(data: any) {
   try {
     const dataHash = crypto.createHash("sha256").update(JSON.stringify(data)).digest("hex");
-   // console.log("dataHash", dataHash);
+    // console.log("dataHash", dataHash);
 
     return {
       data: {
