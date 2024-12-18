@@ -73,8 +73,8 @@ export const storeHash = async (uuid: string, hash: string, mnemonic: string) =>
         txHash: result.transactionHash,
         chainId: undefined,
         chainType: "Provenance",
-        status:  result.code,
-        gasFee:result.gasUsed.toString(),
+        status: result.code,
+        gasFee: result.gasUsed.toString(),
         gasLimit: result.gasWanted.toString(),
         gasPrice: result.gasUsed.toString(),
         nonce: undefined,
@@ -85,7 +85,7 @@ export const storeHash = async (uuid: string, hash: string, mnemonic: string) =>
         confirmations: undefined,
         message: "Transaction successful!",
         from: account.address,
-        to: undefined,
+        to: undefined
       },
       error: null
     };

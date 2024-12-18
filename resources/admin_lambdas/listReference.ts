@@ -30,7 +30,7 @@ export const handler = async (event: any) => {
 
 async function getRefs(tenant: tenant, limit: number, pageNo: number, refType: string, status: ReferenceStatus) {
   try {
-    const refs = await getReferenceList(limit, pageNo, tenant.id, refType,status);
+    const refs = await getReferenceList(limit, pageNo, tenant.id, refType, status);
     console.log(refs, "refs");
     return refs;
   } catch (err) {

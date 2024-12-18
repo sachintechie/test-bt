@@ -22,7 +22,7 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     console.log("customer", customer);
-    const customerId  = customer.id
+    const customerId = customer.id;
     const inventory = await createInventoryInDb({
       inventoryId,
       productId,
@@ -74,7 +74,7 @@ async function createInventoryInDb(inventoryData: any) {
     smartcontractaddress: inventoryData.smartContractAddress,
     tokenid: inventoryData.tokenId,
     sensorydata: sensoryData,
-    customerid:inventoryData.customerId
+    customerid: inventoryData.customerId
   });
   return newInventory;
 }

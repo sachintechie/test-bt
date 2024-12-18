@@ -2,7 +2,6 @@ import { tenant } from "../db/models";
 import { deleteProductAttributes, getAdminUserById } from "../db/adminDbFunctions";
 import { getCustomer } from "../db/dbFunctions";
 
-
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
@@ -20,7 +19,7 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     console.log("customer", customer);
-    const customerId  = customer.id
+    const customerId = customer.id;
     const result = await deleteProductAttributes(productId, attributeIds, customerId);
     console.log(result);
 

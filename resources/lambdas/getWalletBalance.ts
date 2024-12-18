@@ -1,7 +1,7 @@
 import { tenant } from "../db/models";
 import { getWalletAndTokenByWalletAddress } from "../db/dbFunctions";
 import { getSolBalance, getSplTokenBalance } from "../solana/solanaFunctions";
-import {getAvaxBalance, getUsdcBalance} from "../avalanche/commonFunctions";
+import { getAvaxBalance, getUsdcBalance } from "../avalanche/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -28,7 +28,7 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getBalance(tenant: tenant, walletAddress: string, symbol: string,chain:string) {
+async function getBalance(tenant: tenant, walletAddress: string, symbol: string, chain: string) {
   console.log("Wallet Address", walletAddress);
 
   try {
@@ -42,10 +42,10 @@ async function getBalance(tenant: tenant, walletAddress: string, symbol: string,
       } else if (token.symbol === "AVAX") {
         balance = await getAvaxBalance(walletAddress);
         token.balance = balance;
-      } else if(symbol==='USDC'){
-        balance = await getUsdcBalance(chain,walletAddress);
+      } else if (symbol === "USDC") {
+        balance = await getUsdcBalance(chain, walletAddress);
         token.balance = balance;
-      }else {
+      } else {
         balance = await getSplTokenBalance(walletAddress, token.contractaddress ? token.contractaddress : "");
         token.balance = balance;
       }

@@ -1,15 +1,14 @@
 import { getRefWithSteps } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
-export const handler = async (event: any,context:any) => {
+export const handler = async (event: any, context: any) => {
   try {
     console.log(event);
-    
-      // Get Lambda function metadata using AWS SDK
-     
+
+    // Get Lambda function metadata using AWS SDK
 
     const data = await getStepsByRefId(
-    //  event.identity.resolverContext as tenant,
+      //  event.identity.resolverContext as tenant,
       event.arguments?.input?.refId
     );
     const projectData = {
@@ -31,7 +30,7 @@ export const handler = async (event: any,context:any) => {
   }
 };
 
-async function getStepsByRefId( refId: string) {
+async function getStepsByRefId(refId: string) {
   console.log("refId", refId);
 
   try {
@@ -55,4 +54,3 @@ async function getStepsByRefId( refId: string) {
     };
   }
 }
-

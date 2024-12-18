@@ -71,7 +71,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_SUBNET_NETWORK_ID: "41024",
         AVAX_NETWORK_ID: "43113",
         PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
-        GUARDDUTY_DETECTOR_ID:"1ec994d56fb63de9f5be128666b53702"
+        GUARDDUTY_DETECTOR_ID: "1ec994d56fb63de9f5be128666b53702"
       };
     case "ai-sovereignty-dev":
       return {
@@ -83,14 +83,12 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_RPC_SUBNET_URL: "http://34.198.211.92:9650/ext/bc/CdfWeEQZPbWamfbDkxcwQqsH5JiubZ7aPu9cmxV8NSUT7daJh/rpc",
         AVAX_SUBNET_NETWORK_ID: "41024",
         AVAX_NETWORK_ID: "43113",
-        OPEN_SEARCH_HOST:"https://vld43rr1b3rhzucwcbg8.us-east-1.aoss.amazonaws.com",
-        ROLE_ARN:"arn:aws:iam::084828599845:role/kb_creation",
-        COLLECTION_ARN:"arn:aws:aoss:us-east-1:084828599845:collection/vld43rr1b3rhzucwcbg8",
-        VECTOR_FIELD:"vector_embeddings",
-        EMBEDDING_MODEL_ARN:"arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0",
-        DYNAMODB_TABLE_NAME:"ai_sovereignty_query_answer_data"
-        
-
+        OPEN_SEARCH_HOST: "https://vld43rr1b3rhzucwcbg8.us-east-1.aoss.amazonaws.com",
+        ROLE_ARN: "arn:aws:iam::084828599845:role/kb_creation",
+        COLLECTION_ARN: "arn:aws:aoss:us-east-1:084828599845:collection/vld43rr1b3rhzucwcbg8",
+        VECTOR_FIELD: "vector_embeddings",
+        EMBEDDING_MODEL_ARN: "arn:aws:bedrock:us-east-1::foundation-model/amazon.titan-embed-text-v2:0",
+        DYNAMODB_TABLE_NAME: "ai_sovereignty_query_answer_data"
       };
     case "staging":
       return {
@@ -135,7 +133,7 @@ export const getEnvConfig = (databaseInfo: DatabaseInfo) => {
         AVAX_URL: "https://api.avax-test.network",
         AVAX_NETWORK_ID: "43113",
         PRODUCT_BUCKET_NAME: "meadowlandproductbucket",
-        GUARDDUTY_DETECTOR_ID:"1ec994d56fb63de9f5be128666b53702"
+        GUARDDUTY_DETECTOR_ID: "1ec994d56fb63de9f5be128666b53702"
       };
   }
 };

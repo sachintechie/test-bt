@@ -28,15 +28,12 @@ export const handler = async (event: any, context: any) => {
     } else if (operationType?.includes("subscription")) {
       console.log("This is a subscription operation");
       subscriptionType = true;
-    }
-    else {
+    } else {
       console.log("This is a Subscription pre type operation");
       subscriptionPreType = true;
       // return { isAuthorized: true };
     }
-  
 
-  
     console.log(queryType, mutationType, subscriptionType);
     const token = event?.authorizationToken;
 
@@ -55,16 +52,15 @@ export const handler = async (event: any, context: any) => {
 
     const tenant = res.rows[0];
     console.log("tenant", tenant);
-      //Handle AI tenants
-      if (tenant && subscriptionPreType) {
-        return authorizeTenant(tenant, "ADMIN");
-      }
-
+    //Handle AI tenants
+    if (tenant && subscriptionPreType) {
+      return authorizeTenant(tenant, "ADMIN");
+    }
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
       //Handle AI tenants
-  
+
       const idToken = event?.requestHeaders?.identity;
 
       if (!idToken) {
@@ -86,7 +82,6 @@ export const handler = async (event: any, context: any) => {
     // Handle AI tenants
     if (tenant.name === "AI" || tenant.name === "AI-Dev") {
       return authorizeTenant(tenant, "ADMIN");
-  
     }
 
     // Handle OnDemand tenant

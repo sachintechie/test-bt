@@ -7,8 +7,7 @@ export const handler = async (event: any, context: any) => {
     console.log(event, context);
 
     const tenant = event.identity.resolverContext as tenant;
-    const productId  = event.arguments?.input?.productId;
-
+    const productId = event.arguments?.input?.productId;
 
     if (!productId) {
       return {
@@ -22,7 +21,7 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     console.log("customer", customer);
-    const customerId  = customer.id
+    const customerId = customer.id;
 
     const deletedProduct = await deleteProduct(productId, customerId);
 

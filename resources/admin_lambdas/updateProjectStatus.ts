@@ -1,13 +1,14 @@
 import { tenant } from "../db/models";
 
+import { getProjectById, updateProjectKbAndIndex, updateReferenceStatusByAdmin } from "../db/adminDbFunctions";
 import {
-  getProjectById,
-  updateProjectKbAndIndex,
-  updateReferenceStatusByAdmin,
-} from "../db/adminDbFunctions";
-import { addAllStageLambda, addReferencesLambda, addStage1Lambda, generateRandomString, lambdaCallForCreateKB } from "../knowledgebase/commonFunctions";
+  addAllStageLambda,
+  addReferencesLambda,
+  addStage1Lambda,
+  generateRandomString,
+  lambdaCallForCreateKB
+} from "../knowledgebase/commonFunctions";
 import { ProjectStage } from "@prisma/client";
-
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -51,19 +52,11 @@ async function updateProjectStatus(tenant: tenant, projectId: string, files: any
         error: "Project not found"
       };
     } else {
-      if(project.data.projectstage === ProjectStage.DATA_SOURCE){
+      if (project.data.projectstage === ProjectStage.DATA_SOURCE) {
         const refs = await updateReferenceStatusByAdmin(files);
 
-        
-
-
-       // await addStage1Lambda(tenant.adminuserid ?? "", project.data.id,project.data.s3bucketname?? "",project.data.name);
-        await addAllStageLambda(
-          tenant.adminuserid ?? "",
-          project.data.id,
-          project.data?.s3bucketname ?? "",
-          project.data?.name ?? ""
-        );
+        // await addStage1Lambda(tenant.adminuserid ?? "", project.data.id,project.data.s3bucketname?? "",project.data.name);
+        await addAllStageLambda(tenant.adminuserid ?? "", project.data.id, project.data?.s3bucketname ?? "", project.data?.name ?? "");
       }
       return {
         project: project.data,
@@ -78,7 +71,3 @@ async function updateProjectStatus(tenant: tenant, projectId: string, files: any
     };
   }
 }
-
-
-
-

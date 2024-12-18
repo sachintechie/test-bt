@@ -37,7 +37,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     console.log("createUser", tenant.id);
     let data;
     const reference = await getReferenceById(tenant.id, refId);
-    const project = await getProjectById(reference.projectid?? "");
+    const project = await getProjectById(reference.projectid ?? "");
     if (reference == null) {
       return {
         document: null,
@@ -47,8 +47,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     if (reference != null && reference.reftype == RefType.DOCUMENT) {
       data = await deleteFromS3(reference?.name ?? "");
       console.log("data", data);
-    } 
-    else if (reference != null && reference.reftype == RefType.WEBSITE) {
+    } else if (reference != null && reference.reftype == RefType.WEBSITE) {
       const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "", "", reference?.datasourceid ?? "");
       if (dataSourceDetails.error || dataSourceDetails.errorMessage) {
         return {
