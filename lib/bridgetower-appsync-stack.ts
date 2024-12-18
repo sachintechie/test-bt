@@ -96,7 +96,7 @@ const MUTATIONS = [
   "addToCart",
   "removeFromCart",
   "mergeStake",
-  "storeHashOnSubnet",
+  "storeHashOnSubnet"
 ];
 
 interface AppSyncStackProps extends cdk.StackProps {

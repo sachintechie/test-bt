@@ -6,7 +6,7 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
     const tenant = event.identity.resolverContext as tenant;
-    const categoryId  = event.arguments?.input?.categoryId;
+    const categoryId = event.arguments?.input?.categoryId;
 
     if (!categoryId) {
       return {
@@ -20,7 +20,7 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     console.log("customer", customer);
-    const customerId  = customer.id
+    const customerId = customer.id;
 
     const deletedCategory = await deleteCategory(categoryId, customerId);
 
@@ -38,7 +38,7 @@ export const handler = async (event: any, context: any) => {
     return {
       status: 500,
       data: null,
-      error:errorMessage,
+      error: errorMessage
     };
   }
 };

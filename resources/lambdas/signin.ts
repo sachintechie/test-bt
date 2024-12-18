@@ -3,7 +3,7 @@ import { tenant } from "../db/models";
 import { getCsClient } from "../cubist/CubeSignerClient";
 import { createCustomer, getCustomer } from "../db/dbFunctions";
 import { verifyToken } from "../cognito/commonFunctions";
-import {createCustomerWallet} from "./createWallet";
+import { createCustomerWallet } from "./createWallet";
 
 const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
@@ -37,7 +37,7 @@ async function createUser(tenant: tenant, oidcToken: string) {
   console.log("Creating user");
 
   try {
-    const userData :any = await verifyToken(tenant, oidcToken);
+    const userData: any = await verifyToken(tenant, oidcToken);
     if (userData == null || userData.email == null) {
       return {
         customer: null,
@@ -45,9 +45,8 @@ async function createUser(tenant: tenant, oidcToken: string) {
       };
     }
     if (tenant.iscubistactive == "true") {
-
-    // Create a wallet for Ethereum
-    await createCustomerWallet(tenant,'Ethereum', oidcToken);
+      // Create a wallet for Ethereum
+      await createCustomerWallet(tenant, "Ethereum", oidcToken);
     }
 
     console.log("createUser", tenant.id, userData.email);
@@ -56,14 +55,12 @@ async function createUser(tenant: tenant, oidcToken: string) {
       console.log("Customer exists", customer);
       return { customer, error: null };
     } else {
-
       if (!oidcToken) {
         return {
           customer: null,
           error: "Please provide an identity token for verification"
         };
       } else {
-
         try {
           let cubistUserId;
           let email;
@@ -71,45 +68,43 @@ async function createUser(tenant: tenant, oidcToken: string) {
           let iss;
           let sub;
           if (tenant.iscubistactive == "true") {
+            const { client, org, orgId } = await getCsClient(tenant.id);
+            if (client == null || org == null) {
+              return {
+                customer: null,
+                error: "Error creating cubesigner client"
+              };
+            }
+            console.log("Created cubesigner client", client);
+            const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
 
-          const { client, org, orgId } = await getCsClient(tenant.id);
-          if (client == null || org == null) {
-            return {
-              customer: null,
-              error: "Error creating cubesigner client"
-            };
-          }
-          console.log("Created cubesigner client", client);
-          const proof = await cs.CubeSignerClient.proveOidcIdentity(env, orgId, oidcToken);
+            console.log("Verifying identity", proof);
 
-          console.log("Verifying identity", proof);
+            await org.verifyIdentity(proof);
 
-          await org.verifyIdentity(proof);
+            console.log("Verified");
 
-          console.log("Verified");
+            //assert(proof.identity, "Identity should be set when proof is obtained using OIDC token");
+            iss = proof.identity!.iss;
+            sub = proof.identity!.sub;
+            email = proof.email;
+            name = proof.preferred_username;
 
-          //assert(proof.identity, "Identity should be set when proof is obtained using OIDC token");
-           iss = proof.identity!.iss;
-           sub = proof.identity!.sub;
-           email = proof.email;
-           name = proof.preferred_username;
-          
-          // If user does not exist, create it
-          if (!proof.user_info?.user_id) {
-            console.log(`Creating OIDC user ${email}`);
-            cubistUserId = await org.createOidcUser({ iss, sub }, email, {
-              name
-            });
+            // If user does not exist, create it
+            if (!proof.user_info?.user_id) {
+              console.log(`Creating OIDC user ${email}`);
+              cubistUserId = await org.createOidcUser({ iss, sub }, email, {
+                name
+              });
+            } else {
+              cubistUserId = proof.user_info?.user_id;
+            }
           } else {
-            cubistUserId = proof.user_info?.user_id;
+            cubistUserId = "";
+            email = userData.email;
           }
-        }
-        else{
-          cubistUserId = "";
-          email = userData.email;
-        }
           const customer = await createCustomer({
-            emailid: email ?? ""  ,
+            emailid: email ?? "",
             name: name ? name : "----",
             tenantuserid: userData.email.toString(),
             tenantid: tenant.id,

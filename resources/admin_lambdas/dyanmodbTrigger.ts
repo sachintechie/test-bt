@@ -1,19 +1,15 @@
-import * as AWS from 'aws-sdk';
+import * as AWS from "aws-sdk";
 import { storeHash as avalancheStoreHash } from "../avalanche/storeHashFunctions";
 import { storeHash as provenanceStoreHash } from "../provenance/storeHashFunctions";
-import { getProjectById } from '../db/adminDbFunctions';
-import { CHAIN_TO_CHAIN_NAME_MAPPING } from '../utils/utils';
-import * as crypto from 'crypto';
+import { getProjectById } from "../db/adminDbFunctions";
+import { CHAIN_TO_CHAIN_NAME_MAPPING } from "../utils/utils";
+import * as crypto from "crypto";
 
 // Initialize DynamoDB client
 const dynamodb = new AWS.DynamoDB.DocumentClient();
 
 // Add attribute to item in DynamoDB
-async function addAttributeToItem(
-  tableName: string,
-  key: AWS.DynamoDB.DocumentClient.Key,
-  newAttributes: { [key: string]: any }
-) {
+async function addAttributeToItem(tableName: string, key: AWS.DynamoDB.DocumentClient.Key, newAttributes: { [key: string]: any }) {
   const updateExpression = Object.keys(newAttributes)
     .map((key, idx) => `#${key} = :val${idx}`)
     .join(", ");
@@ -78,7 +74,7 @@ export const handler = async (event: any) => {
 
     // Process each record in the event
     for (const record of event.Records) {
-      if (record.eventName === 'INSERT' && !record.dynamodb.NewImage?.hash_value) {
+      if (record.eventName === "INSERT" && !record.dynamodb.NewImage?.hash_value) {
         const item = record.dynamodb.NewImage;
 
         // Extract job_id from the item
@@ -92,7 +88,7 @@ export const handler = async (event: any) => {
         const itemJson = JSON.stringify(item, Object.keys(item).sort());
 
         // Generate hash value
-        const hashValue = crypto.createHash('sha256').update(itemJson).digest('hex');
+        const hashValue = crypto.createHash("sha256").update(itemJson).digest("hex");
         console.log("Generated hash value:", hashValue);
 
         // Extract source_filenamelist to get project_id
@@ -148,7 +144,7 @@ export const handler = async (event: any) => {
             hash_value: hashValue,
             blockchain_response: hashResult, // Store the response from the storeHash function
             blockchain_transactionId: blockchainTransactionId,
-            status: 'SUCCESS',
+            status: "SUCCESS"
           };
 
           console.log("Updating DynamoDB with new attributes:", JSON.stringify(newAttributes, null, 2));

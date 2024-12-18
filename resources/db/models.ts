@@ -57,7 +57,7 @@ export interface EmbeddingMetadata {
   chunk_index: number;
   chunk_content: string;
   project_id: string;
-  ref_id: string; 
+  ref_id: string;
   embedding: number[];
 }
 
@@ -110,15 +110,14 @@ export interface product {
   description: string;
   type: string;
   sku: string;
-  tags?: string[]; 
-  customerid?: string
+  tags?: string[];
+  customerid?: string;
 }
 
 export interface productcategory {
   name: string;
   tenantid: string;
-  customerid?: string
-
+  customerid?: string;
 }
 
 export interface updateproductattribute {
@@ -131,7 +130,7 @@ export interface productattribute {
   value: string;
   type: string;
   productid: string;
-  customerid?: string
+  customerid?: string;
 }
 
 export interface productfilter {
@@ -202,8 +201,7 @@ export interface productinventory {
   createdat?: string;
   updatedat?: string;
   sensorydata?: productsensorydata;
-  customerid?: string
-
+  customerid?: string;
 }
 
 export interface productsensorydata {
@@ -236,7 +234,6 @@ export interface activitylogs {
   createdAt?: string;
   loggedBy: string;
 }
-
 
 export interface inventoryfilter {
   inventoryid?: string;
