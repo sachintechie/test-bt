@@ -55,6 +55,8 @@ export async function getPrismaClient() {
     console.log('Duration: ', e.duration, 'ms'); // Log query duration if available
   });
 
+  console.log("prismaClient",prismaClient)
+
   return prismaClient;
 }
 export async function getWalletByChainType(chainType: string) {
