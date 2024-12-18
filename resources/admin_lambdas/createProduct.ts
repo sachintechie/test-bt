@@ -1,4 +1,4 @@
-import { createProduct,getAdminUserById } from "../db/adminDbFunctions";
+import { createProduct, getAdminUserById } from "../db/adminDbFunctions";
 import { getCustomer } from "../db/dbFunctions";
 import { productRarity } from "../db/models";
 import { mintNFT } from "../lambdas/mintNFT";
@@ -26,19 +26,10 @@ interface CreateProductInput {
 
 export const handler = async (event: any, context: any) => {
   try {
-
-	  
-	  const input: CreateProductInput = event.arguments?.input;
-	  const tenant = event.identity?.resolverContext as tenant;
-	  console.log(event, context,tenant);
-    if (
-      !input ||
-      !input.name ||
-      !input.categoryId ||
-      !input.rarity ||
-      input.price === undefined 
-    ) {
-
+    const input: CreateProductInput = event.arguments?.input;
+    const tenant = event.identity?.resolverContext as tenant;
+    console.log(event, context, tenant);
+    if (!input || !input.name || !input.categoryId || !input.rarity || input.price === undefined) {
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -47,7 +38,7 @@ export const handler = async (event: any, context: any) => {
       };
     }
 
-	const adminUser = await getAdminUserById(tenant.adminuserid!);
+    const adminUser = await getAdminUserById(tenant.adminuserid!);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
 
     const product = await createProductInDb({
@@ -59,10 +50,9 @@ export const handler = async (event: any, context: any) => {
       rarity: input.rarity,
       price: input.price,
 
-      tenantid:tenant.id,
-  	  tags:input.tags,
-	  customerid:customer.id
-
+      tenantid: tenant.id,
+      tags: input.tags,
+      customerid: customer.id
     });
 
     const { isMintAble, chainType, tokenType, quantity, toAddress, contractAddress, metadata, tokenId } = event.arguments?.input;
@@ -102,10 +92,9 @@ async function createProductInDb(input: {
   rarity: productRarity;
   price: number;
 
-  tenantid:string;
-  tags?: string[],
-  customerid:string
-
+  tenantid: string;
+  tags?: string[];
+  customerid: string;
 }) {
   const newProduct = await createProduct(input);
   return newProduct;

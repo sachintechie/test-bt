@@ -1,5 +1,5 @@
 import { tenant } from "../db/models";
-import { createProductAttributes,getAdminUserById } from "../db/adminDbFunctions";
+import { createProductAttributes, getAdminUserById } from "../db/adminDbFunctions";
 import { getCustomer } from "../db/dbFunctions";
 
 export const handler = async (event: any, context: any) => {
@@ -19,15 +19,15 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     console.log("customer", customer);
-    const customerId  = customer.id
+    const customerId = customer.id;
     const attributes = data.map(({ key, value, type }) => ({
       key,
       value,
       type,
       productid: productId,
-      customerid:customerId
+      customerid: customerId
     }));
-   
+
     const result = await createProductAttributes(attributes);
     console.log(result);
 

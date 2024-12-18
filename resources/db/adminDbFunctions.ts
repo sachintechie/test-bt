@@ -71,7 +71,7 @@ export async function updateProjectStage(projectId: string, stage: ProjectStage,
   }
 }
 
-export async function updateProjectKbAndIndex(projectId: string, kbId : string, indexId : string,collectionName : string) {
+export async function updateProjectKbAndIndex(projectId: string, kbId: string, indexId: string, collectionName: string) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.project.update({
@@ -87,7 +87,7 @@ export async function updateProjectKbAndIndex(projectId: string, kbId : string, 
     throw err;
   }
 }
-export async function updateProjectKbBucket(projectId: string,kbId:string,indexId:string,bucketName : string) {
+export async function updateProjectKbBucket(projectId: string, kbId: string, indexId: string, bucketName: string) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.project.update({
@@ -105,14 +105,14 @@ export async function updateProjectKbBucket(projectId: string,kbId:string,indexI
   }
 }
 
-export async function updateProjectBucket(projectId: string,bucketName : string) {
+export async function updateProjectBucket(projectId: string, bucketName: string) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.project.update({
       where: { id: projectId },
       data: {
         s3bucketname: bucketName,
-        s3bucketregion: "us-east-1",
+        s3bucketregion: "us-east-1"
       }
     });
     return updatedProject;
@@ -121,11 +121,11 @@ export async function updateProjectBucket(projectId: string,bucketName : string)
   }
 }
 
-export async function updateReferenceStage(projectId: string, refIds: string[], referenceStage: ReferenceStage,status : ReferenceStatus) {
+export async function updateReferenceStage(projectId: string, refIds: string[], referenceStage: ReferenceStage, status: ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.reference.updateMany({
-      where: { id: {in:refIds} },
+      where: { id: { in: refIds } },
       data: {
         referencestage: referenceStage,
         status: status
@@ -137,11 +137,11 @@ export async function updateReferenceStage(projectId: string, refIds: string[], 
   }
 }
 
-export async function updateReferenceStageById(projectId: string, refId: string, referenceStage: ReferenceStage,status : ReferenceStatus) {
+export async function updateReferenceStageById(projectId: string, refId: string, referenceStage: ReferenceStage, status: ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.reference.update({
-      where: { id: refId},
+      where: { id: refId },
       data: {
         referencestage: referenceStage,
         status: status
@@ -153,7 +153,7 @@ export async function updateReferenceStageById(projectId: string, refId: string,
   }
 }
 
-export async function updateReferenceStatus( files : any) {
+export async function updateReferenceStatus(files: any) {
   try {
     const updatedRefs = [];
     const prisma = await getPrismaClient();
@@ -166,14 +166,14 @@ export async function updateReferenceStatus( files : any) {
       });
       updatedRefs.push(updatedRef);
     }
-  
+
     return updatedRefs;
   } catch (err) {
     throw err;
   }
 }
 
-export async function updateReferenceStatusByAdmin( files : any) {
+export async function updateReferenceStatusByAdmin(files: any) {
   try {
     const updatedRefs = [];
     const prisma = await getPrismaClient();
@@ -184,17 +184,17 @@ export async function updateReferenceStatusByAdmin( files : any) {
           status: file.status == ReferenceStatus.UPLOADED ? ReferenceStatus.APPROVED : file.status
         }
       });
-      console.log("updatedRef",updatedRef);
+      console.log("updatedRef", updatedRef);
       updatedRefs.push(updatedRef);
     }
-  
+
     return updatedRefs;
   } catch (err) {
     throw err;
   }
 }
 
-export async function updateRefStatus(refId: string,status : ReferenceStatus) {
+export async function updateRefStatus(refId: string, status: ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.reference.update({
@@ -208,7 +208,6 @@ export async function updateRefStatus(refId: string,status : ReferenceStatus) {
     throw err;
   }
 }
-
 
 export async function updateRefererncePostS3Data(refId: string, ingested: boolean, hashedData: any) {
   try {
@@ -289,7 +288,7 @@ export async function createProject(
   }
 }
 
-export async function   createStage(
+export async function createStage(
   tenantUserId: string,
   name: string,
   description: string,
@@ -335,36 +334,34 @@ export async function getStageType(name: string) {
   }
 }
 
-
-
-  export async function getStepByProjectId( tenantUserId: string,
-    name: string,
-    description: string,
-    stepTypeId: string,
-    stageId: string,
-    stepSequence: number
-    ) {
-    try {
-      const prisma = await getPrismaClient();
-      const step = await prisma.step.findFirst({
-        where: {
-          name: name,
-          description :description,
-          createdby: tenantUserId,
-          stageid: stageId,
-          steptypeid: stepTypeId,
-          stepsequence: stepSequence
-  
-        }
-      });
-      return step;
-    } catch (err) {
-      throw err;
-    }
-  
+export async function getStepByProjectId(
+  tenantUserId: string,
+  name: string,
+  description: string,
+  stepTypeId: string,
+  stageId: string,
+  stepSequence: number
+) {
+  try {
+    const prisma = await getPrismaClient();
+    const step = await prisma.step.findFirst({
+      where: {
+        name: name,
+        description: description,
+        createdby: tenantUserId,
+        stageid: stageId,
+        steptypeid: stepTypeId,
+        stepsequence: stepSequence
+      }
+    });
+    return step;
+  } catch (err) {
+    throw err;
   }
+}
 
-export async function getStageByProjectId( tenantUserId: string,
+export async function getStageByProjectId(
+  tenantUserId: string,
   name: string,
   description: string,
   stageTypeId: string,
@@ -377,18 +374,16 @@ export async function getStageByProjectId( tenantUserId: string,
       where: {
         projectid: projectId,
         name: name,
-        description :description,
+        description: description,
         createdby: tenantUserId,
         stagetypeid: stageTypeId,
         stagesequence: stageSequence
-
       }
     });
     return stage;
   } catch (err) {
     throw err;
   }
-
 }
 
 export async function getStageDetails(projectId: string, stageTypeId: string) {
@@ -408,27 +403,25 @@ export async function getStageDetails(projectId: string, stageTypeId: string) {
 }
 
 export async function getStageDetailsByProjectId(projectId: string) {
-
   const prisma = await getPrismaClient();
 
-const stepDetails = await prisma.stepdetail.findMany({
-  where: {
-    step: {
-      name: 'Read file from s3',
-      stage: {
-        projectid: projectId,
-        name: 'Data Storage',
-      },
+  const stepDetails = await prisma.stepdetail.findMany({
+    where: {
+      step: {
+        name: "Read file from s3",
+        stage: {
+          projectid: projectId,
+          name: "Data Storage"
+        }
+      }
     },
-  },
-  select: {
-    id: true,
-    metadata: true,
-  },
-});
+    select: {
+      id: true,
+      metadata: true
+    }
+  });
 
-return stepDetails;
-
+  return stepDetails;
 }
 
 export async function getStepDetails(stepId: string) {
@@ -491,8 +484,8 @@ export async function createStep(
   }
 }
 
-export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string,refId:string,status : ActionStatus) {
-  console.log("Creating step details",metaData, stepId);
+export async function createStepDetails(tenantUserId: string, metaData: string, stepId: string, refId: string, status: ActionStatus) {
+  console.log("Creating step details", metaData, stepId);
   try {
     const prisma = await getPrismaClient();
     const newProject = await prisma.stepdetail.create({
@@ -503,7 +496,7 @@ export async function createStepDetails(tenantUserId: string, metaData: string, 
         isdeleted: false,
         metadata: metaData,
         createdat: new Date().toISOString(),
-        refid:refId,
+        refid: refId,
         createdby: tenantUserId
       }
     });
@@ -956,13 +949,12 @@ export async function createCategory(category: productcategory) {
     });
 
     await addActivityLog({
-      title: 'Category Created',
+      title: "Category Created",
       description: `Category ${newCategory.name} was created successfully.`,
-      loggedBy: category.customerid!,
+      loggedBy: category.customerid!
     });
 
     return newCategory;
-
   } catch (error) {
     if (error instanceof Error) {
       throw new Error(error.message || "An error occurred while adding the category");
@@ -998,10 +990,10 @@ export async function createProduct(product: product) {
       }
     });
 
-	 await addActivityLog({
-      title: 'Product Created',
+    await addActivityLog({
+      title: "Product Created",
       description: `Product ${newProduct.name} was created successfully.`,
-      loggedBy: product.customerid!,
+      loggedBy: product.customerid!
     });
 
     return newProduct;
@@ -1022,7 +1014,7 @@ export async function createProductAttributes(attributes: productattribute[]) {
       skipDuplicates: true
     });
     await addActivityLog({
-      title: 'Product Attributes Added',
+      title: "Product Attributes Added",
       description: `Product Attributes were created successfully.`,
       loggedBy: attributes[0].customerid!
     });
@@ -1032,7 +1024,7 @@ export async function createProductAttributes(attributes: productattribute[]) {
   }
 }
 
-export async function deleteProductAttributes(productId: string, attributeIds: string[], customerId:string) {
+export async function deleteProductAttributes(productId: string, attributeIds: string[], customerId: string) {
   try {
     const prisma = await getPrismaClient();
     const deletedAttributes = await prisma.productattribute.deleteMany({
@@ -1044,7 +1036,7 @@ export async function deleteProductAttributes(productId: string, attributeIds: s
       }
     });
     await addActivityLog({
-      title: 'Product Attributes Deleted',
+      title: "Product Attributes Deleted",
       description: `Product Attributes for product ${productId} were deleted successfully.`,
       loggedBy: customerId
     });
@@ -1054,7 +1046,7 @@ export async function deleteProductAttributes(productId: string, attributeIds: s
   }
 }
 
-export async function updateCategory(categoryId: string, category: string, customerId:string) {
+export async function updateCategory(categoryId: string, category: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
     const updated = await prisma.productcategory.update({
@@ -1067,11 +1059,11 @@ export async function updateCategory(categoryId: string, category: string, custo
       }
     });
 
-	await addActivityLog({
-	  title: 'Category Updated',
-	  description: `Category ${updated.name} was updated successfully.`,
-	  loggedBy: customerId
-	});
+    await addActivityLog({
+      title: "Category Updated",
+      description: `Category ${updated.name} was updated successfully.`,
+      loggedBy: customerId
+    });
 
     return updated;
   } catch (err) {
@@ -1090,11 +1082,11 @@ export async function updateProduct(id: string, product: Partial<product>, custo
       data: product
     });
 
-	await addActivityLog({
-	  title: 'Product Updated',
-	  description: `Product ${updatedProduct.name} was updated successfully.`,
-	  loggedBy: customerid,
-	});
+    await addActivityLog({
+      title: "Product Updated",
+      description: `Product ${updatedProduct.name} was updated successfully.`,
+      loggedBy: customerid
+    });
 
     return updatedProduct;
   } catch (err) {
@@ -1128,11 +1120,11 @@ export async function updateProductAttributes(productId: string, attributes: pro
         }
       });
 
-	await addActivityLog({
-	  title: 'Product Attributes Updated',
-	  description: `Product Attributes for product ${productId} were updated successfully.`,
-	  loggedBy: customerid,
-	});
+      await addActivityLog({
+        title: "Product Attributes Updated",
+        description: `Product Attributes for product ${productId} were updated successfully.`,
+        loggedBy: customerid
+      });
 
       if (updatedAttribute) {
         results.push(updatedAttribute);
@@ -1158,11 +1150,11 @@ export async function updateProductStatus(productId: string, status: ProductStat
       }
     });
 
-	await addActivityLog({
-	  title: 'Product Status Updated',
-	  description: `Product ${updatedProduct.name} status was updated successfully.`,
-	  loggedBy: customerid,
-	});
+    await addActivityLog({
+      title: "Product Status Updated",
+      description: `Product ${updatedProduct.name} status was updated successfully.`,
+      loggedBy: customerid
+    });
 
     return updatedProduct;
   } catch (err) {
@@ -1170,7 +1162,7 @@ export async function updateProductStatus(productId: string, status: ProductStat
   }
 }
 
-export async function deleteProduct(productId: string, customerId:string) {
+export async function deleteProduct(productId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1180,9 +1172,9 @@ export async function deleteProduct(productId: string, customerId:string) {
     });
 
     await addActivityLog({
-      title: 'Product Deleted',
+      title: "Product Deleted",
       description: `Product ${productId} was deleted successfully.`,
-      loggedBy: customerId,
+      loggedBy: customerId
     });
 
     return deletedProduct;
@@ -1191,7 +1183,7 @@ export async function deleteProduct(productId: string, customerId:string) {
   }
 }
 
-export async function deleteCategory(categoryId: string, customerId:string) {
+export async function deleteCategory(categoryId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -1201,9 +1193,9 @@ export async function deleteCategory(categoryId: string, customerId:string) {
     });
 
     await addActivityLog({
-      title: 'Category Deleted',
+      title: "Category Deleted",
       description: `Category ${categoryId} was deleted successfully.`,
-      loggedBy: customerId,
+      loggedBy: customerId
     });
 
     return deletedCategory;
@@ -1221,71 +1213,68 @@ export async function addReferenceToDb(
   isAddedByAdmin: boolean,
   createdBy: string,
   datasource_id?: string,
-  ingestionJobId?: string,
-
+  ingestionJobId?: string
 ) {
   try {
     const prisma = await getPrismaClient();
-    if(file.reftype == RefType.DOCUMENT){ 
-    const newRef = await prisma.reference.create({
-      data: {
-        tenantid: tenantId as string,
-        projectid: projectId,
-        referencestage: ReferenceStage.DATA_SOURCE,
-        status : status,
-        reftype: file.refType,
-        name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
-        url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
-        size: file.refType == RefType.DOCUMENT ? file.fileSize : null,
-        contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
-        hash: file.hash ,
-        ingested: isIngested,
-        isdeleted: false,
-        datasourceid: datasource_id,
-        ingestionjobid: ingestionJobId,
-        depth: file.depth,
-        createdby:createdBy,
-        isactive: true,
-        isaddedbyadmin:isAddedByAdmin,
-        createdat: new Date().toISOString()
-      }
-    });
-    return {
-      data: newRef,
-      error: null
-    };
-  }
-  else if(file.refType == RefType.WEBSITE){
-    const newRef = await prisma.websitereference.create({
-      data: {
-        tenantid: tenantId as string,
-        projectid: projectId,
-        referencestage: ReferenceStage.DATA_SOURCE,
-        status : status,
-        name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
-        url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
-        contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
-        hash: file.hash ,
-        ingested: isIngested,
-        isdeleted: false,
-        depth: file.depth,
-        createdby:createdBy,
-        isactive: true,
-        isaddedbyadmin:isAddedByAdmin,
-        createdat: new Date().toISOString()
-      }
-    });
-    return {
-      data: newRef,
-      error: null
-    };
-  }
-  else{
-    return {
-      data: null,
-      error : "Not Supported type"
+    if (file.reftype == RefType.DOCUMENT) {
+      const newRef = await prisma.reference.create({
+        data: {
+          tenantid: tenantId as string,
+          projectid: projectId,
+          referencestage: ReferenceStage.DATA_SOURCE,
+          status: status,
+          reftype: file.refType,
+          name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
+          url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
+          size: file.refType == RefType.DOCUMENT ? file.fileSize : null,
+          contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
+          hash: file.hash,
+          ingested: isIngested,
+          isdeleted: false,
+          datasourceid: datasource_id,
+          ingestionjobid: ingestionJobId,
+          depth: file.depth,
+          createdby: createdBy,
+          isactive: true,
+          isaddedbyadmin: isAddedByAdmin,
+          createdat: new Date().toISOString()
+        }
+      });
+      return {
+        data: newRef,
+        error: null
+      };
+    } else if (file.refType == RefType.WEBSITE) {
+      const newRef = await prisma.websitereference.create({
+        data: {
+          tenantid: tenantId as string,
+          projectid: projectId,
+          referencestage: ReferenceStage.DATA_SOURCE,
+          status: status,
+          name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
+          url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
+          contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
+          hash: file.hash,
+          ingested: isIngested,
+          isdeleted: false,
+          depth: file.depth,
+          createdby: createdBy,
+          isactive: true,
+          isaddedbyadmin: isAddedByAdmin,
+          createdat: new Date().toISOString()
+        }
+      });
+      return {
+        data: newRef,
+        error: null
+      };
+    } else {
+      return {
+        data: null,
+        error: "Not Supported type"
+      };
     }
-  }
   } catch (err) {
     return {
       data: null,
@@ -1293,7 +1282,6 @@ export async function addReferenceToDb(
     };
   }
 }
-
 
 // export async function addReferences(
 //   tenantId: string,
@@ -1342,13 +1330,7 @@ export async function addReferenceToDb(
 //   }
 // }
 
-export async function addReferences(
-  tenantId: string,
-  tenantUserId: string,
-  projectId: string,
-  files: any[],
-  bucketName: string
-) {
+export async function addReferences(tenantId: string, tenantUserId: string, projectId: string, files: any[], bucketName: string) {
   try {
     // Prepare batch data
     const referencesData = files.map((file) => ({
@@ -1370,15 +1352,14 @@ export async function addReferences(
       createdby: tenantUserId,
       isactive: true,
       isaddedbyadmin: true,
-      createdat: new Date().toISOString(),
+      createdat: new Date().toISOString()
     }));
-
 
     // Perform batch insert
     const prisma = await getPrismaClient();
     await prisma.reference.createMany({
       data: referencesData,
-      skipDuplicates: true, // Skips duplicates based on unique constraints
+      skipDuplicates: true // Skips duplicates based on unique constraints
     });
 
     // Now fetch the references along with their IDs
@@ -1389,8 +1370,8 @@ export async function addReferences(
         referencestage: ReferenceStage.DATA_SOURCE,
         status: ReferenceStatus.PENDING,
         createdby: tenantUserId,
-        isdeleted:false
-      },
+        isdeleted: false
+      }
     });
 
     console.log(`Successfully added ${createdReferences.length} references.`);
@@ -1398,7 +1379,7 @@ export async function addReferences(
     // Map the references to include their IDs
     const referencesWithIds = createdReferences.map((ref) => ({
       ...ref,
-      referenceId: ref.id, // Include the newly created reference ID
+      referenceId: ref.id // Include the newly created reference ID
     }));
 
     return { data: referencesWithIds, error: null };
@@ -1408,13 +1389,7 @@ export async function addReferences(
   }
 }
 
-export async function addWebsiteReferences(
-  tenantId: string,
-  tenantUserId: string,
-  projectId: string,
-  files: any[],
-  bucketName: string
-) {
+export async function addWebsiteReferences(tenantId: string, tenantUserId: string, projectId: string, files: any[], bucketName: string) {
   try {
     // Prepare batch data
     const referencesData = files.map((file) => ({
@@ -1433,15 +1408,14 @@ export async function addWebsiteReferences(
       createdby: tenantUserId,
       isactive: true,
       isaddedbyadmin: true,
-      createdat: new Date().toISOString(),
+      createdat: new Date().toISOString()
     }));
-
 
     // Perform batch insert
     const prisma = await getPrismaClient();
     await prisma.websitereference.createMany({
       data: referencesData,
-      skipDuplicates: true, // Skips duplicates based on unique constraints
+      skipDuplicates: true // Skips duplicates based on unique constraints
     });
 
     // Now fetch the references along with their IDs
@@ -1452,8 +1426,8 @@ export async function addWebsiteReferences(
         referencestage: ReferenceStage.DATA_SOURCE,
         status: ReferenceStatus.PENDING,
         createdby: tenantUserId,
-        isdeleted:false
-      },
+        isdeleted: false
+      }
     });
 
     console.log(`Successfully added ${createdReferences.length} references.`);
@@ -1461,7 +1435,7 @@ export async function addWebsiteReferences(
     // Map the references to include their IDs
     const referencesWithIds = createdReferences.map((ref) => ({
       ...ref,
-      referenceId: ref.id, // Include the newly created reference ID
+      referenceId: ref.id // Include the newly created reference ID
     }));
 
     return { data: referencesWithIds, error: null };
@@ -1470,10 +1444,6 @@ export async function addWebsiteReferences(
     return { data: null, error: err };
   }
 }
-
-
-
-
 
 export async function addRefTransaction(
   tenantId: string,
@@ -1526,7 +1496,7 @@ export async function addDocumentReference(
   createdby: string,
   datasource_id?: string,
   data?: any,
-  ingestionJobId?: string,
+  ingestionJobId?: string
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -1540,13 +1510,13 @@ export async function addDocumentReference(
         reftype: refType,
         name: file.fileName,
         contenttype: file.contentType,
-        isaddedbyadmin:true,
+        isaddedbyadmin: true,
         url: data.url,
         size: data.size,
         ingested: isIngested,
         isdeleted: false,
-        status : ReferenceStatus.PROCESSING,
-        createdby : createdby,
+        status: ReferenceStatus.PROCESSING,
+        createdby: createdby,
         datasourceid: datasource_id,
         ingestionjobid: ingestionJobId,
         depth: 0,
@@ -1761,7 +1731,7 @@ export async function getReferenceById(tenantId: string, refId: string) {
   }
 }
 
-export async function getReferenceByProjectId(projectId: string,referenceStage: ReferenceStage,status : ReferenceStatus) {
+export async function getReferenceByProjectId(projectId: string, referenceStage: ReferenceStage, status: ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const reference = await prisma.reference.findMany({
@@ -1781,7 +1751,12 @@ export async function getReferenceByProjectId(projectId: string,referenceStage: 
   }
 }
 
-export async function getReferenceByProjectIdAndType(projectId: string,referenceStage: ReferenceStage,status : ReferenceStatus,refType : RefType) {
+export async function getReferenceByProjectIdAndType(
+  projectId: string,
+  referenceStage: ReferenceStage,
+  status: ReferenceStatus,
+  refType: RefType
+) {
   try {
     const prisma = await getPrismaClient();
     const reference = await prisma.reference.findMany({
@@ -1833,7 +1808,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
-        isaddedbyadmin:false,
+        isaddedbyadmin: false,
         status: status
       },
       orderBy: {
@@ -1848,7 +1823,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
         tenantid: tenantId,
         reftype: refType,
         isdeleted: false,
-        isaddedbyadmin:false,
+        isaddedbyadmin: false,
         status: status
       },
 
@@ -1871,7 +1846,7 @@ export async function getReferenceList(limit: number, pageNo: number, tenantId: 
   }
 }
 
-export async function getReferenceListByCustomer(limit: number, pageNo: number,projectId:string, tenantId: string, customerId: string) {
+export async function getReferenceListByCustomer(limit: number, pageNo: number, projectId: string, tenantId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
     const refCount = await prisma.reference.count({
@@ -1879,8 +1854,8 @@ export async function getReferenceListByCustomer(limit: number, pageNo: number,p
         tenantid: tenantId,
         isdeleted: false,
         createdby: customerId,
-        isaddedbyadmin:false,
-        projectid:projectId
+        isaddedbyadmin: false,
+        projectid: projectId
       },
       orderBy: {
         createdat: "desc"
@@ -1894,8 +1869,8 @@ export async function getReferenceListByCustomer(limit: number, pageNo: number,p
         tenantid: tenantId,
         isdeleted: false,
         createdby: customerId,
-        isaddedbyadmin:false,
-        projectid:projectId
+        isaddedbyadmin: false,
+        projectid: projectId
       },
 
       orderBy: {
@@ -2120,9 +2095,8 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     const project = await prisma.project.findFirst({
       where: {
         id: projectId
-      },  
-      include :{references: true}
-
+      },
+      include: { references: true }
     });
 
     const stageCount = await prisma.stage.count({
@@ -2148,7 +2122,8 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
           orderBy: {
             stepsequence: "asc" // Sort steps within each stage by 'stepsequence' column
           }
-        }      },
+        }
+      },
       orderBy: {
         stagesequence: "asc"
       },
@@ -2182,28 +2157,27 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
 export async function getRefWithSteps(refId: string) {
   try {
     const prisma = await getPrismaClient();
- 
 
     const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
-        isdeleted:false
+        isdeleted: false
       }
     });
-    if(reference == null){
+    if (reference == null) {
       return { data: null, error: "Reference not found" };
     }
 
     const stages = await prisma.stage.findMany({
       where: {
-        projectid: reference?.projectid?? "",
+        projectid: reference?.projectid ?? "",
         isdeleted: false
       },
       include: {
         steps: {
           include: {
             stepdetails: {
-              where:{
+              where: {
                 refid: refId
               }
             }
@@ -2211,7 +2185,8 @@ export async function getRefWithSteps(refId: string) {
           orderBy: {
             stepsequence: "asc" // Sort steps within each stage by 'stepsequence' column
           }
-        }      },
+        }
+      },
       orderBy: {
         stagesequence: "asc"
       }
@@ -2220,24 +2195,20 @@ export async function getRefWithSteps(refId: string) {
       // skip: (pageNo - 1) * limit
     });
 
-    console.log("reference with stage and step",stages);
-    
-    
+    console.log("reference with stage and step", stages);
 
-   // console.log("reference with stage and step",reference);
-
-
+    // console.log("reference with stage and step",reference);
 
     if (reference == null) {
       return { data: null, error: "Reference not found" };
     }
 
-   const data = {
-    reference: reference,
-    stages: stages
-   }
+    const data = {
+      reference: reference,
+      stages: stages
+    };
 
-    return { data : data, error: null };
+    return { data: data, error: null };
   } catch (err) {
     return { data: null, error: err };
   }
@@ -2263,7 +2234,7 @@ export async function getAllReferences() {
     const transactions = await prisma.reference.findMany({
       where: {
         referencestage: ReferenceStage.DATA_STORAGE || ReferenceStage.DATA_SOURCE,
-        isdeleted:false
+        isdeleted: false
       }
     });
     return transactions;
@@ -2356,9 +2327,9 @@ export async function createInventory(inventoryData: productinventory) {
     });
 
     await addActivityLog({
-      title: 'Inventory Created',
+      title: "Inventory Created",
       description: `Inventory ${newInventory.id} was created successfully.`,
-      loggedBy: inventoryData.customerid!,
+      loggedBy: inventoryData.customerid!
     });
 
     return inventoryWithSensoryData;
@@ -2479,7 +2450,7 @@ export async function updateInventory(inventoryId: string, updateData: productin
   }
 }
 
-export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string, customerId:string) {
+export async function createBulkInventory(inventoryDataArray: productinventory[], productId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -2493,14 +2464,9 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       select: { inventoryid: true }
     });
 
+    const existingIds = new Set(existingInventories.map((item: { inventoryid: any }) => item.inventoryid));
 
-    const existingIds = new Set(existingInventories.map((item: { inventoryid: any; }) => item.inventoryid));
-
-
-    const newInventories = inventoryDataArray.filter(
-      (data) => !existingIds.has(data.inventoryid)
-    );
-
+    const newInventories = inventoryDataArray.filter((data) => !existingIds.has(data.inventoryid));
 
     await prisma.productinventory.createMany({
       data: newInventories.map((inventoryData) => ({
@@ -2519,30 +2485,25 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
       skipDuplicates: true
     });
 
-
     const createdInventoryRecords = await prisma.productinventory.findMany({
       where: {
         inventoryid: {
-          in: newInventories.map(data => data.inventoryid),
+          in: newInventories.map((data) => data.inventoryid)
         },
-        productid: productId,
-      },
-    //   select: { id: true, inventoryid: true }
+        productid: productId
+      }
+      //   select: { id: true, inventoryid: true }
     });
 
-	console.log(createdInventoryRecords);
+    console.log(createdInventoryRecords);
 
+    const skippedIds = inventoryDataArray.map((data) => data.inventoryid).filter((id) => existingIds.has(id));
 
-    const skippedIds = inventoryDataArray
-      .map((data) => data.inventoryid)
-      .filter((id) => existingIds.has(id));
-
-
-      await addActivityLog({
-        title: 'Bulk Inventory created',
-        description: `Bulk Inventory against product id ${productId} created successfully.`,
-        loggedBy: customerId!,
-      });
+    await addActivityLog({
+      title: "Bulk Inventory created",
+      description: `Bulk Inventory against product id ${productId} created successfully.`,
+      loggedBy: customerId!
+    });
 
     return {
       created: createdInventoryRecords,
@@ -2561,9 +2522,7 @@ export async function createBulkInventory(inventoryDataArray: productinventory[]
   }
 }
 
-
-
-export async function createBulkProduct(productDataArray: product[], customerId:string) {
+export async function createBulkProduct(productDataArray: product[], customerId: string) {
   try {
     const prisma = await getPrismaClient();
 
@@ -2594,9 +2553,9 @@ export async function createBulkProduct(productDataArray: product[], customerId:
     });
 
     await addActivityLog({
-      title: 'Bulk Products created',
+      title: "Bulk Products created",
       description: `Bulk Products created successfully.`,
-      loggedBy: customerId!,
+      loggedBy: customerId!
     });
 
     return createdProducts;
@@ -2619,9 +2578,9 @@ export async function deleteInventory(inventoryId: string, customerId: string) {
     });
 
     await addActivityLog({
-      title: 'Inventory Deleted',
+      title: "Inventory Deleted",
       description: `Inventory ${inventoryId} was deleted successfully.`,
-      loggedBy: customerId!,
+      loggedBy: customerId!
     });
     return deletedInventory;
   } catch (err) {
@@ -2745,14 +2704,14 @@ export async function getProductById(productId: string) {
   }
 }
 
-export async function insertMediaEntries(mediaData: any[], customerId:string) {
+export async function insertMediaEntries(mediaData: any[], customerId: string) {
   try {
     const prisma = await getPrismaClient();
     const newMediaEntries = await prisma.media.createMany({
       data: mediaData
     });
     await addActivityLog({
-      title: 'Media Inserted',
+      title: "Media Inserted",
       description: `Media Inserted successfully.`,
       loggedBy: customerId
     });
@@ -2762,7 +2721,7 @@ export async function insertMediaEntries(mediaData: any[], customerId:string) {
   }
 }
 
-export async function deleteMediaEntries(mediaUrls: string[], productId: string, customerId:string) {
+export async function deleteMediaEntries(mediaUrls: string[], productId: string, customerId: string) {
   try {
     const prisma = await getPrismaClient();
     await prisma.media.deleteMany({
@@ -2772,7 +2731,7 @@ export async function deleteMediaEntries(mediaUrls: string[], productId: string,
       }
     });
     await addActivityLog({
-      title: 'Media Entries Deleted',
+      title: "Media Entries Deleted",
       description: `Media Entries for product ${productId} were deleted successfully.`,
       loggedBy: customerId
     });
@@ -2792,12 +2751,10 @@ export async function addOwnership(inventoryId: string, customerId: string) {
     });
 
     await addActivityLog({
-      title: 'Ownership Added',
+      title: "Ownership Added",
       description: `Ownership against inventory ${inventoryId} was created successfully.`,
-      loggedBy: customerId!,
+      loggedBy: customerId!
     });
-
-
   } catch (error: any) {
     throw new Error(`Error adding ownership: ${error.message}`);
   }
@@ -2823,7 +2780,7 @@ export async function addActivityLog(logData: activitylogs) {
       data: {
         title: logData.title,
         description: logData.description,
-        loggedby: logData.loggedBy,
+        loggedby: logData.loggedBy
       }
     });
   } catch (error: any) {
@@ -2833,19 +2790,19 @@ export async function addActivityLog(logData: activitylogs) {
 
 export async function getActivityLogs() {
   try {
-	const prisma = await getPrismaClient();
-	const activityLogs = prisma.activitylogs.findMany({
+    const prisma = await getPrismaClient();
+    const activityLogs = prisma.activitylogs.findMany({
       include: {
-         customer: true 
+        customer: true
       },
       orderBy: {
-        createdat: 'desc'
+        createdat: "desc"
       },
       take: 10
     });
 
-	return activityLogs;
+    return activityLogs;
   } catch (error: any) {
-	throw new Error(`Error fetching activity logs: ${error.message}`);
+    throw new Error(`Error fetching activity logs: ${error.message}`);
   }
 }

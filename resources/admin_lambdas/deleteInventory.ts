@@ -20,9 +20,9 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     console.log("customer", customer);
-    const customerId  = customer.id
+    const customerId = customer.id;
 
-    const deletedInventory = await deleteInventory(inventoryId,customerId);
+    const deletedInventory = await deleteInventory(inventoryId, customerId);
 
     return {
       status: 200,

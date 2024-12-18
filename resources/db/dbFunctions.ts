@@ -1,4 +1,4 @@
-import { PrismaClient,Prisma  } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import {
   CallbackStatus,
   customer,
@@ -26,8 +26,7 @@ import * as cs from "@cubist-labs/cubesigner-sdk";
 import { getDatabaseUrl } from "./PgClient";
 import { logWithTrace, getKeyTypeBasedOnChainId, deriveDisplayAddressForCustomChains } from "../utils/utils";
 
-import {addActivityLog} from "./adminDbFunctions";
-
+import { addActivityLog } from "./adminDbFunctions";
 
 let prismaClient: PrismaClient;
 
@@ -179,7 +178,7 @@ export async function createWalletAndKey(org: any, cubistUserId: string, chainTy
     throw err;
   }
 }
-   
+
 export async function createWallet(org: cs.Org, cubistUserId: string, chainType: string, customerId?: string) {
   try {
     console.log("Creating wallet", cubistUserId, chainType);
@@ -200,7 +199,6 @@ export async function createWallet(org: cs.Org, cubistUserId: string, chainType:
     const prisma = await getPrismaClient();
     const newWallet = await prisma.wallet.create({
       data: {
-
         customerid: customerId as string,
         walletaddress: deriveDisplayAddressForCustomChains(chainType, key),
 
@@ -1616,11 +1614,11 @@ export async function addToWishlist(customerId: string, productId: string) {
       }
     });
 
-	await addActivityLog({
-		title: "Product added to wishlist",
-		description: `Product ${productId} was added to wishlist for customer ${customerId} successfully.`,
-		loggedBy: customerId
-	})
+    await addActivityLog({
+      title: "Product added to wishlist",
+      description: `Product ${productId} was added to wishlist for customer ${customerId} successfully.`,
+      loggedBy: customerId
+    });
 
     return newWishlistItem;
   } catch (error) {
@@ -1652,11 +1650,11 @@ export async function removeFromWishlist(customerId: string, productId: string) 
       }
     });
 
-	await addActivityLog({
-		title: "Product removed from wishlist",
-		description: `Product ${productId} was removed from wishlist for customer ${customerId} successfully.`,
-		loggedBy: customerId
-	})
+    await addActivityLog({
+      title: "Product removed from wishlist",
+      description: `Product ${productId} was removed from wishlist for customer ${customerId} successfully.`,
+      loggedBy: customerId
+    });
 
     return existingWishlistItem;
   } catch (error) {
@@ -1767,11 +1765,11 @@ export async function createOrder(order: orders) {
       }
     );
 
-	await addActivityLog({
-		title: 'Order Created',
-		description: `Order ${newOrder.id} created by ${order.buyerid}`,
-		loggedBy: order.buyerid
-	})
+    await addActivityLog({
+      title: "Order Created",
+      description: `Order ${newOrder.id} created by ${order.buyerid}`,
+      loggedBy: order.buyerid
+    });
 
     return newOrder;
   } catch (err) {
@@ -1914,11 +1912,11 @@ export async function updateOrderStatus(orderId: string, status: orderstatus) {
       }
     }
 
-	await addActivityLog({
-		title: "Order Status Updated",
-		description: `Order with id ${orderId} has been updated to ${status}`,
-		loggedBy: updatedOrder.buyerid
-	})
+    await addActivityLog({
+      title: "Order Status Updated",
+      description: `Order with id ${orderId} has been updated to ${status}`,
+      loggedBy: updatedOrder.buyerid
+    });
 
     return {
       message: "Order status updated successfully",
@@ -1978,11 +1976,11 @@ export async function addReview(productReview: productreview) {
       }
     });
 
-	await addActivityLog({
-	  title: "Product Reviewed",
-	  description: `Product with id ${productid} has been reviewed by ${customerid}`,
-	  loggedBy: customerid
-	})
+    await addActivityLog({
+      title: "Product Reviewed",
+      description: `Product with id ${productid} has been reviewed by ${customerid}`,
+      loggedBy: customerid
+    });
 
     return newReview;
   } catch (error) {
@@ -2056,11 +2054,11 @@ export async function createCollection(createcollection: createcollection) {
       }
     });
 
-	await addActivityLog({
-	  title: 'Collection Created',
-	  description: `Collection ${newCollection.title} was created successfully.`,
-	  loggedBy: customerid!
-	});
+    await addActivityLog({
+      title: "Collection Created",
+      description: `Collection ${newCollection.title} was created successfully.`,
+      loggedBy: customerid!
+    });
 
     return newCollection;
   } catch (error) {
@@ -2131,11 +2129,11 @@ export async function addProductToCollection(productcollection: addtocollection)
       }
     });
 
-	await addActivityLog({
-	  title: 'Product Added to Collection',
-	  description: `Product ${productid} was added to collection ${collectionid} successfully.`,
-	  loggedBy: customerid!
-	});
+    await addActivityLog({
+      title: "Product Added to Collection",
+      description: `Product ${productid} was added to collection ${collectionid} successfully.`,
+      loggedBy: customerid!
+    });
 
     return updatedCollection;
   } catch (error) {
@@ -2194,11 +2192,11 @@ export async function removeProductFromCollection(productcollection: addtocollec
       }
     });
 
-	await addActivityLog({
-	  title: 'Product Removed from Collection',
-	  description: `Product ${productid} was removed from collection ${collectionid} successfully.`,
-	  loggedBy: customerid!
-	});
+    await addActivityLog({
+      title: "Product Removed from Collection",
+      description: `Product ${productid} was removed from collection ${collectionid} successfully.`,
+      loggedBy: customerid!
+    });
 
     return updatedCollection;
   } catch (error) {
@@ -2305,11 +2303,11 @@ export async function transferProductOwnership(ownershipData: productOwnership) 
       }
     });
 
-	await addActivityLog({
-	  title: 'Ownership Transferred',
-	  description: `Ownership against inventory ${inventoryid} was transferred successfully.`,
-	  loggedBy: buyerid!,
-	});
+    await addActivityLog({
+      title: "Ownership Transferred",
+      description: `Ownership against inventory ${inventoryid} was transferred successfully.`,
+      loggedBy: buyerid!
+    });
 
     await prisma.productownership.update({
       where: { id: sellerOwnership.id },
@@ -2407,7 +2405,6 @@ export async function addToCart(cart: productcart) {
     }
   });
 
-
   // If the cart item exists
   if (existingCartItem) {
     if (!existingCartItem.inventory) {
@@ -2464,11 +2461,10 @@ export async function addToCart(cart: productcart) {
     }
   });
 
-
   await addActivityLog({
-	title: 'Item Added To Cart',
-	description: `Item ${inventoryid} was added to cart successfully by ${buyerid}.`,
-	loggedBy: buyerid!,
+    title: "Item Added To Cart",
+    description: `Item ${inventoryid} was added to cart successfully by ${buyerid}.`,
+    loggedBy: buyerid!
   });
 
   return newItem;
@@ -2496,12 +2492,11 @@ export async function removeFromCart(customerId: string, inventoryId: string) {
       }
     });
 
-
-	await addActivityLog({
-		title: 'Item Removed From Cart',
-		description: `Item ${inventoryId} was removed from cart successfully by ${customerId}.`,
-		loggedBy: customerId!,
-	  });
+    await addActivityLog({
+      title: "Item Removed From Cart",
+      description: `Item ${inventoryId} was removed from cart successfully by ${customerId}.`,
+      loggedBy: customerId!
+    });
 
     return {
       success: true,
@@ -2522,7 +2517,7 @@ export async function getUserCart(customerId: string) {
       },
       include: {
         inventory: {
-          include:{product:true}
+          include: { product: true }
         }
       }
     });

@@ -1,14 +1,9 @@
 import { tenant } from "../db/models";
 
-import {
-  getProjectById,
-  getRefById,
-  updateRefStatus,
-} from "../db/adminDbFunctions";
+import { getProjectById, getRefById, updateRefStatus } from "../db/adminDbFunctions";
 import { ReferenceStatus } from "@prisma/client";
 import { addStage_1 } from "../knowledgebase/stageFunctions";
 import { addAllStageLambda } from "../knowledgebase/commonFunctions";
-
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -39,8 +34,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function updateReferenceStatus(tenant: tenant, refId: string,status : ReferenceStatus) {
-
+async function updateReferenceStatus(tenant: tenant, refId: string, status: ReferenceStatus) {
   try {
     console.log("ref", tenant.id, refId);
 
@@ -51,19 +45,12 @@ async function updateReferenceStatus(tenant: tenant, refId: string,status : Refe
         error: "Reference not found"
       };
     } else {
-        const ref = await updateRefStatus(refId,status)
-        if(status === ReferenceStatus.APPROVED){
+      const ref = await updateRefStatus(refId, status);
+      if (status === ReferenceStatus.APPROVED) {
+        const project = await getProjectById(ref.projectid ?? "");
+        await addAllStageLambda(tenant.adminuserid ?? "", ref.projectid ?? "", project.data?.s3bucketname ?? "", project.data?.name ?? "");
+      }
 
-          const project = await getProjectById(ref.projectid?? "");
-          await addAllStageLambda(
-            tenant.adminuserid ?? "",
-            ref.projectid ?? "",
-            project.data?.s3bucketname ?? "",
-            project.data?.name ?? ""
-          );
-      
-        }
-    
       return {
         project: ref,
         error: null
@@ -77,7 +64,3 @@ async function updateReferenceStatus(tenant: tenant, refId: string,status : Refe
     };
   }
 }
-
-
-
-

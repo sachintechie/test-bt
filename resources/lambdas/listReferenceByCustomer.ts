@@ -26,9 +26,9 @@ export const handler = async (event: any) => {
   }
 };
 
-async function listReferenceByCustomer(tenant: tenant, limit: number, pageNo: number,projectId:string) {
+async function listReferenceByCustomer(tenant: tenant, limit: number, pageNo: number, projectId: string) {
   try {
-    const refs = await getReferenceListByCustomer(limit, pageNo,projectId, tenant.id, tenant?.customerid ?? "");
+    const refs = await getReferenceListByCustomer(limit, pageNo, projectId, tenant.id, tenant?.customerid ?? "");
     console.log(refs, "refs");
     return refs;
   } catch (err) {

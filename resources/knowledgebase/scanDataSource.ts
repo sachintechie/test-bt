@@ -92,5 +92,3 @@ export async function addWebsiteDataSource(
   console.log("Response from invoked Lambda:", payload);
   return payload;
 }
-
-

@@ -10,12 +10,12 @@ const s3 = new S3();
 // const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 import mammoth from "mammoth";
 // import pdfParse from 'pdf-parse';
-import { parse as parseCSV } from '@fast-csv/parse';
+import { parse as parseCSV } from "@fast-csv/parse";
 import * as XLSX from "xlsx";
-import PDFParser from 'pdf2json';
+import PDFParser from "pdf2json";
 import { getProjectById } from "../db/adminDbFunctions";
 
-export async function addReferencesLambda(tenantUserId: string, projectId: string,bucketName:string) {
+export async function addReferencesLambda(tenantUserId: string, projectId: string, bucketName: string) {
   const event = {
     tenantUserId: tenantUserId,
     projectId: projectId,
@@ -32,7 +32,7 @@ export async function addReferencesLambda(tenantUserId: string, projectId: strin
   await lambda.invoke(params).promise();
 }
 
-export async function addStage1Lambda(tenantUserId: string, projectId: string,bucketName:string,projectName : string) {
+export async function addStage1Lambda(tenantUserId: string, projectId: string, bucketName: string, projectName: string) {
   const event = {
     tenantUserId: tenantUserId,
     projectId: projectId,
@@ -50,15 +50,13 @@ export async function addStage1Lambda(tenantUserId: string, projectId: string,bu
   await lambda.invoke(params).promise();
 }
 
-export async function addAllStageLambda(tenantUserId: string, projectId: string,bucketName:string,projectName : string) {
+export async function addAllStageLambda(tenantUserId: string, projectId: string, bucketName: string, projectName: string) {
   const event = {
     tenantUserId: tenantUserId,
     projectId: projectId,
     bucketName: bucketName,
     projectName: projectName
   };
-
-
 
   const params = {
     FunctionName: "addAllStage-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
@@ -70,11 +68,11 @@ export async function addAllStageLambda(tenantUserId: string, projectId: string,
   await lambda.invoke(params).promise();
 }
 
-export async function dataPreperationLambda(tenantUserId: string, projectId: string,bucketName:string) {
+export async function dataPreperationLambda(tenantUserId: string, projectId: string, bucketName: string) {
   const event = {
     tenantUserId: tenantUserId,
     projectId: projectId,
-    bucketName:bucketName
+    bucketName: bucketName
   };
 
   const params = {
@@ -140,10 +138,10 @@ export async function lambdaCallForIndexing(all_embeddings_with_metadata: any) {
 
   return combinedResponse.body; // Or process further as needed
 }
-export async function lambdaCallForCreateKB(projectId: string,name:string) {
+export async function lambdaCallForCreateKB(projectId: string, name: string) {
   const event = {
     project_id: projectId,
-    project_name:name
+    project_name: name
   };
 
   const params = {
@@ -164,25 +162,23 @@ export async function lambdaCallForCreateKB(projectId: string,name:string) {
   const combinedResponse = JSON.parse(responseStr);
 
   console.log("Decoded response:", combinedResponse);
-  if(combinedResponse.errorMessage){
+  if (combinedResponse.errorMessage) {
     return {
-      error : combinedResponse.errorMessage,
-      data:null
-    }
-  }
-  else{
+      error: combinedResponse.errorMessage,
+      data: null
+    };
+  } else {
     return {
-      data:combinedResponse,
-      error:null
-    }
+      data: combinedResponse,
+      error: null
+    };
   }
-
 }
 
-export async function lambdaCallForCreateS3Bucket(projectId: string,name:string) {
+export async function lambdaCallForCreateS3Bucket(projectId: string, name: string) {
   const event = {
     project_id: projectId,
-    project_name:name
+    project_name: name
   };
 
   const params = {
@@ -203,31 +199,28 @@ export async function lambdaCallForCreateS3Bucket(projectId: string,name:string)
   const combinedResponse = JSON.parse(responseStr);
 
   console.log("Decoded response:", combinedResponse);
-  if(combinedResponse.errorMessage){
+  if (combinedResponse.errorMessage) {
     return {
-      error : combinedResponse.errorMessage,
-      data:null
-    }
-  }
-  else{
+      error: combinedResponse.errorMessage,
+      data: null
+    };
+  } else {
     return {
-      data:combinedResponse,
-      error:null
-    }
+      data: combinedResponse,
+      error: null
+    };
   }
-
 }
 
-
-export async function lambdaCallForPrinicplePolicyAdd(projectId: string,roleArn:string) {
+export async function lambdaCallForPrinicplePolicyAdd(projectId: string, roleArn: string) {
   const project = await getProjectById(projectId);
 
   const event = {
     collection_name: project.data?.collectionname,
-    new_arn:roleArn
+    new_arn: roleArn
   };
 
-  console.log("lambdaCallForPrinicplePolicyAdd-event",event);
+  console.log("lambdaCallForPrinicplePolicyAdd-event", event);
 
   const params = {
     FunctionName: "arn:aws:lambda:us-east-1:084828599845:function:update-data-access-policy-collection",
@@ -247,23 +240,23 @@ export async function lambdaCallForPrinicplePolicyAdd(projectId: string,roleArn:
   const combinedResponse = JSON.parse(responseStr);
 
   console.log("Decoded response:", combinedResponse);
-  if(combinedResponse.errorMessage){
+  if (combinedResponse.errorMessage) {
     return {
-      error : combinedResponse.errorMessage,
-      data:null
-    }
-  }
-  else{
+      error: combinedResponse.errorMessage,
+      data: null
+    };
+  } else {
     return {
-      data:combinedResponse,
-      error:null
-    }
+      data: combinedResponse,
+      error: null
+    };
   }
-
 }
 
 export async function generateRandomString(length: number): Promise<string> {
-  return Math.random().toString(36).substring(2, 2 + length); // Random string of specified length
+  return Math.random()
+    .toString(36)
+    .substring(2, 2 + length); // Random string of specified length
 }
 export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: number = 20) {
   // Group chunks by file_name
@@ -302,7 +295,7 @@ export async function combineChunks(chunkList: EmbeddingMetadata[], overlap: num
   return combinedFiles;
 }
 
-export async function addToS3Bucket(fileName: string, fileContent: string,bucketName:string) {
+export async function addToS3Bucket(fileName: string, fileContent: string, bucketName: string) {
   try {
     if (!fileName || !fileContent) {
       return {
@@ -374,7 +367,7 @@ export const streamToBuffer = async (stream: Readable): Promise<Buffer> => {
   return Buffer.concat(chunks);
 };
 
-export async function generatePresignedUrl(files: any,bucketName:string) {
+export async function generatePresignedUrl(files: any, bucketName: string) {
   const urls = await Promise.all(
     files.map(async (file: { contentType: any; fileName: any }) => {
       const key = file.fileName;
@@ -394,9 +387,9 @@ export async function generatePresignedUrl(files: any,bucketName:string) {
 
   return urls;
 }
-export async function generatePresignedUrlForFirstUpload(files: any,bucketName:string) {
+export async function generatePresignedUrlForFirstUpload(files: any, bucketName: string) {
   const urls = await Promise.all(
-    files.map(async (file: { contenttype: any; name: any,id:any }) => {
+    files.map(async (file: { contenttype: any; name: any; id: any }) => {
       const key = file.name;
 
       const params = {
@@ -408,14 +401,14 @@ export async function generatePresignedUrlForFirstUpload(files: any,bucketName:s
 
       const url = await s3.getSignedUrlPromise("putObject", params);
 
-      return { url, key ,id:file.id};
+      return { url, key, id: file.id };
     })
   );
 
   return urls;
 }
 
-export async function generateSignedUrl(fileName: string,bucketName:string) {
+export async function generateSignedUrl(fileName: string, bucketName: string) {
   const downloadParams = {
     Bucket: bucketName, // Replace with your S3 bucket name
     Key: fileName, // The key (file name) of the uploaded file
@@ -448,7 +441,7 @@ export async function syncKbAsync(knowledgeBaseId: string, datasourceId: string)
   console.log("Background task completed");
 }
 
-export async function getS3Data(fileName: string,bucketName : string) {
+export async function getS3Data(fileName: string, bucketName: string) {
   try {
     if (!fileName) {
       return {
@@ -510,10 +503,7 @@ export async function getS3Data(fileName: string,bucketName : string) {
   }
 }
 
-
-
-
-export async function getS3ActualData(fileName: string,bucketName:string) {
+export async function getS3ActualData(fileName: string, bucketName: string) {
   try {
     if (!fileName) {
       return {
@@ -526,10 +516,10 @@ export async function getS3ActualData(fileName: string,bucketName:string) {
       Bucket: bucketName,
       Key: fileName
     };
-    
+
     const s3Details = await s3.getObject(s3Params).promise();
     console.log("Fetched S3 Details:", s3Details);
-    
+
     const fileType = fileName.split(".").pop()?.toLowerCase();
     console.log("Detected file type:", fileType);
 
@@ -545,9 +535,9 @@ export async function getS3ActualData(fileName: string,bucketName:string) {
 
     const signedUrl = s3.getSignedUrl("getObject", downloadParams);
     const size = await formatBytes(s3Details.ContentLength || 0);
-    
+
     console.log("File processed with size:", size);
-    
+
     const data = {
       fileName: fileName,
       size: size,
@@ -557,7 +547,7 @@ export async function getS3ActualData(fileName: string,bucketName:string) {
       lastModified: s3Details.LastModified,
       downloadUrl: signedUrl
     };
-    
+
     return { data, error: null };
   } catch (e) {
     console.error(`Failed to upload to S3: ${e}`);
@@ -616,16 +606,16 @@ async function getFileContentFromS3(fileData: Buffer, extension: string): Promis
 
 async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
-    const pdfParser = new PDFParser(this,true);
+    const pdfParser = new PDFParser(this, true);
 
-    pdfParser.on('pdfParser_dataError', (errData) => {
-      console.error('Error parsing PDF:', errData.parserError);
+    pdfParser.on("pdfParser_dataError", (errData) => {
+      console.error("Error parsing PDF:", errData.parserError);
       reject(errData.parserError);
     });
 
-    pdfParser.on('pdfParser_dataReady', () => {
+    pdfParser.on("pdfParser_dataReady", () => {
       const textContent = pdfParser.getRawTextContent();
-      console.log('Successfully parsed PDF:', textContent);
+      console.log("Successfully parsed PDF:", textContent);
       resolve(textContent);
     });
 
@@ -633,9 +623,7 @@ async function parsePDFBuffer(pdfBuffer: Buffer): Promise<string> {
   });
 }
 
-
-
-export async function getS3DataWithoutContent(fileName: string,bucketName:string) {
+export async function getS3DataWithoutContent(fileName: string, bucketName: string) {
   try {
     if (!fileName) {
       return {

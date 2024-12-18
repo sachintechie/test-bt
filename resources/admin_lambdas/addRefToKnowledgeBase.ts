@@ -48,7 +48,7 @@ async function addReference(
   console.log("Creating admin user");
   try {
     console.log("createUser", tenant.id, refType);
-    await addReferencesLambda(tenant.adminuserid ?? "", projectId,"");
+    await addReferencesLambda(tenant.adminuserid ?? "", projectId, "");
     const updatedProject = await updateProjectStage(projectId, ProjectStage.DATA_STORAGE, ProjectStatusEnum.ACTIVE);
     console.log("updatedProject", updatedProject);
 

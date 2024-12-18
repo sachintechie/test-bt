@@ -38,27 +38,28 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
 
     console.log("createUser", tenant.id);
     const project = await getProjectById(projectId);
-    if(project && project.data){
-    for (const file of files) {
-      const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING,true,tenant?.adminuserid ?? "");
-      if (ref.data)
-         refs.push(ref.data);
-    }
-    const urls = await generatePresignedUrl(files.filter((file: any) => file.refType === RefType.DOCUMENT),project.data.s3bucketname ?? "");
-    console.log("urls", urls);
-    console.log("refs", refs);
+    if (project && project.data) {
+      for (const file of files) {
+        const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING, true, tenant?.adminuserid ?? "");
+        if (ref.data) refs.push(ref.data);
+      }
+      const urls = await generatePresignedUrl(
+        files.filter((file: any) => file.refType === RefType.DOCUMENT),
+        project.data.s3bucketname ?? ""
+      );
+      console.log("urls", urls);
+      console.log("refs", refs);
 
-    return {
-      data: {refs, urls},
-      error: null
-    };
-  }
-  else{
-    return {
-      data: null,
-      error: "Project not found"
-    };
-  }
+      return {
+        data: { refs, urls },
+        error: null
+      };
+    } else {
+      return {
+        data: null,
+        error: "Project not found"
+      };
+    }
   } catch (e: any) {
     console.log(`Not verified: ${e}`);
     return {

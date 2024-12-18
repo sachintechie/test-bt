@@ -1,11 +1,10 @@
-
-import {getCubistConfig, getPrismaClient, getWalletByCustomer} from "../db/dbFunctions";
+import { getCubistConfig, getPrismaClient, getWalletByCustomer } from "../db/dbFunctions";
 import { tenant } from "../db/models";
-import {getCubistKey, getPayerCsSignerKey} from "../cubist/CubeSignerClient";
+import { getCubistKey, getPayerCsSignerKey } from "../cubist/CubeSignerClient";
 import contractAbi from "../abi/BridgeUsdc.json";
 import Web3 from "web3";
-import {BigNumber, ethers} from "ethers";
-import {transferERC1155} from "./transferERC1155";
+import { BigNumber, ethers } from "ethers";
+import { transferERC1155 } from "./transferERC1155";
 
 import { Key } from "@cubist-labs/cubesigner-sdk";
 
@@ -25,8 +24,8 @@ export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const {inventoryId,chain,tenantUserId,quantity,senderWalletAddress}=event.arguments?.input;
-    const tenant=event.identity.resolverContext as tenant
+    const { inventoryId, chain, tenantUserId, quantity, senderWalletAddress } = event.arguments?.input;
+    const tenant = event.identity.resolverContext as tenant;
     const prisma = await getPrismaClient();
     const inventory = await prisma.productinventory.findFirst({
       where: {
@@ -73,7 +72,6 @@ export const handler = async (event: any) => {
       };
     }
 
-
     const oidcToken = event.headers?.identity;
     const cubistConfig = await getCubistConfig(tenant.id);
     if (cubistConfig == null) {
@@ -85,9 +83,17 @@ export const handler = async (event: any) => {
     const cubistOrgId = cubistConfig.orgid;
     const key = await getCubistKey(env, cubistOrgId, oidcToken, ["sign:*"], senderWalletAddress);
 
-    const receipt=await transferUsdcIn(chain,payerKey.key?.materialId!,bigIntValue,key);
-    const transferReceipt=await transferERC1155(wallet?.walletaddress!,parseInt(inventory.tokenid!),inventory.quantity,chain,inventory.smartcontractaddress!,tenant.id,"crypto",receipt.transactionHash.toString());
-
+    const receipt = await transferUsdcIn(chain, payerKey.key?.materialId!, bigIntValue, key);
+    const transferReceipt = await transferERC1155(
+      wallet?.walletaddress!,
+      parseInt(inventory.tokenid!),
+      inventory.quantity,
+      chain,
+      inventory.smartcontractaddress!,
+      tenant.id,
+      "crypto",
+      receipt.transactionHash.toString()
+    );
 
     return {
       status: 200,
@@ -104,9 +110,7 @@ export const handler = async (event: any) => {
   }
 };
 
-
-const transferUsdcIn=async(chain:string,masterAddress:string,amount:BigNumber,key:Key)=>{
-
+const transferUsdcIn = async (chain: string, masterAddress: string, amount: BigNumber, key: Key) => {
   const web3 = chain === "AVAX" ? web3Avax : web3Eth;
 
   const contract = new web3.eth.Contract(USDC_CONTRACT_ABI, USDC_CONTRACT_ADDRESS);

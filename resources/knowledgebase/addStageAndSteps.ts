@@ -23,7 +23,7 @@
 //         await addStage2(tenantUserId, projectId);
 //         }
 //     }
-    
+
 // }
 // }
 
@@ -32,7 +32,6 @@
 
 //     if (stageType2) {
 //       const stage2 = await createStage(tenantUserId, "Data Ingestion", "Data Ingestion", stageType2.id, projectId, 2);
-
 
 //         if (stage2) {
 //           const stepType = await getStepType("Upload to S3");
@@ -44,7 +43,7 @@
 //           }
 //         }
 //     }
-           
+
 // }
 
 //  async function addStage3(tenantUserId: string, projectId: string) {
@@ -55,7 +54,7 @@
 
 //      // Retrieve details from the previous ingestion stage
 //    //  const ingestionStageDetails = await getStageDetails(projectId, stageType2?.id || "");
- 
+
 //       // const stepDetails = await getStepDetails(ingestionStageDetails.steps[0].id);
 //        const [stepType1, stepType2, stepType3] = await Promise.all([
 //          getStepType("Read file from s3"),
@@ -74,7 +73,6 @@
 //         }
 //     }
 // }
-
 
 //  async function addStage4(tenantUserId: string, projectId: string) {
 //     const stageType4 = await getStageType("Data Preparation");
@@ -117,7 +115,7 @@
 //           await addStage5(tenantUserId, projectId);
 
 //         }
-    
+
 // }
 // }
 
@@ -126,7 +124,7 @@
 //       const stageType5 = await getStageType("RAG Ingestion");
 //       if (stageType5) {
 //         const stage5 = await createStage(tenantUserId, "RAG Ingestion", "RAG Ingestion", stageType5.id, projectId, 5);
-  
+
 //           const [stepType1] = await Promise.all([getStepType("Writing to open search")]);
 //           if (stepType1) {
 //             const [step1] = await Promise.all([
@@ -154,8 +152,8 @@ async function createStepsForStage(
   stepDetails: { name: string; description: string; stepOrder: number }[]
 ) {
   return Promise.all(
-    stepDetails.map(({ name, description, stepOrder }) => 
-      getStepType(name).then(stepType => {
+    stepDetails.map(({ name, description, stepOrder }) =>
+      getStepType(name).then((stepType) => {
         if (stepType) {
           return createStep(tenantUserId, name, description, stepType.id, stageId, stepOrder);
         }
@@ -172,7 +170,7 @@ async function createStageWithSteps(
   projectId: string,
   stageTypeName: string,
   stepDetails: { name: string; description: string; stepOrder: number }[],
-    stageOrder: number
+  stageOrder: number
 ) {
   const stageType = await getStageType(stageTypeName);
   if (stageType) {
@@ -187,35 +185,35 @@ async function createStageWithSteps(
 
 // Utility function to create a stage and steps
 async function createStageWithOutSteps(
-    tenantUserId: string,
-    stageName: string,
-    projectId: string,
-    stageTypeName: string,
-    stepDetails: { name: string; description: string; stepOrder: number }[],
-    stageOrder: number
-  ) {
-    const stageType = await getStageType(stageTypeName);
-    if (stageType) {
-      const stage = await createStage(tenantUserId, stageName, stageName, stageType.id, projectId, stageOrder);
-      if (stage) {
-        return stage.id;
-      }
+  tenantUserId: string,
+  stageName: string,
+  projectId: string,
+  stageTypeName: string,
+  stepDetails: { name: string; description: string; stepOrder: number }[],
+  stageOrder: number
+) {
+  const stageType = await getStageType(stageTypeName);
+  if (stageType) {
+    const stage = await createStage(tenantUserId, stageName, stageName, stageType.id, projectId, stageOrder);
+    if (stage) {
+      return stage.id;
     }
-    return null;
   }
+  return null;
+}
 
 // Main function to add all stages
 export async function addStagesStructure(tenantUserId: string, projectId: string) {
   const stage1Details = [
     { name: "File upload from frontend", description: "File upload from frontend", stepOrder: 1 },
     { name: "File hashing", description: "File hashing", stepOrder: 2 },
-    { name: "Store to Blockchain", description: "Store to Blockchain", stepOrder: 3 },
+    { name: "Store to Blockchain", description: "Store to Blockchain", stepOrder: 3 }
   ];
   const stage2Details = [{ name: "Upload to S3", description: "Upload to S3", stepOrder: 1 }];
   const stage3Details = [
     { name: "Read file from s3", description: "Read file from s3", stepOrder: 1 },
     { name: "Hashing of s3 file", description: "Hashing of s3 file", stepOrder: 2 },
-    { name: "Store to Blockchain", description: "Store to Blockchain", stepOrder: 3 },
+    { name: "Store to Blockchain", description: "Store to Blockchain", stepOrder: 3 }
   ];
   const stage4Details = [
     { name: "Chunking", description: "Chunking", stepOrder: 1 },
@@ -224,28 +222,26 @@ export async function addStagesStructure(tenantUserId: string, projectId: string
     { name: "Reconstruction of data", description: "Reconstruction of data", stepOrder: 4 },
     { name: "Store chunk hash to Blockchain", description: "Store chunk hash to Blockchain", stepOrder: 5 },
     { name: "Hashing of reconstructive data", description: "Hashing of reconstructive data", stepOrder: 6 },
-    { name: "Store recombined file to Blockchain", description: "Store recombined file to Blockchain", stepOrder: 7 },
+    { name: "Store recombined file to Blockchain", description: "Store recombined file to Blockchain", stepOrder: 7 }
   ];
   const stage5Details = [{ name: "Writing to open search", description: "Writing to open search", stepOrder: 1 }];
-  const stage6Details =[ { name: "Published", description: "Published", stepOrder: 1 }]; // Empty array
+  const stage6Details = [{ name: "Published", description: "Published", stepOrder: 1 }]; // Empty array
 
   // Create each stage and its steps
-  const stage1Id = await createStageWithSteps(tenantUserId, "Data Source", projectId, "Data Source", stage1Details,1);
+  const stage1Id = await createStageWithSteps(tenantUserId, "Data Source", projectId, "Data Source", stage1Details, 1);
   if (stage1Id) {
-    const stage2Id = await createStageWithSteps(tenantUserId, "Data Ingestion", projectId, "Data Ingestion", stage2Details,2);
+    const stage2Id = await createStageWithSteps(tenantUserId, "Data Ingestion", projectId, "Data Ingestion", stage2Details, 2);
     if (stage2Id) {
-      const stage3Id = await createStageWithSteps(tenantUserId, "Data Storage", projectId, "Data Storage", stage3Details,3);
+      const stage3Id = await createStageWithSteps(tenantUserId, "Data Storage", projectId, "Data Storage", stage3Details, 3);
       if (stage3Id) {
-        const stage4Id = await createStageWithSteps(tenantUserId, "Data Preparation", projectId, "Data Preparation", stage4Details,4);
+        const stage4Id = await createStageWithSteps(tenantUserId, "Data Preparation", projectId, "Data Preparation", stage4Details, 4);
         if (stage4Id) {
-          const stage5Id = await createStageWithSteps(tenantUserId, "RAG Ingestion", projectId, "RAG Ingestion", stage5Details,5);
+          const stage5Id = await createStageWithSteps(tenantUserId, "RAG Ingestion", projectId, "RAG Ingestion", stage5Details, 5);
           if (stage5Id) {
-            await createStageWithOutSteps(tenantUserId, "Published", projectId, "Published", stage6Details,6);
+            await createStageWithOutSteps(tenantUserId, "Published", projectId, "Published", stage6Details, 6);
           }
         }
       }
     }
   }
 }
-
-
