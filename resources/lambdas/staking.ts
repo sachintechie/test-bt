@@ -2,6 +2,7 @@ import { getStakingTransactionByTenantTransactionId, getMasterValidatorNode } fr
 import { tenant } from "../db/models";
 import { solanaStaking } from "../solana/solanaStake";
 import { AvalancheStaking } from "../avalanche/stake";
+import { provenanceStaking } from "../provenance/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -65,7 +66,29 @@ export const handler = async (event: any) => {
         };
         console.log("AvalancheStaking response Wallet", response);
         return response;
-      } else {
+      } 
+      
+      if (event.arguments?.input?.chainType === "Provenance") {
+        const data = await provenanceStaking(
+          event.identity.resolverContext as tenant,
+          event.arguments?.input?.senderWalletAddress,
+          masterValidatorNode.validatornodeaddress || "",
+          event.arguments?.input?.amount,
+          event.arguments?.input?.symbol,
+          event.headers?.identity,
+          event.arguments?.input?.tenantUserId,
+          event.arguments?.input?.chainType,
+          event.arguments?.input?.tenantTransactionId,
+        );
+
+        const response = {
+          status: data?.transaction != null ? 200 : 400,
+          data: data?.transaction,
+          error: data?.error
+        };
+        return response;
+      }
+      else {
         return {
           status: 400,
           data: null,
