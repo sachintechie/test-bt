@@ -884,6 +884,7 @@ export async function getAdminUser(tenantUserId: string, tenantId: string) {
 
 export async function getAdminUserByTenant(email: string, tenantId: string) {
   try {
+    console.log("getAdminUserByTenant",email);
     const prisma = await getPrismaClient();
     const customer = await prisma.adminuser.findFirst({
       where: {
@@ -1254,7 +1255,6 @@ export async function addReferenceToDb(
           status: status,
           name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
           url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
-          contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
           hash: file.hash,
           ingested: isIngested,
           isdeleted: false,
