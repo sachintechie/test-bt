@@ -1,6 +1,7 @@
 import { RefType, tenant } from "../db/models";
 import {
   addReferences,
+  addWebsiteReferences,
   createProject,
   isProjectExist,
   updateProjectBucket,
@@ -92,7 +93,10 @@ async function addProjectAndReference(
 
     //  const updateProject = await updateProjectKbBucket(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket);
     //   console.log("updateProjectKB", updateProject);
-      const refs = await addReferences(tenant.id, tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
+      const refs = await addReferences(tenant.id, tenant.adminuserid ?? "", project.id, files.filter((file: any) => file.reftype === RefType.DOCUMENT),kbResponse.data.s3_bucket);
+      const webrefs = await addWebsiteReferences(tenant.id, tenant.adminuserid ?? "", project.id, files.filter((file: any) => file.reftype === RefType.WEBSITE),kbResponse.data.s3_bucket);
+      console.log("webrefs",webrefs)
+
       console.log("refs", refs);
     //  const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
      // console.log("stage1", stage1);
@@ -101,6 +105,7 @@ async function addProjectAndReference(
 
      // var projectData = await getProjectWithSteps(project.id, 1, 1);
      // console.log("projectData", projectData);
+     
       if (updateProject == null ) {
         return {
           project: null,

@@ -1226,7 +1226,7 @@ export async function addReferenceToDb(
 ) {
   try {
     const prisma = await getPrismaClient();
- 
+    if(file.reftype == RefType.DOCUMENT){ 
     const newRef = await prisma.reference.create({
       data: {
         tenantid: tenantId as string,
@@ -1254,6 +1254,38 @@ export async function addReferenceToDb(
       data: newRef,
       error: null
     };
+  }
+  else if(file.refType == RefType.WEBSITE){
+    const newRef = await prisma.websitereference.create({
+      data: {
+        tenantid: tenantId as string,
+        projectid: projectId,
+        referencestage: ReferenceStage.DATA_SOURCE,
+        status : status,
+        name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
+        url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
+        contenttype: file.refType == RefType.DOCUMENT ? file.contentType : null,
+        hash: file.hash ,
+        ingested: isIngested,
+        isdeleted: false,
+        depth: file.depth,
+        createdby:createdBy,
+        isactive: true,
+        isaddedbyadmin:isAddedByAdmin,
+        createdat: new Date().toISOString()
+      }
+    });
+    return {
+      data: newRef,
+      error: null
+    };
+  }
+  else{
+    return {
+      data: null,
+      error : "Not Supported type"
+    }
+  }
   } catch (err) {
     return {
       data: null,
@@ -1341,6 +1373,7 @@ export async function addReferences(
       createdat: new Date().toISOString(),
     }));
 
+
     // Perform batch insert
     const prisma = await getPrismaClient();
     await prisma.reference.createMany({
@@ -1374,6 +1407,71 @@ export async function addReferences(
     return { data: null, error: err };
   }
 }
+
+export async function addWebsiteReferences(
+  tenantId: string,
+  tenantUserId: string,
+  projectId: string,
+  files: any[],
+  bucketName: string
+) {
+  try {
+    // Prepare batch data
+    const referencesData = files.map((file) => ({
+      tenantid: tenantId,
+      projectid: projectId,
+      referencestage: ReferenceStage.DATA_SOURCE,
+      status: ReferenceStatus.PENDING,
+      name: file.refType === RefType.DOCUMENT ? file.fileName : file.websiteName,
+      url: file.refType === RefType.DOCUMENT ? "" : file.websiteUrl,
+      size: file.refType === RefType.DOCUMENT ? file.fileSize : null,
+      contenttype: file.refType === RefType.DOCUMENT ? file.contentType : null,
+      hash: file.hash,
+      ingested: false,
+      isdeleted: false,
+      depth: file.depth,
+      createdby: tenantUserId,
+      isactive: true,
+      isaddedbyadmin: true,
+      createdat: new Date().toISOString(),
+    }));
+
+
+    // Perform batch insert
+    const prisma = await getPrismaClient();
+    await prisma.websitereference.createMany({
+      data: referencesData,
+      skipDuplicates: true, // Skips duplicates based on unique constraints
+    });
+
+    // Now fetch the references along with their IDs
+    const createdReferences = await prisma.websitereference.findMany({
+      where: {
+        tenantid: tenantId,
+        projectid: projectId,
+        referencestage: ReferenceStage.DATA_SOURCE,
+        status: ReferenceStatus.PENDING,
+        createdby: tenantUserId,
+        isdeleted:false
+      },
+    });
+
+    console.log(`Successfully added ${createdReferences.length} references.`);
+
+    // Map the references to include their IDs
+    const referencesWithIds = createdReferences.map((ref) => ({
+      ...ref,
+      referenceId: ref.id, // Include the newly created reference ID
+    }));
+
+    return { data: referencesWithIds, error: null };
+  } catch (err) {
+    console.error("Error adding references:", err);
+    return { data: null, error: err };
+  }
+}
+
+
 
 
 
