@@ -101,6 +101,7 @@ export const handler = async (event: any, context: any) => {
 
 // Helper to authorize tenant
 function authorizeTenant(tenant: any, userType: string) {
+  try{
   return {
     isAuthorized: true,
     resolverContext: {
@@ -118,9 +119,15 @@ function authorizeTenant(tenant: any, userType: string) {
     }
   };
 }
+catch(e){
+  console.log(e);
+  throw e;
+}
+}
 
 // Helper to authorize admin user
 async function authorizeAdmin(decodedToken: any, tenant: any, event: any) {
+  try{
   if (!decodedToken || !decodedToken["email"]) {
     console.log("Invalid ID token for admin");
     return { isAuthorized: false };
@@ -132,6 +139,7 @@ async function authorizeAdmin(decodedToken: any, tenant: any, event: any) {
   }
 
   const adminUser = await getAdminUserByTenant(decodedToken["email"], tenant.id);
+  console.log("adminUser",adminUser);
 
   if (!adminUser) {
     if (event?.requestContext?.queryString.toString().includes("AdminSignin")) {
@@ -149,9 +157,17 @@ async function authorizeAdmin(decodedToken: any, tenant: any, event: any) {
     }
   };
 }
+catch(e){
+  console.log(e);
+  throw e;
+}
+
+
+}
 
 // Helper to authorize customer user
 async function authorizeCustomer(decodedToken: any, tenant: any, event: any) {
+  try{
   if (!decodedToken || !decodedToken["email"]) {
     console.log("Invalid ID token for customer");
     return { isAuthorized: false };
@@ -179,6 +195,11 @@ async function authorizeCustomer(decodedToken: any, tenant: any, event: any) {
       customerid: customer.id
     }
   };
+}
+catch(e){
+  console.log(e);
+  throw e;
+}
 }
 
 // Helper function to check if a user has admin-like privileges
