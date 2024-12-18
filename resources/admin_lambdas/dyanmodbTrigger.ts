@@ -72,6 +72,10 @@ export const handler = async (event: any) => {
   try {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
+    // derive table name from event source ARN
+    const tableName = event.Records[0].eventSourceARN.split("/")[1];
+    console.log("Table name:", tableName);
+
     // Process each record in the event
     for (const record of event.Records) {
       if (record.eventName === 'INSERT' && !record.dynamodb.NewImage?.hash_value) {
@@ -150,7 +154,7 @@ export const handler = async (event: any) => {
           console.log("Updating DynamoDB with new attributes:", JSON.stringify(newAttributes, null, 2));
 
           // Update the DynamoDB item with the new attributes
-          await addAttributeToItem(process.env.DYNAMODB_TABLE_NAME?? "", primaryKey, newAttributes);
+          await addAttributeToItem(tableName, primaryKey, newAttributes);
 
           console.log("DynamoDB update successful.");
         } else {
