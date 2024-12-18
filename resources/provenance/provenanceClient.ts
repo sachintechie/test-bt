@@ -99,4 +99,53 @@ export class ProvenanceClient {
       throw error;
     }
   }
+
+  
+  async delegateTokensToValidator(delegatorAddress: string, validatorAddress: string, amount: string, denom: string): Promise<SendTokensResponse> {
+    try {
+      const client = await this.getSigningStargateClient();
+      const result = await client.delegateTokens(
+        delegatorAddress,
+        validatorAddress,
+        {
+          amount: amount,
+          denom: denom
+        },
+        {
+          amount: [{ denom: "nhash", amount: "1905000000" }],
+          gas: "100000"
+        },
+        "Provenance Stake"
+      );
+
+      if (result.code !== 0) {
+        throw new Error(`Failed to stake tokens: ${result.code}`);
+      }
+      return {
+        data: {
+          message: "Transaction successful!",
+          transactionId: result.transactionHash,
+          status: result.code,
+          metaData: undefined,
+          blockHash: undefined as any,
+          type: undefined as any,
+          timestamp: Math.floor(Date.now() / 1000),
+          blockNumber: result.height,
+          confirmations: undefined as any,
+          from: delegatorAddress,
+          to: validatorAddress,
+          gasLimit: result.gasWanted.toString(),
+          gasPrice: result.gasUsed.toString(),
+          gas: result.gasUsed.toString(),
+          nonce: undefined as any,
+          chainId: undefined as any,
+          chainType: "Provenance"
+        },
+        error: null
+      };
+    } catch (error: any) {
+      console.error("Error staking tokens:", error);
+      throw error;
+    }
+  }
 }
