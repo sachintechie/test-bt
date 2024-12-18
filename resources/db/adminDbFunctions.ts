@@ -884,16 +884,19 @@ export async function getAdminUser(tenantUserId: string, tenantId: string) {
 
 export async function getAdminUserByTenant(email: string, tenantId: string) {
   try {
-    console.log("getAdminUserByTenant",email);
+    console.log("getAdminUserByTenant",email,tenantId);
     const prisma = await getPrismaClient();
-    const customer = await prisma.adminuser.findFirst({
+    console.log("prisma",prisma);
+    const adminuser = await prisma.adminuser.findFirst({
       where: {
         emailid: email,
         tenantid: tenantId
       }
     });
-    return customer ? customer : null;
+    console.log("adminUser",adminuser)
+    return adminuser ? adminuser : null;
   } catch (err) {
+    console.log(err);
     return null;
   }
 }
