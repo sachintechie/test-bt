@@ -150,7 +150,7 @@ export const handler = async (event: any) => {
           console.log("Updating DynamoDB with new attributes:", JSON.stringify(newAttributes, null, 2));
 
           // Update the DynamoDB item with the new attributes
-          await addAttributeToItem('aws-abu-dhabi-dynamodb', primaryKey, newAttributes);
+          await addAttributeToItem(process.env.DYNAMODB_TABLE_NAME?? "", primaryKey, newAttributes);
 
           console.log("DynamoDB update successful.");
         } else {

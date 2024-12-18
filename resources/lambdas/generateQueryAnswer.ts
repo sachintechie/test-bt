@@ -5,7 +5,7 @@ import { BedrockAgentRuntimeClient, RetrieveAndGenerateCommand, RetrieveAndGener
 import { getProjectById } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
-const TABLE_NAME = "aws-abu-dhabi-dynamodb";
+const TABLE_NAME = process.env.DYNAMODB_TABLE_NAME?? "";
 const SECRET_NAME = process.env.SECRET_NAME as string;
 
 const dynamodb = new AWS.DynamoDB({ region: "us-east-1" });
