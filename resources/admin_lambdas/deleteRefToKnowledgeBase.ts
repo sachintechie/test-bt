@@ -62,7 +62,7 @@ async function deleteReference(tenant: tenant, refId: string) {
 
     // const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
     const indexS3Deletion = new IndexS3Deletion("",reference.projectid?? "");
-    const indexDeleteResponse = indexS3Deletion.deleteFilesFromOpenSearchIndex(project.data?.indexid ?? "" ,reference.name ?? "");
+    const indexDeleteResponse = await indexS3Deletion.deleteFilesFromOpenSearchIndex(project.data?.indexid ?? "" ,reference.name ?? "");
     console.log("indexDeleteResponse", indexDeleteResponse);
     const ref = await deleteRef(tenant.id, refId);
 

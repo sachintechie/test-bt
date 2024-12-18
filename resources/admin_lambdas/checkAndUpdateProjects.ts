@@ -40,7 +40,7 @@ async function updateProjects() {
       const reference = await getFirstReferenceByProjectId(project.id);
       if (reference != null) {
         if (project.projectstage == ProjectStage.DATA_PREPARATION) {
-          const status = await getKbStatus(project.knowledgebaseid, reference?.datasourceid ?? "");
+          const status = await getKbStatus(project.knowledgebaseid?? "", reference?.datasourceid ?? "");
           if (status == "AVAILABLE") {
             // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
             const updateProject = await updateProjectStage(project.id, ProjectStage.LLM_FINE_TUNING, ProjectStatusEnum.ACTIVE);
@@ -50,9 +50,9 @@ async function updateProjects() {
             updatedProjects.push(updateProject);
           }
         } else if (project.projectstage == ProjectStage.DATA_SOURCE) {
-          const status = await getKbStatus(project.knowledgebaseid, reference?.datasourceid ?? "");
+          const status = await getKbStatus(project.knowledgebaseid?? "", reference?.datasourceid ?? "");
           if (status == "AVAILABLE") {
-            syncKbAsync(project.knowledgebaseid, reference?.datasourceid ?? "");
+            syncKbAsync(project.knowledgebaseid?? "", reference?.datasourceid ?? "");
 
             // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
             const updateProject = await updateProjectStage(project.id, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
@@ -87,14 +87,14 @@ async function updateReferences() {
             chainType: "",
             chainId: ""
           };
-          const data = await getS3Data(ref.name ?? "");
+          const data = await getS3Data(ref.name ?? "","");
 
           const uploadedFile = {
             fileName: data?.data?.fileName,
             fileContent: data?.data?.content
           };
           console.log("uploadedFile", uploadedFile);
-          const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile, true);
+          const s3PostHashedData = await hashingAndStoreToBlockchain(uploadedFile,"Avalanche", true);
           dataStoredToDb.s3PostStoreHash = s3PostHashedData.data?.hash;
           dataStoredToDb.s3PostStoreTxHash = s3PostHashedData.data?.txHash;
           //  const status = await getKbStatus(project.knowledgebaseid, ref?.datasourceid ?? "");
@@ -103,23 +103,15 @@ async function updateReferences() {
           console.log("updatedRefs", updateReference);
 
           updatedRefs.push(updateReference);
-        } else if (ref.referencestage == ReferenceStage.DATA_INDEX) {
+        } else if (ref.referencestage == ReferenceStage.DATA_STORAGE) {
           const dataStoredToDb: any = {
             completeChunkTxHash: "",
             chunksTxHash: ""
           };
-          const chunksTxHash = await hashingAndStoreToBlockchain(ref.chunkshash, false);
-          dataStoredToDb.chunksTxHash = chunksTxHash.data?.txHash;
+        
 
-          if (ref.completechunkhash) {
-            const completeChunkTxHash = await storeHash(ref.completechunkhash, false);
-            dataStoredToDb.completeChunkTxHash = completeChunkTxHash.data?.transactionId;
-          }
-          const updateReference = await updateRefererncePostIndexing(ref.id ?? "", true, dataStoredToDb);
-          console.log("updatedRefs", updateReference);
-          const updateProject = await updateProjectStage(ref.projectid ?? "", ProjectStage.PUBLISHED, ProjectStatusEnum.ACTIVE);
+          
 
-          updatedRefs.push(updateReference);
         }
       }
     }
