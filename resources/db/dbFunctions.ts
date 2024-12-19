@@ -47,16 +47,16 @@ export async function getPrismaClient() {
     console.log("Params: ", e.params);
     console.log("Duration: ", e.duration, "ms");
   });
-  // @ts-ignore
-  prismaClient.$on('error' , (e: any) => {
-    // Here, e will contain error information
-    console.log('Error: ', e.message);  // Log the error message
-    console.log('Query: ', e.query);    // Log the query that caused the error
-    console.log('Params: ', e.params);  // Log the parameters used in the query
-    console.log('Duration: ', e.duration, 'ms'); // Log query duration if available
-  });
+  // // @ts-ignore
+  // prismaClient.$on('error' , (e: any) => {
+  //   // Here, e will contain error information
+  //   console.log('Error: ', e.message);  // Log the error message
+  //   console.log('Query: ', e.query);    // Log the query that caused the error
+  //   console.log('Params: ', e.params);  // Log the parameters used in the query
+  //   console.log('Duration: ', e.duration, 'ms'); // Log query duration if available
+  // });
 
-  console.log("prismaClient",prismaClient)
+  // console.log("prismaClient",prismaClient)
 
   return prismaClient;
 }
