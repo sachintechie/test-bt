@@ -1262,12 +1262,31 @@ input GetQueryAnswerOriginInput {
   job_id: String! # Unique job ID generated for the request
 }
 
+type BlockchainResponseData {
+  blockHash: String!
+  gasFee: String!
+  chainType: String!
+  type: Int!
+  confirmations: Int!
+  message: String!
+  nonce: Int!
+  chainId: Int!
+  blockNumber: Int!
+  from: String!
+  to: String!
+  txHash: String!
+  hash: String!
+  status: String!
+  timestamp: String!
+}
+
+type BlockchainResponse {
+  data: BlockchainResponseData
+  error: String
+}
+
 type GetQueryAnswerOriginResponse {
-  job_id: String! # Unique job ID generated for the request
-  message: String! # The generated answer
-  sessionId: String! # The session ID to maintain context
-  source_text: [String!]! # List of sources or citations used to generate the response
-  source_filenamelist: [String!]! # List of filenames of the sources or citations used to generate the response
+  blockchain_response: BlockchainResponse! # Complete blockchain response object
 }
 
 type Mutation {
