@@ -23,6 +23,8 @@ export const handler = async (event: any, context: any) => {
   const customerId = tenant?.customerid;
   const projectId = event.arguments?.input?.projectId;
   const jobId = generateJobId();
+  let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
+
   const sourceText: string[] = [];
   const sourceFilenamelist: string[] = [];
   let finalAnswer = "";
@@ -46,7 +48,6 @@ export const handler = async (event: any, context: any) => {
     console.log("Event arguments Input :", event.arguments?.input);
     const userMessage = event.arguments?.input?.message;
 
-    let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
@@ -199,7 +200,7 @@ export const handler = async (event: any, context: any) => {
           status: { S: "ERROR" },
           response: { S: "Something went wrong" },
           user_query: { S: "General query" },
-          session_id: { S: "N/A" },
+          session_id: { S: sessionId },
           source_text: { L: sourceText.map((text) => ({ S: text })) }
         }
       })
@@ -210,7 +211,7 @@ export const handler = async (event: any, context: any) => {
     return {
       job_id: jobId,
       message: "Something went wrong",
-      sessionId: "N/A",
+      sessionId: sessionId,
       source_text: sourceText,
       source_filenamelist: sourceFilenamelist
     };
