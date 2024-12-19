@@ -103,6 +103,8 @@ async function addProjectAndReference(
         );
         console.log("generatedUrls", generatedUrls);
       }
+
+      
       const webSiteRef = files.filter((file: any) => file.reftype === RefType.WEBSITE);
       console.log("webSiteRef", webSiteRef, webSiteRef.length);
       if (webSiteRef.length > 0) {
