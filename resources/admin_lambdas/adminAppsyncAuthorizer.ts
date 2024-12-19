@@ -137,19 +137,10 @@ async function authorizeAdmin(decodedToken: any, tenant: any, event: any) {
     console.log("Admin token expired");
     return { isAuthorized: false };
   }
-  let adminUser;
 
-   adminUser = await getAdminUserByTenant(decodedToken["email"], tenant.id);
+   const adminUser = await getAdminUserByTenant(decodedToken["email"], tenant.id);
   console.log("adminUser",adminUser);
-  const query = `SELECT * FROM adminuser WHERE emailid = '${decodedToken["email"]}' and tenantid='${tenant.id}';`;
-  const res = await executeQuery(query);
 
-  if (!res.rows.length) {
-    console.log("API token not matched");
-    return { isAuthorized: false };
-  }
-  adminUser = res.rows[0];
-  console.log("adminUser",adminUser);
 
   if (!adminUser) {
     if (event?.requestContext?.queryString.toString().includes("AdminSignin")) {
