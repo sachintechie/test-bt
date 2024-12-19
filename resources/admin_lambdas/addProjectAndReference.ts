@@ -90,7 +90,7 @@ async function addProjectAndReference(
     if (project != null && kbResponse && kbResponse.data != null) {
       const updateProject = await updateProjectBucket(project.id, kbResponse?.data.s3_bucket ?? "");
       console.log("updateProjectBucketRes", updateProject);
-      const docRef = files.filter((file: any) => file.reftype === RefType.DOCUMENT);
+      const docRef = files.filter((file: any) => file.refType	 === RefType.DOCUMENT);
       console.log("docRef", docRef, docRef.length);
       let generatedUrls;
       if (docRef.length > 0) {
@@ -98,14 +98,14 @@ async function addProjectAndReference(
         console.log("refs", refs);
 
         generatedUrls = await generatePresignedUrlForFirstUpload(
-          refs.data?.filter((file: any) => file.reftype === RefType.DOCUMENT),
+          refs.data?.filter((file: any) => file.refType	 === RefType.DOCUMENT),
           kbResponse.data.s3_bucket
         );
         console.log("generatedUrls", generatedUrls);
       }
 
-      
-      const webSiteRef = files.filter((file: any) => file.reftype === RefType.WEBSITE);
+
+      const webSiteRef = files.filter((file: any) => file.refType	 === RefType.WEBSITE);
       console.log("webSiteRef", webSiteRef, webSiteRef.length);
       if (webSiteRef.length > 0) {
         const webrefs = await addWebsiteReferences(tenant.id, tenant.adminuserid ?? "", project.id, webSiteRef, kbResponse.data.s3_bucket);
