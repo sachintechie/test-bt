@@ -194,7 +194,7 @@ export const handler = async (event: any, context: any) => {
         TableName: TABLE_NAME,
         Item: {
           job_id: { S: jobId },
-          customer_id: { S: customerId },
+          customer_id: { S: customerId || "NA" },
           project_id: { S: projectId },
           status: { S: "ERROR" },
           response: { S: "Something went wrong" },
