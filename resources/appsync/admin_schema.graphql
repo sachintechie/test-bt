@@ -339,6 +339,7 @@ type DeleteRefToKnowledgeBase {
 
 input DeleteRefToKnowledgeBaseInput {
   refId: String!
+  refType: String!
 }
 
 input FileInput {

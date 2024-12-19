@@ -11,7 +11,8 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-    const data = await deleteReference(event.identity.resolverContext as tenant, event.arguments?.input?.refId);
+    const data = await deleteReference(event.identity.resolverContext as tenant,
+       event.arguments?.input?.refId, event.arguments?.input?.refType);
 
     const response = {
       status: data.document != null ? 200 : 400,
@@ -31,7 +32,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function deleteReference(tenant: tenant, refId: string) {
+async function deleteReference(tenant: tenant, refId: string,refType:string) {
   console.log("Creating admin user");
 
   try {
@@ -63,7 +64,7 @@ async function deleteReference(tenant: tenant, refId: string) {
     const indexS3Deletion = new IndexS3Deletion(project.data?.name?? "",reference.projectid?? "");
     const indexDeleteResponse = await indexS3Deletion.deleteFilesFromOpenSearchIndex(project.data?.indexid ?? "" ,reference.name ?? "");
     console.log("indexDeleteResponse", indexDeleteResponse);
-    const ref = await deleteRef(tenant.id, refId);
+    const ref = await deleteRef(tenant.id, refId,refType);
 
     return {
       document: ref,
