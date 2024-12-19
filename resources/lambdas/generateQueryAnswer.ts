@@ -20,7 +20,7 @@ function generateJobId(length: number = 10): string {
 export const handler = async (event: any, context: any) => {
   const tenant = event.identity.resolverContext as tenant;
 
-  const customerId = tenant?.customerid;
+  const customerId = tenant?.customerid == null ? tenant?.adminuserid :tenant?.customerid;
   const projectId = event.arguments?.input?.projectId;
   const jobId = generateJobId();
   let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
