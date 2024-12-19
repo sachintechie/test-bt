@@ -1,21 +1,18 @@
 import * as AWS from "aws-sdk";
-import { APIGatewayProxyHandler } from "aws-lambda";
 
 // Initialize DynamoDB client
 const dynamodb = new AWS.DynamoDB();
 const tableName = process.env.DYNAMODB_TABLE_NAME as string;
 
-export const handler: APIGatewayProxyHandler = async (event, context) => {
+export const handler = async (event: any, context: any) => {
   try {
     // Parse the input from the event
     console.log("Parsing input from event...");
 
     console.log("Event:", event);
 
-    const body = JSON.parse(event.body || "{}");
-
-    const jobId = body.jobId;
-
+    const jobId = event.arguments?.input?.jobId;
+    
     if (!jobId) {
       return {
         statusCode: 400,
