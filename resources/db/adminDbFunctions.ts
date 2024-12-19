@@ -887,6 +887,7 @@ export async function getAdminUserByTenant(email: string, tenantId: string) {
     console.log("getAdminUserByTenant",email,tenantId);
     const prisma = await getPrismaClient();
     console.log("prisma",prisma);
+   
     const adminuser = await prisma.adminuser.findFirst({
       where: {
         emailid: email,
