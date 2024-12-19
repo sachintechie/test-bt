@@ -1337,6 +1337,8 @@ export async function addReferenceToDb(
 export async function addReferences(tenantId: string, tenantUserId: string, projectId: string, files: any[], bucketName: string) {
   try {
     // Prepare batch data
+    if(files.length > 0){
+
     const referencesData = files.map((file) => ({
       tenantid: tenantId,
       projectid: projectId,
@@ -1387,6 +1389,10 @@ export async function addReferences(tenantId: string, tenantUserId: string, proj
     }));
 
     return { data: referencesWithIds, error: null };
+  }
+  else{
+    return {data: null,error:"No reference found"}
+  }
   } catch (err) {
     console.error("Error adding references:", err);
     return { data: null, error: err };
@@ -1396,6 +1402,7 @@ export async function addReferences(tenantId: string, tenantUserId: string, proj
 export async function addWebsiteReferences(tenantId: string, tenantUserId: string, projectId: string, files: any[], bucketName: string) {
   try {
     // Prepare batch data
+    if(files.length > 0){
     const referencesData = files.map((file) => ({
       tenantid: tenantId,
       projectid: projectId,
@@ -1443,6 +1450,10 @@ export async function addWebsiteReferences(tenantId: string, tenantUserId: strin
     }));
 
     return { data: referencesWithIds, error: null };
+  }
+  else{
+    return{data : null,error : "no reference found"}
+  }
   } catch (err) {
     console.error("Error adding references:", err);
     return { data: null, error: err };
