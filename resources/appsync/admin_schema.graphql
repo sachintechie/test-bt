@@ -766,6 +766,19 @@ type ProjectData {
   createdby: String
   chaintype: String
   references: [ReferenceData]
+  websitereferences : [WebsiteReferenceData]
+}
+type WebsiteReferenceData{
+  id: String
+  createdat: String
+  depth: Int
+  ingested: Boolean
+  reftype: String
+  name: String
+  url: String
+  status: String
+  referencestage: String
+  projectid: String
 }
 
 input ProjectFileInput {

@@ -2100,7 +2100,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
       where: {
         id: projectId
       },
-      include: { references: true }
+      include: { references: true ,websitereferences:true}
     });
 
     const stageCount = await prisma.stage.count({
