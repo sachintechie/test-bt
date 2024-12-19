@@ -1781,9 +1781,10 @@ export async function getReferenceByProjectIdAndType(
   }
 }
 
-export async function deleteRef(tenantId: string, refId: string) {
+export async function deleteRef(tenantId: string, refId: string,refType:string) {
   try {
     const prisma = await getPrismaClient();
+    if(refType == RefType.DOCUMENT){
     const reference = await prisma.reference.findFirst({
       where: {
         id: refId,
@@ -1799,6 +1800,28 @@ export async function deleteRef(tenantId: string, refId: string) {
       data: { isdeleted: true }
     });
     return deletedReference;
+  }
+  else if(refType == RefType.WEBSITE){
+    const reference = await prisma.websitereference.findFirst({
+      where: {
+        id: refId,
+        tenantid: tenantId,
+        isdeleted: false
+      }
+    });
+    if (reference == null) {
+      throw new Error("Reference not found");
+    }
+    const deletedReference = await prisma.websitereference.update({
+      where: { id: refId },
+      data: { isdeleted: true }
+    });
+    return deletedReference;
+  }
+  else{
+    return null;
+  }
+
   } catch (err) {
     throw err;
   }
@@ -2100,7 +2123,7 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
       where: {
         id: projectId
       },
-      include: { references: true }
+      include: { references: true ,websitereferences:true}
     });
 
     const stageCount = await prisma.stage.count({
