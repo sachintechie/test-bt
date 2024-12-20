@@ -98,7 +98,7 @@ async function addProjectAndReference(
         console.log("refs", refs);
 
         generatedUrls = await generatePresignedUrlForFirstUpload(
-          refs.data?.filter((file: any) => file.refType	 === RefType.DOCUMENT),
+          refs.data?.filter((file: any) => file.reftype	 === RefType.DOCUMENT),
           kbResponse.data.s3_bucket
         );
         console.log("generatedUrls", generatedUrls);
