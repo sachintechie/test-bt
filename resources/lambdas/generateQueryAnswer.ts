@@ -28,7 +28,6 @@ export const handler = async (event: any, context: any) => {
   const sourceText: string[] = [];
   const sourceFilenamelist: string[] = [];
   let finalAnswer = "";
-  let i = 1;
 
   try {
     console.log("Starting Lambda execution...");
@@ -127,35 +126,41 @@ export const handler = async (event: any, context: any) => {
     // Extracting and formatting text and citations
     if (response?.citations) {
       console.log("Processing citations...");
-
-      // Loop through the citations
+    
+      let i = 1; // Initialize i
       for (const citation of response.citations) {
         if (citation) {
           const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
+          console.log("Response text:", responseText);
           finalAnswer += responseText + " ";
-
+    
           if (citation?.retrievedReferences) {
-            for (const reference of citation?.retrievedReferences) {
-              // Extract and format the citations
+            for (const reference of citation.retrievedReferences) {
+              console.log("Reference:", reference);
               const sourceUrl = reference?.content?.text;
               const sourceFilename = reference?.metadata ? reference?.metadata["x-amz-bedrock-kb-source-uri"] : "";
-
-              // Append the source filename and reference text to the lists
+    
+              // Log for debugging
+              console.log("Source URL:", sourceUrl);
+              console.log("Source Filename:", sourceFilename);
+    
+              // Append to lists
               sourceFilenamelist.push(sourceFilename?.toString() ?? "");
               sourceText.push(`${sourceUrl}\n`);
-
-              // Add source reference text to final answer
+    
+              // Add to finalAnswer
               finalAnswer += `Source[${i}] `;
               i++;
             }
+          } else {
+            console.log("No retrievedReferences for this citation.");
           }
           finalAnswer += `\n`;
         }
       }
     }
 
-    console.log("Final generated answer:", finalAnswer);
-
+    // Log for debugging
     console.log("Final generated answer:", finalAnswer);
 
     // Storing result in DynamoDB
