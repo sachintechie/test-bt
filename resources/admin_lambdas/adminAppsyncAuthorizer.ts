@@ -64,13 +64,18 @@ export const handler = async (event: any, context: any) => {
       const idToken = event?.requestHeaders?.identity;
 
       if (!idToken) {
-        console.log("No ID token provided");
-        return { isAuthorized: false };
+        const WithoutAuthorizationQuery = ["GetProducts"]; // List of valid names
+        if (WithoutAuthorizationQuery.some((name) => event?.requestContext?.queryString.toString().includes(name))) {
+          return authorizeTenant(tenant, "CUSTOMER");
+        } else {
+          console.log("No ID token provided");
+          return { isAuthorized: false };
+        }
       }
 
       const { isAdmin, decodedToken } = await isUserAdminLike(idToken, tenant);
 
-      console.log("isAdmin",isAdmin,decodedToken);
+      console.log("isAdmin", isAdmin, decodedToken);
 
       if (isAdmin) {
         return await authorizeAdmin(decodedToken, tenant, event);
@@ -101,106 +106,101 @@ export const handler = async (event: any, context: any) => {
 
 // Helper to authorize tenant
 function authorizeTenant(tenant: any, userType: string) {
-  try{
-  return {
-    isAuthorized: true,
-    resolverContext: {
-      id: tenant.id,
-      name: tenant.name,
-      apikey: tenant.apikey,
-      logo: tenant.logo,
-      isactive: tenant.isactive,
-      createdat: tenant.createdat,
-      userpoolid: tenant.userpoolid,
-      iscognitoactive: tenant.iscognitoactive,
-      cognitoclientid: tenant.cognitoclientid,
-      iscubistactive: tenant.iscubistactive,
-      userType
-    }
-  };
-}
-catch(e){
-  console.log(e);
-  throw e;
-}
+  try {
+    return {
+      isAuthorized: true,
+      resolverContext: {
+        id: tenant.id,
+        name: tenant.name,
+        apikey: tenant.apikey,
+        logo: tenant.logo,
+        isactive: tenant.isactive,
+        createdat: tenant.createdat,
+        userpoolid: tenant.userpoolid,
+        iscognitoactive: tenant.iscognitoactive,
+        cognitoclientid: tenant.cognitoclientid,
+        iscubistactive: tenant.iscubistactive,
+        userType
+      }
+    };
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
 }
 
 // Helper to authorize admin user
 async function authorizeAdmin(decodedToken: any, tenant: any, event: any) {
-  try{
-  if (!decodedToken || !decodedToken["email"]) {
-    console.log("Invalid ID token for admin");
-    return { isAuthorized: false };
-  }
-
-  if (isTokenExpired(decodedToken)) {
-    console.log("Admin token expired");
-    return { isAuthorized: false };
-  }
-
-   const adminUser = await getAdminUserByTenant(decodedToken["email"], tenant.id);
-  console.log("adminUser",adminUser);
-
-
-  if (!adminUser) {
-    if (event?.requestContext?.queryString.toString().includes("AdminSignin")) {
-      return authorizeTenant(tenant, "ADMIN");
+  try {
+    if (!decodedToken || !decodedToken["email"]) {
+      console.log("Invalid ID token for admin");
+      return { isAuthorized: false };
     }
-    console.log("Admin user not found");
-    return { isAuthorized: false };
-  }
 
-  return {
-    isAuthorized: true,
-    resolverContext: {
-      ...authorizeTenant(tenant, "ADMIN").resolverContext,
-      adminuserid: adminUser.id
+    if (isTokenExpired(decodedToken)) {
+      console.log("Admin token expired");
+      return { isAuthorized: false };
     }
-  };
-}
-catch(e){
-  console.log(e);
-  throw e;
-}
 
+    const adminUser = await getAdminUserByTenant(decodedToken["email"], tenant.id);
+    console.log("adminUser", adminUser);
 
+    if (!adminUser) {
+      if (event?.requestContext?.queryString.toString().includes("AdminSignin")) {
+        return authorizeTenant(tenant, "ADMIN");
+      }
+      console.log("Admin user not found");
+      return { isAuthorized: false };
+    }
+
+    return {
+      isAuthorized: true,
+      resolverContext: {
+        ...authorizeTenant(tenant, "ADMIN").resolverContext,
+        adminuserid: adminUser.id
+      }
+    };
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
 }
 
 // Helper to authorize customer user
 async function authorizeCustomer(decodedToken: any, tenant: any, event: any) {
-  try{
-  if (!decodedToken || !decodedToken["email"]) {
-    console.log("Invalid ID token for customer");
-    return { isAuthorized: false };
-  }
-
-  if (isTokenExpired(decodedToken)) {
-    console.log("Customer token expired");
-    return { isAuthorized: false };
-  }
-
-  const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
-
-  if (!customer) {
-    if (event?.requestContext?.queryString.toString().includes("Signin")) {
-      return authorizeTenant(tenant, "CUSTOMER");
+  try {
+    if (!decodedToken || !decodedToken["email"]) {
+      console.log("Invalid ID token for customer");
+      return { isAuthorized: false };
     }
-    console.log("Customer not found");
-    return { isAuthorized: false };
-  }
 
-  return {
-    isAuthorized: true,
-    resolverContext: {
-      ...authorizeTenant(tenant, "CUSTOMER").resolverContext,
-      customerid: customer.id
+    if (isTokenExpired(decodedToken)) {
+      console.log("Customer token expired");
+      return { isAuthorized: false };
     }
-  };
-}
-catch(e){
-  console.log(e);
-  throw e;
-}
+
+    const customer = await getCustomerIdByTenant(decodedToken["email"], tenant.id);
+
+    const WithoutAuthorizationQuery = ["Signin"]; // List of valid names
+    if (!customer) {
+      if (WithoutAuthorizationQuery.some((name) => event?.requestContext?.queryString.toString().includes(name))) {
+        return authorizeTenant(tenant, "CUSTOMER");
+      }
+      console.log("Customer not found");
+      return { isAuthorized: false };
+    }
+
+    return {
+      isAuthorized: true,
+      resolverContext: {
+        ...authorizeTenant(tenant, "CUSTOMER").resolverContext,
+        customerid: customer.id
+      }
+    };
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
 }
 
 // Helper function to check if a user has admin-like privileges
@@ -220,11 +220,10 @@ async function isUserAdminLike(idToken: string, tenant: any) {
 
 // Helper function to check if token is expired
 function isTokenExpired(decodedToken: any): boolean {
-  try{
-  const expireTimeInMs = decodedToken["exp"] * 1000;
-  return Date.now() > expireTimeInMs;
-  }
-  catch(e){
+  try {
+    const expireTimeInMs = decodedToken["exp"] * 1000;
+    return Date.now() > expireTimeInMs;
+  } catch (e) {
     console.log(e);
     return false;
   }

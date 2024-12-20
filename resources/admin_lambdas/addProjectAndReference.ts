@@ -4,18 +4,12 @@ import {
   addWebsiteReferences,
   createProject,
   isProjectExist,
-  updateProjectBucket,
-  updateProjectKbAndIndex,
-  updateProjectKbBucket
+  updateProjectBucket
 } from "../db/adminDbFunctions";
 import { ProjectType } from "@prisma/client";
 import {
-  addStage1Lambda,
-  formatBytes,
-  generatePresignedUrl,
   generatePresignedUrlForFirstUpload,
   generateRandomString,
-  lambdaCallForCreateKB,
   lambdaCallForCreateS3Bucket
 } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
@@ -96,37 +90,27 @@ async function addProjectAndReference(
     if (project != null && kbResponse && kbResponse.data != null) {
       const updateProject = await updateProjectBucket(project.id, kbResponse?.data.s3_bucket ?? "");
       console.log("updateProjectBucketRes", updateProject);
+      const docRef = files.filter((file: any) => file.refType	 === RefType.DOCUMENT);
+      console.log("docRef", docRef, docRef.length);
+      let generatedUrls;
+      if (docRef.length > 0) {
+        const refs = await addReferences(tenant.id, tenant.adminuserid ?? "", project.id, docRef, kbResponse.data.s3_bucket);
+        console.log("refs", refs);
 
-      //  const updateProject = await updateProjectKbBucket(project.id, kbResponse.data.Kb_Id ?? "", kbResponse?.data.Index_Name ?? "", kbResponse?.data.s3_bucket);
-      //   console.log("updateProjectKB", updateProject);
-      const refs = await addReferences(
-        tenant.id,
-        tenant.adminuserid ?? "",
-        project.id,
-        files.filter((file: any) => file.reftype === RefType.DOCUMENT),
-        kbResponse.data.s3_bucket
-      );
-      const webrefs = await addWebsiteReferences(
-        tenant.id,
-        tenant.adminuserid ?? "",
-        project.id,
-        files.filter((file: any) => file.reftype === RefType.WEBSITE),
-        kbResponse.data.s3_bucket
-      );
-      console.log("webrefs", webrefs);
+        generatedUrls = await generatePresignedUrlForFirstUpload(
+          refs.data?.filter((file: any) => file.reftype	 === RefType.DOCUMENT),
+          kbResponse.data.s3_bucket
+        );
+        console.log("generatedUrls", generatedUrls);
+      }
 
-      console.log("refs", refs);
-      //  const stage1 = await addStage_1(tenant.id,tenant.adminuserid ?? "", project.id, files,kbResponse.data.s3_bucket);
-      // console.log("stage1", stage1);
-      const generatedUrls = await generatePresignedUrlForFirstUpload(
-        refs.data?.filter((file: any) => file.reftype === RefType.DOCUMENT),
-        kbResponse.data.s3_bucket
-      );
-      console.log("generatedUrls", generatedUrls);
 
-      // var projectData = await getProjectWithSteps(project.id, 1, 1);
-      // console.log("projectData", projectData);
-
+      const webSiteRef = files.filter((file: any) => file.refType	 === RefType.WEBSITE);
+      console.log("webSiteRef", webSiteRef, webSiteRef.length);
+      if (webSiteRef.length > 0) {
+        const webrefs = await addWebsiteReferences(tenant.id, tenant.adminuserid ?? "", project.id, webSiteRef, kbResponse.data.s3_bucket);
+        console.log("webrefs", webrefs);
+      }
       if (updateProject == null) {
         return {
           project: null,
