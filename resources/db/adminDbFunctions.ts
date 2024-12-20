@@ -1222,7 +1222,7 @@ export async function addReferenceToDb(
 ) {
   try {
     const prisma = await getPrismaClient();
-    if (file.reftype == RefType.DOCUMENT) {
+    if (file.refType == RefType.DOCUMENT) {
       const newRef = await prisma.reference.create({
         data: {
           tenantid: tenantId as string,
