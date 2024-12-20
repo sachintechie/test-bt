@@ -160,7 +160,7 @@ export const handler = async (event: any, context: any) => {
       }
     }
 
-    // Log for debugging
+    
     console.log("Final generated answer:", finalAnswer);
 
     // Storing result in DynamoDB
@@ -186,7 +186,7 @@ export const handler = async (event: any, context: any) => {
     // Returning the response to the client
     return {
       job_id: jobId,
-      message: response.output?.text,
+      message: finalAnswer.length > 0 ? finalAnswer: response.output?.text,
       sessionId,
       source_text: sourceText,
       source_filenamelist: sourceFilenamelist
