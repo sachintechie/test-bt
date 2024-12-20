@@ -7,17 +7,16 @@ const tableName = process.env.DYNAMODB_TABLE_NAME as string;
 export const handler = async (event: any, context: any) => {
   try {
     console.log("Parsing input from event...");
-    console.log("Event:", event);
+    console.log("Event:", JSON.stringify(event));
 
     // Extract jobId from the input arguments
     const jobId = event.arguments?.input?.jobId;
 
     if (!jobId) {
       return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: "Missing jobId in request body",
-        }),
+        status: 400,
+        error: "Missing jobId in request body",
+        data: null,
       };
     }
 
@@ -45,10 +44,9 @@ export const handler = async (event: any, context: any) => {
     // Handle case where status is not "SUCCESS"
     if (status !== "SUCCESS") {
       return {
-        statusCode: 500,
-        body: JSON.stringify({
-          message: "Query answer not found or processing timeout",
-        }),
+        status: 500,
+        error: "Query answer not found or processing timeout",
+        data: null,
       };
     }
 
@@ -56,27 +54,24 @@ export const handler = async (event: any, context: any) => {
     const blockchainResponse = queryAnswer?.blockchain_response?.M;
     if (!blockchainResponse) {
       return {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: "Blockchain response not found",
-        }),
+        status: 404,
+        error: "Blockchain response not found",
+        data: null,
       };
     }
 
     // Return the blockchain response
     return {
-      statusCode: 200,
-      body: JSON.stringify({
-        blockchainResponse: AWS.DynamoDB.Converter.unmarshall(blockchainResponse),
-      }),
+      status: 200,
+      error: null,
+      data: blockchainResponse,
     };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
     return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: "Internal Server Error",
-      }),
+      status: 500,
+      error: "Internal server error",
+      data: null,
     };
   }
 };
