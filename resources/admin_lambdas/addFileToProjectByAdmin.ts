@@ -43,8 +43,9 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
         const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING, true, tenant?.adminuserid ?? "");
         if (ref.data) refs.push(ref.data);
       }
+      console.log("refs",refs);
       const urls = await generatePresignedUrlForFirstUpload(
-        files.filter((file: any) => file.refType === RefType.DOCUMENT),
+        refs,
         project.data.s3bucketname ?? ""
       );
       console.log("urls", urls);
