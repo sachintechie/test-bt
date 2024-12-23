@@ -64,9 +64,17 @@ export const handler = async (event: any, context: any) => {
     }
     
     let unmarshalledResponse = AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true });
-    console.log("Unmarshalled response:", unmarshalledResponse);
+    let error = unmarshalledResponse.error;
+    if (error) {
+      return {
+        status: 500,
+        error: error,
+        data: null,
+      };
+    }
+    console.log("Unmarshalled response:", unmarshalledResponse.data);
     // Extract the blockchain response data
-    if (unmarshalledResponse.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE ) {
+    if (unmarshalledResponse.data.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE ) {
       // get the latest transaction details
       const latestTransactionDetails = await getHashTransactionDetails(unmarshalledResponse.txHash);
       console.log("Latest transaction details:", latestTransactionDetails);
@@ -78,7 +86,7 @@ export const handler = async (event: any, context: any) => {
       status: 200,
       error: null,
       // give JSON object as data
-      data: unmarshalledResponse,
+      data: unmarshalledResponse.data,
     };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
