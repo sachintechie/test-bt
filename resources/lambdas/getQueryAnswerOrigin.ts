@@ -1,4 +1,7 @@
 import * as AWS from "aws-sdk";
+import web3 from "web3";
+import { CHAIN_TO_CHAIN_NAME_MAPPING } from "../utils/utils";
+import { getHashTransactionDetails } from "../avalanche/commonFunctions";
 
 // Initialize DynamoDB client
 const dynamodb = new AWS.DynamoDB();
@@ -59,13 +62,23 @@ export const handler = async (event: any, context: any) => {
         data: null,
       };
     }
-    console.log(AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true }));
+    
+    let unmarshalledResponse = AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true });
+    console.log("Unmarshalled response:", unmarshalledResponse);
+    // Extract the blockchain response data
+    if (unmarshalledResponse.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE ) {
+      // get the latest transaction details
+      const latestTransactionDetails = await getHashTransactionDetails(unmarshalledResponse.txHash);
+      console.log("Latest transaction details:", latestTransactionDetails);
+      // update the unmarshalledResponse with the latest transaction details
+      unmarshalledResponse.confirmations = latestTransactionDetails.data?.confirmations;
+    }
     // Return the blockchain response
     return {
       status: 200,
       error: null,
       // give JSON object as data
-      data: AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true }),
+      data: unmarshalledResponse,
     };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
