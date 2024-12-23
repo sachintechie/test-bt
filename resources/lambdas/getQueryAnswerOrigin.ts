@@ -59,12 +59,13 @@ export const handler = async (event: any, context: any) => {
         data: null,
       };
     }
-
+    console.log(AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true }));
     // Return the blockchain response
     return {
       status: 200,
       error: null,
-      data: blockchainResponse,
+      // give JSON object as data
+      data: AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true }),
     };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
