@@ -1281,6 +1281,7 @@ type BlockchainResponseData {
 }
 
 type BlockchainResponse {
+  status: Int
   data: BlockchainResponseData
   error: String
 }
