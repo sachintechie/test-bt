@@ -2134,24 +2134,23 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
 
     const project = await prisma.project.findFirst({
       where: {
-        id: projectId, // Filter for the project by its id
+        id: projectId // Filter for the project by its id
       },
       include: {
         references: {
           where: {
             // Add filter conditions for references here
-            isdeleted: false, // Example: Only include references where isActive is true
-          },
+            isdeleted: false // Example: Only include references where isActive is true
+          }
         },
         websitereferences: {
           where: {
             // Add filter conditions for websitereferences here
-            isdeleted: false, // Example: Only include website references containing 'example' in the URL
-          },
-        },
-      },
+            isdeleted: false // Example: Only include website references containing 'example' in the URL
+          }
+        }
+      }
     });
-    
 
     const stageCount = await prisma.stage.count({
       where: {
