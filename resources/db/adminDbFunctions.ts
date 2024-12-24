@@ -209,6 +209,21 @@ export async function updateRefStatus(refId: string, status: ReferenceStatus) {
   }
 }
 
+export async function updateWebsiteRefStatus(refId: string, status: ReferenceStatus) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.websitereference.update({
+      where: { id: refId },
+      data: {
+        status: status
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateRefererncePostS3Data(refId: string, ingested: boolean, hashedData: any) {
   try {
     const prisma = await getPrismaClient();
@@ -1216,9 +1231,7 @@ export async function addReferenceToDb(
   projectId: string,
   status: ReferenceStatus,
   isAddedByAdmin: boolean,
-  createdBy: string,
-  datasource_id?: string,
-  ingestionJobId?: string
+  createdBy: string
 ) {
   try {
     const prisma = await getPrismaClient();
@@ -1237,8 +1250,6 @@ export async function addReferenceToDb(
           hash: file.hash,
           ingested: isIngested,
           isdeleted: false,
-          datasourceid: datasource_id,
-          ingestionjobid: ingestionJobId,
           depth: file.depth,
           createdby: createdBy,
           isactive: true,
@@ -1257,8 +1268,8 @@ export async function addReferenceToDb(
           projectid: projectId,
           referencestage: ReferenceStage.DATA_SOURCE,
           status: status,
-          name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
-          url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
+          name: file.websiteName,
+          url: file.websiteUrl,
           hash: file.hash,
           ingested: isIngested,
           isdeleted: false,
@@ -1279,6 +1290,53 @@ export async function addReferenceToDb(
         error: "Not Supported type"
       };
     }
+  } catch (err) {
+    return {
+      data: null,
+      error: err
+    };
+  }
+}
+
+export async function addWebsiteReferenceToDb(
+  tenantId: string,
+  file: any,
+  isIngested: boolean,
+  projectId: string,
+  status: ReferenceStatus,
+  isAddedByAdmin: boolean,
+  createdBy: string,
+  parentRefId: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+      const newRef = await prisma.reference.create({
+        data: {
+          tenantid: tenantId as string,
+          projectid: projectId,
+          referencestage: ReferenceStage.DATA_SOURCE,
+          status: status,
+          reftype: file.refType,
+          name: file.fileName ,
+          url: file.websiteUrl,
+          size:  file.fileSize ,
+          contenttype:file.contentType,
+          hash: file.hash,
+          ingested: isIngested,
+          isdeleted: false,
+          depth: file.depth,
+          createdby: createdBy,
+          isactive: true,
+          isaddedbyadmin: isAddedByAdmin,
+          parentrefid:parentRefId,
+          createdat: new Date().toISOString()
+        }
+      });
+      return {
+        data: newRef,
+        error: null
+      };
+    
   } catch (err) {
     return {
       data: null,
@@ -2109,6 +2167,23 @@ export async function getRefById(refId: string) {
   try {
     const prisma = await getPrismaClient();
     const project = await prisma.reference.findFirst({
+      where: {
+        id: refId
+      }
+    });
+    if (project == null) {
+      return { data: null, error: "Reference not found" };
+    }
+    return { data: project, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+export async function getWebsiteRefById(refId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const project = await prisma.websitereference.findFirst({
       where: {
         id: refId
       }

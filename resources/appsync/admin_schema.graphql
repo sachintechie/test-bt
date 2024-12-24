@@ -1011,6 +1011,7 @@ input UpdateProjectStatusInput {
 input UpdateRefStatusInput {
   refId: String!
   status: String!
+  refType: String!
 }
 
 type UpdateRefStatus {
