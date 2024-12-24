@@ -76,7 +76,7 @@ export const handler = async (event: any, context: any) => {
     // Extract the blockchain response data
     if (unmarshalledResponse.data.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
       // get the latest transaction details
-      const latestTransactionDetails = await getHashTransactionDetails(unmarshalledResponse.txHash);
+      const latestTransactionDetails = await getHashTransactionDetails(unmarshalledResponse.data.txHash);
       console.log("Latest transaction details:", latestTransactionDetails);
       // update the unmarshalledResponse with the latest transaction details
       unmarshalledResponse.confirmations = latestTransactionDetails.data?.confirmations;
