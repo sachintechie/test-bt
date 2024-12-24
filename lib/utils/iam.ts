@@ -23,7 +23,8 @@ export const getLambdaRole = (scope: Construct) => {
           "lambda:InvokeFunction",
           "lambda:GetFunction",
           "s3:GetObject",
-          "s3:PutObject"
+          "s3:PutObject",
+          "s3:DeleteObject"
         ],
         resources: ["*"] // Allow access to all RDS instances and Secrets Manager secrets
       })

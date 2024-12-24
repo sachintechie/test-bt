@@ -10,9 +10,6 @@ import { formatBytes } from "../knowledgebase/commonFunctions";
 
 const s3 = new AWS.S3();
 
-interface Context {
-  // Define the context type if needed
-}
 
 export const handler = async (event: any, context: any) => {
   let count = 0;
