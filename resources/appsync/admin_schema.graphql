@@ -767,9 +767,9 @@ type ProjectData {
   createdby: String
   chaintype: String
   references: [ReferenceData]
-  websitereferences : [WebsiteReferenceData]
+  websitereferences: [WebsiteReferenceData]
 }
-type WebsiteReferenceData{
+type WebsiteReferenceData {
   id: String
   createdat: String
   depth: Int

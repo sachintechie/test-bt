@@ -56,7 +56,6 @@ export const handler = async (event: any, context: any) => {
     if (tenant && subscriptionPreType) {
       return authorizeTenant(tenant, "ADMIN");
     }
-  
 
     // Handle Cognito active tenant
     if (tenant.iscognitoactive) {
@@ -77,10 +76,10 @@ export const handler = async (event: any, context: any) => {
         return await authorizeCustomer(decodedToken, tenant, event);
       }
     }
-      // Handle AI tenants
-      if (tenant.name === "AI" || tenant.name === "AI-Dev") {
-        return authorizeTenant(tenant, "ADMIN");
-      }
+    // Handle AI tenants
+    if (tenant.name === "AI" || tenant.name === "AI-Dev") {
+      return authorizeTenant(tenant, "ADMIN");
+    }
 
     // Handle OnDemand tenant
     if (tenant.name === "OnDemand") {

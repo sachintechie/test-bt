@@ -19,7 +19,7 @@ export const handler = async (event: any, context: any) => {
       return {
         status: 400,
         error: "Missing jobId in request body",
-        data: null,
+        data: null
       };
     }
 
@@ -27,8 +27,8 @@ export const handler = async (event: any, context: any) => {
     const params = {
       TableName: tableName,
       Key: {
-        job_id: { S: jobId },
-      },
+        job_id: { S: jobId }
+      }
     };
 
     // Poll DynamoDB until status is "SUCCESS" or maximum retries are reached
@@ -49,7 +49,7 @@ export const handler = async (event: any, context: any) => {
       return {
         status: 500,
         error: "Query answer not found or processing timeout",
-        data: null,
+        data: null
       };
     }
 
@@ -59,22 +59,22 @@ export const handler = async (event: any, context: any) => {
       return {
         status: 404,
         error: "Blockchain response not found",
-        data: null,
+        data: null
       };
     }
-    
+
     let unmarshalledResponse = AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true });
     let error = unmarshalledResponse.error;
     if (error) {
       return {
         status: 500,
         error: error,
-        data: null,
+        data: null
       };
     }
     console.log("Unmarshalled response:", unmarshalledResponse.data);
     // Extract the blockchain response data
-    if (unmarshalledResponse.data.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE ) {
+    if (unmarshalledResponse.data.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
       // get the latest transaction details
       const latestTransactionDetails = await getHashTransactionDetails(unmarshalledResponse.txHash);
       console.log("Latest transaction details:", latestTransactionDetails);
@@ -86,14 +86,14 @@ export const handler = async (event: any, context: any) => {
       status: 200,
       error: null,
       // give JSON object as data
-      data: unmarshalledResponse.data,
+      data: unmarshalledResponse.data
     };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
     return {
       status: 500,
       error: "Internal server error",
-      data: null,
+      data: null
     };
   }
 };

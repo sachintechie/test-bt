@@ -31,39 +31,38 @@ import { addActivityLog } from "./adminDbFunctions";
 let prismaClient: PrismaClient;
 
 export async function getPrismaClient() {
-  try{
-  if (prismaClient) {
+  try {
+    if (prismaClient) {
+      return prismaClient;
+    }
+    const databaseUrl = await getDatabaseUrl();
+    prismaClient = new PrismaClient({
+      datasourceUrl: databaseUrl,
+      log: ["query", "info", "warn", "error"]
+    });
+
+    // @ts-ignore
+    prismaClient.$on("query", (e: any) => {
+      console.log("Query: ", e.query);
+      console.log("Params: ", e.params);
+      console.log("Duration: ", e.duration, "ms");
+    });
+    // // @ts-ignore
+    // prismaClient.$on('error' , (e: any) => {
+    //   // Here, e will contain error information
+    //   console.log('Error: ', e.message);  // Log the error message
+    //   console.log('Query: ', e.query);    // Log the query that caused the error
+    //   console.log('Params: ', e.params);  // Log the parameters used in the query
+    //   console.log('Duration: ', e.duration, 'ms'); // Log query duration if available
+    // });
+
+    // console.log("prismaClient",prismaClient)
+
     return prismaClient;
+  } catch (e) {
+    console.log(e);
+    throw e;
   }
-  const databaseUrl = await getDatabaseUrl();
-  prismaClient = new PrismaClient({
-    datasourceUrl: databaseUrl,
-    log: ["query", "info", "warn", "error"]
-  });
-
-  // @ts-ignore
-  prismaClient.$on("query", (e: any) => {
-    console.log("Query: ", e.query);
-    console.log("Params: ", e.params);
-    console.log("Duration: ", e.duration, "ms");
-  });
-  // // @ts-ignore
-  // prismaClient.$on('error' , (e: any) => {
-  //   // Here, e will contain error information
-  //   console.log('Error: ', e.message);  // Log the error message
-  //   console.log('Query: ', e.query);    // Log the query that caused the error
-  //   console.log('Params: ', e.params);  // Log the parameters used in the query
-  //   console.log('Duration: ', e.duration, 'ms'); // Log query duration if available
-  // });
-
-  // console.log("prismaClient",prismaClient)
-
-  return prismaClient;
-}
-catch(e){
-  console.log(e);
-  throw e;
-}
 }
 export async function getWalletByChainType(chainType: string) {
   try {
