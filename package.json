@@ -62,6 +62,7 @@
     "jsonwebtoken": "^9.0.2",
     "mammoth": "^1.8.0",
     "node-fetch": "^2.7.0",
+    "node-html-parser": "^6.1.13",
     "pdf2json": "^3.1.4",
     "pg": "^8.11.5",
     "prettier": "^3.3.2",
