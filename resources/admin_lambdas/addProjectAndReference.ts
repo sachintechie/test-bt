@@ -1,7 +1,7 @@
 import { RefType, tenant } from "../db/models";
 import { addReferences, addWebsiteReferences, createProject, isProjectExist, updateProjectBucket } from "../db/adminDbFunctions";
 import { ProjectType } from "@prisma/client";
-import { generatePresignedUrlForFirstUpload, generateRandomString, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
+import { callWebCrawlerLambda, generatePresignedUrlForFirstUpload, generateRandomString, lambdaCallForCreateS3Bucket } from "../knowledgebase/commonFunctions";
 import { logWithTrace } from "../utils/utils";
 import { addStagesStructure } from "../knowledgebase/addStageAndSteps";
 
@@ -98,7 +98,14 @@ async function addProjectAndReference(
       console.log("webSiteRef", webSiteRef, webSiteRef.length);
       if (webSiteRef.length > 0) {
         const webrefs = await addWebsiteReferences(tenant.id, tenant.adminuserid ?? "", project.id, webSiteRef, kbResponse.data.s3_bucket);
-        console.log("webrefs", webrefs);
+        
+      console.log("webrefs", webrefs);
+   if(webrefs.data && webrefs.data?.length > 0){
+      for(const webRef of webrefs?.data){
+        await callWebCrawlerLambda(tenant.adminuserid?? "",tenant.id,webRef.depth?? 1,webRef.url ?? "",webRef.id,project.id,project.s3bucketname?? "",true);
+
+      }
+    }
       }
       if (updateProject == null) {
         return {

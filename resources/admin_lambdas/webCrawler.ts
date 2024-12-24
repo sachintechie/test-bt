@@ -3,8 +3,10 @@ import { parse } from "node-html-parser";
 import { URL } from "url";
 import * as AWS from "aws-sdk";
 import * as crypto from "crypto";
-import { addReferenceToDb } from "../db/adminDbFunctions";
+import { addReferenceToDb, addWebsiteReferenceToDb } from "../db/adminDbFunctions";
 import { RefType } from "../db/models";
+import { ReferenceStatus } from "@prisma/client";
+import { formatBytes } from "../knowledgebase/commonFunctions";
 
 const s3 = new AWS.S3();
 
@@ -18,11 +20,10 @@ export const handler = async (event: any, context: Context) => {
   try {
     console.log("Lambda handler started");
 
-    const startUrl = event.arguments?.input.url;
-    const maxDepth = parseInt(event.arguments?.depth, 10);
-    const tenantId = event.identity.resolverContext.id;
-    const bucketName = event.arguments?.input.s3bucketname;
-    const projectId = event.arguments?.input.projectid;
+
+    const { projectId, tenantId, bucketName,tenantUserId, maxDepth,webUrl,refId,isAddedByAdmin } = event;
+    const startUrl = webUrl;
+
 
     if (!startUrl || !bucketName || !projectId) {
       console.error("Missing required arguments in the event.");
@@ -68,20 +69,36 @@ export const handler = async (event: any, context: Context) => {
         const textHash = crypto.createHash("sha256").update(textContent[currentUrl]).digest("hex");
         console.log(`Extracted text from ${currentUrl}. Hash value: ${textHash}`);
 
-        // Add reference to DB
-        console.log(`Adding reference to DB for URL: ${currentUrl}`);
-        await addReferenceToDb(tenantId, RefType.DOCUMENT, true, projectId, 200, true, currentUrl, textHash);
-
         // Store the content in S3
         console.log(`Uploading content of ${currentUrl} to S3 bucket: ${bucketName}`);
+        const fileName = currentUrl + ".txt";
         await s3
           .putObject({
             Bucket: bucketName,
-            Key: currentUrl + ".txt",
+            Key: fileName,
             Body: textContent[currentUrl]
           })
           .promise();
+        // Prepare the S3 get parameters
+        const s3Params = {
+          Bucket: bucketName,
+          Key: fileName
+        };
 
+        const s3Details = await s3.getObject(s3Params).promise();
+        console.log("s3Details", s3Details);
+        let size = await formatBytes(s3Details.ContentLength || 0);
+
+        // Add reference to DB
+        console.log(`Adding reference to DB for URL: ${currentUrl}`);
+        const file = {
+          fileName: fileName,
+          fileSize: size,
+          refType: RefType.DOCUMENT,
+          contentType: ""
+        };
+       const addedRef =  await addWebsiteReferenceToDb(tenantId, file, false, projectId, ReferenceStatus.PENDING, isAddedByAdmin, tenantUserId,refId);
+       console.log("addedRef",addedRef);
         count++;
         console.log(`Uploaded content and updated count to ${count}`);
 
@@ -126,8 +143,8 @@ export const handler = async (event: any, context: Context) => {
         // Delay to avoid rate-limiting
         console.log("Delaying to avoid rate-limiting...");
         await new Promise((resolve) => setTimeout(resolve, 500));
-      } catch (error) {
-        console.error(`Error fetching ${currentUrl}: ${error.message}`);
+      } catch (error :  any) {
+        console.error(`Error fetching ${currentUrl}: ${error}`);
         continue;
       }
     }
@@ -138,10 +155,10 @@ export const handler = async (event: any, context: Context) => {
       body: `Pages crawled: ${count}`
     };
   } catch (error) {
-    console.error("Error in lambdaHandler:", error.message);
+    console.error("Error in lambdaHandler:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: error.message }, null, 2)
+      body: JSON.stringify({ error: error }, null, 2)
     };
   }
 };
