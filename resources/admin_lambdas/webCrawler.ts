@@ -86,11 +86,15 @@ export const lambdaHandler = async (event: any, context: Context) => {
 
         // Find new links
         if (depth < maxDepth) {
-          $("a[href]").each((i: any, element: any) => {
+          parsedHtml.querySelectorAll("a[href]").forEach((element) => {
             try {
-              let nextUrl = new URL($(element).attr("href")!, currentUrl).toString();
-              const parsedUrl = new URL(nextUrl);
+              const href = element.getAttribute("href");
+              if (!href) {
+                return; // Skip if there's no href attribute
+              }
 
+              let nextUrl = new URL(href, currentUrl).toString();
+              const parsedUrl = new URL(nextUrl);
               // Check if the URL belongs to the same domain as the source URL
               if (parsedUrl.hostname === sourceDomain && !crawled.has(nextUrl)) {
                 console.log(`Adding link to crawl: ${nextUrl}`);
