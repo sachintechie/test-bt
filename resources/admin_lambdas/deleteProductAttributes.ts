@@ -19,8 +19,8 @@ export const handler = async (event: any, context: any) => {
     console.log("adminUser", adminUser);
     const customer = await getCustomer(adminUser?.tenantuserid!, tenant.id!);
     console.log("customer", customer);
-    const customerId = customer.id;
-    const result = await deleteProductAttributes(productId, attributeIds, customerId);
+    const customerId = customer?.id;
+    const result = await deleteProductAttributes(productId, attributeIds, customerId?? "");
     console.log(result);
 
     return {
