@@ -35,6 +35,8 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
   console.log("Creating admin user");
   try {
     const refs = [];
+    const webRefs = [];
+
 
     console.log("createUser", tenant.id);
     const project = await getProjectById(projectId);
@@ -42,16 +44,25 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
       for (const file of files) {
         const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING, true, tenant?.adminuserid ?? "");
         if (ref.data) {
-          refs.push(ref.data);
+        
           if(file.refType == RefType.WEBSITE){
+            webRefs.push(ref.data);
+
              await callWebCrawlerLambda(tenant.adminuserid?? "",tenant.id,file.depth,file.websiteUrl ?? "",ref.data.id,project.data.id,project.data.s3bucketname?? "",true);
+          }
+          else if(file.refType == RefType.DOCUMENT){
+            refs.push(ref.data);
+
           }
 
         } 
 
       }
       console.log("refs", refs);
-      const urls = await generatePresignedUrlForFirstUpload(refs, project.data.s3bucketname ?? "");
+      console.log("webrefs", webRefs);
+
+      const urls = await generatePresignedUrlForFirstUpload( refs,
+       project.data.s3bucketname ?? "");
       console.log("urls", urls);
       console.log("refs", refs);
 
