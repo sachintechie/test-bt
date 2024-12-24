@@ -2282,6 +2282,38 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
   }
 }
 
+export async function getRefsByWebRef(refId: string, limit?: number, pageNo?: number) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const refs = await prisma.websitereference.findFirst({
+      where: {
+        id: refId // Filter for the project by its id
+      },
+      include: {
+        references: {
+          where: {
+            // Add filter conditions for references here
+            isdeleted: false, // Example: Only include references where isActive is true
+            parentrefid:refId
+          }
+        }
+      }
+    });
+
+    
+
+    if (refs == null) {
+      return { data: null, error: "refs not found" };
+    }
+   
+
+    return { data : refs, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
 export async function getRefWithSteps(refId: string) {
   try {
     const prisma = await getPrismaClient();

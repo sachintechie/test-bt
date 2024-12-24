@@ -68,7 +68,8 @@ export const handler = async (event: any, context: any) => {
 
         // Store the content in S3
         console.log(`Uploading content of ${currentUrl} to S3 bucket: ${bucketName}`);
-        const fileName = currentUrl + ".txt";
+        const fileName = currentUrl.split('/').pop() + ".txt";
+        
         await s3
           .putObject({
             Bucket: bucketName,
