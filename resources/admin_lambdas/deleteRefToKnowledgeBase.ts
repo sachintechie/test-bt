@@ -3,16 +3,28 @@ import { deleteRef, getProjectById, getReferenceById } from "../db/adminDbFuncti
 import { S3 } from "aws-sdk";
 import { addWebsiteDataSource, syncKb } from "../knowledgebase/scanDataSource";
 import { IndexS3Deletion } from "../knowledgebase/indexS3deletion";
+import { lambdaCallForPrinicplePolicyAdd } from "../knowledgebase/commonFunctions";
 const s3 = new S3();
-const bucketName = process.env.KB_BUCKET_NAME || ""; // Get bucket name from environment variables
 const kb_id = process.env.KB_ID || ""; // Get knowledge base ID from environment variables
+const AWS = require("aws-sdk");
+const lambda = new AWS.Lambda();
 
 export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
+    const functionName = context.functionName;
+
+    // Call Lambda's GetFunction API to get the function configuration
+    const functionData = await lambda.getFunction({ FunctionName: functionName }).promise();
+
+    // Extract the Role ARN from the function's configuration
+    const roleArn = functionData.Configuration.Role;
+
+    console.log("Lambda Role ARN:", roleArn);
+
     const data = await deleteReference(event.identity.resolverContext as tenant,
-       event.arguments?.input?.refId, event.arguments?.input?.refType);
+       event.arguments?.input?.refId, event.arguments?.input?.refType,roleArn);
 
     const response = {
       status: data.document != null ? 200 : 400,
@@ -32,7 +44,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function deleteReference(tenant: tenant, refId: string,refType:string) {
+async function deleteReference(tenant: tenant, refId: string,refType:string,roleArn : string) {
   console.log("Creating admin user");
 
   try {
@@ -47,7 +59,7 @@ async function deleteReference(tenant: tenant, refId: string,refType:string) {
       };
     }
     if (reference != null && reference.reftype == RefType.DOCUMENT) {
-      data = await deleteFromS3(reference?.name ?? "");
+      data = await deleteFromS3(reference?.name ?? "",project.data?.s3bucketname?? "");
       console.log("data", data);
     } else if (reference != null && reference.reftype == RefType.WEBSITE) {
       const dataSourceDetails = await addWebsiteDataSource("DELETE", kb_id, reference?.url ?? "", "", "", reference?.datasourceid ?? "");
@@ -59,7 +71,8 @@ async function deleteReference(tenant: tenant, refId: string,refType:string) {
       }
       console.log("deleted dataSourceDetails", dataSourceDetails);
     }
-
+    const policyAdd = await lambdaCallForPrinicplePolicyAdd(project.data?.id?? "", roleArn);
+    console.log("policyAdd", policyAdd);
     // const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
     const indexS3Deletion = new IndexS3Deletion(project.data?.name?? "",reference.projectid?? "");
     const indexDeleteResponse = await indexS3Deletion.deleteFilesFromOpenSearchIndex(project.data?.indexid ?? "" ,reference.name ?? "");
@@ -79,7 +92,7 @@ async function deleteReference(tenant: tenant, refId: string,refType:string) {
   }
 }
 
-async function deleteFromS3(fileName: string) {
+async function deleteFromS3(fileName: string,bucketName:string) {
   try {
     if (!fileName) {
       return {
