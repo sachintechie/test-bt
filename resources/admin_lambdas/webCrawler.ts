@@ -14,7 +14,7 @@ interface Context {
   // Define the context type if needed
 }
 
-export const lambdaHandler = async (event: any, context: Context) => {
+export const handler = async (event: any, context: any) => {
   let count = 0;
 
   try {
