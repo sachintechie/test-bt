@@ -4,6 +4,7 @@ import { URL } from "url";
 import * as AWS from "aws-sdk";
 import * as crypto from "crypto";
 import { addReferenceToDb } from "../db/adminDbFunctions";
+import { RefType } from "../db/models";
 
 const s3 = new AWS.S3();
 
@@ -69,7 +70,7 @@ export const lambdaHandler = async (event: any, context: Context) => {
 
         // Add reference to DB
         console.log(`Adding reference to DB for URL: ${currentUrl}`);
-        await addReferenceToDb(tenantId, "", true, projectId, 200, true, currentUrl, textHash);
+        await addReferenceToDb(tenantId, RefType.DOCUMENT, true, projectId, 200, true, currentUrl, textHash);
 
         // Store the content in S3
         console.log(`Uploading content of ${currentUrl} to S3 bucket: ${bucketName}`);
