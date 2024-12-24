@@ -13,13 +13,6 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
-<<<<<<< HEAD
-    const data = await deleteReference(
-      event.identity.resolverContext as tenant,
-      event.arguments?.input?.refId,
-      event.arguments?.input?.refType
-    );
-=======
     const functionName = context.functionName;
 
     // Call Lambda's GetFunction API to get the function configuration
@@ -32,7 +25,6 @@ export const handler = async (event: any, context: any) => {
 
     const data = await deleteReference(event.identity.resolverContext as tenant,
        event.arguments?.input?.refId, event.arguments?.input?.refType,roleArn);
->>>>>>> 7eadb8f7d5d8ae5127e7e607226fb55e9490c7a7
 
     const response = {
       status: data.document != null ? 200 : 400,
@@ -52,11 +44,7 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-<<<<<<< HEAD
-async function deleteReference(tenant: tenant, refId: string, refType: string) {
-=======
 async function deleteReference(tenant: tenant, refId: string,refType:string,roleArn : string) {
->>>>>>> 7eadb8f7d5d8ae5127e7e607226fb55e9490c7a7
   console.log("Creating admin user");
 
   try {
