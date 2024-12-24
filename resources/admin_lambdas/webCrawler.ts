@@ -85,26 +85,42 @@ export const lambdaHandler = async (event: any, context: Context) => {
         count++;
         console.log(`Uploaded content and updated count to ${count}`);
 
-        // Find new links
-        if (depth < maxDepth) {
-          parsedHtml.querySelectorAll("a[href]").forEach((element) => {
-            try {
-              const href = element.getAttribute("href");
-              if (!href) {
-                return; // Skip if there's no href attribute
-              }
-
-              let nextUrl = new URL(href, currentUrl).toString();
-              const parsedUrl = new URL(nextUrl);
-              // Check if the URL belongs to the same domain as the source URL
-              if (parsedUrl.hostname === sourceDomain && !crawled.has(nextUrl)) {
-                console.log(`Adding link to crawl: ${nextUrl}`);
-                toCrawl.push([nextUrl, depth + 1]);
-              }
-            } catch (e) {
-              console.error(`Error processing tag: ${e}`);
+        // get all the hrefs from the page
+        // Gather all hrefs first, mapping to resolved URLs
+        const hrefs = parsedHtml
+          .querySelectorAll("a[href]")
+          .map((element) => {
+            const href = element.getAttribute("href");
+            if (!href) {
+              return null; // Return null for invalid hrefs
             }
-          });
+            return new URL(href, currentUrl).toString(); // Resolve relative URLs
+          })
+          .filter((href) => href !== null); // Filter out any null values
+
+        // Process the hrefs
+        while (depth < maxDepth && hrefs.length > 0) {
+          const href = hrefs.pop()!; // Get the next href from the array
+
+          try {
+            const parsedUrl = new URL(href);
+
+            // Check if the URL belongs to the same domain as the source URL
+            if (parsedUrl.hostname === sourceDomain && !crawled.has(href)) {
+              const newDepth = depth + 1;
+
+              // Only add to the crawl queue if the new depth is within the limit
+              if (newDepth <= maxDepth) {
+                console.log(`Adding link to crawl: ${href} at depth ${newDepth}`);
+                toCrawl.push([href, newDepth]);
+              } else {
+                // Log the skipped link due to depth limit
+                console.log(`Skipping link (depth exceeded): ${href}`);
+              }
+            }
+          } catch (e) {
+            console.error(`Error processing tag: ${e}`);
+          }
         }
 
         // Delay to avoid rate-limiting
