@@ -66,8 +66,8 @@ export const handler = async (event: any) => {
         };
         console.log("AvalancheStaking response Wallet", response);
         return response;
-      } 
-      
+      }
+
       if (event.arguments?.input?.chainType === "Provenance") {
         const data = await provenanceStaking(
           event.identity.resolverContext as tenant,
@@ -78,7 +78,7 @@ export const handler = async (event: any) => {
           event.headers?.identity,
           event.arguments?.input?.tenantUserId,
           event.arguments?.input?.chainType,
-          event.arguments?.input?.tenantTransactionId,
+          event.arguments?.input?.tenantTransactionId
         );
 
         const response = {
@@ -87,8 +87,7 @@ export const handler = async (event: any) => {
           error: data?.error
         };
         return response;
-      }
-      else {
+      } else {
         return {
           status: 400,
           data: null,

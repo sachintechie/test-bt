@@ -20,7 +20,7 @@ function generateJobId(length: number = 10): string {
 export const handler = async (event: any, context: any) => {
   const tenant = event.identity.resolverContext as tenant;
 
-  const customerId = tenant?.customerid == null ? tenant?.adminuserid :tenant?.customerid;
+  const customerId = tenant?.customerid == null ? tenant?.adminuserid : tenant?.customerid;
   const projectId = event.arguments?.input?.projectId;
   const jobId = generateJobId();
   let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
@@ -46,7 +46,6 @@ export const handler = async (event: any, context: any) => {
     console.log("Event:", event);
     console.log("Event arguments Input :", event.arguments?.input);
     const userMessage = event.arguments?.input?.message;
-
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
@@ -126,28 +125,28 @@ export const handler = async (event: any, context: any) => {
     // Extracting and formatting text and citations
     if (response?.citations) {
       console.log("Processing citations...");
-    
+
       let i = 1; // Initialize i
       for (const citation of response.citations) {
         if (citation) {
           const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
           console.log("Response text:", responseText);
           finalAnswer += responseText + " ";
-    
+
           if (citation?.retrievedReferences) {
             for (const reference of citation.retrievedReferences) {
               console.log("Reference:", reference);
               const sourceUrl = reference?.content?.text;
               const sourceFilename = reference?.metadata ? reference?.metadata["x-amz-bedrock-kb-source-uri"] : "";
-    
+
               // Log for debugging
               console.log("Source URL:", sourceUrl);
               console.log("Source Filename:", sourceFilename);
-    
+
               // Append to lists
               sourceFilenamelist.push(sourceFilename?.toString() ?? "");
               sourceText.push(`${sourceUrl}\n`);
-    
+
               // Add to finalAnswer
               finalAnswer += `Source[${i}] `;
               i++;
@@ -160,7 +159,6 @@ export const handler = async (event: any, context: any) => {
       }
     }
 
-    
     console.log("Final generated answer:", finalAnswer);
 
     // Storing result in DynamoDB
@@ -186,7 +184,7 @@ export const handler = async (event: any, context: any) => {
     // Returning the response to the client
     return {
       job_id: jobId,
-      message: finalAnswer.length > 0 ? finalAnswer: response.output?.text,
+      message: finalAnswer.length > 0 ? finalAnswer : response.output?.text,
       sessionId,
       source_text: sourceText,
       source_filenamelist: sourceFilenamelist

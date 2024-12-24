@@ -13,6 +13,13 @@ export const handler = async (event: any, context: any) => {
   try {
     console.log(event, context);
 
+<<<<<<< HEAD
+    const data = await deleteReference(
+      event.identity.resolverContext as tenant,
+      event.arguments?.input?.refId,
+      event.arguments?.input?.refType
+    );
+=======
     const functionName = context.functionName;
 
     // Call Lambda's GetFunction API to get the function configuration
@@ -25,6 +32,7 @@ export const handler = async (event: any, context: any) => {
 
     const data = await deleteReference(event.identity.resolverContext as tenant,
        event.arguments?.input?.refId, event.arguments?.input?.refType,roleArn);
+>>>>>>> 7eadb8f7d5d8ae5127e7e607226fb55e9490c7a7
 
     const response = {
       status: data.document != null ? 200 : 400,
@@ -44,7 +52,11 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
+<<<<<<< HEAD
+async function deleteReference(tenant: tenant, refId: string, refType: string) {
+=======
 async function deleteReference(tenant: tenant, refId: string,refType:string,roleArn : string) {
+>>>>>>> 7eadb8f7d5d8ae5127e7e607226fb55e9490c7a7
   console.log("Creating admin user");
 
   try {
@@ -74,10 +86,10 @@ async function deleteReference(tenant: tenant, refId: string,refType:string,role
     const policyAdd = await lambdaCallForPrinicplePolicyAdd(project.data?.id?? "", roleArn);
     console.log("policyAdd", policyAdd);
     // const syncKbResponse = await syncKb(kb_id, reference?.datasourceid ?? "");
-    const indexS3Deletion = new IndexS3Deletion(project.data?.name?? "",reference.projectid?? "");
-    const indexDeleteResponse = await indexS3Deletion.deleteFilesFromOpenSearchIndex(project.data?.indexid ?? "" ,reference.name ?? "");
+    const indexS3Deletion = new IndexS3Deletion(project.data?.name ?? "", reference.projectid ?? "");
+    const indexDeleteResponse = await indexS3Deletion.deleteFilesFromOpenSearchIndex(project.data?.indexid ?? "", reference.name ?? "");
     console.log("indexDeleteResponse", indexDeleteResponse);
-    const ref = await deleteRef(tenant.id, refId,refType);
+    const ref = await deleteRef(tenant.id, refId, refType);
 
     return {
       document: ref,

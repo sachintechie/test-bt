@@ -1,7 +1,7 @@
 import { RefType, tenant } from "../db/models";
 import { addReferenceToDb, getProjectById } from "../db/adminDbFunctions";
 import { ReferenceStatus } from "@prisma/client";
-import {  generatePresignedUrlForFirstUpload } from "../knowledgebase/commonFunctions";
+import { generatePresignedUrlForFirstUpload } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -43,11 +43,8 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
         const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING, true, tenant?.adminuserid ?? "");
         if (ref.data) refs.push(ref.data);
       }
-      console.log("refs",refs);
-      const urls = await generatePresignedUrlForFirstUpload(
-        refs,
-        project.data.s3bucketname ?? ""
-      );
+      console.log("refs", refs);
+      const urls = await generatePresignedUrlForFirstUpload(refs, project.data.s3bucketname ?? "");
       console.log("urls", urls);
       console.log("refs", refs);
 

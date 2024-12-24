@@ -100,8 +100,12 @@ export class ProvenanceClient {
     }
   }
 
-  
-  async delegateTokensToValidator(delegatorAddress: string, validatorAddress: string, amount: string, denom: string): Promise<SendTokensResponse> {
+  async delegateTokensToValidator(
+    delegatorAddress: string,
+    validatorAddress: string,
+    amount: string,
+    denom: string
+  ): Promise<SendTokensResponse> {
     try {
       const client = await this.getSigningStargateClient();
       const result = await client.delegateTokens(
