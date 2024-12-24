@@ -1,4 +1,4 @@
-import { getProjectWithSteps } from "../db/adminDbFunctions";
+import { getProjectWithRefAndWebRef, getProjectWithSteps } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
@@ -34,7 +34,7 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
   console.log("projectId", projectId);
 
   try {
-    const project = await getProjectWithSteps(projectId, limit, pageNo);
+    const project = await getProjectWithRefAndWebRef(projectId, limit, pageNo);
     if (project.error) {
       return {
         project: null,
@@ -42,7 +42,7 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
       };
     } else {
       return {
-        project: project.data?.project,
+        project: project.data,
         error: null
       };
     }

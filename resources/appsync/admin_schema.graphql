@@ -742,14 +742,9 @@ enum ProductStatus {
   INACTIVE
 }
 
-type ProjectAndStepData {
-  project: ProjectData
-  stagedata: StagePaginationData
-}
-
 type ProjectAndStepsResponse {
   status: Int
-  data: ProjectAndStepData
+  data: ProjectData
   error: AWSJSON
 }
 
@@ -780,6 +775,7 @@ type WebsiteReferenceData {
   status: String
   referencestage: String
   projectid: String
+  references: [ReferenceData]
 }
 
 input ProjectFileInput {

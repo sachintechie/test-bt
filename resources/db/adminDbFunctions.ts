@@ -2215,13 +2215,22 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
         references: {
           where: {
             // Add filter conditions for references here
-            isdeleted: false // Example: Only include references where isActive is true
+            isdeleted: false, // Example: Only include references where isActive is true
+            parentrefid : null
           }
         },
         websitereferences: {
           where: {
             // Add filter conditions for websitereferences here
             isdeleted: false // Example: Only include website references containing 'example' in the URL
+          },
+          include:{
+            /// <reference path="" />
+            references:{
+              where:{
+                isdeleted : false
+              }
+            }
           }
         }
       }
@@ -2277,6 +2286,58 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     console.log(data);
 
     return { data, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+export async function getProjectWithRefAndWebRef(projectId: string, limit: number, pageNo: number) {
+  try {
+    const prisma = await getPrismaClient();
+    // const project = await prisma.project.findFirst({
+    //   where: {
+    //     id: projectId
+    //   },
+    //   include: { references: true },
+    //     { websitereferences:true}
+    // });
+
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId // Filter for the project by its id
+      },
+      include: {
+        references: {
+          where: {
+            // Add filter conditions for references here
+            isdeleted: false, // Example: Only include references where isActive is true
+            parentrefid : null
+          }
+        },
+        websitereferences: {
+          where: {
+            // Add filter conditions for websitereferences here
+            isdeleted: false // Example: Only include website references containing 'example' in the URL
+          },
+          include:{
+            /// <reference path="" />
+            references:{
+              where:{
+                isdeleted : false
+              }
+            }
+          }
+        }
+      }
+    });
+
+  
+
+    if (project == null) {
+      return { data: null, error: "Project not found" };
+    }
+
+    return { data : project, error: null };
   } catch (err) {
     return { data: null, error: err };
   }
