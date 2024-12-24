@@ -2124,12 +2124,34 @@ export async function getRefById(refId: string) {
 export async function getProjectWithSteps(projectId: string, limit: number, pageNo: number) {
   try {
     const prisma = await getPrismaClient();
+    // const project = await prisma.project.findFirst({
+    //   where: {
+    //     id: projectId
+    //   },
+    //   include: { references: true },
+    //     { websitereferences:true}
+    // });
+
     const project = await prisma.project.findFirst({
       where: {
-        id: projectId
+        id: projectId, // Filter for the project by its id
       },
-      include: { references: true, websitereferences: true }
+      include: {
+        references: {
+          where: {
+            // Add filter conditions for references here
+            isdeleted: false, // Example: Only include references where isActive is true
+          },
+        },
+        websitereferences: {
+          where: {
+            // Add filter conditions for websitereferences here
+            isdeleted: false, // Example: Only include website references containing 'example' in the URL
+          },
+        },
+      },
     });
+    
 
     const stageCount = await prisma.stage.count({
       where: {
