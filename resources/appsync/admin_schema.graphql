@@ -1066,6 +1066,30 @@ type StepAndReferenceData {
   stages: [StageData]
 }
 
+input getRefsByWebRefIdInput{
+refId: String!
+}
+
+type GetRefsByWebRefIdResponse{
+status: Int
+  data: GetRefsByWebRefIdData
+  error: AWSJSON
+}
+
+type GetRefsByWebRefIdData{
+ id: String
+  createdat: String
+  depth: Int
+  ingested: Boolean
+  reftype: String
+  name: String
+  url: String
+  status: String
+  referencestage: String
+  projectid: String
+  references :[ReferenceData]
+}
+
 type Mutation {
   AddSubAdmin(input: AddSubAdminInput): AddSubAdmin
   AddRefToKnowledgeBase(input: AddRefToKnowledgeBaseInput): CreateProjectResponse
@@ -1121,6 +1145,7 @@ type Query {
   GetActivityLogs: GetActivityLogsResponse
   TransferNftAdmin(input: TransferNftAdminInput): TransferNftAdmin
   GetStepsByRefId(input: ListRefStepInput): StepAndReferenceResponse
+  GetRefsByWebRefId(input: getRefsByWebRefIdInput): GetRefsByWebRefIdResponse
 }
 
 type Subscription {

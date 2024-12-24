@@ -6,7 +6,8 @@ import * as crypto from "crypto";
 import { addReferenceToDb, addWebsiteReferenceToDb } from "../db/adminDbFunctions";
 import { RefType } from "../db/models";
 import { ReferenceStatus } from "@prisma/client";
-import { formatBytes } from "../knowledgebase/commonFunctions";
+import { formatBytes, getS3Data } from "../knowledgebase/commonFunctions";
+import { hashing } from "../avalanche/storeHashFunctions";
 
 const s3 = new AWS.S3();
 
@@ -77,24 +78,28 @@ export const handler = async (event: any, context: any) => {
             Body: textContent[currentUrl]
           })
           .promise();
-        // Prepare the S3 get parameters
-        const s3Params = {
-          Bucket: bucketName,
-          Key: fileName
-        };
+      
 
-        const s3Details = await s3.getObject(s3Params).promise();
-        console.log("s3Details", s3Details);
-        let size = await formatBytes(s3Details.ContentLength || 0);
+        
+            const s3Data = await getS3Data(fileName, bucketName);
+        
+        console.log("s3Data", s3Data);
+    
 
         // Add reference to DB
         console.log(`Adding reference to DB for URL: ${currentUrl}`);
+            const hash = await hashing({ fileName: s3Data.data?.fileName, fileContent: s3Data.data?.content });
+        
         const file = {
           fileName: fileName,
-          fileSize: size,
+          fileSize: s3Data?.data?.size,
+          url:currentUrl,
           refType: RefType.DOCUMENT,
-          contentType: ""
+          contentType: s3Data.data?.contentType,
+          hash:hash
         };
+
+
        const addedRef =  await addWebsiteReferenceToDb(tenantId, file, false, projectId, ReferenceStatus.PENDING, isAddedByAdmin, tenantUserId,refId);
        console.log("addedRef",addedRef);
         count++;
