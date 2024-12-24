@@ -72,21 +72,22 @@ export const handler = async (event: any, context: any) => {
         data: null
       };
     }
-    console.log("Unmarshalled response:", unmarshalledResponse.data);
+    let blockchainData = unmarshalledResponse.data;
+    console.log("Unmarshalled response:", blockchainData);
     // Extract the blockchain response data
-    if (unmarshalledResponse.data.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
+    if (blockchainData.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
       // get the latest transaction details
-      const latestTransactionDetails = await getHashTransactionDetails(unmarshalledResponse.data.txHash);
+      const latestTransactionDetails = await getHashTransactionDetails(blockchainData.txHash);
       console.log("Latest transaction details:", latestTransactionDetails);
       // update the unmarshalledResponse with the latest transaction details
-      unmarshalledResponse.confirmations = latestTransactionDetails.data?.confirmations;
+      blockchainData.confirmations = latestTransactionDetails.data?.confirmations;
     }
     // Return the blockchain response
     return {
       status: 200,
       error: null,
       // give JSON object as data
-      data: unmarshalledResponse.data
+      data: blockchainData
     };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
