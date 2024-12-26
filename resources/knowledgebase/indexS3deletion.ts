@@ -112,23 +112,43 @@ export class IndexS3Deletion {
     refId: string
   ): Promise<{ success: boolean; message: string }> {
     console.log(`[DELETE_FILES_INDEX] Attempting to delete files with name: ${fileName} from index: ${indexName}`);
+    const source_uri =  JSON.stringify({
+      file_name: fileName,
+      project_id: projectId,
+      ref_id: refId
+    });
+
+    console.log("source_uri",source_uri)
     try {
       this.openSearchClient = await connectToOpenSearch();
+
+      const file =  await this.openSearchClient.search({
+        index:indexName,
+        body: {
+          query: {
+            match: {
+              "x-amz-bedrock-kb-source-uri": source_uri
+
+            }
+          }
+        }
+      });
+      console.log("file",file);
+    
       const response = await this.openSearchClient.deleteByQuery({
         index: indexName,
         body: {
           query: {
             match: {
-              "x-amz-bedrock-kb-source-uri": JSON.stringify({
-                file_name: fileName,
-                project_id: projectId,
-                ref_id: refId
-              })
+              "x-amz-bedrock-kb-source-uri": source_uri
+
             }
           },
           size: 50
         }
       });
+
+      console.log("response",response);
 
       if (response.statusCode === 200) {
         console.log(`[DELETE_FILES_INDEX] Files deleted from index ${indexName} successfully`);
