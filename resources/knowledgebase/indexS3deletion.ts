@@ -150,7 +150,6 @@ export class IndexS3Deletion {
       });
       console.log("response",response);
       responseList.push(response)
-
     }
 
 
