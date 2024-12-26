@@ -105,7 +105,12 @@ export class IndexS3Deletion {
   }
 
   // Function to delete files from index
-  async deleteFilesFromOpenSearchIndex(indexName: string, fileName: string): Promise<{ success: boolean; message: string }> {
+  async deleteFilesFromOpenSearchIndex(
+    indexName: string,
+    fileName: string,
+    projectId: string,
+    refId: string
+  ): Promise<{ success: boolean; message: string }> {
     console.log(`[DELETE_FILES_INDEX] Attempting to delete files with name: ${fileName} from index: ${indexName}`);
     try {
       this.openSearchClient = await connectToOpenSearch();
@@ -114,7 +119,11 @@ export class IndexS3Deletion {
         body: {
           query: {
             match: {
-              "x-amz-bedrock-kb-source-uri": fileName
+              "x-amz-bedrock-kb-source-uri": JSON.stringify({
+                file_name: fileName,
+                project_id: projectId,
+                ref_id: refId
+              })
             }
           },
           size: 50
