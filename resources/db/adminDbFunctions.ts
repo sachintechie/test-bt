@@ -55,6 +55,25 @@ export async function getFirstReferenceByProjectId(projectId: string) {
   }
 }
 
+export async function getFirstWebReferenceByProjectId(projectId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.reference.findFirst({
+      where: {
+        projectid: projectId,
+        isdeleted: false,
+        status : ReferenceStatus.APPROVED,
+        parentrefid: {
+          not: null // This ensures parentrefid is not null
+        }
+      }
+    });
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateProjectStage(projectId: string, stage: ProjectStage, status: ProjectStatusEnum) {
   try {
     const prisma = await getPrismaClient();

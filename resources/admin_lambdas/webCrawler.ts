@@ -100,7 +100,7 @@ export const handler = async (event: any, context: any) => {
         };
 
 
-       const addedRef =  await addWebsiteReferenceToDb(tenantId, file, false, projectId, ReferenceStatus.PENDING, isAddedByAdmin, tenantUserId,refId);
+       const addedRef =  await addWebsiteReferenceToDb(tenantId, file, false, projectId, ReferenceStatus.APPROVED, isAddedByAdmin, tenantUserId,refId);
        console.log("addedRef",addedRef);
         count++;
         console.log(`Uploaded content and updated count to ${count}`);
