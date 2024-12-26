@@ -35,6 +35,7 @@ async function getProject(tenant: tenant, projectId: string, limit: number, page
 
   try {
     const project = await getProjectWithRefAndWebRef(projectId, limit, pageNo);
+    console.log("project",project);
     if (project.error) {
       return {
         project: null,

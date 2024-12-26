@@ -67,7 +67,7 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
       console.log("refs", refs);
 
       return {
-        data: { refs, urls },
+        data: { refs,webRefs, urls },
         error: null
       };
     } else {

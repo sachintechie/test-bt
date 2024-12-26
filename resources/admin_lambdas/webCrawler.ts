@@ -96,7 +96,7 @@ export const handler = async (event: any, context: any) => {
           url:currentUrl,
           refType: RefType.DOCUMENT,
           contentType: s3Data.data?.contentType,
-          hash:hash
+          hash:hash.data?.dataHash
         };
 
 
