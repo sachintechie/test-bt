@@ -2,6 +2,7 @@ import {
   getAllProjects,
   getAllReferences,
   getFirstReferenceByProjectId,
+  getFirstWebReferenceByProjectId,
   updateProjectStage,
   updateRefererncePostIndexing,
   updateRefererncePostS3Data,
@@ -10,7 +11,7 @@ import {
 import { getKbStatus } from "../knowledgebase/scanDataSource";
 import { ProjectStage, ProjectStatusEnum, ReferenceStage } from "@prisma/client";
 import { hashingAndStoreToBlockchain, storeHash } from "../avalanche/storeHashFunctions";
-import { getS3Data, syncKbAsync } from "../knowledgebase/commonFunctions";
+import { addAllStageLambda, getS3Data, syncKbAsync } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any) => {
   try {
@@ -33,33 +34,13 @@ export const handler = async (event: any) => {
 
 async function updateProjects() {
   try {
-    let updatedProjects = [];
+    let updatedProjects = [""];
     const projects = await getAllProjects();
 
     for (const project of projects) {
-      const reference = await getFirstReferenceByProjectId(project.id);
+      const reference = await getFirstWebReferenceByProjectId(project.id);
       if (reference != null) {
-        if (project.projectstage == ProjectStage.DATA_PREPARATION) {
-          const status = await getKbStatus(project.knowledgebaseid ?? "", reference?.datasourceid ?? "");
-          if (status == "AVAILABLE") {
-            // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
-            const updateProject = await updateProjectStage(project.id, ProjectStage.LLM_FINE_TUNING, ProjectStatusEnum.ACTIVE);
-            const updateReference = await updateReferernces(project.id, true);
-            console.log("updateReference", updateReference);
-
-            updatedProjects.push(updateProject);
-          }
-        } else if (project.projectstage == ProjectStage.DATA_SOURCE) {
-          const status = await getKbStatus(project.knowledgebaseid ?? "", reference?.datasourceid ?? "");
-          if (status == "AVAILABLE") {
-            syncKbAsync(project.knowledgebaseid ?? "", reference?.datasourceid ?? "");
-
-            // const syncKbStatus = syncKb(project.knowledgebaseid,reference?.datasourceid ?? "");
-            const updateProject = await updateProjectStage(project.id, ProjectStage.DATA_PREPARATION, ProjectStatusEnum.ACTIVE);
-
-            updatedProjects.push(updateProject);
-          }
-        }
+        await addAllStageLambda(reference.createdby ?? "", project.id ?? "", project.s3bucketname ?? "", project?.name ?? "");
       }
     }
 

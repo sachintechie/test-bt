@@ -10,7 +10,6 @@ const env: any = {
   SignerApiRoot: process.env["CS_API_ROOT"] ?? "https://gamma.signer.cubist.dev"
 };
 
-
 export async function provenanceStaking(
   tenant: tenant,
   delegatorWalletAddress: string,
@@ -20,11 +19,10 @@ export async function provenanceStaking(
   oidcToken: string,
   tenantUserId: string,
   chainType: string,
-  tenantTransactionId: string,
+  tenantTransactionId: string
 ) {
-
   try {
-    if(!oidcToken) {
+    if (!oidcToken) {
       return {
         transaction: null,
         error: "Please provide an identity token for verification"
@@ -94,10 +92,15 @@ export async function provenanceStaking(
       };
     }
 
-    const token = await getToken(symbol)
+    const token = await getToken(symbol);
 
     try {
-      const result = await provenanceClient.delegateTokensToValidator(delegatorWalletAddress, validatorWalletAddress, amount.toString(), symbol);
+      const result = await provenanceClient.delegateTokensToValidator(
+        delegatorWalletAddress,
+        validatorWalletAddress,
+        amount.toString(),
+        symbol
+      );
 
       const transaction = await insertStakingTransaction(
         delegatorWalletAddress,
@@ -115,21 +118,19 @@ export async function provenanceStaking(
         tenantTransactionId,
         "",
         "",
-        StakeType.STAKE,
-      )
+        StakeType.STAKE
+      );
 
       return {
         transaction: transaction,
         error: null
       };
-
-  }
-  catch (err) {
-    return {
-      transaction: null,
-      error: err
-    };
-  }
+    } catch (err) {
+      return {
+        transaction: null,
+        error: err
+      };
+    }
   } catch (err) {
     return {
       transaction: null,

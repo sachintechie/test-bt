@@ -1,9 +1,7 @@
-import { tenant } from "../db/models";
-
-import { getProjectById, getRefById, updateRefStatus } from "../db/adminDbFunctions";
+import { RefType, tenant } from "../db/models";
+import { getProjectById, getRefById, getWebsiteRefById, updateRefStatus, updateWebsiteRefStatus } from "../db/adminDbFunctions";
 import { ReferenceStatus } from "@prisma/client";
-import { addStage_1 } from "../knowledgebase/stageFunctions";
-import { addAllStageLambda } from "../knowledgebase/commonFunctions";
+import { addAllStageLambda, callWebCrawlerLambda } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -12,7 +10,8 @@ export const handler = async (event: any, context: any) => {
     const data = await updateReferenceStatus(
       event.identity.resolverContext as tenant,
       event.arguments?.input?.refId,
-      event.arguments?.input?.status
+      event.arguments?.input?.status,
+      event.arguments?.input?.refType,
     );
     console.log("data", data);
 
@@ -34,10 +33,10 @@ export const handler = async (event: any, context: any) => {
   }
 };
 
-async function updateReferenceStatus(tenant: tenant, refId: string, status: ReferenceStatus) {
+async function updateReferenceStatus(tenant: tenant, refId: string, status: ReferenceStatus,refType :string) {
   try {
     console.log("ref", tenant.id, refId);
-
+if(refType = RefType.DOCUMENT){
     const refData = await getRefById(refId);
     if (refData.data == null) {
       return {
@@ -46,9 +45,11 @@ async function updateReferenceStatus(tenant: tenant, refId: string, status: Refe
       };
     } else {
       const ref = await updateRefStatus(refId, status);
-      if (status === ReferenceStatus.APPROVED) {
+      if (status === ReferenceStatus.APPROVED ) {
         const project = await getProjectById(ref.projectid ?? "");
         await addAllStageLambda(tenant.adminuserid ?? "", ref.projectid ?? "", project.data?.s3bucketname ?? "", project.data?.name ?? "");
+       // await callWebCrawlerLambda(tenant.adminuserid?? "",tenant.id,ref.depth?? 1,ref.url ?? "",ref.id,project.data?.id ?? "",project.data?.s3bucketname?? "",false);
+        
       }
 
       return {
@@ -56,6 +57,35 @@ async function updateReferenceStatus(tenant: tenant, refId: string, status: Refe
         error: null
       };
     }
+  }
+  else if(refType == RefType.WEBSITE){
+    const refData = await getWebsiteRefById(refId);
+    if (refData.data == null) {
+      return {
+        project: null,
+        error: "Reference not found"
+      };
+    } else {
+      const ref = await updateWebsiteRefStatus(refId, status);
+      if (status === ReferenceStatus.APPROVED ) {
+        const project = await getProjectById(ref.projectid ?? "");
+       // await addAllStageLambda(tenant.adminuserid ?? "", ref.projectid ?? "", project.data?.s3bucketname ?? "", project.data?.name ?? "");
+        await callWebCrawlerLambda(tenant.adminuserid?? "",tenant.id,ref.depth?? 1,ref.url ?? "",ref.id,project.data?.id ?? "",project.data?.s3bucketname?? "",false);
+        
+      }
+
+      return {
+        project: ref,
+        error: null
+      };
+    }
+  }
+  else{
+    return {
+      project : null,
+      error :"Not supported type"
+    }
+  }
   } catch (e: any) {
     console.log(`Not verified: ${e}`);
     return {

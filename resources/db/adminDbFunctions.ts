@@ -55,6 +55,25 @@ export async function getFirstReferenceByProjectId(projectId: string) {
   }
 }
 
+export async function getFirstWebReferenceByProjectId(projectId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const reference = await prisma.reference.findFirst({
+      where: {
+        projectid: projectId,
+        isdeleted: false,
+        status : ReferenceStatus.APPROVED,
+        parentrefid: {
+          not: null // This ensures parentrefid is not null
+        }
+      }
+    });
+    return reference;
+  } catch (err) {
+    throw err;
+  }
+}
+
 export async function updateProjectStage(projectId: string, stage: ProjectStage, status: ProjectStatusEnum) {
   try {
     const prisma = await getPrismaClient();
@@ -198,6 +217,21 @@ export async function updateRefStatus(refId: string, status: ReferenceStatus) {
   try {
     const prisma = await getPrismaClient();
     const updatedProject = await prisma.reference.update({
+      where: { id: refId },
+      data: {
+        status: status
+      }
+    });
+    return updatedProject;
+  } catch (err) {
+    throw err;
+  }
+}
+
+export async function updateWebsiteRefStatus(refId: string, status: ReferenceStatus) {
+  try {
+    const prisma = await getPrismaClient();
+    const updatedProject = await prisma.websitereference.update({
       where: { id: refId },
       data: {
         status: status
@@ -884,16 +918,17 @@ export async function getAdminUser(tenantUserId: string, tenantId: string) {
 
 export async function getAdminUserByTenant(email: string, tenantId: string) {
   try {
-    console.log("getAdminUserByTenant",email,tenantId);
+    console.log("getAdminUserByTenant", email, tenantId);
     const prisma = await getPrismaClient();
-    console.log("prisma",prisma);
+    console.log("prisma", prisma);
+
     const adminuser = await prisma.adminuser.findFirst({
       where: {
         emailid: email,
         tenantid: tenantId
       }
     });
-    console.log("adminUser",adminuser)
+    console.log("adminUser", adminuser);
     return adminuser ? adminuser : null;
   } catch (err) {
     console.log(err);
@@ -1215,13 +1250,11 @@ export async function addReferenceToDb(
   projectId: string,
   status: ReferenceStatus,
   isAddedByAdmin: boolean,
-  createdBy: string,
-  datasource_id?: string,
-  ingestionJobId?: string
+  createdBy: string
 ) {
   try {
     const prisma = await getPrismaClient();
-    if (file.reftype == RefType.DOCUMENT) {
+    if (file.refType == RefType.DOCUMENT) {
       const newRef = await prisma.reference.create({
         data: {
           tenantid: tenantId as string,
@@ -1236,8 +1269,6 @@ export async function addReferenceToDb(
           hash: file.hash,
           ingested: isIngested,
           isdeleted: false,
-          datasourceid: datasource_id,
-          ingestionjobid: ingestionJobId,
           depth: file.depth,
           createdby: createdBy,
           isactive: true,
@@ -1256,8 +1287,8 @@ export async function addReferenceToDb(
           projectid: projectId,
           referencestage: ReferenceStage.DATA_SOURCE,
           status: status,
-          name: file.refType == RefType.DOCUMENT ? file.fileName : file.websiteName,
-          url: file.refType == RefType.DOCUMENT ? "" : file.websiteUrl,
+          name: file.websiteName,
+          url: file.websiteUrl,
           hash: file.hash,
           ingested: isIngested,
           isdeleted: false,
@@ -1278,6 +1309,53 @@ export async function addReferenceToDb(
         error: "Not Supported type"
       };
     }
+  } catch (err) {
+    return {
+      data: null,
+      error: err
+    };
+  }
+}
+
+export async function addWebsiteReferenceToDb(
+  tenantId: string,
+  file: any,
+  isIngested: boolean,
+  projectId: string,
+  status: ReferenceStatus,
+  isAddedByAdmin: boolean,
+  createdBy: string,
+  parentRefId: string
+) {
+  try {
+    const prisma = await getPrismaClient();
+      const newRef = await prisma.reference.create({
+        data: {
+          tenantid: tenantId as string,
+          projectid: projectId,
+          referencestage: ReferenceStage.DATA_SOURCE,
+          status: status,
+          reftype: file.refType,
+          name: file.fileName ,
+          url: file.websiteUrl,
+          size:  file.fileSize ,
+          contenttype:file.contentType,
+          hash: file.hash,
+          ingested: isIngested,
+          isdeleted: false,
+          depth: file.depth,
+          createdby: createdBy,
+          isactive: true,
+          isaddedbyadmin: isAddedByAdmin,
+          parentrefid:parentRefId,
+          createdat: new Date().toISOString()
+        }
+      });
+      return {
+        data: newRef,
+        error: null
+      };
+    
   } catch (err) {
     return {
       data: null,
@@ -1336,56 +1414,60 @@ export async function addReferenceToDb(
 export async function addReferences(tenantId: string, tenantUserId: string, projectId: string, files: any[], bucketName: string) {
   try {
     // Prepare batch data
-    const referencesData = files.map((file) => ({
-      tenantid: tenantId,
-      projectid: projectId,
-      referencestage: ReferenceStage.DATA_SOURCE,
-      status: ReferenceStatus.PENDING,
-      reftype: file.refType,
-      name: file.refType === RefType.DOCUMENT ? file.fileName : file.websiteName,
-      url: file.refType === RefType.DOCUMENT ? "" : file.websiteUrl,
-      size: file.refType === RefType.DOCUMENT ? file.fileSize : null,
-      contenttype: file.refType === RefType.DOCUMENT ? file.contentType : null,
-      hash: file.hash,
-      ingested: false,
-      isdeleted: false,
-      datasourceid: null,
-      ingestionjobid: null,
-      depth: file.depth,
-      createdby: tenantUserId,
-      isactive: true,
-      isaddedbyadmin: true,
-      createdat: new Date().toISOString()
-    }));
-
-    // Perform batch insert
-    const prisma = await getPrismaClient();
-    await prisma.reference.createMany({
-      data: referencesData,
-      skipDuplicates: true // Skips duplicates based on unique constraints
-    });
-
-    // Now fetch the references along with their IDs
-    const createdReferences = await prisma.reference.findMany({
-      where: {
+    if (files.length > 0) {
+      const referencesData = files.map((file) => ({
         tenantid: tenantId,
         projectid: projectId,
         referencestage: ReferenceStage.DATA_SOURCE,
         status: ReferenceStatus.PENDING,
+        reftype: file.refType,
+        name: file.refType === RefType.DOCUMENT ? file.fileName : file.websiteName,
+        url: file.refType === RefType.DOCUMENT ? "" : file.websiteUrl,
+        size: file.refType === RefType.DOCUMENT ? file.fileSize : null,
+        contenttype: file.refType === RefType.DOCUMENT ? file.contentType : null,
+        hash: file.hash,
+        ingested: false,
+        isdeleted: false,
+        datasourceid: null,
+        ingestionjobid: null,
+        depth: file.depth,
         createdby: tenantUserId,
-        isdeleted: false
-      }
-    });
+        isactive: true,
+        isaddedbyadmin: true,
+        createdat: new Date().toISOString()
+      }));
 
-    console.log(`Successfully added ${createdReferences.length} references.`);
+      // Perform batch insert
+      const prisma = await getPrismaClient();
+      await prisma.reference.createMany({
+        data: referencesData,
+        skipDuplicates: true // Skips duplicates based on unique constraints
+      });
 
-    // Map the references to include their IDs
-    const referencesWithIds = createdReferences.map((ref) => ({
-      ...ref,
-      referenceId: ref.id // Include the newly created reference ID
-    }));
+      // Now fetch the references along with their IDs
+      const createdReferences = await prisma.reference.findMany({
+        where: {
+          tenantid: tenantId,
+          projectid: projectId,
+          referencestage: ReferenceStage.DATA_SOURCE,
+          status: ReferenceStatus.PENDING,
+          createdby: tenantUserId,
+          isdeleted: false
+        }
+      });
 
-    return { data: referencesWithIds, error: null };
+      console.log(`Successfully added ${createdReferences.length} references.`);
+
+      // Map the references to include their IDs
+      const referencesWithIds = createdReferences.map((ref) => ({
+        ...ref,
+        referenceId: ref.id // Include the newly created reference ID
+      }));
+
+      return { data: referencesWithIds, error: null };
+    } else {
+      return { data: null, error: "No reference found" };
+    }
   } catch (err) {
     console.error("Error adding references:", err);
     return { data: null, error: err };
@@ -1395,53 +1477,57 @@ export async function addReferences(tenantId: string, tenantUserId: string, proj
 export async function addWebsiteReferences(tenantId: string, tenantUserId: string, projectId: string, files: any[], bucketName: string) {
   try {
     // Prepare batch data
-    const referencesData = files.map((file) => ({
-      tenantid: tenantId,
-      projectid: projectId,
-      referencestage: ReferenceStage.DATA_SOURCE,
-      status: ReferenceStatus.PENDING,
-      name: file.refType === RefType.DOCUMENT ? file.fileName : file.websiteName,
-      url: file.refType === RefType.DOCUMENT ? "" : file.websiteUrl,
-      size: file.refType === RefType.DOCUMENT ? file.fileSize : null,
-      contenttype: file.refType === RefType.DOCUMENT ? file.contentType : null,
-      hash: file.hash,
-      ingested: false,
-      isdeleted: false,
-      depth: file.depth,
-      createdby: tenantUserId,
-      isactive: true,
-      isaddedbyadmin: true,
-      createdat: new Date().toISOString()
-    }));
-
-    // Perform batch insert
-    const prisma = await getPrismaClient();
-    await prisma.websitereference.createMany({
-      data: referencesData,
-      skipDuplicates: true // Skips duplicates based on unique constraints
-    });
-
-    // Now fetch the references along with their IDs
-    const createdReferences = await prisma.websitereference.findMany({
-      where: {
+    if (files.length > 0) {
+      const referencesData = files.map((file) => ({
         tenantid: tenantId,
         projectid: projectId,
         referencestage: ReferenceStage.DATA_SOURCE,
         status: ReferenceStatus.PENDING,
+        name: file.refType === RefType.DOCUMENT ? file.fileName : file.websiteName,
+        url: file.refType === RefType.DOCUMENT ? "" : file.websiteUrl,
+        size: file.refType === RefType.DOCUMENT ? file.fileSize : null,
+        contenttype: file.refType === RefType.DOCUMENT ? file.contentType : null,
+        hash: file.hash,
+        ingested: false,
+        isdeleted: false,
+        depth: file.depth,
         createdby: tenantUserId,
-        isdeleted: false
-      }
-    });
+        isactive: true,
+        isaddedbyadmin: true,
+        createdat: new Date().toISOString()
+      }));
 
-    console.log(`Successfully added ${createdReferences.length} references.`);
+      // Perform batch insert
+      const prisma = await getPrismaClient();
+      await prisma.websitereference.createMany({
+        data: referencesData,
+        skipDuplicates: true // Skips duplicates based on unique constraints
+      });
 
-    // Map the references to include their IDs
-    const referencesWithIds = createdReferences.map((ref) => ({
-      ...ref,
-      referenceId: ref.id // Include the newly created reference ID
-    }));
+      // Now fetch the references along with their IDs
+      const createdReferences = await prisma.websitereference.findMany({
+        where: {
+          tenantid: tenantId,
+          projectid: projectId,
+          referencestage: ReferenceStage.DATA_SOURCE,
+          status: ReferenceStatus.PENDING,
+          createdby: tenantUserId,
+          isdeleted: false
+        }
+      });
 
-    return { data: referencesWithIds, error: null };
+      console.log(`Successfully added ${createdReferences.length} references.`);
+
+      // Map the references to include their IDs
+      const referencesWithIds = createdReferences.map((ref) => ({
+        ...ref,
+        referenceId: ref.id // Include the newly created reference ID
+      }));
+
+      return { data: referencesWithIds, error: null };
+    } else {
+      return { data: null, error: "no reference found" };
+    }
   } catch (err) {
     console.error("Error adding references:", err);
     return { data: null, error: err };
@@ -1780,24 +1866,44 @@ export async function getReferenceByProjectIdAndType(
   }
 }
 
-export async function deleteRef(tenantId: string, refId: string) {
+export async function deleteRef(tenantId: string, refId: string, refType: string) {
   try {
     const prisma = await getPrismaClient();
-    const reference = await prisma.reference.findFirst({
-      where: {
-        id: refId,
-        tenantid: tenantId,
-        isdeleted: false
+    if (refType == RefType.DOCUMENT) {
+      const reference = await prisma.reference.findFirst({
+        where: {
+          id: refId,
+          tenantid: tenantId,
+          isdeleted: false
+        }
+      });
+      if (reference == null) {
+        throw new Error("Reference not found");
       }
-    });
-    if (reference == null) {
-      throw new Error("Reference not found");
+      const deletedReference = await prisma.reference.update({
+        where: { id: refId },
+        data: { isdeleted: true }
+      });
+      return deletedReference;
+    } else if (refType == RefType.WEBSITE) {
+      const reference = await prisma.websitereference.findFirst({
+        where: {
+          id: refId,
+          tenantid: tenantId,
+          isdeleted: false
+        }
+      });
+      if (reference == null) {
+        throw new Error("Reference not found");
+      }
+      const deletedReference = await prisma.websitereference.update({
+        where: { id: refId },
+        data: { isdeleted: true }
+      });
+      return deletedReference;
+    } else {
+      return null;
     }
-    const deletedReference = await prisma.reference.update({
-      where: { id: refId },
-      data: { isdeleted: true }
-    });
-    return deletedReference;
   } catch (err) {
     throw err;
   }
@@ -2092,14 +2198,61 @@ export async function getRefById(refId: string) {
     return { data: null, error: err };
   }
 }
+
+export async function getWebsiteRefById(refId: string) {
+  try {
+    const prisma = await getPrismaClient();
+    const project = await prisma.websitereference.findFirst({
+      where: {
+        id: refId
+      }
+    });
+    if (project == null) {
+      return { data: null, error: "Reference not found" };
+    }
+    return { data: project, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
 export async function getProjectWithSteps(projectId: string, limit: number, pageNo: number) {
   try {
     const prisma = await getPrismaClient();
+    // const project = await prisma.project.findFirst({
+    //   where: {
+    //     id: projectId
+    //   },
+    //   include: { references: true },
+    //     { websitereferences:true}
+    // });
+
     const project = await prisma.project.findFirst({
       where: {
-        id: projectId
+        id: projectId // Filter for the project by its id
       },
-      include: { references: true }
+      include: {
+        references: {
+          where: {
+            // Add filter conditions for references here
+            isdeleted: false, // Example: Only include references where isActive is true
+            parentrefid : null
+          }
+        },
+        websitereferences: {
+          where: {
+            // Add filter conditions for websitereferences here
+            isdeleted: false // Example: Only include website references containing 'example' in the URL
+          },
+          include:{
+            /// <reference path="" />
+            references:{
+              where:{
+                isdeleted : false
+              }
+            }
+          }
+        }
+      }
     });
 
     const stageCount = await prisma.stage.count({
@@ -2152,6 +2305,90 @@ export async function getProjectWithSteps(projectId: string, limit: number, page
     console.log(data);
 
     return { data, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+export async function getProjectWithRefAndWebRef(projectId: string, limit: number, pageNo: number) {
+  try {
+    const prisma = await getPrismaClient();
+    // const project = await prisma.project.findFirst({
+    //   where: {
+    //     id: projectId
+    //   },
+    //   include: { references: true },
+    //     { websitereferences:true}
+    // });
+
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId // Filter for the project by its id
+      },
+      include: {
+        references: {
+          where: {
+            // Add filter conditions for references here
+            isdeleted: false, // Example: Only include references where isActive is true
+            parentrefid : null
+          }
+        },
+        websitereferences: {
+          where: {
+            // Add filter conditions for websitereferences here
+            isdeleted: false // Example: Only include website references containing 'example' in the URL
+          },
+          include:{
+            /// <reference path="" />
+            references:{
+              where:{
+                isdeleted : false
+              }
+            }
+          }
+        }
+      }
+    });
+
+  
+
+    if (project == null) {
+      return { data: null, error: "Project not found" };
+    }
+
+    return { data : project, error: null };
+  } catch (err) {
+    return { data: null, error: err };
+  }
+}
+
+export async function getRefsByWebRef(refId: string, limit?: number, pageNo?: number) {
+  try {
+    const prisma = await getPrismaClient();
+
+    const refs = await prisma.websitereference.findFirst({
+      where: {
+        id: refId // Filter for the project by its id
+      },
+      include: {
+        references: {
+          where: {
+            // Add filter conditions for references here
+            isdeleted: false, // Example: Only include references where isActive is true
+            parentrefid:refId
+          }
+        }
+      }
+    });
+
+    
+
+    if (refs == null) {
+      return { data: null, error: "refs not found" };
+    }
+   
+
+    return { data : refs, error: null };
   } catch (err) {
     return { data: null, error: err };
   }

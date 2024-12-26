@@ -14,6 +14,7 @@ import { parse as parseCSV } from "@fast-csv/parse";
 import * as XLSX from "xlsx";
 import PDFParser from "pdf2json";
 import { getProjectById } from "../db/adminDbFunctions";
+import { Bool } from "aws-sdk/clients/clouddirectory";
 
 export async function addReferencesLambda(tenantUserId: string, projectId: string, bucketName: string) {
   const event = {
@@ -60,6 +61,29 @@ export async function addAllStageLambda(tenantUserId: string, projectId: string,
 
   const params = {
     FunctionName: "addAllStage-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
+    InvocationType: "Event", // This makes the invocation asynchronous
+    Payload: JSON.stringify(event)
+  };
+
+  // Invoke the other Lambda function asynchronously
+  await lambda.invoke(params).promise();
+}
+
+export async function callWebCrawlerLambda(tenantUserId: string,tenantId:string,maxDepth:number,webUrl:string,refId:string,
+   projectId: string, bucketName: string,isAddedByAdmin : Boolean) {
+  const event = {
+    tenantUserId: tenantUserId,
+    projectId: projectId,
+    bucketName: bucketName,
+    tenantId: tenantId,
+    maxDepth:maxDepth,
+    webUrl:webUrl,
+    refId:refId,
+    isAddedByAdmin:isAddedByAdmin
+  };
+
+  const params = {
+    FunctionName: "webCrawler-function-ai-sovereignty-dev", // The ARN or name of your background Lambda function
     InvocationType: "Event", // This makes the invocation asynchronous
     Payload: JSON.stringify(event)
   };

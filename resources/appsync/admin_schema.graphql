@@ -339,6 +339,7 @@ type DeleteRefToKnowledgeBase {
 
 input DeleteRefToKnowledgeBaseInput {
   refId: String!
+  refType: String!
 }
 
 input FileInput {
@@ -741,14 +742,9 @@ enum ProductStatus {
   INACTIVE
 }
 
-type ProjectAndStepData {
-  project: ProjectData
-  stagedata: StagePaginationData
-}
-
 type ProjectAndStepsResponse {
   status: Int
-  data: ProjectAndStepData
+  data: ProjectData
   error: AWSJSON
 }
 
@@ -765,6 +761,20 @@ type ProjectData {
   isactive: Boolean
   createdby: String
   chaintype: String
+  references: [ReferenceData]
+  websitereferences: [WebsiteReferenceData]
+}
+type WebsiteReferenceData {
+  id: String
+  createdat: String
+  depth: Int
+  ingested: Boolean
+  reftype: String
+  name: String
+  url: String
+  status: String
+  referencestage: String
+  projectid: String
   references: [ReferenceData]
 }
 
@@ -997,6 +1007,7 @@ input UpdateProjectStatusInput {
 input UpdateRefStatusInput {
   refId: String!
   status: String!
+  refType: String!
 }
 
 type UpdateRefStatus {
@@ -1049,6 +1060,30 @@ type StepAndReferenceResponse {
 type StepAndReferenceData {
   reference: ReferenceData
   stages: [StageData]
+}
+
+input getRefsByWebRefIdInput{
+refId: String!
+}
+
+type GetRefsByWebRefIdResponse{
+status: Int
+  data: GetRefsByWebRefIdData
+  error: AWSJSON
+}
+
+type GetRefsByWebRefIdData{
+ id: String
+  createdat: String
+  depth: Int
+  ingested: Boolean
+  reftype: String
+  name: String
+  url: String
+  status: String
+  referencestage: String
+  projectid: String
+  references :[ReferenceData]
 }
 
 type Mutation {
@@ -1106,6 +1141,7 @@ type Query {
   GetActivityLogs: GetActivityLogsResponse
   TransferNftAdmin(input: TransferNftAdminInput): TransferNftAdmin
   GetStepsByRefId(input: ListRefStepInput): StepAndReferenceResponse
+  GetRefsByWebRefId(input: getRefsByWebRefIdInput): GetRefsByWebRefIdResponse
 }
 
 type Subscription {

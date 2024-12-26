@@ -1,15 +1,13 @@
-import { getProjectWithRefAndWebRef, getProjectWithSteps } from "../db/adminDbFunctions";
+import {  getRefsByWebRef } from "../db/adminDbFunctions";
 import { tenant } from "../db/models";
 
 export const handler = async (event: any) => {
   try {
     console.log(event);
 
-    const data = await getProject(
+    const data = await getRefsByWebRefId(
       event.identity.resolverContext as tenant,
-      event.arguments?.input?.projectId,
-      event.arguments.input.limit,
-      event.arguments.input.pageNo
+      event.arguments?.input?.refId
     );
     const projectData = {
       status: data.project != null ? 200 : 400,
@@ -30,11 +28,11 @@ export const handler = async (event: any) => {
   }
 };
 
-async function getProject(tenant: tenant, projectId: string, limit: number, pageNo: number) {
-  console.log("projectId", projectId);
+async function getRefsByWebRefId(tenant: tenant, refId: string) {
+  console.log("projectId", refId);
 
   try {
-    const project = await getProjectWithRefAndWebRef(projectId, limit, pageNo);
+    const project = await getRefsByWebRef(refId);
     if (project.error) {
       return {
         project: null,

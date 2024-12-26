@@ -1,31 +1,29 @@
 import * as AWS from "aws-sdk";
-import { APIGatewayProxyHandler } from "aws-lambda";
+import web3 from "web3";
+import { CHAIN_TO_CHAIN_NAME_MAPPING } from "../utils/utils";
+import { getHashTransactionDetails } from "../avalanche/commonFunctions";
 
 // Initialize DynamoDB client
 const dynamodb = new AWS.DynamoDB();
 const tableName = process.env.DYNAMODB_TABLE_NAME as string;
 
-export const handler: APIGatewayProxyHandler = async (event, context) => {
+export const handler = async (event: any, context: any) => {
   try {
-    // Parse the input from the event
     console.log("Parsing input from event...");
+    console.log("Event:", JSON.stringify(event));
 
-    console.log("Event:", event);
-
-    const body = JSON.parse(event.body || "{}");
-
-    const jobId = body.jobId;
+    // Extract jobId from the input arguments
+    const jobId = event.arguments?.input?.jobId;
 
     if (!jobId) {
       return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: "Missing jobId in request body"
-        })
+        status: 400,
+        error: "Missing jobId in request body",
+        data: null
       };
     }
 
-    // Fetch the query answer from DynamoDB
+    // Define DynamoDB query parameters
     const params = {
       TableName: tableName,
       Key: {
@@ -33,7 +31,7 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
       }
     };
 
-    // while status ( one of the field in table is not equal to "SUCCESS") keep polling
+    // Poll DynamoDB until status is "SUCCESS" or maximum retries are reached
     let queryAnswer = null;
     let status = null;
     let count = 0;
@@ -46,28 +44,57 @@ export const handler: APIGatewayProxyHandler = async (event, context) => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
     } while (status !== "SUCCESS" && count < 10);
 
+    // Handle case where status is not "SUCCESS"
     if (status !== "SUCCESS") {
       return {
-        statusCode: 500,
-        body: JSON.stringify({
-          message: "Query answer not found"
-        })
+        status: 500,
+        error: "Query answer not found or processing timeout",
+        data: null
       };
     }
 
+    // Extract blockchain_response
+    const blockchainResponse = queryAnswer?.blockchain_response?.M;
+    if (!blockchainResponse) {
+      return {
+        status: 404,
+        error: "Blockchain response not found",
+        data: null
+      };
+    }
+
+    let unmarshalledResponse = AWS.DynamoDB.Converter.unmarshall(blockchainResponse, { convertEmptyValues: true });
+    let error = unmarshalledResponse.error;
+    if (error) {
+      return {
+        status: 500,
+        error: error,
+        data: null
+      };
+    }
+    let blockchainData = unmarshalledResponse.data;
+    console.log("Unmarshalled response:", blockchainData);
+    // Extract the blockchain response data
+    if (blockchainData.chainType == CHAIN_TO_CHAIN_NAME_MAPPING.AVALANCHE) {
+      // get the latest transaction details
+      const latestTransactionDetails = await getHashTransactionDetails(blockchainData.txHash);
+      console.log("Latest transaction details:", latestTransactionDetails);
+      // update the unmarshalledResponse with the latest transaction details
+      blockchainData.confirmations = latestTransactionDetails.data?.confirmations;
+    }
+    // Return the blockchain response
     return {
-      statusCode: 200,
-      body: JSON.stringify({
-        queryAnswer
-      })
+      status: 200,
+      error: null,
+      // give JSON object as data
+      data: blockchainData
     };
   } catch (error) {
     console.error("Error during Lambda execution:", error);
     return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: "Internal Server Error"
-      })
+      status: 500,
+      error: "Internal server error",
+      data: null
     };
   }
 };

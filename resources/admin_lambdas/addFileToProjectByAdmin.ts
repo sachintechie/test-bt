@@ -1,7 +1,7 @@
 import { RefType, tenant } from "../db/models";
 import { addReferenceToDb, getProjectById } from "../db/adminDbFunctions";
 import { ReferenceStatus } from "@prisma/client";
-import { generatePresignedUrl } from "../knowledgebase/commonFunctions";
+import { callWebCrawlerLambda, generatePresignedUrlForFirstUpload } from "../knowledgebase/commonFunctions";
 
 export const handler = async (event: any, context: any) => {
   try {
@@ -35,18 +35,34 @@ async function addFileToProject(tenant: tenant, projectId: string, files: any) {
   console.log("Creating admin user");
   try {
     const refs = [];
+    const webRefs = [];
+
 
     console.log("createUser", tenant.id);
     const project = await getProjectById(projectId);
     if (project && project.data) {
       for (const file of files) {
         const ref = await addReferenceToDb(tenant.id, file, false, projectId, ReferenceStatus.PENDING, true, tenant?.adminuserid ?? "");
-        if (ref.data) refs.push(ref.data);
+        if (ref.data) {
+        
+          if(file.refType == RefType.WEBSITE){
+            webRefs.push(ref.data);
+
+             await callWebCrawlerLambda(tenant.adminuserid?? "",tenant.id,file.depth,file.websiteUrl ?? "",ref.data.id,project.data.id,project.data.s3bucketname?? "",true);
+          }
+          else if(file.refType == RefType.DOCUMENT){
+            refs.push(ref.data);
+
+          }
+
+        } 
+
       }
-      const urls = await generatePresignedUrl(
-        files.filter((file: any) => file.refType === RefType.DOCUMENT),
-        project.data.s3bucketname ?? ""
-      );
+      console.log("refs", refs);
+      console.log("webrefs", webRefs);
+
+      const urls = await generatePresignedUrlForFirstUpload( refs,
+       project.data.s3bucketname ?? "");
       console.log("urls", urls);
       console.log("refs", refs);
 

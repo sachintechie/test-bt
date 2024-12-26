@@ -10,7 +10,7 @@ export async function verifyToken(tenant: any, token: string) {
     const payload = await verifier.verify(
       token // the JWT as string
     );
-     console.log("Payload:", payload);
+    console.log("Payload:", payload);
     // const data = {
     //   email: payload.email?.valueOf() == null ? null : payload.email?.valueOf().toString()
     // };

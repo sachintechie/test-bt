@@ -20,13 +20,14 @@ function generateJobId(length: number = 10): string {
 export const handler = async (event: any, context: any) => {
   const tenant = event.identity.resolverContext as tenant;
 
-  const customerId = tenant?.customerid;
+  const customerId = tenant?.customerid == null ? tenant?.adminuserid : tenant?.customerid;
   const projectId = event.arguments?.input?.projectId;
   const jobId = generateJobId();
+  let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
+
   const sourceText: string[] = [];
   const sourceFilenamelist: string[] = [];
   let finalAnswer = "";
-  let i = 1;
 
   try {
     console.log("Starting Lambda execution...");
@@ -45,8 +46,6 @@ export const handler = async (event: any, context: any) => {
     console.log("Event:", event);
     console.log("Event arguments Input :", event.arguments?.input);
     const userMessage = event.arguments?.input?.message;
-
-    let sessionId = event.arguments?.input?.sessionId || `initial${uuid.v4()}`;
 
     console.log(`User message: ${userMessage}`);
     console.log(`Session ID: ${sessionId}`);
@@ -127,33 +126,38 @@ export const handler = async (event: any, context: any) => {
     if (response?.citations) {
       console.log("Processing citations...");
 
-      // Loop through the citations
+      let i = 1; // Initialize i
       for (const citation of response.citations) {
         if (citation) {
           const responseText = citation?.generatedResponsePart?.textResponsePart?.text;
+          console.log("Response text:", responseText);
           finalAnswer += responseText + " ";
 
           if (citation?.retrievedReferences) {
-            for (const reference of citation?.retrievedReferences) {
-              // Extract and format the citations
+            for (const reference of citation.retrievedReferences) {
+              console.log("Reference:", reference);
               const sourceUrl = reference?.content?.text;
               const sourceFilename = reference?.metadata ? reference?.metadata["x-amz-bedrock-kb-source-uri"] : "";
 
-              // Append the source filename and reference text to the lists
+              // Log for debugging
+              console.log("Source URL:", sourceUrl);
+              console.log("Source Filename:", sourceFilename);
+
+              // Append to lists
               sourceFilenamelist.push(sourceFilename?.toString() ?? "");
               sourceText.push(`${sourceUrl}\n`);
 
-              // Add source reference text to final answer
+              // Add to finalAnswer
               finalAnswer += `Source[${i}] `;
               i++;
             }
+          } else {
+            console.log("No retrievedReferences for this citation.");
           }
           finalAnswer += `\n`;
         }
       }
     }
-
-    console.log("Final generated answer:", finalAnswer);
 
     console.log("Final generated answer:", finalAnswer);
 
@@ -180,7 +184,7 @@ export const handler = async (event: any, context: any) => {
     // Returning the response to the client
     return {
       job_id: jobId,
-      message: response.output?.text,
+      message: finalAnswer.length > 0 ? finalAnswer : response.output?.text,
       sessionId,
       source_text: sourceText,
       source_filenamelist: sourceFilenamelist
@@ -194,12 +198,12 @@ export const handler = async (event: any, context: any) => {
         TableName: TABLE_NAME,
         Item: {
           job_id: { S: jobId },
-          customer_id: { S: customerId },
+          customer_id: { S: customerId || "NA" },
           project_id: { S: projectId },
           status: { S: "ERROR" },
           response: { S: "Something went wrong" },
           user_query: { S: "General query" },
-          session_id: { S: "N/A" },
+          session_id: { S: sessionId },
           source_text: { L: sourceText.map((text) => ({ S: text })) }
         }
       })
@@ -210,7 +214,7 @@ export const handler = async (event: any, context: any) => {
     return {
       job_id: jobId,
       message: "Something went wrong",
-      sessionId: "N/A",
+      sessionId: sessionId,
       source_text: sourceText,
       source_filenamelist: sourceFilenamelist
     };

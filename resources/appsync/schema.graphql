@@ -1,3 +1,14 @@
+input AddFileToProjectInput {
+  projectId: String!
+  files: [ProjectFileInput]
+}
+
+type AddFileToProjectResponse {
+  status: Int
+  data: ReferenceAndUrlData
+  error: AWSJSON
+}
+
 input AddProductToCollectionInput {
   productId: String
   collectionId: String
@@ -24,6 +35,30 @@ type BatchMintCnft {
 
 type BatchMintCnftData {
   transactionHash: [String]
+}
+
+type BlockchainResponse {
+  status: Int
+  data: BlockchainResponseData
+  error: String
+}
+
+type BlockchainResponseData {
+  blockHash: String!
+  gasFee: String!
+  chainType: String!
+  type: Int!
+  confirmations: Int!
+  message: String!
+  nonce: Int!
+  chainId: Int!
+  blockNumber: Int!
+  from: String!
+  to: String!
+  txHash: String!
+  hash: String!
+  status: String!
+  timestamp: String!
 }
 
 type CartData {
@@ -190,6 +225,27 @@ type FilterProductResponse {
   status: Int
   data: [FilterProductData]
   error: AWSJSON
+}
+
+# Define the input structure for submitting a query to the Lambda
+input GenerateQueryAnswerInput {
+  message: String!
+  # The user query to be answered
+  sessionId: String
+  # Optional session ID for maintaining context
+  projectId: String!
+}
+
+type GenerateQueryAnswerResponse {
+  job_id: String!
+  # Unique job ID generated for the request
+  message: String!
+  # The generated answer
+  sessionId: String!
+  # The session ID to maintain context
+  source_text: [String!]!
+  # List of sources or citations used to generate the response
+  source_filenamelist: [String!]!
 }
 
 input GetCategoriesInput {
@@ -384,6 +440,10 @@ type GetProductsResponse {
   status: Int
   data: [ProductData]
   error: AWSJSON
+}
+
+input GetQueryAnswerOriginInput {
+  jobId: String!
 }
 
 input GetReviewsInput {
@@ -593,6 +653,18 @@ input ListProjectByIdInput {
   projectId: String!
   pageNo: Int!
   limit: Int!
+}
+
+input ListRefByCustomerInput {
+  limit: Int!
+  pageNo: Int!
+  projectId: String!
+}
+
+type ListRefByCustomerResponse {
+  status: Int
+  data: ReferenceListData
+  error: AWSJSON
 }
 
 input ListStakeAccountInput {
@@ -817,6 +889,43 @@ type ProjectData {
   chaintype: String
 }
 
+input ProjectFileInput {
+  fileName: String
+  fileSize: String
+  contentType: String
+  hash: String!
+  websiteName: String
+  websiteUrl: String
+  refType: String!
+  depth: Int
+}
+
+type ReferenceAndUrlData {
+  refs: [ReferenceData]
+  urls: [S3PreSignedUrlData]
+}
+
+type ReferenceData {
+  id: String
+  createdat: String
+  depth: Int
+  size: String
+  ingested: Boolean
+  reftype: String
+  name: String
+  url: String
+  datasourceid: String
+  ingestionjobid: String
+  status: String
+  referencestage: String
+}
+
+type ReferenceListData {
+  total: Int
+  totalPages: Int
+  refs: [ReferenceData]
+}
+
 input RemoveFromCartInput {
   inventoryId: String!
 }
@@ -856,6 +965,11 @@ type ReviewResponse {
 enum ReviewsFindBy {
   PRODUCT
   CUSTOMER
+}
+
+type S3PreSignedUrlData {
+  key: String
+  url: String
 }
 
 type SignIn {
@@ -1133,6 +1247,21 @@ type UpdateOrderStatusResponseData {
   order: UpdateOrderStatusData
 }
 
+input UpdateRefFileInput {
+  id: String!
+  status: String!
+}
+
+input UpdateReferenceStatusInput {
+  files: [UpdateRefFileInput]
+}
+
+type UpdateReferenceStatusResponse {
+  status: Int
+  data: [ReferenceData]
+  error: AWSJSON
+}
+
 type Web3TransactionResponse {
   status: Int
   transactionHash: String
@@ -1163,111 +1292,6 @@ type WithdrawStake {
 input WithdrawStakeInput {
   senderWalletAddress: String!
   accountPublicKey: String!
-}
-
-input AddFileToProjectInput {
-  projectId: String!
-  files: [ProjectFileInput]
-}
-input ProjectFileInput {
-  fileName: String
-  fileSize: String
-  contentType: String
-  hash: String!
-  websiteName: String
-  websiteUrl: String
-  refType: String!
-  depth: Int
-}
-
-type AddFileToProjectResponse {
-  status: Int
-  data: ReferenceAndUrlData
-  error: AWSJSON
-}
-
-type ReferenceAndUrlData {
-  refs: [ReferenceData]
-  urls: [S3PreSignedUrlData]
-}
-type S3PreSignedUrlData {
-  key: String
-  url: String
-}
-
-type ReferenceData {
-  id: String
-  createdat: String
-  depth: Int
-  size: String
-  ingested: Boolean
-  reftype: String
-  name: String
-  url: String
-  datasourceid: String
-  ingestionjobid: String
-  status: String
-  referencestage: String
-}
-
-input ListRefByCustomerInput {
-  limit: Int!
-  pageNo: Int!
-  projectId: String!
-}
-
-type ListRefByCustomerResponse {
-  status: Int
-  data: ReferenceListData
-  error: AWSJSON
-}
-
-type ReferenceListData {
-  total: Int
-  totalPages: Int
-  refs: [ReferenceData]
-}
-
-input UpdateReferenceStatusInput {
-  files: [UpdateRefFileInput]
-}
-
-input UpdateRefFileInput {
-  id: String!
-  status: String!
-}
-
-type UpdateReferenceStatusResponse {
-  status: Int
-  data: [ReferenceData]
-  error: AWSJSON
-}
-
-type GenerateQueryAnswerResponse {
-  job_id: String! # Unique job ID generated for the request
-  message: String! # The generated answer
-  sessionId: String! # The session ID to maintain context
-  source_text: [String!]! # List of sources or citations used to generate the response
-  source_filenamelist: [String!]! # List of filenames of the sources or citations used to generate the response
-}
-
-# Define the input structure for submitting a query to the Lambda
-input GenerateQueryAnswerInput {
-  message: String! # The user query to be answered
-  sessionId: String # Optional session ID for maintaining context
-  projectId: String! # The knowledge base ID to query
-}
-
-input GetQueryAnswerOriginInput {
-  job_id: String! # Unique job ID generated for the request
-}
-
-type GetQueryAnswerOriginResponse {
-  job_id: String! # Unique job ID generated for the request
-  message: String! # The generated answer
-  sessionId: String! # The session ID to maintain context
-  source_text: [String!]! # List of sources or citations used to generate the response
-  source_filenamelist: [String!]! # List of filenames of the sources or citations used to generate the response
 }
 
 type Mutation {
@@ -1341,7 +1365,7 @@ type Query {
   GetInventoriesByProduct(input: GetInventoriesByProductInput): GetInventoriesByProductResponse
   GetProjectAndStepById(input: ListProjectByIdInput): ProjectAndStepsResponse
   ListReferenceByCustomer(input: ListRefByCustomerInput): ListRefByCustomerResponse
-  GetQueryAnswerOrigin(input: GetQueryAnswerOriginInput): GetQueryAnswerOriginResponse
+  GetQueryAnswerOrigin(input: GetQueryAnswerOriginInput): BlockchainResponse
 }
 
 schema {
