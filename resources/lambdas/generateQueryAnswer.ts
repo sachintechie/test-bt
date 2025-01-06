@@ -56,9 +56,11 @@ export const handler = async (event: any, context: any) => {
 
     console.log("Project fetched successfully...");
 
+    if(project.data?.knowledgebaseid != null){
+
     // from project we will get the knowledge base id, and index name
     //const indexId = project.data?.indexid;
-    const knowledgebaseId = project.data?.knowledgebaseid ? project.data?.knowledgebaseid : "ET3BO7O02P";
+    const knowledgebaseId = project.data?.knowledgebaseid;
     console.log("knowledgebaseId", knowledgebaseId);
     // Set up the configuration for retrieval and generation
     const numberOfResults = 10;
@@ -189,6 +191,16 @@ export const handler = async (event: any, context: any) => {
       source_text: sourceText,
       source_filenamelist: sourceFilenamelist
     };
+  }
+  else{
+    return {
+      job_id: jobId,
+      message: "No data source attached",
+      sessionId: sessionId,
+      source_text: sourceText,
+      source_filenamelist: []
+    };
+  }
   } catch (error) {
     console.error("Error during Lambda execution:", error);
 

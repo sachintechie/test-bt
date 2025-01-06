@@ -3,6 +3,7 @@ import { Client as OpenSearchClient } from "@opensearch-project/opensearch";
 import AWS from "aws-sdk";
 import { BedrockAgentClient, DeleteKnowledgeBaseCommand, ListKnowledgeBasesCommand } from "@aws-sdk/client-bedrock-agent";
 import { connectToOpenSearch } from "../opensearch/commonFunction";
+import { console } from "inspector";
 
 AWS.config.update({ region: "us-east-1" });
 
@@ -112,25 +113,47 @@ export class IndexS3Deletion {
     refId: string
   ): Promise<{ success: boolean; message: string }> {
     console.log(`[DELETE_FILES_INDEX] Attempting to delete files with name: ${fileName} from index: ${indexName}`);
+    const source_uri =  JSON.stringify({
+      file_name: fileName,
+      project_id: projectId,
+      ref_id: refId
+    });
+
+    console.log("source_uri",source_uri)
     try {
       this.openSearchClient = await connectToOpenSearch();
-      const response = await this.openSearchClient.deleteByQuery({
-        index: indexName,
+
+      const file =  await this.openSearchClient.search({
+        index:indexName,
         body: {
           query: {
             match: {
-              "x-amz-bedrock-kb-source-uri": JSON.stringify({
-                file_name: fileName,
-                project_id: projectId,
-                ref_id: refId
-              })
+              "x-amz-bedrock-kb-source-uri": source_uri
             }
-          },
-          size: 50
+          }
         }
       });
+      console.log("file",JSON.stringify(file.body.hits));
+      console.log("file-hits",JSON.stringify(file.body.hits.hits));
 
-      if (response.statusCode === 200) {
+      const fileList = file.body.hits.hits;
+
+      const responseList  = [];
+
+      for (const hit of fileList){
+        console.log("hit",hit)
+
+      const response = await this.openSearchClient.delete({
+        index: indexName,
+        id:hit._id
+       
+      });
+      console.log("response",response);
+      responseList.push(response)
+    }
+
+
+      if (responseList[0].statusCode === 200) {
         console.log(`[DELETE_FILES_INDEX] Files deleted from index ${indexName} successfully`);
         return {
           success: true,
@@ -143,11 +166,11 @@ export class IndexS3Deletion {
         success: false,
         message: `Failed to delete files from index ${indexName}`
       };
-    } catch (error) {
+    } catch (error : any) {
       console.error(`[DELETE_FILES_INDEX] Error deleting files from index ${indexName}:`, error);
       return {
         success: false,
-        message: error.message
+        message: error
       };
     }
   }

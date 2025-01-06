@@ -93,10 +93,10 @@ export const handler = async (event: any, context: any) => {
         const file = {
           fileName: fileName,
           fileSize: s3Data?.data?.size,
-          url:currentUrl,
+          websiteUrl:currentUrl,
           refType: RefType.DOCUMENT,
           contentType: s3Data.data?.contentType,
-          hash:hash
+          hash:hash.data?.dataHash
         };
 
 

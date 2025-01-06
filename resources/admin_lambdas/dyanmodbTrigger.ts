@@ -93,8 +93,8 @@ export const handler = async (event: any) => {
 
         // Extract source_filenamelist to get project_id
         const sourceFileList = item?.source_filenamelist?.L || [];
-        const extractedProjectId = getProjectIdFromSourceFileList(sourceFileList);
-        const finalProjectId = extractedProjectId || null;
+        // const extractedProjectId = getProjectIdFromSourceFileList(sourceFileList);
+         const finalProjectId = item?.project_id?.S;
 
         let project;
         if (finalProjectId) {
